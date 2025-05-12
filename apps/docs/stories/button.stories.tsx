@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { Button } from "@acme/ui/button";
+import { Button } from "swell-calendar/button";
 
 const meta: Meta<typeof Button> = {
   component: Button,

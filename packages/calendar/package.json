@@ -1,5 +1,5 @@
 {
-  "name": "@acme/ui",
+  "name": "swell-calendar",
   "version": "0.0.0",
   "sideEffects": false,
   "license": "MIT",
