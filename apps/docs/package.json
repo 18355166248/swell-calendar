@@ -4,6 +4,7 @@
   "type": "module",
   "private": true,
   "scripts": {
+    "dev1": "node ../../scripts/changeNode.js 20 pnpm dev",
     "dev": "storybook dev -p 6006",
     "build": "storybook build --docs",
     "preview-storybook": "serve storybook-static",

@@ -11,9 +11,9 @@
   },
   "exports": {
     "./Day": {
-      "types": "./src/Day/index.tsx",
-      "import": "./dist/Day.mjs",
-      "require": "./dist/Day.js"
+      "types": "./dist/Day/index.d.ts",
+      "import": "./dist/Day/index.mjs",
+      "require": "./dist/Day/index.js"
     }
   },
   "devDependencies": {
