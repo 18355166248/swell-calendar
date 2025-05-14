@@ -1,19 +1,19 @@
-import type { Meta, StoryObj } from "@storybook/react";
-import { Button } from "swell-calendar/button";
+import type { Meta, StoryObj } from '@storybook/react';
+import { Day } from 'swell-calendar/Day';
 
-const meta: Meta<typeof Button> = {
-  component: Button,
+const meta: Meta<typeof Day> = {
+  component: Day,
   argTypes: {
     type: {
-      control: { type: "radio" },
-      options: ["button", "submit", "reset"],
+      control: { type: 'radio' },
+      options: ['button', 'submit', 'reset'],
     },
   },
 };
 
 export default meta;
 
-type Story = StoryObj<typeof Button>;
+type Story = StoryObj<typeof Day>;
 
 /*
  *👇 Render functions are a framework specific feature to allow you control on how the component renders.
@@ -22,23 +22,21 @@ type Story = StoryObj<typeof Button>;
  */
 export const Primary: Story = {
   render: (props) => (
-    <Button
+    <Day
       {...props}
       onClick={(): void => {
         // eslint-disable-next-line no-alert -- alert for demo
-        alert("Hello from Turborepo!");
+        alert('Hello Swell Calendar!');
       }}
-    >
-      Hello
-    </Button>
+    />
   ),
-  name: "Button",
+  name: 'Day',
   args: {
-    children: "Hello",
-    type: "button",
+    children: 'Hello',
+    type: 'button',
     style: {
-      color: "blue",
-      border: "1px solid gray",
+      color: 'blue',
+      border: '1px solid gray',
       padding: 10,
       borderRadius: 10,
     },

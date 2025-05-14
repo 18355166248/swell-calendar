@@ -11,18 +11,18 @@
     "lint": "eslint ./stories/*.stories.tsx --max-warnings 0"
   },
   "dependencies": {
-    "swell-calendar": "workspace:*",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "swell-calendar": "workspace:*"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
-    "@storybook/addon-actions": "^8.2.6",
-    "@storybook/addon-essentials": "^8.2.6",
-    "@storybook/addon-links": "^8.2.6",
-    "@storybook/react": "^8.2.6",
-    "@storybook/react-vite": "^8.2.6",
+    "@storybook/addon-actions": "^8.6.12",
+    "@storybook/addon-essentials": "^8.6.12",
+    "@storybook/addon-links": "^8.6.12",
+    "@storybook/react": "^8.6.12",
+    "@storybook/react-vite": "^8.6.12",
     "@vitejs/plugin-react": "^4.2.1",
     "eslint": "^8.57.0",
     "serve": "^14.2.1",

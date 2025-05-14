@@ -1,9 +1,11 @@
-import { defineConfig } from "tsup";
+import { defineConfig } from 'tsup';
 
 export default defineConfig((options) => ({
-  entryPoints: ["src/button.tsx"],
-  format: ["cjs", "esm"],
+  entryPoints: {
+    Day: 'src/Day/index.tsx',
+  },
+  format: ['cjs', 'esm'],
   dts: true,
-  external: ["react"],
+  external: ['react'],
   ...options,
 }));

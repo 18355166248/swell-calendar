@@ -3,18 +3,18 @@
   "version": "0.0.0",
   "sideEffects": false,
   "license": "MIT",
-  "exports": {
-    "./button": {
-      "types": "./src/button.tsx",
-      "import": "./dist/button.mjs",
-      "require": "./dist/button.js"
-    }
-  },
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
     "lint": "eslint . --max-warnings 0",
     "clean": "rm -rf .turbo node_modules dist"
+  },
+  "exports": {
+    "./Day": {
+      "types": "./src/Day/index.tsx",
+      "import": "./dist/Day.mjs",
+      "require": "./dist/Day.js"
+    }
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
