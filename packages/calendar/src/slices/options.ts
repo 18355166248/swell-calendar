@@ -1,4 +1,4 @@
-import { Day } from '@/time/dateTime';
+import { Day } from '@/time/datetime';
 import { Options } from '@/types/options.type';
 import { CalendarWeekOptions } from '@/types/store';
 
