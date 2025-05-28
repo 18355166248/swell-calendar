@@ -1,4 +1,4 @@
-import { CSS_PREFIX } from '@/constants/style';
+import { CSS_PREFIX } from '@/constants/style.const';
 import isString from 'lodash-es/isString';
 
 interface ClassNameDictionary {

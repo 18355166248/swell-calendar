@@ -1,7 +1,7 @@
 import { ButtonHTMLAttributes, ReactNode, useMemo } from 'react';
 import { useCalendarStore } from '@/contexts/calendarStore';
 import { getActivePanels } from '@/helpers/view';
-import { TimeGrid } from '@/components/timeGrid/timeGrid';
+import { TimeGrid } from '@/components/timeGrid/TimeGrid';
 
 export interface DayProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode;

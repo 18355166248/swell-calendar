@@ -1,4 +1,4 @@
-import { DEFAULT_EVENT_PANEL, DEFAULT_TASK_PANEL } from '@/constants/view';
+import { DEFAULT_EVENT_PANEL, DEFAULT_TASK_PANEL } from '@/constants/view.const';
 import { EventView, TaskView, WeekOptions } from '@/types/options.type';
 
 export function getActivePanels(
