@@ -2,7 +2,8 @@ import { defineConfig } from 'tsup';
 
 export default defineConfig((options) => ({
   entry: {
-    'Day/index': 'src/components/Day/index.tsx',
+    'Day/index': 'src/components/view/Day/index.tsx',
+    'TimeGrid/index': 'src/components/timeGrid/timeGrid.tsx',
   },
   format: ['cjs', 'esm'],
   dts: true,

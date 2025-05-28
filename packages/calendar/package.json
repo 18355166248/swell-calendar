@@ -15,6 +15,11 @@
       "types": "./dist/Day/index.d.ts",
       "import": "./dist/Day/index.mjs",
       "require": "./dist/Day/index.js"
+    },
+    "./TimeGrid": {
+      "types": "./dist/TimeGrid/index.d.ts",
+      "import": "./dist/TimeGrid/index.mjs",
+      "require": "./dist/TimeGrid/index.js"
     }
   },
   "devDependencies": {
