@@ -413,6 +413,3 @@ export default class DayjsTZDate implements DayjsTZDateMethods {
     return instance;
   }
 }
-
-// 导出类型
-export type { DayjsTZDate } from './dayjs-tzdate.types';

@@ -13,19 +13,7 @@ export function Day({ children, ...other }: DayProps): JSX.Element {
   const { narrowWeekend, hourStart, hourEnd, taskView, eventView } = weekOptions;
   const activePanels = getActivePanels(taskView, eventView);
 
-  const timeGridData = useMemo(
-    () =>
-      createTimeGridData(days, {
-        hourStart,
-        hourEnd,
-        narrowWeekend,
-      }),
-    [days, hourEnd, hourStart, narrowWeekend]
-  );
-
-  return (
-    <div>{activePanels.includes('time') ? <TimeGrid timeGridData={timeGridData} /> : null}</div>
-  );
+  return <div>{activePanels.includes('time') ? <TimeGrid /> : null}</div>;
 }
 
 Day.displayName = 'Day';
