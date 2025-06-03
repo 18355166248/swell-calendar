@@ -1,7 +1,7 @@
 import { Options } from '@/types/options.type';
-import { createOptionsSlice } from '@/slices/options';
+import { createOptionsSlice } from '@/slices/options.slice';
 import { create } from 'zustand';
-import { CalendarWeekOptions } from '@/types/store';
+import { CalendarWeekOptions } from '@/types/store.type';
 
 interface CalendarState {
   options: {

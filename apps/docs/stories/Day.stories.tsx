@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { TimeGrid } from 'swell-calendar/TimeGrid';
+import { Day } from 'swell-calendar/Day';
 
-const meta: Meta<typeof TimeGrid> = {
-  component: TimeGrid,
+const meta: Meta<typeof Day> = {
+  component: Day,
   argTypes: {
     type: {
       control: { type: 'radio' },
@@ -13,7 +13,7 @@ const meta: Meta<typeof TimeGrid> = {
 
 export default meta;
 
-type Story = StoryObj<typeof TimeGrid>;
+type Story = StoryObj<typeof Day>;
 
 /*
  *👇 Render functions are a framework specific feature to allow you control on how the component renders.
@@ -21,9 +21,10 @@ type Story = StoryObj<typeof TimeGrid>;
  * to learn how to use render functions.
  */
 export const Primary: Story = {
-  render: (props) => <TimeGrid />,
-  name: 'TimeGrid',
+  render: (props) => <Day {...props} />,
+  name: 'Day',
   args: {
     style: {},
+    children: 'Day',
   },
 };

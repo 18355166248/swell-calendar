@@ -1,6 +1,6 @@
 import type { DayjsTZDateType } from '@/time/dayjs-tzdate.types';
-import type { ClientMousePosition } from '@/types/mouse';
-import type { FormattedTimeString } from '@/types/datetime';
+import type { ClientMousePosition } from '@/types/mouse.type';
+import type { FormattedTimeString } from '@/types/datetime.type';
 
 export interface GridUIModel {
   day: number;

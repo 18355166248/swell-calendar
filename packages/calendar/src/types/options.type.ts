@@ -1,5 +1,3 @@
-import type { DeepPartial } from 'ts-essentials';
-
 export type EventView = 'allday' | 'time';
 export type TaskView = 'milestone' | 'task';
 

@@ -1,6 +1,6 @@
 import { Day } from '@/time/datetime';
 import { Options } from '@/types/options.type';
-import { CalendarWeekOptions } from '@/types/store';
+import { CalendarWeekOptions } from '@/types/store.type';
 
 function initializeWeekOptions(weekOptions: Options['week'] = {}): CalendarWeekOptions {
   const week: CalendarWeekOptions = {
