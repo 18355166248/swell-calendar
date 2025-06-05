@@ -1,5 +1,5 @@
 import { Day } from '@/time/datetime';
-import { Options } from '@/types/options.type';
+import { Options, OptionsSlice } from '@/types/options.type';
 import { CalendarWeekOptions } from '@/types/store.type';
 
 function initializeWeekOptions(weekOptions: Options['week'] = {}): CalendarWeekOptions {
@@ -11,13 +11,14 @@ function initializeWeekOptions(weekOptions: Options['week'] = {}): CalendarWeekO
     hourEnd: 24,
     eventView: true,
     taskView: true,
+    hourDivision: 2,
     ...weekOptions,
   };
 
   return week;
 }
 
-export function createOptionsSlice(options: Options = {}) {
+export function createOptionsSlice(options: Options = {}): OptionsSlice {
   return {
     options: {
       defaultView: options.defaultView ?? 'week',

@@ -1,23 +1,18 @@
 import { Options } from '@/types/options.type';
 import { createOptionsSlice } from '@/slices/options.slice';
 import { create } from 'zustand';
-import { CalendarWeekOptions } from '@/types/store.type';
+import { createViewSlice } from '@/slices/view.slice';
+import { CalendarStore } from '@/types/store.type';
 
-interface CalendarState {
-  options: {
-    defaultView: 'month' | 'week' | 'day';
-    week: CalendarWeekOptions;
-  };
-}
-
-type SetState = (fn: (state: CalendarState) => Partial<CalendarState>) => void;
+type SetState = (fn: (state: CalendarStore) => Partial<CalendarStore>) => void;
 
 const storeCreator = (options: Options) => (set: SetState) => ({
   ...createOptionsSlice(options),
+  ...createViewSlice(options.defaultView),
 });
 
 export const createCalendarStore = (options: Options = {}) => {
-  return create<CalendarState>(storeCreator(options));
+  return create<CalendarStore>(storeCreator(options));
 };
 
 export const useCalendarStore = createCalendarStore();

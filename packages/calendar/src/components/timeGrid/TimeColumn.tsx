@@ -1,7 +1,13 @@
 import { useThemeStore } from '@/contexts/themeStore';
 import { addTimeGridPrefix } from '@/constants/timeGrid-const';
+import { TimeGridRow } from '@/types/grid.type';
+import { memo } from 'react';
 
-export function TimeColumn() {
+interface TimeColumnProps {
+  timeGridRows: TimeGridRow[];
+}
+
+function TimeColumn({ timeGridRows }: TimeColumnProps) {
   const { week } = useThemeStore();
   const { timeGridLeft } = week;
   const { width } = timeGridLeft;
@@ -20,3 +26,5 @@ export function TimeColumn() {
     </div>
   );
 }
+
+export default memo(TimeColumn);
