@@ -1,5 +1,6 @@
 import { DeepPartial } from 'ts-essentials';
 import { ThemeState } from './theme.type';
+import { TemplateConfig } from './template.type';
 
 export type EventView = 'allday' | 'time';
 export type TaskView = 'milestone' | 'task';
@@ -15,6 +16,8 @@ export interface Options {
   theme?: DeepPartial<ThemeState>;
   // 周视图选项
   week?: WeekOptions;
+  // 模板配置
+  template?: TemplateConfig;
 }
 
 export interface WeekOptions {

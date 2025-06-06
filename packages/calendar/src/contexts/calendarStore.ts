@@ -3,11 +3,13 @@ import { createOptionsSlice } from '@/slices/options.slice';
 import { create } from 'zustand';
 import { createViewSlice } from '@/slices/view.slice';
 import { CalendarStore } from '@/types/store.type';
+import { createTemplateSlice } from '@/slices/template.slice';
 
 type SetState = (fn: (state: CalendarStore) => Partial<CalendarStore>) => void;
 
 const storeCreator = (options: Options) => (set: SetState) => ({
   ...createOptionsSlice(options),
+  ...createTemplateSlice(options.template),
   ...createViewSlice(options.defaultView),
 });
 

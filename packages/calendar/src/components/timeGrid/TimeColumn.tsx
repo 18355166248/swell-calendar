@@ -1,7 +1,58 @@
 import { useThemeStore } from '@/contexts/themeStore';
 import { addTimeGridPrefix } from '@/constants/timeGrid-const';
 import { TimeGridRow } from '@/types/grid.type';
-import { memo } from 'react';
+import { memo, useCallback, useMemo } from 'react';
+import DayjsTZDate from '@/time/dayjs-tzdate';
+import { cls, toPercent } from '@/helpers/css';
+import { setTimeStrToDate } from '@/time/datetime';
+import { isNil } from 'lodash-es';
+import { Template } from '../Template';
+
+const classNames = {
+  timeColumn: addTimeGridPrefix('time-column'),
+  hourRows: addTimeGridPrefix('hour-rows'),
+  time: addTimeGridPrefix('time'),
+  timeLabel: addTimeGridPrefix('time-label'),
+  first: addTimeGridPrefix('time-first'),
+  last: addTimeGridPrefix('time-last'),
+  hidden: addTimeGridPrefix('time-hidden'),
+};
+
+interface HourRowsProps {
+  rowsInfo: {
+    date: DayjsTZDate;
+    top: number;
+    className: string;
+    diffFromPrimaryTimezone?: number;
+  }[];
+  width: number;
+  isPrimary?: boolean;
+}
+
+function HourRows({ rowsInfo, width, isPrimary = false }: HourRowsProps) {
+  return (
+    <div role="rowgroup" className={cls(classNames.hourRows)} style={{ width: toPercent(width) }}>
+      {rowsInfo.map(({ date, top, className }) => {
+        return (
+          <div
+            key={date.getTime()}
+            className={className}
+            style={{
+              top: toPercent(top),
+            }}
+            role="row"
+          >
+            <Template
+              template={`timeGridDisplay${isPrimary ? 'Primary' : ''}Time`}
+              param={{ time: date }}
+              as="span"
+            />
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 interface TimeColumnProps {
   timeGridRows: TimeGridRow[];
@@ -12,17 +63,37 @@ function TimeColumn({ timeGridRows }: TimeColumnProps) {
   const { timeGridLeft } = week;
   const { width } = timeGridLeft;
 
-  const classNames = {
-    timeColumn: addTimeGridPrefix('time-column'),
-    timeColumnHeader: addTimeGridPrefix('time-column-header'),
-    timeColumnHeaderItem: addTimeGridPrefix('time-column-header-item'),
-  };
+  const rowsByHour = useMemo(
+    () => timeGridRows.filter((_, index) => index % 2 === 0 || index === timeGridRows.length - 1),
+    [timeGridRows]
+  );
+  console.log('🚀 ~ TimeColumn ~ rowsByHour:', rowsByHour);
+  const hourRowsPropsMapper = useCallback(
+    (row: TimeGridRow, index: number) => {
+      const isFirst = index === 0;
+      const isLast = index === rowsByHour.length - 1;
+      const className = cls(classNames.time, {
+        [classNames.first]: isFirst,
+        [classNames.last]: isLast,
+      });
+      const date = setTimeStrToDate(new DayjsTZDate(), isLast ? row.endTime : row.startTime);
+
+      return {
+        date,
+        top: row.top,
+        className,
+      };
+    },
+    [rowsByHour]
+  );
+
+  const primaryTimezoneHourRowsProps = rowsByHour.map((row, index) =>
+    hourRowsPropsMapper(row, index)
+  );
 
   return (
     <div className={classNames.timeColumn} style={{ width }}>
-      <div className={classNames.timeColumnHeader}>
-        <div className={classNames.timeColumnHeaderItem}>TimeColumn Test</div>
-      </div>
+      <HourRows rowsInfo={primaryTimezoneHourRowsProps} width={100} />
     </div>
   );
 }
