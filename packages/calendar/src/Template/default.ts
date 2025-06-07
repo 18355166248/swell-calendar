@@ -5,7 +5,7 @@ export const templates: Template = {
   timeGridDisplayPrimaryTime(props: TemplateNow) {
     const { time } = props;
 
-    return dayjs(time.toDate()).format('hh tt');
+    return dayjs(time.toDate()).format('HH a');
   },
 
   timeGridDisplayTime(props: TemplateNow) {

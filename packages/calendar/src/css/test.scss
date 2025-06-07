@@ -1,0 +1,16 @@
+// 测试 SCSS 支持
+$primary-color: #007bff;
+$border-radius: 4px;
+
+.test-component {
+  color: $primary-color;
+  border-radius: $border-radius;
+
+  &:hover {
+    opacity: 0.8;
+  }
+
+  .nested-element {
+    margin: 10px;
+  }
+}
