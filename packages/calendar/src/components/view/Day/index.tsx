@@ -5,6 +5,9 @@ import { TimeGrid } from '@/components/timeGrid/TimeGrid';
 import { useThemeStore } from '@/contexts/themeStore';
 import { WeekOptions } from '@/types/options.type';
 import { createTimeGridData } from '@/helpers/grid';
+import Layout from '@/components/Layout';
+import Panel from '@/components/Panel';
+import { WEEK_DAY_NAME_BORDER, WEEK_DAY_NAME_HEIGHT } from '@/constants/style.const';
 
 export interface DayProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode;
@@ -33,7 +36,17 @@ export function Day({ children, ...other }: DayProps): JSX.Element {
   );
 
   return (
-    <div>{activePanels.includes('time') ? <TimeGrid timeGridData={timeGridData} /> : null}</div>
+    <Layout className="day-view">
+      <Panel
+        name="day-view-day-names"
+        initialHeight={WEEK_DAY_NAME_HEIGHT + WEEK_DAY_NAME_BORDER}
+      ></Panel>
+      {activePanels.includes('time') ? (
+        <Panel name="time">
+          <TimeGrid timeGridData={timeGridData} />
+        </Panel>
+      ) : null}
+    </Layout>
   );
 }
 

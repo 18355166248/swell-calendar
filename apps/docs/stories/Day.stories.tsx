@@ -1,8 +1,16 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { Day } from 'swell-calendar/Day';
+import { Day, DayProps } from 'swell-calendar/Day';
+
+function DayView(props: DayProps) {
+  return (
+    <div style={{ position: 'absolute', inset: 0 }}>
+      <Day {...props}></Day>
+    </div>
+  );
+}
 
 const meta: Meta<typeof Day> = {
-  component: Day,
+  component: DayView,
   argTypes: {
     type: {
       control: { type: 'radio' },
@@ -21,8 +29,17 @@ type Story = StoryObj<typeof Day>;
  * to learn how to use render functions.
  */
 export const Primary: Story = {
-  render: (props) => <Day {...props} />,
-  name: 'Day',
+  render: (props) => <DayView {...props} />,
+  name: 'Primary',
+  args: {
+    style: {},
+    children: 'Day',
+  },
+};
+
+export const Primary1: Story = {
+  render: (props) => <DayView {...props} />,
+  name: 'Primary1',
   args: {
     style: {},
     children: 'Day',

@@ -1,4 +1,4 @@
-// import '../src/css/timeGrid/timeColumn.css';
+import 'swell-calendar/style.css';
 
 export const parameters = {
   layout: 'fullscreen',

@@ -20,7 +20,12 @@
       "types": "./dist/TimeGrid/index.d.ts",
       "import": "./dist/TimeGrid/index.js",
       "require": "./dist/TimeGrid/index.cjs"
-    }
+    },
+    "./css": {
+      "import": "./dist/css/index.js",
+      "require": "./dist/css/index.cjs"
+    },
+    "./style.css": "./dist/style.css"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
@@ -46,6 +51,12 @@
     "react": "^18.2.0",
     "ts-essentials": "^10.0.4",
     "zustand": "^5.0.4"
+  },
+  "peerDependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "zustand": "^5.0.4",
+    "dayjs": "^1.11.13"
   },
   "publishConfig": {
     "access": "public"

@@ -30,6 +30,7 @@ export default defineConfig({
       entry: {
         'Day/index': resolve(__dirname, 'src/components/view/Day/index.tsx'),
         'TimeGrid/index': resolve(__dirname, 'src/components/timeGrid/TimeGrid.tsx'),
+        'css/index': resolve(__dirname, 'src/css/index.scss'),
       },
       formats: ['es', 'cjs'],
       fileName: (format, entryName) => {
@@ -47,6 +48,6 @@ export default defineConfig({
       },
     },
     outDir: 'dist',
-    emptyOutDir: true,
+    emptyOutDir: true, // 构建前清空输出目录
   },
 });
