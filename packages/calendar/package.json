@@ -46,6 +46,7 @@
   },
   "dependencies": {
     "dayjs": "^1.11.13",
+    "immer": "^10.1.1",
     "isomorphic-dompurify": "^2.25.0",
     "lodash-es": "^4.17.21",
     "react": "^18.2.0",
@@ -53,10 +54,10 @@
     "zustand": "^5.0.4"
   },
   "peerDependencies": {
+    "dayjs": "^1.11.13",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "zustand": "^5.0.4",
-    "dayjs": "^1.11.13"
+    "zustand": "^5.0.4"
   },
   "publishConfig": {
     "access": "public"

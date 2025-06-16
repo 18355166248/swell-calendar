@@ -10,6 +10,7 @@ export type WeekViewLayoutSlice = {
       };
     };
   };
+  setLastPanelType: (lastPanelType: string) => void;
   updateLayoutHeight: (layout: number) => void;
   updateDayGridRowHeight: (row: WeekGridRows, height: number) => void;
 };

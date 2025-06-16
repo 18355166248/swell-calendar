@@ -1,10 +1,11 @@
 import { addTimeGridPrefix, className } from '@/constants/timeGrid-const';
 import TimeColumn from './TimeColumn';
 import { TimeGridData } from '@/types/grid.type';
+import { cls } from '@/helpers/css';
 
 const classNames = {
-  timeGrid: className,
-  scrollArea: addTimeGridPrefix('scroll-area'),
+  timeGrid: cls(className),
+  scrollArea: cls(addTimeGridPrefix('scroll-area')),
 };
 
 export interface TimeGridProps {
@@ -12,7 +13,6 @@ export interface TimeGridProps {
 }
 
 export function TimeGrid({ timeGridData }: TimeGridProps) {
-  console.log('🚀 ~ TimeGrid ~ timeGridData:', timeGridData);
   return (
     <div className={classNames.timeGrid}>
       <div className={classNames.scrollArea}>

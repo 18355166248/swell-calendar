@@ -1,0 +1,24 @@
+.swell-calendar {
+  &-time-grid {
+    height: 100%;
+    &-scroll-area {
+      height: 100%;
+    }
+    &-time-column {
+      height: 100%;
+    }
+    &-hour-rows {
+      height: 100%;
+    }
+    &-time {
+      position: absolute;
+      font-size: 11px;
+      &-first {
+        visibility: hidden;
+      }
+      &-last {
+        visibility: hidden;
+      }
+    }
+  }
+}

@@ -5,14 +5,13 @@ import { memo, useCallback, useMemo } from 'react';
 import DayjsTZDate from '@/time/dayjs-tzdate';
 import { cls, toPercent } from '@/helpers/css';
 import { setTimeStrToDate } from '@/time/datetime';
-import { isNil } from 'lodash-es';
 import { Template } from '../Template';
 
 const classNames = {
-  timeColumn: addTimeGridPrefix('time-column'),
-  hourRows: addTimeGridPrefix('hour-rows'),
+  timeColumn: cls(addTimeGridPrefix('time-column')),
+  hourRows: cls(addTimeGridPrefix('hour-rows')),
   time: addTimeGridPrefix('time'),
-  timeLabel: addTimeGridPrefix('time-label'),
+  timeLabel: cls(addTimeGridPrefix('time-label')),
   first: addTimeGridPrefix('time-first'),
   last: addTimeGridPrefix('time-last'),
   hidden: addTimeGridPrefix('time-hidden'),
@@ -31,8 +30,9 @@ interface HourRowsProps {
 
 function HourRows({ rowsInfo, width, isPrimary = false }: HourRowsProps) {
   return (
-    <div role="rowgroup" className={cls(classNames.hourRows)} style={{ width: toPercent(width) }}>
+    <div role="rowgroup" className={classNames.hourRows} style={{ width: toPercent(width) }}>
       {rowsInfo.map(({ date, top, className }) => {
+        console.log('🚀 ~ {rowsInfo.map ~ className:', className);
         return (
           <div
             key={date.getTime()}

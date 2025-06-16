@@ -46,10 +46,10 @@ const Panel = ({
   initialHeight = DEFAULT_PANEL_HEIGHT,
 }: PropsWithChildren<PanelProps>) => {
   const PanelClassName = useMemo(() => cls(addTimeGridPrefix('panel'), name), [name]);
-  const {
-    layout: { updateDayGridRowHeight, weekViewLayout },
-  } = useCalendarStore();
-  const dayGridRowHeight = weekViewLayout.dayGridRows[name]?.height;
+  const updateDayGridRowHeight = useCalendarStore((state) => state.layout.updateDayGridRowHeight);
+  const dayGridRowHeight = useCalendarStore(
+    (state) => state.layout.weekViewLayout.dayGridRows[name]?.height
+  );
 
   const height = dayGridRowHeight ?? initialHeight;
 
