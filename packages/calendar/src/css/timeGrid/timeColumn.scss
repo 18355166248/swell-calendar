@@ -1,9 +1,10 @@
 .time-grid-time-column {
-  .swell-calendar-time-grid-hour-rows {
+  &-hour-rows {
     display: inline-block;
     position: relative;
     height: 100%;
-    .swell-calendar-time-grid-time {
+
+    &-time {
       position: absolute;
     }
   }

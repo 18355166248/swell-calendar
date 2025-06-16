@@ -1,24 +1,31 @@
-.swell-calendar {
-  &-time-grid {
+.time-grid-panel.time {
+  overflow-y: auto;
+}
+
+.time-grid {
+  height: 200%;
+  min-height: 900px;
+  &-scroll-area {
     height: 100%;
-    &-scroll-area {
-      height: 100%;
+  }
+  &-time-column {
+    height: 100%;
+  }
+  &-hour-rows {
+    height: 100%;
+    position: relative;
+    border-right: 1px solid rgb(229, 229, 229);
+  }
+  &-time {
+    position: absolute;
+    right: 5px;
+    font-size: 11px;
+
+    &-first {
+      visibility: hidden;
     }
-    &-time-column {
-      height: 100%;
-    }
-    &-hour-rows {
-      height: 100%;
-    }
-    &-time {
-      position: absolute;
-      font-size: 11px;
-      &-first {
-        visibility: hidden;
-      }
-      &-last {
-        visibility: hidden;
-      }
+    &-last {
+      visibility: hidden;
     }
   }
 }

@@ -32,7 +32,8 @@ function HourRows({ rowsInfo, width, isPrimary = false }: HourRowsProps) {
   return (
     <div role="rowgroup" className={classNames.hourRows} style={{ width: toPercent(width) }}>
       {rowsInfo.map(({ date, top, className }) => {
-        console.log('🚀 ~ {rowsInfo.map ~ className:', className);
+        
+        // const isPast = !isN
         return (
           <div
             key={date.getTime()}
