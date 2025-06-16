@@ -60,3 +60,15 @@ export function setTimeStrToDate(d: DayjsTZDate, timeStr: FormattedTimeString) {
 
   return date;
 }
+
+export function isSameYear(d1: DayjsTZDate, d2: DayjsTZDate): boolean {
+  return d1.getFullYear() === d2.getFullYear();
+}
+
+export function isSameMonth(d1: DayjsTZDate, d2: DayjsTZDate): boolean {
+  return isSameYear(d1, d2) && d1.getMonth() === d2.getMonth();
+}
+
+export function isSameDate(d1: DayjsTZDate, d2: DayjsTZDate): boolean {
+  return isSameMonth(d1, d2) && d1.getDate() === d2.getDate();
+}
