@@ -24,6 +24,9 @@ export function Day({ children, ...other }: DayProps): JSX.Element {
   // 创建包含当前渲染日期的数组（日视图只显示一天）
   const days = useMemo(() => [renderDate], [renderDate]);
 
+  // 计算行样式信息和单元格宽度映射
+  const { rowStyleInfo } = getRowStyleInfo(days.length, narrowWeekend, startDayOfWeek, workweek);
+
   const timeGridData = useMemo(
     () =>
       createTimeGridData(days, {
