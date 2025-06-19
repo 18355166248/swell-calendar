@@ -1,5 +1,5 @@
 import DayjsTZDate from '@/time/dayjs-tzdate';
-import { ReactElement, ReactNode } from 'react';
+import { ReactElement } from 'react';
 
 export interface TemplateNow {
   time: DayjsTZDate;
@@ -16,3 +16,17 @@ export interface Template {
 export type TemplateConfig = Partial<Template>;
 
 export type TemplateSlice = { template: Template };
+
+export interface TemplateWeekDayName {
+  date: number;
+  day: number;
+  dayName: string;
+  isToday: boolean;
+  renderDate: string;
+  dateInstance: DayjsTZDate;
+}
+
+export interface TemplateMonthDayName {
+  day: number;
+  label: string;
+}
