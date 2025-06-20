@@ -4,8 +4,15 @@ import { TimeGridRow } from '@/types/grid.type';
 import { memo, useCallback, useMemo } from 'react';
 import DayjsTZDate from '@/time/dayjs-tzdate';
 import { cls, toPercent } from '@/helpers/css';
-import { setTimeStrToDate } from '@/time/datetime';
+import { addMinutes, setTimeStrToDate } from '@/time/datetime';
 import { Template } from '../Template';
+import { isNil } from 'lodash-es';
+import NowIndicatorLabel from './NowIndicatorLabel';
+
+type NowIndicatorState = {
+  top: number;
+  now: DayjsTZDate;
+} | null;
 
 const classNames = {
   timeColumn: cls(addTimeGridPrefix('time-column')),
@@ -22,23 +29,28 @@ interface HourRowsProps {
     date: DayjsTZDate;
     top: number;
     className: string;
-    diffFromPrimaryTimezone?: number;
   }[];
   width: number;
   isPrimary?: boolean;
+  nowIndicatorState: NowIndicatorState;
 }
 
-function HourRows({ rowsInfo, width, isPrimary = false }: HourRowsProps) {
+function HourRows({ rowsInfo, width, isPrimary = false, nowIndicatorState }: HourRowsProps) {
+  const zoneNow = !isNil(nowIndicatorState) ? addMinutes(nowIndicatorState.now, 0) : null;
+  const { pastTime, futureTime, showNowIndicator } = useThemeStore().week;
+
   return (
     <div role="rowgroup" className={classNames.hourRows} style={{ width: toPercent(width) }}>
       {rowsInfo.map(({ date, top, className }) => {
-        // const isPast = !isN
+        const isPast = !isNil(zoneNow) && date.isBefore(zoneNow);
+
         return (
           <div
             key={date.getTime()}
             className={className}
             style={{
               top: toPercent(top),
+              color: isPast ? pastTime.color : futureTime.color,
             }}
             role="row"
           >
@@ -50,15 +62,24 @@ function HourRows({ rowsInfo, width, isPrimary = false }: HourRowsProps) {
           </div>
         );
       })}
+      {showNowIndicator && !isNil(nowIndicatorState) && !isNil(zoneNow) && (
+        <NowIndicatorLabel
+          unit="hour"
+          top={nowIndicatorState.top}
+          now={nowIndicatorState.now}
+          zonedNow={zoneNow}
+        />
+      )}
     </div>
   );
 }
 
 interface TimeColumnProps {
   timeGridRows: TimeGridRow[];
+  nowIndicatorState: NowIndicatorState;
 }
 
-function TimeColumn({ timeGridRows }: TimeColumnProps) {
+function TimeColumn({ timeGridRows, nowIndicatorState }: TimeColumnProps) {
   const { week } = useThemeStore();
   const { timeGridLeft } = week;
   const { width } = timeGridLeft;
@@ -67,7 +88,7 @@ function TimeColumn({ timeGridRows }: TimeColumnProps) {
     () => timeGridRows.filter((_, index) => index % 2 === 0 || index === timeGridRows.length - 1),
     [timeGridRows]
   );
-  console.log('🚀 ~ TimeColumn ~ rowsByHour:', rowsByHour);
+
   const hourRowsPropsMapper = useCallback(
     (row: TimeGridRow, index: number) => {
       const isFirst = index === 0;
@@ -93,7 +114,11 @@ function TimeColumn({ timeGridRows }: TimeColumnProps) {
 
   return (
     <div className={classNames.timeColumn} style={{ width }}>
-      <HourRows rowsInfo={primaryTimezoneHourRowsProps} width={100} />
+      <HourRows
+        rowsInfo={primaryTimezoneHourRowsProps}
+        width={100}
+        nowIndicatorState={nowIndicatorState}
+      />
     </div>
   );
 }

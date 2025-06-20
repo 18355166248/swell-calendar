@@ -160,3 +160,10 @@ export function getRowStyleInfo(
 
   return { rowStyleInfo, cellWidthMap };
 }
+
+export function addMinutes(d: DayjsTZDate, minutes: number) {
+  const date = clone(d);
+  date.setMinutes(d.getMinutes() + minutes);
+
+  return date;
+}

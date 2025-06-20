@@ -3,9 +3,22 @@
   box-sizing: border-box;
 }
 
-.day-name {
-  padding-left: 10px;
-  padding-right: 10px;
+.day-names {
+  height: 100%;
+
+  &-container {
+    height: 100%;
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-start;
+
+    .day-name {
+      width: 100%;
+      height: 100%;
+      padding-left: 10px;
+      padding-right: 10px;
+    }
+  }
 }
 
 .day-name__date {

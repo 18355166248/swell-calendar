@@ -400,6 +400,10 @@ export default class DayjsTZDate implements DayjsTZDateMethods {
     return this._createNewInstance(localDayjs, null);
   }
 
+  isBefore(d: DayjsTZDate): boolean {
+    return this.dayjs.isBefore(d.dayjs);
+  }
+
   // ==================== 私有辅助方法 ====================
 
   /**

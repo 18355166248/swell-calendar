@@ -75,7 +75,7 @@ export function TimeGrid({ timeGridData }: TimeGridProps) {
 
   useLayoutEffect(() => {
     if (isMounted()) {
-      if (currentDateData?.currentDateIndex ?? -1 >= 0) {
+      if ((currentDateData?.currentDateIndex ?? -1) >= 0) {
         updateTimeIndicatorPosition();
       } else {
         setNowIndicatorState(null);
@@ -87,7 +87,7 @@ export function TimeGrid({ timeGridData }: TimeGridProps) {
     <div className={classNames.timeGrid}>
       <div className={classNames.scrollArea}>
         {/* 时间轴 */}
-        <TimeColumn timeGridRows={timeGridData.rows} />
+        <TimeColumn timeGridRows={timeGridData.rows} nowIndicatorState={nowIndicatorState} />
       </div>
     </div>
   );
