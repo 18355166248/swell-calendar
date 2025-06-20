@@ -1,7 +1,6 @@
 import { useCalendarStore } from '@/contexts/calendarStore';
 import { cls } from '@/helpers/css';
-import { TemplateName } from '@/Template/default';
-import { TemplateReturnType } from '@/types/template.type';
+import { TemplateName, TemplateReturnType } from '@/types/template.type';
 import { sanitize } from '@/utils/sanitizer';
 import { isNil, isString } from 'lodash-es';
 import { cloneElement, createElement } from 'react';

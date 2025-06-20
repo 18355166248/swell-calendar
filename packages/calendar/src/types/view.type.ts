@@ -1,9 +1,9 @@
-import { DayjsTZDateType } from '@/time/dayjs-tzdate.types';
 import { ViewType } from './options.type';
+import DayjsTZDate from '@/time/dayjs-tzdate';
 
 export type ViewSlice = {
   view: {
     currentView: ViewType;
-    renderDate: DayjsTZDateType;
+    renderDate: DayjsTZDate;
   };
 };

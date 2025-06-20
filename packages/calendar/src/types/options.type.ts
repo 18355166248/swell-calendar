@@ -37,6 +37,8 @@ export interface WeekOptions {
   taskView?: boolean | TaskView[];
   // 每小时的时间分隔数，2 表示半小时一块，4 表示15分钟一块，默认为2
   hourDivision?: HourDivision;
+  // 是否为工作日模式，只显示工作日（周一到周五）
+  workweek?: boolean;
 }
 
 export type OptionsSlice = {

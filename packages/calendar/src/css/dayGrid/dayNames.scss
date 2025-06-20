@@ -2,3 +2,15 @@
   border-bottom: 1px solid #e5e5e5;
   box-sizing: border-box;
 }
+
+.day-name {
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.day-name__date {
+  font-size: 26px;
+}
+.day-name__name {
+  font-size: 12px;
+}

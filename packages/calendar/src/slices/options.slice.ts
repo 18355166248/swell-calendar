@@ -7,6 +7,7 @@ function initializeWeekOptions(weekOptions: Options['week'] = {}): CalendarWeekO
     startDayOfWeek: Day.SUN,
     dayNames: [],
     narrowWeekend: false,
+    workweek: false,
     hourStart: 0,
     hourEnd: 24,
     eventView: true,

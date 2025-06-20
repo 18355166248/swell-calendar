@@ -1,5 +1,5 @@
 export type TimeGridLeftTheme = {
-  width: number;
+  width: string;
 };
 
 export type WeekTheme = {
