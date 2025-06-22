@@ -112,7 +112,6 @@ export function getRowStyleInfo(
   // 生成日期数组：从起始日到周末，然后从0到天数-1，最后截取到一周长度
   // 例如：startDayOfWeek=1, days=7 => [1,2,3,4,5,6,0] => [1,2,3,4,5,6,0]
   const dates = range(startDayOfWeek, WEEK_DAYS).concat(range(days)).slice(0, WEEK_DAYS);
-  console.log('🚀 ~ dates:', dates);
 
   // 工作日模式下强制禁用窄周末
   narrowWeekend = workweek ? false : narrowWeekend;

@@ -18,7 +18,7 @@ export const templates: Template = {
   timeGridDisplayTime(props: TemplateNow) {
     const { time } = props;
 
-    return dayjs(time.toDate()).format('HH:mm');
+    return time.dayjs.format('HH:mm');
   },
 
   weekDayName(model: TemplateWeekDayName) {
@@ -37,5 +37,11 @@ export const templates: Template = {
 
   monthDayName(model: TemplateMonthDayName) {
     return model.label;
+  },
+
+  timeGridNowIndicatorLabel(props: TemplateNow) {
+    const { time, format = 'HH:mm' } = props;
+
+    return dayjs(time.toDate()).format(format);
   },
 };

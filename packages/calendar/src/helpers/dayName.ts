@@ -11,7 +11,6 @@ export const getDayName = (dayIndex: number) => {
 export function getDayNames(days: DayjsTZDate[], weekDayNamesOption: string[] | []) {
   return days.map<TemplateWeekDayName>((day) => {
     const dayIndex = day.dayjs.day();
-    console.log('🚀 ~ getDayNames ~ dayIndex:', dayIndex);
     const dayName =
       weekDayNamesOption.length > 0
         ? weekDayNamesOption[dayIndex]

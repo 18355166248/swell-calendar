@@ -11,6 +11,9 @@ export type WeekTheme = {
     color: string;
   };
   showNowIndicator: boolean; // 是否显示当前时间指示器
+  nowIndicatorLabel: {
+    color: string;
+  };
 };
 export type ThemeState = {
   week: WeekTheme;

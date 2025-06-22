@@ -81,7 +81,7 @@ interface TimeColumnProps {
 
 function TimeColumn({ timeGridRows, nowIndicatorState }: TimeColumnProps) {
   const { week } = useThemeStore();
-  const { timeGridLeft } = week;
+  const { timeGridLeft, showNowIndicator } = week;
   const { width } = timeGridLeft;
 
   const rowsByHour = useMemo(
@@ -91,11 +91,22 @@ function TimeColumn({ timeGridRows, nowIndicatorState }: TimeColumnProps) {
 
   const hourRowsPropsMapper = useCallback(
     (row: TimeGridRow, index: number) => {
+      const showHide = () => {
+        if (!showNowIndicator || isNil(nowIndicatorState)) {
+          return false;
+        }
+        const indicatorTop = nowIndicatorState.top;
+        const rowTop = row.top;
+        const rowHeight = row.height;
+        return rowTop - rowHeight <= indicatorTop && indicatorTop <= rowTop + rowHeight;
+      };
       const isFirst = index === 0;
       const isLast = index === rowsByHour.length - 1;
+      const isHidden = showHide();
       const className = cls(classNames.time, {
         [classNames.first]: isFirst,
         [classNames.last]: isLast,
+        [classNames.hidden]: isHidden,
       });
       const date = setTimeStrToDate(new DayjsTZDate(), isLast ? row.endTime : row.startTime);
 
@@ -105,7 +116,7 @@ function TimeColumn({ timeGridRows, nowIndicatorState }: TimeColumnProps) {
         className,
       };
     },
-    [rowsByHour]
+    [rowsByHour, nowIndicatorState]
   );
 
   const primaryTimezoneHourRowsProps = rowsByHour.map((row, index) =>

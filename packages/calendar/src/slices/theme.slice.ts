@@ -12,6 +12,9 @@ function initializeWeekOptions(weekOptions: Options['week'] = {}): ThemeState['w
       color: '#333',
     },
     showNowIndicator: true,
+    nowIndicatorLabel: {
+      color: '#515ce6',
+    },
     ...weekOptions,
   };
 

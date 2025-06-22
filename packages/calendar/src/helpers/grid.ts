@@ -1,5 +1,5 @@
 import { isWeekend } from '@/time/datetime';
-import { DayjsTZDateType } from '@/time/dayjs-tzdate.types';
+import DayjsTZDate from '@/time/dayjs-tzdate';
 import { FormattedTimeString } from '@/types/datetime.type';
 import { CommonGridColumn, TimeGridData } from '@/types/grid.type';
 import { HourDivision } from '@/types/options.type';
@@ -43,7 +43,7 @@ import { range } from 'lodash-es';
  * });
  */
 export function createTimeGridData(
-  datesOfWeek: DayjsTZDateType[],
+  datesOfWeek: DayjsTZDate[],
   options: {
     hourStart: number;
     hourEnd: number;
@@ -100,7 +100,7 @@ export function createTimeGridData(
  * @returns 列数据数组，包含每列的日期、宽度和左边距信息
  */
 export function getColumnsData(
-  datesOfWeek: DayjsTZDateType[], // 5 or 7 dates
+  datesOfWeek: DayjsTZDate[], // 5 or 7 dates
   narrowWeekend = false
 ): CommonGridColumn[] {
   const datesCount = datesOfWeek.length;
