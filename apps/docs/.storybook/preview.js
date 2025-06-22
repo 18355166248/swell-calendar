@@ -1,4 +1,4 @@
-import 'swell-calendar/style.css';
+import '../../../packages/calendar/dist/style.css';
 
 export const parameters = {
   layout: 'fullscreen',

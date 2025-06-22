@@ -3,6 +3,9 @@
   "version": "0.0.0",
   "sideEffects": false,
   "license": "MIT",
+  "main": "./dist/Day/index.js",
+  "module": "./dist/Day/index.js",
+  "types": "./dist/Day/index.d.ts",
   "scripts": {
     "build": "vite build",
     "dev": "vite build --watch",
@@ -15,11 +18,6 @@
       "types": "./dist/Day/index.d.ts",
       "import": "./dist/Day/index.js",
       "require": "./dist/Day/index.cjs"
-    },
-    "./TimeGrid": {
-      "types": "./dist/TimeGrid/index.d.ts",
-      "import": "./dist/TimeGrid/index.js",
-      "require": "./dist/TimeGrid/index.cjs"
     },
     "./css": {
       "import": "./dist/css/index.js",

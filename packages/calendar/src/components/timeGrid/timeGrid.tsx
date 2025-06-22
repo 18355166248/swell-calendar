@@ -8,6 +8,7 @@ import { isSameDate, setTimeStrToDate } from '@/time/datetime';
 import { isNil, last } from 'lodash-es';
 import { getTopPercentByTime } from '@/controller/time.controller';
 import { useIsMounted } from '@/hooks/common/useIsMounted';
+import GridLines from './GridLines';
 
 const classNames = {
   timeGrid: cls(className),
@@ -86,8 +87,13 @@ export function TimeGrid({ timeGridData }: TimeGridProps) {
   return (
     <div className={classNames.timeGrid}>
       <div className={classNames.scrollArea}>
-        {/* 时间轴 */}
+        {/* 左侧时间轴 */}
         <TimeColumn timeGridRows={timeGridData.rows} nowIndicatorState={nowIndicatorState} />
+        {/* 右侧时间轴 */}
+        <div className={cls('time-columns')}>
+          {/* 网格线 - 显示时间分隔线 */}
+          <GridLines timeGridRows={timeGridData.rows} />
+        </div>
       </div>
     </div>
   );
