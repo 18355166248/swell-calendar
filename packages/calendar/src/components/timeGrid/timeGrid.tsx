@@ -12,7 +12,7 @@ import GridLines from './GridLines';
 import Column from './Column';
 import { useThemeStore } from '@/contexts/themeStore';
 import { useCalendarStore } from '@/contexts/calendarStore';
-import { useGridSelection } from '@/hooks/common/GridSelection/useGridSelection';
+import { useGridSelection } from '@/hooks/GridSelection/useGridSelection';
 
 const classNames = {
   timeGrid: cls(className),
