@@ -14,7 +14,7 @@ const storeCreator = (options: Options) => (set: SetState) => ({
   ...createTemplateSlice(options.template),
   ...createViewSlice(options.defaultView),
   ...createLayoutSlice()(set),
-  ...createDndSlice(),
+  ...createDndSlice()(set),
 });
 
 export const createCalendarStore = (options: Options = {}) => {

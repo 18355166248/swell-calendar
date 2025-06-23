@@ -1,6 +1,7 @@
 import { DeepPartial } from 'ts-essentials';
 import { ThemeState } from './theme.type';
 import { TemplateConfig } from './template.type';
+import { DndState } from './dnd.type';
 
 export type EventView = 'allday' | 'time';
 export type TaskView = 'milestone' | 'task';
@@ -18,6 +19,8 @@ export interface Options {
   week?: WeekOptions;
   // 模板配置
   template?: TemplateConfig;
+  // 拖拽配置
+  dnd?: DndState;
   // 是否为只读模式
   isReadOnly?: boolean;
 }
