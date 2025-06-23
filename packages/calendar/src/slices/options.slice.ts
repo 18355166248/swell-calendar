@@ -23,6 +23,7 @@ export function createOptionsSlice(options: Options = {}): OptionsSlice {
   return {
     options: {
       defaultView: options.defaultView ?? 'week',
+      isReadOnly: options.isReadOnly ?? false,
       week: initializeWeekOptions(options.week),
     },
   };

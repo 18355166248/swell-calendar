@@ -11,6 +11,8 @@ import { useIsMounted } from '@/hooks/common/useIsMounted';
 import GridLines from './GridLines';
 import Column from './Column';
 import { useThemeStore } from '@/contexts/themeStore';
+import { useCalendarStore } from '@/contexts/calendarStore';
+import { useGridSelection } from '@/hooks/common/GridSelection/useGridSelection';
 
 const classNames = {
   timeGrid: cls(className),
@@ -27,6 +29,7 @@ export function TimeGrid({ timeGridData }: TimeGridProps) {
   // 组件挂载状态检查
   const isMounted = useIsMounted();
 
+  const { isReadOnly } = useCalendarStore((state) => state.options);
   const { timeGridLeft } = useThemeStore((state) => state.week);
 
   // 当前时间指示器的状态
@@ -88,13 +91,23 @@ export function TimeGrid({ timeGridData }: TimeGridProps) {
     }
   }, [isMounted, updateTimeIndicatorPosition, currentDateData]);
 
+  /**
+   * 网格选择处理函数
+   * 处理鼠标拖拽选择时间范围的逻辑
+   */
+  const handleMouseDown = useGridSelection();
+
   return (
     <div className={classNames.timeGrid}>
       <div className={classNames.scrollArea}>
         {/* 左侧时间轴 */}
         <TimeColumn timeGridRows={timeGridData.rows} nowIndicatorState={nowIndicatorState} />
         {/* 右侧时间轴 */}
-        <div className={cls('time-columns')} style={{ left: timeGridLeft.width }}>
+        <div
+          className={cls('time-columns')}
+          style={{ left: timeGridLeft.width }}
+          onMouseDown={isReadOnly ? undefined : handleMouseDown}
+        >
           {/* 网格线 - 显示时间分隔线 */}
           <GridLines timeGridRows={timeGridData.rows} />
 

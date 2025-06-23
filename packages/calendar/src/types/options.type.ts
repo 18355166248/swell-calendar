@@ -18,6 +18,8 @@ export interface Options {
   week?: WeekOptions;
   // 模板配置
   template?: TemplateConfig;
+  // 是否为只读模式
+  isReadOnly?: boolean;
 }
 
 export interface WeekOptions {
@@ -42,5 +44,5 @@ export interface WeekOptions {
 }
 
 export type OptionsSlice = {
-  options: Options;
+  options: Omit<Options, 'theme' | 'template'>;
 };
