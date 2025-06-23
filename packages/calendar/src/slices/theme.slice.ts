@@ -15,6 +15,12 @@ function initializeWeekOptions(weekOptions: Options['week'] = {}): ThemeState['w
     nowIndicatorLabel: {
       color: '#515ce6',
     },
+    timeGridHalfHourLine: {
+      borderBottom: 'none',
+    },
+    timeGridHourLine: {
+      borderBottom: '1px solid #e5e5e5',
+    },
     ...weekOptions,
   };
 

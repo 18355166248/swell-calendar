@@ -14,6 +14,12 @@ export type WeekTheme = {
   nowIndicatorLabel: {
     color: string;
   };
+  timeGridHalfHourLine: {
+    borderBottom: string;
+  };
+  timeGridHourLine: {
+    borderBottom: string;
+  };
 };
 export type ThemeState = {
   week: WeekTheme;

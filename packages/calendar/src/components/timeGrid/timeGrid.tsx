@@ -1,7 +1,7 @@
 import { addTimeGridPrefix, className } from '@/constants/timeGrid-const';
 import TimeColumn from './TimeColumn';
 import { TimeGridData } from '@/types/grid.type';
-import { cls } from '@/helpers/css';
+import { cls, toPercent } from '@/helpers/css';
 import { useCallback, useLayoutEffect, useMemo, useState } from 'react';
 import DayjsTZDate from '@/time/dayjs-tzdate';
 import { isSameDate, setTimeStrToDate } from '@/time/datetime';
@@ -9,6 +9,8 @@ import { isNil, last } from 'lodash-es';
 import { getTopPercentByTime } from '@/controller/time.controller';
 import { useIsMounted } from '@/hooks/common/useIsMounted';
 import GridLines from './GridLines';
+import Column from './Column';
+import { useThemeStore } from '@/contexts/themeStore';
 
 const classNames = {
   timeGrid: cls(className),
@@ -24,6 +26,8 @@ export function TimeGrid({ timeGridData }: TimeGridProps) {
 
   // 组件挂载状态检查
   const isMounted = useIsMounted();
+
+  const { timeGridLeft } = useThemeStore((state) => state.week);
 
   // 当前时间指示器的状态
   const [nowIndicatorState, setNowIndicatorState] = useState<{
@@ -90,9 +94,14 @@ export function TimeGrid({ timeGridData }: TimeGridProps) {
         {/* 左侧时间轴 */}
         <TimeColumn timeGridRows={timeGridData.rows} nowIndicatorState={nowIndicatorState} />
         {/* 右侧时间轴 */}
-        <div className={cls('time-columns')}>
+        <div className={cls('time-columns')} style={{ left: timeGridLeft.width }}>
           {/* 网格线 - 显示时间分隔线 */}
           <GridLines timeGridRows={timeGridData.rows} />
+
+          {/* 渲染日期列 */}
+          {columns.map((col, index) => (
+            <Column key={index} width={toPercent(col.width)} />
+          ))}
         </div>
       </div>
     </div>

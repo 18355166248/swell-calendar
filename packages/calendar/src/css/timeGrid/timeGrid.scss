@@ -7,6 +7,7 @@
   min-height: 900px;
   &-scroll-area {
     height: 100%;
+    position: relative;
   }
   &-time-column {
     height: 100%;
@@ -30,6 +31,12 @@
     &-hidden {
       visibility: hidden;
     }
+
+    > span {
+      transform: translateY(-50%);
+      position: absolute;
+      right: 0;
+    }
   }
 }
 
@@ -40,4 +47,11 @@
   bottom: 0;
   right: 0;
   overflow: hidden;
+
+  .grid-lines {
+    .grid-line {
+      position: absolute;
+      width: 100%;
+    }
+  }
 }
