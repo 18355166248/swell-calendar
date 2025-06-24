@@ -17,10 +17,10 @@ export type DndState = {
   x: number | null; // 当前拖拽位置的 X 坐标
   y: number | null; // 当前拖拽位置的 Y 坐标
 
-  initDrag?: (initState: DndState) => void;
-  setDragging?: (state: DndState) => void;
-  cancelDrag?: () => void;
-  endDrag?: () => void;
+  initDrag: (initState: Pick<DndState, 'draggingItemType' | 'initX' | 'initY'>) => void;
+  setDragging: (state: DndState) => void;
+  cancelDrag: () => void;
+  endDrag: () => void;
 };
 
 export type DndSlice = {

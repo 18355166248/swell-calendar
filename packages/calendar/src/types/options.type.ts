@@ -47,5 +47,5 @@ export interface WeekOptions {
 }
 
 export type OptionsSlice = {
-  options: Omit<Options, 'theme' | 'template'>;
+  options: Omit<Required<Options>, 'theme' | 'template'>;
 };

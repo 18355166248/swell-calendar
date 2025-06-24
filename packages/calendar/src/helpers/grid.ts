@@ -1,9 +1,10 @@
-import { isWeekend } from '@/time/datetime';
+import { Day, isWeekend, WEEK_DAYS } from '@/time/datetime';
 import DayjsTZDate from '@/time/dayjs-tzdate';
 import { FormattedTimeString } from '@/types/datetime.type';
-import { CommonGridColumn, TimeGridData } from '@/types/grid.type';
+import { CommonGridColumn, GridPositionFinder, TimeGridData } from '@/types/grid.type';
+import { ClientMousePosition } from '@/types/mouse.type';
 import { HourDivision } from '@/types/options.type';
-import { range } from 'lodash-es';
+import { isNil, range } from 'lodash-es';
 
 /**
  * 创建时间网格数据，用于日历组件的时间轴显示
@@ -141,4 +142,99 @@ export function getColumnsData(
         return result;
       }, [])
   );
+}
+
+/**
+ * 容器位置信息接口
+ */
+interface ContainerPosition {
+  left: number; // 容器左边距
+  top: number; // 容器上边距
+  clientLeft: number; // 客户端左边距
+  clientTop: number; // 客户端上边距
+}
+
+/**
+ * 获取相对于容器的鼠标位置
+ * @param clientX 鼠标客户端X坐标
+ * @param clientY 鼠标客户端Y坐标
+ * @param left 容器左边距
+ * @param top 容器上边距
+ * @param clientLeft 客户端左边距
+ * @param clientTop 客户端上边距
+ * @returns 相对位置坐标 [x, y]
+ */
+function getRelativeMousePosition(
+  { clientX, clientY }: ClientMousePosition,
+  { left, top, clientLeft, clientTop }: ContainerPosition
+) {
+  console.log('🚀 ~ getRelativeMousePosition ~ clientX 鼠标客户端X坐标:', clientX);
+  console.log('🚀 ~ getRelativeMousePosition ~ clientY 鼠标客户端Y坐标:', clientY);
+  console.log('🚀 ~ getRelativeMousePosition ~ left 容器左边距:', left);
+  console.log('🚀 ~ getRelativeMousePosition ~ top 容器上边距:', top);
+  console.log('🚀 ~ getRelativeMousePosition ~ clientLeft 客户端左边距:', clientLeft);
+  console.log('🚀 ~ getRelativeMousePosition ~ clientTop:', clientTop);
+  return [clientX - left - clientLeft, clientY - top - clientTop];
+}
+
+/**
+ * 创建网格位置查找器
+ * 用于根据鼠标位置确定在日历网格中的行列索引
+ *
+ * @param rowsCount 网格行数
+ * @param columnsCount 网格列数
+ * @param container 容器DOM元素
+ * @param narrowWeekend 是否缩窄周末显示
+ * @param startDayOfWeek 一周开始的日期（0=周日，1=周一...）
+ * @returns GridPositionFinder 网格位置查找函数
+ */
+export function createGridPositionFinder({
+  rowsCount,
+  columnsCount,
+  container,
+  narrowWeekend = false,
+  startDayOfWeek = Day.SUN,
+}: {
+  rowsCount: number;
+  columnsCount: number;
+  container: HTMLElement | null;
+  narrowWeekend?: boolean;
+  startDayOfWeek?: number;
+}): GridPositionFinder {
+  if (isNil(container)) return () => null;
+
+  // 生成从起始日期开始的连续天数范围，并转换为星期几（0-6）
+  const dayRange = range(startDayOfWeek, startDayOfWeek + columnsCount).map(
+    (day) => day % WEEK_DAYS
+  );
+
+  // 如果启用了周末缩窄，计算周末天数
+  const narrowColumnCount = narrowWeekend ? dayRange.filter((day) => isWeekend(day)).length : 0;
+
+  /**
+   * 网格位置查找函数
+   * @param mousePosition 鼠标位置
+   * @returns 网格位置信息（行列索引）或null
+   */
+  return (mousePosition: ClientMousePosition) => {
+    console.log(233);
+
+    // 获取容器的位置和大小信息
+    const {
+      left: containerLeft,
+      top: containerTop,
+      width: containerWidth,
+      height: containerHeight,
+    } = container.getBoundingClientRect();
+
+    // 计算鼠标相对于容器的位置
+    const [left, top] = getRelativeMousePosition(mousePosition, {
+      left: containerLeft,
+      top: containerTop,
+      clientLeft: container.clientLeft,
+      clientTop: container.clientTop,
+    });
+
+    return null;
+  };
 }

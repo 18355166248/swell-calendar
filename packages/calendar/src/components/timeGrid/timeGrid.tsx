@@ -13,6 +13,8 @@ import Column from './Column';
 import { useThemeStore } from '@/contexts/themeStore';
 import { useCalendarStore } from '@/contexts/calendarStore';
 import { useGridSelection } from '@/hooks/GridSelection/useGridSelection';
+import { createGridPositionFinder } from '@/helpers/grid';
+import { useDOMNode } from '@/hooks/common/useDOMNode';
 
 const classNames = {
   timeGrid: cls(className),
@@ -26,11 +28,14 @@ export interface TimeGridProps {
 export function TimeGrid({ timeGridData }: TimeGridProps) {
   const { columns } = timeGridData;
 
+  // 获取列容器的 DOM 节点引用
+  const [columnsContainer, setColumnsContainer] = useDOMNode();
   // 组件挂载状态检查
   const isMounted = useIsMounted();
 
   const { isReadOnly } = useCalendarStore((state) => state.options);
   const { timeGridLeft } = useThemeStore((state) => state.week);
+  const { startDayOfWeek, narrowWeekend } = useCalendarStore((state) => state.options.week);
 
   // 当前时间指示器的状态
   const [nowIndicatorState, setNowIndicatorState] = useState<{
@@ -64,6 +69,19 @@ export function TimeGrid({ timeGridData }: TimeGridProps) {
     };
   }, [columns, timeGridData.rows]);
 
+  // 网格位置查找器
+  const gridPositionFinder = useMemo(
+    () =>
+      createGridPositionFinder({
+        rowsCount: timeGridData.rows.length,
+        columnsCount: columns.length,
+        container: columnsContainer,
+        narrowWeekend,
+        startDayOfWeek,
+      }),
+    [timeGridData.rows.length, columns.length, columnsContainer, narrowWeekend, startDayOfWeek]
+  );
+
   /**
    * 更新时间指示器位置
    * 计算当前时间在网格中的垂直位置百分比
@@ -95,7 +113,9 @@ export function TimeGrid({ timeGridData }: TimeGridProps) {
    * 网格选择处理函数
    * 处理鼠标拖拽选择时间范围的逻辑
    */
-  const handleMouseDown = useGridSelection();
+  const handleMouseDown = useGridSelection({
+    gridPositionFinder,
+  });
 
   return (
     <div className={classNames.timeGrid}>
@@ -105,6 +125,7 @@ export function TimeGrid({ timeGridData }: TimeGridProps) {
         {/* 右侧时间轴 */}
         <div
           className={cls('time-columns')}
+          ref={setColumnsContainer}
           style={{ left: timeGridLeft.width }}
           onMouseDown={isReadOnly ? undefined : handleMouseDown}
         >

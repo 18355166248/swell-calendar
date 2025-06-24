@@ -2,8 +2,11 @@ import { DndState, DndSlice, DraggingState } from '@/types/dnd.type';
 import { CalendarStore } from '@/types/store.type';
 import { produce } from 'immer';
 
-function initializeDndOptions(): DndState {
-  const dnd: DndState = {
+function initializeDndOptions(): Omit<
+  DndState,
+  'initDrag' | 'setDragging' | 'cancelDrag' | 'endDrag'
+> {
+  const dnd: Omit<DndState, 'initDrag' | 'setDragging' | 'cancelDrag' | 'endDrag'> = {
     draggingItemType: null,
     draggingState: DraggingState.IDLE,
     initX: null,
@@ -26,6 +29,7 @@ export function createDndSlice() {
        * 设置初始坐标和拖拽类型，并将状态设置为 INIT
        */
       initDrag: (initState) => {
+        console.log('🚀 ~ return ~ initState:', initState);
         set(
           produce((state: CalendarStore) => {
             state.dnd.draggingState = DraggingState.INIT;
