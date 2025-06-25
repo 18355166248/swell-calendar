@@ -2,6 +2,7 @@
   "name": "swell-calendar",
   "version": "0.0.0",
   "sideEffects": false,
+  "type": "module",
   "license": "MIT",
   "main": "./dist/Day/index.js",
   "module": "./dist/Day/index.js",
