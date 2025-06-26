@@ -3,15 +3,19 @@
   "description": "日历组件",
   "private": true,
   "scripts": {
-    "build": "node scripts/run.js turbo run build",
-    "dev": "node scripts/run.js turbo run dev",
-    "lint": "node scripts/run.js turbo run lint",
-    "clean": "node scripts/run.js turbo run clean && rm -rf node_modules",
-    "format": "node scripts/run.js prettier --write \"**/*.{ts,tsx,md}\"",
-    "changeset": "node scripts/run.js changeset",
-    "version-packages": "node scripts/run.js changeset version",
-    "release": "node scripts/run.js turbo run build --filter=docs^... && changeset publish",
-    "preview-storybook": "node scripts/run.js turbo run preview-storybook"
+    "build": "./scripts/run turbo run build",
+    "dev": "./scripts/run turbo run dev",
+    "lint": "./scripts/run turbo run lint",
+    "clean": "./scripts/run turbo run clean && rm -rf node_modules",
+    "format": "./scripts/run prettier --write \"**/*.{ts,tsx,md}\"",
+    "changeset": "./scripts/run changeset",
+    "version-packages": "./scripts/run changeset version",
+    "release": "./scripts/run turbo run build --filter=docs^... && changeset publish",
+    "preview-storybook": "./scripts/run turbo run preview-storybook",
+    "d": "./scripts/run turbo run dev",
+    "b": "./scripts/run turbo run build",
+    "l": "./scripts/run turbo run lint",
+    "f": "./scripts/run prettier --write \"**/*.{ts,tsx,md}\""
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.1",
