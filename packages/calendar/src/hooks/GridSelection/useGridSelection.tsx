@@ -10,6 +10,7 @@ export function useGridSelection({
     onInit: (e) => {
       // 获取并记录初始网格位置
       const gridPosition = gridPositionFinder(e);
+      console.log('🚀 ~ gridPosition:', gridPosition);
     },
   });
 

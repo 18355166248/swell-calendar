@@ -1,7 +1,7 @@
 import { useCalendarStore } from '@/contexts/calendarStore';
 import { KeyboardEventListener, MouseEventListener } from '@/types/events.type';
 import { isLeftMouseButton } from '@/utils/mouse';
-import { useCallback, useRef, useState, MouseEvent, KeyboardEvent, useMemo } from 'react';
+import { useCallback, useRef, useState, MouseEvent, KeyboardEvent } from 'react';
 
 type MouseListener = (e: MouseEvent) => void;
 type KeyboardListener = (e: KeyboardEvent) => void;
@@ -34,22 +34,25 @@ export function useDrag({ onInit, onDragStart, onDrag, onMouseUp, onPressESCKey 
   const handleKeyDownRef = useRef<KeyboardEventListener | null>(null);
 
   // 鼠标按下
-  const handleMouseDown = useCallback<MouseEventListener>((e) => {
-    // 只处理左键按下
-    if (!isLeftMouseButton(e)) return;
-    console.log('🚀 ~ useDrag ~ e:', e);
+  const handleMouseDown = useCallback<MouseEventListener>(
+    (e) => {
+      // 只处理左键按下
+      if (!isLeftMouseButton(e)) return;
+      console.log('🚀 ~ useDrag ~ e:', e);
 
-    // 阻止默认行为
-    e.preventDefault();
+      // 阻止默认行为
+      e.preventDefault();
 
-    setIsDragging(true);
-    initDrag({
-      draggingItemType: null,
-      initX: e.clientX,
-      initY: e.clientY,
-    });
-    onInit?.(e);
-  }, []);
+      setIsDragging(true);
+      initDrag({
+        draggingItemType: null,
+        initX: e.clientX,
+        initY: e.clientY,
+      });
+      onInit?.(e);
+    },
+    [initDrag, onInit]
+  );
 
   return handleMouseDown;
 }

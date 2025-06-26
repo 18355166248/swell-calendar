@@ -3,6 +3,7 @@
   "description": "日历组件",
   "private": true,
   "scripts": {
+    "pInstall": "./scripts/run pnpm install",
     "build": "./scripts/run turbo run build",
     "dev": "./scripts/run turbo run dev",
     "lint": "./scripts/run turbo run lint",
@@ -11,11 +12,7 @@
     "changeset": "./scripts/run changeset",
     "version-packages": "./scripts/run changeset version",
     "release": "./scripts/run turbo run build --filter=docs^... && changeset publish",
-    "preview-storybook": "./scripts/run turbo run preview-storybook",
-    "d": "./scripts/run turbo run dev",
-    "b": "./scripts/run turbo run build",
-    "l": "./scripts/run turbo run lint",
-    "f": "./scripts/run prettier --write \"**/*.{ts,tsx,md}\""
+    "preview-storybook": "./scripts/run turbo run preview-storybook"
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.1",

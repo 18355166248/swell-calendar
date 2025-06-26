@@ -47,6 +47,7 @@ export default defineConfig({
       },
     },
     outDir: 'dist',
+    sourcemap: true,
     // emptyOutDir: true, // 构建前清空输出目录
   },
 });

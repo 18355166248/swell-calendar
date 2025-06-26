@@ -6,6 +6,7 @@ import { CalendarStore } from '@/types/store.type';
 import { createTemplateSlice } from '@/slices/template.slice';
 import { createLayoutSlice } from '@/slices/layout.slice';
 import { createDndSlice } from '@/slices/dnd.slice';
+import { createGridSelectionSlice } from '@/slices/gridSelection.slice';
 
 type SetState = (fn: (state: CalendarStore) => Partial<CalendarStore>) => void;
 
@@ -15,6 +16,7 @@ const storeCreator = (options: Options) => (set: SetState) => ({
   ...createViewSlice(options.defaultView),
   ...createLayoutSlice()(set),
   ...createDndSlice()(set),
+  ...createGridSelectionSlice()(set),
 });
 
 export const createCalendarStore = (options: Options = {}) => {

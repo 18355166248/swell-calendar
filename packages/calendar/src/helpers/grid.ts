@@ -4,7 +4,8 @@ import { FormattedTimeString } from '@/types/datetime.type';
 import { CommonGridColumn, GridPositionFinder, TimeGridData } from '@/types/grid.type';
 import { ClientMousePosition } from '@/types/mouse.type';
 import { HourDivision } from '@/types/options.type';
-import { isNil, range } from 'lodash-es';
+import { limit, ratio } from '@/utils/math';
+import { findLastIndex, isNil, range } from 'lodash-es';
 
 /**
  * 创建时间网格数据，用于日历组件的时间轴显示
@@ -168,13 +169,26 @@ function getRelativeMousePosition(
   { clientX, clientY }: ClientMousePosition,
   { left, top, clientLeft, clientTop }: ContainerPosition
 ) {
-  console.log('🚀 ~ getRelativeMousePosition ~ clientX 鼠标客户端X坐标:', clientX);
-  console.log('🚀 ~ getRelativeMousePosition ~ clientY 鼠标客户端Y坐标:', clientY);
-  console.log('🚀 ~ getRelativeMousePosition ~ left 容器左边距:', left);
-  console.log('🚀 ~ getRelativeMousePosition ~ top 容器上边距:', top);
-  console.log('🚀 ~ getRelativeMousePosition ~ clientLeft 客户端左边距:', clientLeft);
-  console.log('🚀 ~ getRelativeMousePosition ~ clientTop:', clientTop);
   return [clientX - left - clientLeft, clientY - top - clientTop];
+}
+
+/**
+ * 根据位置计算索引
+ * @param arrayLength 数组长度
+ * @param maxRange 最大范围
+ * @param currentPosition 当前位置
+ * @returns 计算得出的索引，限制在有效范围内
+ */
+function getIndexFromPosition(arrayLength: number, maxRange: number, currentPosition: number) {
+  console.log('🚀 ~ getIndexFromPosition ~ arrayLength:', arrayLength);
+  console.log('🚀 ~ getIndexFromPosition ~ maxRange:', maxRange);
+  console.log('🚀 ~ getIndexFromPosition ~ currentPosition:', currentPosition);
+  console.log(ratio(maxRange, arrayLength, currentPosition));
+
+  const calculatedIndex = Math.floor(ratio(maxRange, arrayLength, currentPosition));
+  console.log('🚀 ~ getIndexFromPosition ~ calculatedIndex:', calculatedIndex);
+
+  return limit(calculatedIndex, [0], [arrayLength - 1]);
 }
 
 /**
@@ -217,8 +231,6 @@ export function createGridPositionFinder({
    * @returns 网格位置信息（行列索引）或null
    */
   return (mousePosition: ClientMousePosition) => {
-    console.log(233);
-
     // 获取容器的位置和大小信息
     const {
       left: containerLeft,
@@ -235,6 +247,42 @@ export function createGridPositionFinder({
       clientTop: container.clientTop,
     });
 
-    return null;
+    // 检查鼠标是否在容器范围内
+    if (left < 0 || top < 0 || left > containerWidth || top > containerHeight) return null;
+
+    // 计算单位宽度
+    // 如果启用周末缩窄：总宽度除以(总列数 - 周末列数 + 1)
+    // 否则：总宽度除以总列数
+    const unitWidth = narrowWeekend
+      ? containerWidth / (columnsCount - narrowColumnCount + 1)
+      : containerWidth / columnsCount;
+
+    // 计算每列的宽度列表
+    // 如果启用周末缩窄且该天是周末，则宽度为单位宽度的一半
+    const columnWidthList = dayRange.map((day) =>
+      narrowWeekend && isWeekend(day) ? unitWidth / 2 : unitWidth
+    );
+
+    // 计算每列的左边距位置列表
+    const columnLeftList: number[] = [];
+    columnWidthList.forEach((_, index) => {
+      if (index === 0) {
+        columnLeftList.push(0);
+      } else {
+        // 后续列的左边距 = 前一列的左边距 + 前一列的宽度
+        columnLeftList.push(columnLeftList[index - 1] + columnWidthList[index - 1]);
+      }
+    });
+
+    // 查找鼠标位置对应的列索引
+    // 找到最后一个左边距小于等于鼠标X位置的列
+    const columnIndex = findLastIndex(columnLeftList, (columnLeft) => left >= columnLeft);
+
+    return {
+      // 列索引
+      columnIndex,
+      // 行索引
+      rowIndex: getIndexFromPosition(rowsCount, containerHeight, top),
+    };
   };
 }

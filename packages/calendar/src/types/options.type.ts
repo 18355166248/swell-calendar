@@ -19,7 +19,6 @@ export interface Options {
   week?: WeekOptions;
   // 模板配置
   template?: TemplateConfig;
-  // 拖拽配置
   dnd?: DndState;
   // 是否为只读模式
   isReadOnly?: boolean;
@@ -47,5 +46,5 @@ export interface WeekOptions {
 }
 
 export type OptionsSlice = {
-  options: Omit<Required<Options>, 'theme' | 'template'>;
+  options: Omit<Required<Options>, 'theme' | 'template' | 'dnd'>;
 };

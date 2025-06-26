@@ -1,7 +1,8 @@
-module.exports = {
+import postcssPrefixer from 'postcss-prefixer';
+
+export default {
   plugins: [
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    require('postcss-prefixer')({
+    postcssPrefixer({
       prefix: 'swell-calendar-',
     }),
   ],
