@@ -5,11 +5,11 @@
   "private": true,
   "scripts": {
     "dev": "node ../../scripts/changeNode.js 20 pnpm dev-storybook",
-    "dev-storybook": "storybook dev -p 6006",
-    "build": "storybook build --docs",
-    "preview-storybook": "serve storybook-static",
+    "dev-storybook": "node ../../scripts/run.js storybook dev -p 6006",
+    "build": "node ../../scripts/run.js storybook build --docs",
+    "preview-storybook": "node ../../scripts/run.js serve storybook-static",
     "clean": "rm -rf .turbo node_modules",
-    "lint": "eslint ./stories/*.stories.tsx --max-warnings 0"
+    "lint": "node ../../scripts/run.js eslint ./stories/*.stories.tsx --max-warnings 0"
   },
   "dependencies": {
     "react": "^18.2.0",

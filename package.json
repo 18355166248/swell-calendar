@@ -3,15 +3,15 @@
   "description": "日历组件",
   "private": true,
   "scripts": {
-    "build": "turbo run build",
-    "dev": "turbo run dev",
-    "lint": "turbo run lint",
-    "clean": "turbo run clean && rm -rf node_modules",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "changeset": "changeset",
-    "version-packages": "changeset version",
-    "release": "turbo run build --filter=docs^... && changeset publish",
-    "preview-storybook": "turbo run preview-storybook"
+    "build": "node scripts/run.js turbo run build",
+    "dev": "node scripts/run.js turbo run dev",
+    "lint": "node scripts/run.js turbo run lint",
+    "clean": "node scripts/run.js turbo run clean && rm -rf node_modules",
+    "format": "node scripts/run.js prettier --write \"**/*.{ts,tsx,md}\"",
+    "changeset": "node scripts/run.js changeset",
+    "version-packages": "node scripts/run.js changeset version",
+    "release": "node scripts/run.js turbo run build --filter=docs^... && changeset publish",
+    "preview-storybook": "node scripts/run.js turbo run preview-storybook"
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.1",

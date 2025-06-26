@@ -1,8 +1,7 @@
 import js from '@eslint/js';
 import eslintConfigPrettier from 'eslint-config-prettier';
 import tseslint from 'typescript-eslint';
-import pluginStorybook from 'eslint-plugin-storybook';
-import pluginMdx from 'eslint-plugin-mdx';
+import storybook from 'eslint-plugin-storybook'
 import onlyWarn from 'eslint-plugin-only-warn';
 import globals from 'globals';
 import { config as baseConfig } from './base.js';
@@ -34,10 +33,7 @@ export const config = [
   ...tseslint.configs.recommended,
 
   // Storybook 插件推荐的规则
-  pluginStorybook.configs.recommended,
-
-  // MDX 插件推荐的规则
-  pluginMdx.configs.recommended,
+  ...storybook.configs['flat/recommended'],
 
   {
     // 语言选项配置

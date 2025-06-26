@@ -8,11 +8,11 @@
   "module": "./dist/Day/index.js",
   "types": "./dist/Day/index.d.ts",
   "scripts": {
-    "build": "vite build",
-    "dev": "vite build --watch",
-    "lint": "eslint . --max-warnings 0",
+    "build": "node ../../scripts/run.js vite build",
+    "dev": "node ../../scripts/run.js vite build --watch",
+    "lint": "node ../../scripts/run.js eslint . --max-warnings 0",
     "clean": "rm -rf .turbo node_modules dist",
-    "test": "jest"
+    "test": "node ../../scripts/run.js jest"
   },
   "exports": {
     "./Day": {
