@@ -27,6 +27,8 @@ export function useDrag({ onInit, onDragStart, onDrag, onMouseUp, onPressESCKey 
   const { dnd } = useCalendarStore();
   const { initDrag, setDragging, cancelDrag, endDrag } = dnd;
 
+  const dndSliceRef = useRef(dnd);
+
   const [isDragging, setIsDragging] = useState(false);
 
   const handleMouseMoveRef = useRef<MouseEventListener | null>(null);
@@ -53,6 +55,15 @@ export function useDrag({ onInit, onDragStart, onDrag, onMouseUp, onPressESCKey 
     },
     [initDrag, onInit]
   );
+
+  /**
+   * 鼠标移动事件处理函数
+   * 处理拖拽过程中的移动逻辑
+   */
+  const handleMouseMove = useCallback<MouseEventListener>((e) => {
+    console.log('🚀 ~ useDrag ~ e:', e);
+    const { initX, initY, draggingState } = dndSliceRef.current;
+  }, []);
 
   return handleMouseDown;
 }
