@@ -18,9 +18,9 @@ export type DndState = {
   y: number | null; // 当前拖拽位置的 Y 坐标
 
   initDrag: (initState: Pick<DndState, 'draggingItemType' | 'initX' | 'initY'>) => void;
-  setDragging: (state: DndState) => void;
+  setDragging: (state: Partial<DndState>) => void;
   cancelDrag: () => void;
-  endDrag: () => void;
+  reset: () => void;
 };
 
 export type DndSlice = {

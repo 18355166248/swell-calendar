@@ -180,13 +180,7 @@ function getRelativeMousePosition(
  * @returns 计算得出的索引，限制在有效范围内
  */
 function getIndexFromPosition(arrayLength: number, maxRange: number, currentPosition: number) {
-  console.log('🚀 ~ getIndexFromPosition ~ arrayLength:', arrayLength);
-  console.log('🚀 ~ getIndexFromPosition ~ maxRange:', maxRange);
-  console.log('🚀 ~ getIndexFromPosition ~ currentPosition:', currentPosition);
-  console.log(ratio(maxRange, arrayLength, currentPosition));
-
   const calculatedIndex = Math.floor(ratio(maxRange, arrayLength, currentPosition));
-  console.log('🚀 ~ getIndexFromPosition ~ calculatedIndex:', calculatedIndex);
 
   return limit(calculatedIndex, [0], [arrayLength - 1]);
 }

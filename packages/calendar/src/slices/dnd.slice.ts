@@ -4,9 +4,9 @@ import { produce } from 'immer';
 
 function initializeDndOptions(): Omit<
   DndState,
-  'initDrag' | 'setDragging' | 'cancelDrag' | 'endDrag'
+  'initDrag' | 'setDragging' | 'cancelDrag' | 'reset'
 > {
-  const dnd: Omit<DndState, 'initDrag' | 'setDragging' | 'cancelDrag' | 'endDrag'> = {
+  const dnd: Omit<DndState, 'initDrag' | 'setDragging' | 'cancelDrag' | 'reset'> = {
     draggingItemType: null,
     draggingState: DraggingState.IDLE,
     initX: null,
@@ -41,10 +41,14 @@ export function createDndSlice() {
        * 设置拖拽状态
        * 更新拖拽相关数据并将状态设置为 DRAGGING
        */
-      setDragging: (state: DndState) => {
+      setDragging: (newState) => {
         set(
           produce((state: CalendarStore) => {
-            state.dnd.draggingState = DraggingState.DRAGGING;
+            state.dnd = {
+              ...state.dnd,
+              ...newState,
+              draggingState: DraggingState.DRAGGING,
+            };
           })
         );
       },
@@ -65,10 +69,13 @@ export function createDndSlice() {
        * 结束拖拽操作
        * 将状态设置为 IDLE
        */
-      endDrag: () => {
+      reset: () => {
         set(
           produce((state: CalendarStore) => {
-            state.dnd.draggingState = DraggingState.IDLE;
+            state.dnd = {
+              ...state.dnd,
+              ...initializeDndOptions(),
+            };
           })
         );
       },
