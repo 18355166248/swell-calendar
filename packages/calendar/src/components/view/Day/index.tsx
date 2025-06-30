@@ -1,4 +1,4 @@
-import { ButtonHTMLAttributes, ReactNode, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useCalendarStore } from '@/contexts/calendarStore';
 import { getActivePanels } from '@/helpers/view';
 import { TimeGrid } from '@/components/timeGrid/TimeGrid';
@@ -12,11 +12,7 @@ import { getRowStyleInfo } from '@/time/datetime';
 import GridHeader from '@/components/dayGridCommon/GridHeader';
 import { getDayNames } from '@/helpers/dayName';
 
-export interface DayProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  children: ReactNode;
-}
-
-export function Day({ children, ...other }: DayProps): JSX.Element {
+export function Day(): JSX.Element {
   const { options, view } = useCalendarStore();
   const { week } = useThemeStore();
   const timeGridLeftWidth = week.timeGridLeft.width;
@@ -50,7 +46,7 @@ export function Day({ children, ...other }: DayProps): JSX.Element {
         hourDivision,
         narrowWeekend,
       }),
-    [days, hourEnd, hourStart]
+    [days, hourDivision, hourEnd, hourStart, narrowWeekend]
   );
 
   return (

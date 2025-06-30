@@ -8,11 +8,13 @@
   "module": "./dist/Day/index.js",
   "types": "./dist/Day/index.d.ts",
   "scripts": {
-    "build": "node ../../scripts/run.js vite build",
-    "dev": "node ../../scripts/run.js vite build --watch",
-    "lint": "node ../../scripts/run.js eslint . --max-warnings 0",
+    "storybook": "storybook dev -p 6006",
+    "build": "vite build",
+    "dev": "vite build --watch",
+    "lint": "eslint . --max-warnings 0",
     "clean": "rm -rf .turbo node_modules dist",
-    "test": "node ../../scripts/run.js jest"
+    "test": "jest",
+    "build-storybook": "storybook build"
   },
   "exports": {
     "./Day": {
@@ -29,14 +31,19 @@
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
+    "@storybook/addon-docs": "^9.0.14",
+    "@storybook/addon-onboarding": "^9.0.14",
+    "@storybook/react-vite": "^9.0.14",
     "@types/jest": "^29.5.14",
     "@types/lodash-es": "^4.17.12",
     "@types/react": "^18.2.61",
     "@types/react-dom": "^18.2.19",
     "@vitejs/plugin-react": "^4.2.1",
+    "eslint-plugin-storybook": "^9.0.14",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
     "sass": "^1.70.0",
+    "storybook": "^9.0.14",
     "ts-jest": "^29.3.4",
     "vite": "^5.1.0",
     "vite-plugin-dts": "^3.7.2"
