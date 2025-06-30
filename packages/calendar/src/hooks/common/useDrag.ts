@@ -1,15 +1,16 @@
 import { KEY } from '@/constants/keyboard';
 import { MINIMUM_DRAG_MOUSE_DISTANCE } from '@/constants/mouse.const';
 import { useCalendarStore } from '@/contexts/calendarStore';
-import { DraggingState } from '@/types/dnd.type';
+import { DndState, DraggingState } from '@/types/dnd.type';
 import { KeyboardEventListener, MouseEventListener } from '@/types/events.type';
 import { isKeyPressed } from '@/utils/keyboard';
 import { isLeftMouseButton } from '@/utils/mouse';
 import { isNil } from 'lodash-es';
 import { useCallback, useRef, useState, MouseEvent, KeyboardEvent, useEffect } from 'react';
+import useLatest from './useLatest';
 
-type MouseListener = (e: MouseEvent) => void;
-type KeyboardListener = (e: KeyboardEvent) => void;
+type MouseListener = (e: MouseEvent, dnd: DndState) => void;
+type KeyboardListener = (e: KeyboardEvent, dnd: DndState) => void;
 
 // 空函数，用于默认返回值
 const noop = () => {};
@@ -51,7 +52,7 @@ export function useDrag({ onInit, onDragStart, onDrag, onMouseUp, onPressESCKey 
   const { dnd } = useCalendarStore();
   const { initDrag, setDragging, cancelDrag, reset } = dnd;
 
-  const dndSliceRef = useRef(dnd);
+  const dndSliceRef = useLatest(dnd);
 
   const [isStarted, setIsStarted] = useState(false);
 
@@ -74,9 +75,9 @@ export function useDrag({ onInit, onDragStart, onDrag, onMouseUp, onPressESCKey 
         initX: e.clientX,
         initY: e.clientY,
       });
-      onInit?.(e);
+      onInit?.(e, dndSliceRef.current);
     },
-    [initDrag, onInit]
+    [initDrag, onInit, dndSliceRef]
   );
 
   /**
@@ -97,7 +98,7 @@ export function useDrag({ onInit, onDragStart, onDrag, onMouseUp, onPressESCKey 
           x: e.clientX,
           y: e.clientY,
         });
-        onDragStart?.(e);
+        onDragStart?.(e, dndSliceRef.current);
         return;
       }
 
@@ -105,9 +106,9 @@ export function useDrag({ onInit, onDragStart, onDrag, onMouseUp, onPressESCKey 
         x: e.clientX,
         y: e.clientY,
       });
-      onDrag?.(e);
+      onDrag?.(e, dndSliceRef.current);
     },
-    [onDragStart, onDrag, setDragging]
+    [onDragStart, onDrag, setDragging, dndSliceRef]
   );
 
   /**
@@ -120,11 +121,11 @@ export function useDrag({ onInit, onDragStart, onDrag, onMouseUp, onPressESCKey 
 
       if (isStarted) {
         setIsStarted(false);
-        onMouseUp?.(e);
+        onMouseUp?.(e, dndSliceRef.current);
         reset();
       }
     },
-    [isStarted, onMouseUp, reset]
+    [isStarted, onMouseUp, reset, dndSliceRef]
   );
 
   const handleKeyDown = useCallback<KeyboardEventListener>(
@@ -132,10 +133,10 @@ export function useDrag({ onInit, onDragStart, onDrag, onMouseUp, onPressESCKey 
       if (isKeyPressed(e, KEY.ESCAPE)) {
         setIsStarted(false);
         cancelDrag();
-        onPressESCKey?.(e);
+        onPressESCKey?.(e, dndSliceRef.current);
       }
     },
-    [cancelDrag, onPressESCKey]
+    [cancelDrag, dndSliceRef, onPressESCKey]
   );
 
   useEffect(() => {

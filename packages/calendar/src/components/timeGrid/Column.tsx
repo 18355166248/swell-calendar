@@ -1,18 +1,20 @@
 import { cls } from '@/helpers/css';
+import { TimeGridData } from '@/types/grid.type';
+import { GridSelectionByColumn } from './GridSelectionByColumn';
 
 interface ColumnProps {
   width: string;
+  columnIndex: number;
+  timeGridRows: TimeGridData;
 }
 
-function Column({ width }: ColumnProps) {
+function Column({ width, columnIndex, timeGridRows }: ColumnProps) {
   return (
     <div
       className={cls('column')}
       style={{ width: '100%', backgroundColor: 'rgba(81, 92, 230, 0.05)' }}
     >
-      <div className={cls('column-header')}>
-        <div className={cls('column-header-date')}></div>
-      </div>
+      <GridSelectionByColumn columnIndex={columnIndex} timeGridRows={timeGridRows} />
     </div>
   );
 }

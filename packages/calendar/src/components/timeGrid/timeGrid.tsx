@@ -15,6 +15,7 @@ import { useCalendarStore } from '@/contexts/calendarStore';
 import { useGridSelection } from '@/hooks/GridSelection/useGridSelection';
 import { createGridPositionFinder } from '@/helpers/grid';
 import { useDOMNode } from '@/hooks/common/useDOMNode';
+import { timeGridSelectionHelper } from '@/helpers/gridSelection';
 
 const classNames = {
   timeGrid: cls(className),
@@ -114,7 +115,9 @@ export function TimeGrid({ timeGridData }: TimeGridProps) {
    * 处理鼠标拖拽选择时间范围的逻辑
    */
   const handleMouseDown = useGridSelection({
+    type: 'timeGrid',
     gridPositionFinder,
+    selectionSorter: timeGridSelectionHelper.sortSelection, // 选择排序器
   });
 
   return (
@@ -134,7 +137,12 @@ export function TimeGrid({ timeGridData }: TimeGridProps) {
 
           {/* 渲染日期列 */}
           {columns.map((col, index) => (
-            <Column key={index} width={toPercent(col.width)} />
+            <Column
+              key={index}
+              width={toPercent(col.width)}
+              columnIndex={index}
+              timeGridRows={timeGridData}
+            />
           ))}
         </div>
       </div>

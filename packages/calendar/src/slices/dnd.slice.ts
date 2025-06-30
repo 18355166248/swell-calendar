@@ -29,10 +29,13 @@ export function createDndSlice() {
        * 设置初始坐标和拖拽类型，并将状态设置为 INIT
        */
       initDrag: (initState) => {
-        console.log('🚀 ~ return ~ initState:', initState);
         set(
           produce((state: CalendarStore) => {
-            state.dnd.draggingState = DraggingState.INIT;
+            state.dnd = {
+              ...state.dnd,
+              ...initState,
+              draggingState: DraggingState.INIT,
+            };
           })
         );
       },

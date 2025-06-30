@@ -20,6 +20,13 @@ export function createGridSelectionSlice() {
   return (set: SetState): GridSelectionSlice => ({
     gridSelection: {
       ...initializeGridSelectionOptions(),
+      setGridSelection: (type, gridSelection) => {
+        set(
+          produce<CalendarStore>((state) => {
+            state.gridSelection[type] = gridSelection;
+          })
+        );
+      },
       clearAll: () => {
         set(
           produce<CalendarStore>((state) => {

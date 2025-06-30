@@ -31,8 +31,12 @@ export type GridSelectionState = {
   };
 };
 
+/** 网格选择类型 */
+export type GridSelectionType = Exclude<keyof GridSelectionState, 'accumulated'>;
+
 export type GridSelectionDispatch = {
   clearAll: () => void;
+  setGridSelection: (type: GridSelectionType, gridSelection: GridSelectionData) => void;
 };
 
 /**
