@@ -8,7 +8,7 @@
   "module": "./dist/Day/index.js",
   "types": "./dist/Day/index.d.ts",
   "scripts": {
-    "storybook": "storybook dev -p 6006",
+    "storybook": "../../scripts/changeNode.js 20 storybook dev -p 6006",
     "build": "vite build",
     "dev": "vite build --watch",
     "lint": "eslint . --max-warnings 0",
@@ -43,7 +43,6 @@
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
     "sass": "^1.70.0",
-    "storybook": "^9.0.14",
     "ts-jest": "^29.3.4",
     "vite": "^5.1.0",
     "vite-plugin-dts": "^3.7.2"
