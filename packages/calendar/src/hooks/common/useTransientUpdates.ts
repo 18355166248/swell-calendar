@@ -1,4 +1,4 @@
-import { calendarStore } from '@/contexts/calendarStore';
+import { useCalendarStore } from '@/contexts/calendarStore';
 import { GridSelectionData } from '@/types/gridSelection.type';
 import { useEffect, useRef } from 'react';
 
@@ -6,7 +6,7 @@ export function useTransientUpdates(subscribe: (state: GridSelectionData) => voi
   const subscribeRef = useRef(subscribe);
 
   useEffect(() => {
-    return calendarStore.subscribe(
+    return useCalendarStore.subscribe(
       (state) => state.gridSelection.timeGrid,
       (timeGrid, prevTimeGrid) => {
         if (timeGrid && JSON.stringify(timeGrid) !== JSON.stringify(prevTimeGrid)) {
