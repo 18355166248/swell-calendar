@@ -9,8 +9,6 @@ interface DayNameProps {
 }
 
 function DayName({ dayName, type }: DayNameProps) {
-  const { day } = dayName;
-
   const templateType = `${type}DayName` as TemplateName;
 
   return (

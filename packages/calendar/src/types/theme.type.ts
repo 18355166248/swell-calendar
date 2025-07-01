@@ -20,13 +20,18 @@ export type WeekTheme = {
   timeGridHourLine: {
     borderBottom: string;
   };
+  gridSelection: {
+    color: string;
+  };
+};
+
+export type CommonTheme = {
+  gridSelection: {
+    border: string;
+    backgroundColor: string;
+  };
 };
 export type ThemeState = {
   week: WeekTheme;
-};
-
-export type Options = {
-  week?: {
-    timeGridLeft?: TimeGridLeftTheme;
-  };
+  common: CommonTheme;
 };

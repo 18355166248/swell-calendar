@@ -16,6 +16,7 @@
     height: 100%;
     position: relative;
     border-right: 1px solid rgb(229, 229, 229);
+    user-select: none;
   }
   &-time {
     position: absolute;

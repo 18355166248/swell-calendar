@@ -12,6 +12,7 @@ export const templates: Template = {
   timeGridDisplayPrimaryTime(props: TemplateNow) {
     const { time } = props;
 
+    // 12:00 AM
     return dayjs(time.toDate()).format('HH a');
   },
 

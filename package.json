@@ -3,7 +3,6 @@
   "description": "日历组件",
   "private": true,
   "scripts": {
-    "pInstall": "pnpm install",
     "build": "turbo run build",
     "dev": "turbo run dev",
     "lint": "turbo run lint",

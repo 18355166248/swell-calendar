@@ -141,7 +141,7 @@ export function TimeGrid({ timeGridData }: TimeGridProps) {
               key={index}
               width={toPercent(col.width)}
               columnIndex={index}
-              timeGridRows={timeGridData}
+              timeGridData={timeGridData}
             />
           ))}
         </div>
