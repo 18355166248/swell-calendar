@@ -2,7 +2,7 @@ import { DEFAULT_PANEL_HEIGHT } from '@/constants/style.const';
 import { addTimeGridPrefix } from '@/constants/timeGrid-const';
 import { useCalendarStore } from '@/contexts/calendarStore';
 import { cls } from '@/helpers/css';
-import { PropsWithChildren, useLayoutEffect, useMemo } from 'react';
+import { forwardRef, PropsWithChildren, useLayoutEffect, useMemo } from 'react';
 
 interface PanelProps {
   name: string;
@@ -37,14 +37,17 @@ function getPanelStyle({ overFlowX, overFlowY, initialWidth, initialHeight }: Pa
   return { ...style };
 }
 
-const Panel = ({
-  name,
-  children,
-  overFlowX,
-  overFlowY,
-  initialWidth = DEFAULT_PANEL_HEIGHT,
-  initialHeight = DEFAULT_PANEL_HEIGHT,
-}: PropsWithChildren<PanelProps>) => {
+const Panel = forwardRef<HTMLDivElement, PropsWithChildren<PanelProps>>(function Panel(
+  {
+    name,
+    children,
+    overFlowX,
+    overFlowY,
+    initialWidth = DEFAULT_PANEL_HEIGHT,
+    initialHeight = DEFAULT_PANEL_HEIGHT,
+  },
+  ref
+) {
   const PanelClassName = useMemo(() => cls(addTimeGridPrefix('panel'), name), [name]);
   const updateDayGridRowHeight = useCalendarStore((state) => state.layout.updateDayGridRowHeight);
   const dayGridRowHeight = useCalendarStore(
@@ -57,13 +60,13 @@ const Panel = ({
 
   useLayoutEffect(() => {
     updateDayGridRowHeight(name, height);
-  }, [initialHeight, name, updateDayGridRowHeight]);
+  }, [height, initialHeight, name, updateDayGridRowHeight]);
 
   return (
-    <div className={PanelClassName} style={styles}>
+    <div className={PanelClassName} style={styles} ref={ref}>
       {children}
     </div>
   );
-};
+});
 
 export default Panel;

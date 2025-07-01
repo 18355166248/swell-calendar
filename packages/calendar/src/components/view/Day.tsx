@@ -11,6 +11,7 @@ import { WEEK_DAY_NAME_BORDER, WEEK_DAY_NAME_HEIGHT } from '@/constants/style.co
 import { getRowStyleInfo } from '@/time/datetime';
 import GridHeader from '@/components/dayGridCommon/GridHeader';
 import { getDayNames } from '@/helpers/dayName';
+import { useDOMNode } from '@/hooks/common/useDOMNode';
 
 export function Day(): JSX.Element {
   const { options, view } = useCalendarStore();
@@ -29,6 +30,8 @@ export function Day(): JSX.Element {
     eventView,
   } = weekOptions;
   const activePanels = getActivePanels(taskView, eventView);
+
+  const [timeGridRef, setTimeGridRef] = useDOMNode<HTMLDivElement>();
 
   // 创建包含当前渲染日期的数组（日视图只显示一天）
   const days = useMemo(() => [renderDate], [renderDate]);
@@ -49,6 +52,9 @@ export function Day(): JSX.Element {
     [days, hourDivision, hourEnd, hourStart, narrowWeekend]
   );
 
+  // 同步向上向下滚动
+  // useTimeGridScollSync();
+
   return (
     <Layout className="day-view">
       <Panel name="day-view-day-names" initialHeight={WEEK_DAY_NAME_HEIGHT + WEEK_DAY_NAME_BORDER}>
@@ -60,7 +66,7 @@ export function Day(): JSX.Element {
         />
       </Panel>
       {activePanels.includes('time') ? (
-        <Panel name="time">
+        <Panel name="time" ref={setTimeGridRef}>
           <TimeGrid timeGridData={timeGridData} />
         </Panel>
       ) : null}
