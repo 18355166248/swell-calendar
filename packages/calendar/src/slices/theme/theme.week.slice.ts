@@ -24,7 +24,7 @@ function initializeWeekOptions(weekOptions: DeepPartial<WeekTheme> = {}) {
       borderBottom: '1px solid #e5e5e5',
     },
     gridSelection: {
-      color: '#fff',
+      color: '#515ce6',
     },
   };
 

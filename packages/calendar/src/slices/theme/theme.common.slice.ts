@@ -5,8 +5,8 @@ import { DeepPartial } from 'ts-essentials';
 function initializeCommonOptions(commonOptions: DeepPartial<CommonTheme> = {}) {
   const common = {
     gridSelection: {
-      backgroundColor: 'rgba(60, 179, 113, 0.5)',
-      border: '1px solid #8FBC8F',
+      backgroundColor: 'rgba(81, 92, 230, 0.15)',
+      border: '1px solid rgba(81, 92, 230, 0.4)',
     },
   };
 

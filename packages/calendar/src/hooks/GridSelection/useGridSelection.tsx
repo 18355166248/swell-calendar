@@ -1,10 +1,11 @@
 import { GridPosition, GridPositionFinder } from '@/types/grid.type';
 import { useDrag } from '../common/useDrag';
-import { useState, MouseEvent } from 'react';
+import { useState, MouseEvent, useRef } from 'react';
 import { isNil } from 'lodash-es';
 import { DraggingState } from '@/types/dnd.type';
 import { GridSelectionData, GridSelectionType } from '@/types/gridSelection.type';
 import { useCalendarStore } from '@/contexts/calendarStore';
+import { useTransientUpdates } from '../common/useTransientUpdates';
 
 export function useGridSelection({
   type,
@@ -17,6 +18,11 @@ export function useGridSelection({
 }) {
   const [initGridPosition, setInitGridPosition] = useState<GridPosition | null>(null);
   const { setGridSelection } = useCalendarStore((state) => state.gridSelection);
+  const gridSelectionRef = useRef<GridSelectionData | null>(null); // 当前网格选择数据
+
+  useTransientUpdates((gridSelection) => {
+    gridSelectionRef.current = gridSelection;
+  });
 
   /**
    * 根据鼠标位置设置网格选择
@@ -46,11 +52,6 @@ export function useGridSelection({
     onMouseup(e, true);
   };
 
-  // 鼠标抬起事件处理函数 拖拽事件
-  const onMouseUpWithDrag = (e: MouseEvent) => {
-    console.log('🚀 ~ onMouseUpWithDrag ~ e:', e);
-  };
-
   const onMouseDown = useDrag({
     onInit: (e) => {
       // 获取并记录初始网格位置
@@ -60,10 +61,12 @@ export function useGridSelection({
       }
     },
     onDragStart: (e) => {
-      console.log('🚀 ~ onDragStart ~ e:', e);
+      setGridSelectionByPosition(e);
     },
     onDrag: (e) => {
-      // console.log('🚀 ~ onDrag ~ e:', e);
+      if (gridSelectionRef.current) {
+        setGridSelectionByPosition(e);
+      }
     },
     onMouseUp: (e, { draggingState }) => {
       e.stopPropagation();
@@ -79,7 +82,7 @@ export function useGridSelection({
       } else {
         // 如果是拖拽结束事件，直接调用鼠标抬起处理函数
         // 传入 false 表示这不是点击事件，而是拖拽结束事件
-        onMouseUpWithDrag(e);
+        onMouseup(e, false);
       }
     },
   });
