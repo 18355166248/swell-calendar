@@ -5,7 +5,8 @@ import { isNil } from 'lodash-es';
 import { DraggingState } from '@/types/dnd.type';
 import { GridSelectionData, GridSelectionType } from '@/types/gridSelection.type';
 import { useCalendarStore } from '@/contexts/calendarStore';
-import { useTransientUpdates } from '../common/useTransientUpdates';
+import { useTransientUpdatesCalendar } from '../common/useTransientUpdatesCalendar';
+import { DRAGGING_TYPE_CREATE } from '@/helpers/drag';
 
 export function useGridSelection({
   type,
@@ -20,9 +21,14 @@ export function useGridSelection({
   const { setGridSelection } = useCalendarStore((state) => state.gridSelection);
   const gridSelectionRef = useRef<GridSelectionData | null>(null); // 当前网格选择数据
 
-  useTransientUpdates((gridSelection) => {
-    gridSelectionRef.current = gridSelection;
-  });
+  const currentGridSelectionType = DRAGGING_TYPE_CREATE.gridSelection(type);
+
+  useTransientUpdatesCalendar<GridSelectionData | null>(
+    (state) => state.gridSelection.timeGrid,
+    (gridSelection) => {
+      gridSelectionRef.current = gridSelection;
+    }
+  );
 
   /**
    * 根据鼠标位置设置网格选择
@@ -52,7 +58,7 @@ export function useGridSelection({
     onMouseup(e, true);
   };
 
-  const onMouseDown = useDrag({
+  const onMouseDown = useDrag(currentGridSelectionType, {
     onInit: (e) => {
       // 获取并记录初始网格位置
       const gridPosition = gridPositionFinder(e);

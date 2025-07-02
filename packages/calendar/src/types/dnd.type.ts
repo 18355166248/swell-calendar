@@ -1,3 +1,5 @@
+import { DraggingTypes } from './drag.type';
+
 /**
  * 拖拽状态枚举
  * 定义了拖拽操作的不同阶段
@@ -10,7 +12,7 @@ export enum DraggingState {
 }
 
 export type DndState = {
-  draggingItemType: string | null; // 当前拖拽的项目类型
+  draggingItemType: DraggingTypes | null; // 当前拖拽的项目类型
   draggingState: DraggingState; // 当前拖拽状态
   initX: number | null; // 拖拽开始时的 X 坐标
   initY: number | null; // 拖拽开始时的 Y 坐标

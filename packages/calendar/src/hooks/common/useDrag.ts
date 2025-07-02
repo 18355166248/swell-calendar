@@ -8,6 +8,7 @@ import { isLeftMouseButton } from '@/utils/mouse';
 import { isNil } from 'lodash-es';
 import { useCallback, useRef, useState, MouseEvent, KeyboardEvent, useEffect } from 'react';
 import useLatest from './useLatest';
+import { DraggingTypes } from '@/types/drag.type';
 
 type MouseListener = (e: MouseEvent, dnd: DndState) => void;
 type KeyboardListener = (e: KeyboardEvent, dnd: DndState) => void;
@@ -48,7 +49,10 @@ export interface DragListeners {
   onPressESCKey?: KeyboardListener;
 }
 
-export function useDrag({ onInit, onDragStart, onDrag, onMouseUp, onPressESCKey }: DragListeners) {
+export function useDrag(
+  draggingType: DraggingTypes,
+  { onInit, onDragStart, onDrag, onMouseUp, onPressESCKey }: DragListeners
+) {
   const { dnd } = useCalendarStore();
   const { initDrag, setDragging, cancelDrag, reset } = dnd;
 
@@ -71,13 +75,13 @@ export function useDrag({ onInit, onDragStart, onDrag, onMouseUp, onPressESCKey 
 
       setIsStarted(true);
       initDrag({
-        draggingItemType: null,
+        draggingItemType: draggingType,
         initX: e.clientX,
         initY: e.clientY,
       });
       onInit?.(e, dndSliceRef.current);
     },
-    [initDrag, onInit, dndSliceRef]
+    [initDrag, draggingType, onInit, dndSliceRef]
   );
 
   /**

@@ -12,6 +12,7 @@ import { getRowStyleInfo } from '@/time/datetime';
 import GridHeader from '@/components/dayGridCommon/GridHeader';
 import { getDayNames } from '@/helpers/dayName';
 import { useDOMNode } from '@/hooks/common/useDOMNode';
+import useTimeGridScrollSync from '@/hooks/TimeGrid/useTimeGridScrollSync';
 
 export function Day(): JSX.Element {
   const { options, view } = useCalendarStore();
@@ -53,7 +54,7 @@ export function Day(): JSX.Element {
   );
 
   // 同步向上向下滚动
-  // useTimeGridScollSync();
+  useTimeGridScrollSync(timeGridRef, timeGridData.rows.length);
 
   return (
     <Layout className="day-view">
