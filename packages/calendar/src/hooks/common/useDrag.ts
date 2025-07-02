@@ -1,9 +1,7 @@
-import { KEY } from '@/constants/keyboard';
 import { MINIMUM_DRAG_MOUSE_DISTANCE } from '@/constants/mouse.const';
 import { useCalendarStore } from '@/contexts/calendarStore';
 import { DndState, DraggingState } from '@/types/dnd.type';
-import { KeyboardEventListener, MouseEventListener } from '@/types/events.type';
-import { isKeyPressed } from '@/utils/keyboard';
+import { MouseEventListener } from '@/types/events.type';
 import { isLeftMouseButton } from '@/utils/mouse';
 import { isNil } from 'lodash-es';
 import { useCallback, useRef, useState, MouseEvent, KeyboardEvent, useEffect } from 'react';
@@ -51,10 +49,10 @@ export interface DragListeners {
 
 export function useDrag(
   draggingType: DraggingTypes,
-  { onInit, onDragStart, onDrag, onMouseUp, onPressESCKey }: DragListeners
+  { onInit, onDragStart, onDrag, onMouseUp }: DragListeners
 ) {
   const { dnd } = useCalendarStore();
-  const { initDrag, setDragging, cancelDrag, reset } = dnd;
+  const { initDrag, setDragging, reset } = dnd;
 
   const dndSliceRef = useLatest(dnd);
 
@@ -62,7 +60,6 @@ export function useDrag(
 
   const handleMouseMoveRef = useRef<MouseEventListener | null>(null);
   const handleMouseUpRef = useRef<MouseEventListener | null>(null);
-  const handleKeyDownRef = useRef<KeyboardEventListener | null>(null);
 
   // 鼠标按下
   const handleMouseDown = useCallback<MouseEventListener>(
@@ -75,7 +72,7 @@ export function useDrag(
 
       setIsStarted(true);
       initDrag({
-        draggingItemType: draggingType,
+      draggingItemType: draggingType,
         initX: e.clientX,
         initY: e.clientY,
       });
@@ -132,47 +129,31 @@ export function useDrag(
     [isStarted, onMouseUp, reset, dndSliceRef]
   );
 
-  const handleKeyDown = useCallback<KeyboardEventListener>(
-    (e) => {
-      if (isKeyPressed(e, KEY.ESCAPE)) {
-        setIsStarted(false);
-        cancelDrag();
-        onPressESCKey?.(e, dndSliceRef.current);
-      }
-    },
-    [cancelDrag, dndSliceRef, onPressESCKey]
-  );
-
   useEffect(() => {
     handleMouseMoveRef.current = handleMouseMove;
     handleMouseUpRef.current = handleMouseUp;
-    handleKeyDownRef.current = handleKeyDown;
-  }, [handleMouseMove, handleMouseUp, handleKeyDown]);
+  }, [handleMouseMove, handleMouseUp]);
 
   // 根据拖拽状态添加/移除全局事件监听器
   useEffect(() => {
     const wrappedHandleMouseMove = (e: globalThis.MouseEvent) =>
       handleMouseMoveRef.current?.(e as any);
     const wrappedHandleMouseUp = (e: globalThis.MouseEvent) => handleMouseUpRef.current?.(e as any);
-    const wrappedHandleKeyDown = (e: globalThis.KeyboardEvent) =>
-      handleKeyDownRef.current?.(e as any);
 
     if (isStarted) {
       // 拖拽开始时添加全局事件监听器
       document.addEventListener('mousemove', wrappedHandleMouseMove);
       document.addEventListener('mouseup', wrappedHandleMouseUp);
-      document.addEventListener('keydown', wrappedHandleKeyDown);
 
       return () => {
         // 清理事件监听器
         document.removeEventListener('mousemove', wrappedHandleMouseMove);
         document.removeEventListener('mouseup', wrappedHandleMouseUp);
-        document.removeEventListener('keydown', wrappedHandleKeyDown);
       };
     }
 
     return noop;
-  }, [isStarted, reset]);
+  }, [isStarted]);
 
   return handleMouseDown;
 }
