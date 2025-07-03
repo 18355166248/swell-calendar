@@ -29,6 +29,7 @@ export default defineConfig({
     lib: {
       entry: {
         'Day/index': resolve(__dirname, 'src/components/view/Day/index.tsx'),
+        'Calendar/index': resolve(__dirname, 'src/components/Calendar.tsx'),
         'css/index': resolve(__dirname, 'src/css/index.scss'),
       },
       formats: ['es', 'cjs'],

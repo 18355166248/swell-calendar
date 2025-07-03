@@ -33,10 +33,7 @@ const Layout = ({ children, className, width, height, backgroundColor }: LayoutP
   const {
     layout: { updateLayoutHeight, setLastPanelType },
   } = useCalendarStore();
-  const containerClassName = useMemo(
-    () => cls(addTimeGridPrefix('layout'), className),
-    [className]
-  );
+  const containerClassName = useMemo(() => cls('layout', className), [className]);
 
   useEffect(() => {
     if (container) {

@@ -34,9 +34,10 @@ export function TimeGrid({ timeGridData }: TimeGridProps) {
   // 组件挂载状态检查
   const isMounted = useIsMounted();
 
-  const { isReadOnly } = useCalendarStore((state) => state.options);
+  const { options } = useCalendarStore();
   const { timeGridLeft } = useThemeStore((state) => state.week);
-  const { startDayOfWeek, narrowWeekend } = useCalendarStore((state) => state.options.week);
+  const { isReadOnly } = options;
+  const { startDayOfWeek, narrowWeekend } = options.week;
 
   // 当前时间指示器的状态
   const [nowIndicatorState, setNowIndicatorState] = useState<{

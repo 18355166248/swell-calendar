@@ -1,4 +1,4 @@
-import { useCalendarStore } from '@/contexts/calendarStore';
+import { useCalendarStoreInternal } from '@/contexts/calendarStore';
 import { CalendarState } from '@/types/store.type';
 import { useEffect, useRef } from 'react';
 
@@ -14,22 +14,15 @@ export function useTransientUpdatesCalendar<T>(
     selectorRef.current = selector;
   }, [subscribe, selector]);
 
+  // 获取 store 实例
+  const store = useCalendarStoreInternal();
+
   useEffect(
     () =>
-      useCalendarStore.subscribe(
-        selectorRef.current,
-        (value, prevValue) => {
-          if (value && JSON.stringify(value) !== JSON.stringify(prevValue)) {
-            subscribeRef.current(value);
-          }
-        },
-        {
-          // equalityFn: (a, b) => {
-          //   return JSON.stringify(a) === JSON.stringify(b);
-          // },
-          fireImmediately: true,
-        }
-      ),
-    []
+      store.subscribe((state) => {
+        const value = selectorRef.current(state);
+        subscribeRef.current(value);
+      }),
+    [store]
   );
 }
