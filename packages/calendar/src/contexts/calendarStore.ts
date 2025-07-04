@@ -9,6 +9,7 @@ import { createDndSlice } from '@/slices/dnd.slice';
 import { createGridSelectionSlice } from '@/slices/gridSelection.slice';
 import { create } from 'zustand';
 import { createStoreContext } from '@/store';
+import { createCalendarSlice } from '@/slices/calendat.slice';
 
 // 定义状态更新函数的类型
 // 这个函数接收一个状态转换函数，返回部分状态更新
@@ -23,6 +24,8 @@ type SetState = (fn: (state: CalendarStore) => Partial<CalendarStore>) => void;
 const storeCreator = (options: Options) => (set: SetState) => ({
   // 创建选项切片 - 处理日历的基本配置
   ...createOptionsSlice(options),
+  // 创建日历切片 - 处理日历相关功能
+  ...createCalendarSlice(options.calendars)(set),
   // 创建模板切片 - 处理事件模板相关功能
   ...createTemplateSlice(options.template),
   // 创建视图切片 - 处理日历视图状态（日视图、周视图等）

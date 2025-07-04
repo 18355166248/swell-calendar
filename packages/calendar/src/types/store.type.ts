@@ -4,6 +4,7 @@ import { TemplateSlice } from './template.type';
 import { OptionsSlice as LayoutSlice } from './layout.type';
 import { DndSlice } from './dnd.type';
 import { GridSelectionSlice } from './gridSelection.type';
+import { CalendarSlice } from './calendar.type';
 
 export type CalendarWeekOptions = Required<WeekOptions>;
 
@@ -12,6 +13,7 @@ export type CalendarState = OptionsSlice &
   TemplateSlice &
   LayoutSlice &
   DndSlice &
-  GridSelectionSlice;
+  GridSelectionSlice &
+  CalendarSlice;
 
 export type CalendarStore = CalendarState;

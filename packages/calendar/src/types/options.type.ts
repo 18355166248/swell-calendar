@@ -2,6 +2,7 @@ import { DeepPartial } from 'ts-essentials';
 import { ThemeState } from './theme.type';
 import { TemplateConfig } from './template.type';
 import { DndState } from './dnd.type';
+import { CalendarInfo } from './calendar.type';
 
 export type EventView = 'allday' | 'time';
 export type TaskView = 'milestone' | 'task';
@@ -15,6 +16,7 @@ export interface Options {
   // 默认视图类型
   defaultView?: ViewType;
   theme?: DeepPartial<ThemeState>;
+  calendars?: CalendarInfo[];
   // 周视图选项
   week?: WeekOptions;
   // 模板配置

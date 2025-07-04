@@ -1,6 +1,13 @@
 import DayjsTZDate from '@/time/dayjs-tzdate';
 import { limit, ratio } from '@/utils/math';
 
+/**
+ * 获取时间在指定时间段内的百分比
+ * @param date 当前时间
+ * @param start 开始时间
+ * @param end 结束时间
+ * @returns 时间在指定时间段内的百分比
+ */
 export function getTopPercentByTime(date: DayjsTZDate, start: DayjsTZDate, end: DayjsTZDate) {
   const startTime = start.getTime();
   const endTime = end.getTime();
