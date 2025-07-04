@@ -24,10 +24,13 @@ export interface CalendarInfo extends CalendarColor {
   name: string;
 }
 
+export interface CalendarData {
+  calendars: CalendarInfo[];
+  events: EventObject[];
+}
+
 export type CalendarSlice = {
-  calendar: {
-    calendars: CalendarInfo[];
-    events: EventObject[];
+  calendar: CalendarData & {
     createEvents: (events: EventObject[]) => void;
   };
 };

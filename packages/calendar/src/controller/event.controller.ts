@@ -1,5 +1,18 @@
-import { CalendarInfo } from '@/types/calendar.type';
+import { CalendarData, CalendarInfo } from '@/types/calendar.type';
 import { EventObject } from '@/types/events.type';
+
+/**
+ * 添加事件到日历数据中
+ * 将事件添加到事件集合并更新日期矩阵
+ * @param {CalendarData} calendarData - 日历数据对象
+ * @param {EventModel} event - 事件模型实例
+ * @returns {EventModel} 添加的事件实例
+ */
+export function addEvent(events: EventObject[], event: EventObject) {
+  events.push(event); // 添加到事件集合
+
+  return event;
+}
 
 /**
  * 创建新事件
@@ -8,11 +21,8 @@ import { EventObject } from '@/types/events.type';
  * @param {EventObject} eventData - 事件数据对象
  * @returns {EventModel} 创建的事件实例
  */
-function createEvent(calendars: CalendarInfo[], event: EventObject) {
-  return {
-    ...event,
-    calendar: calendars.find((calendar) => calendar.id === event.calendarId),
-  };
+function createEvent(calendarData: CalendarData, event: EventObject) {
+  return addEvent(calendarData.events, event);
 }
 
 /**
@@ -22,6 +32,6 @@ function createEvent(calendars: CalendarInfo[], event: EventObject) {
  * @param {EventObject[]} events - 事件数据数组
  * @returns {EventModel[]} 创建的事件实例数组
  */
-export function createEvents(calendars: CalendarInfo[], events: EventObject[] = []) {
-  return events.map((event) => createEvent(calendars, event));
+export function createEvents(calendarData: CalendarData, events: EventObject[] = []) {
+  return events.map((event) => createEvent(calendarData, event));
 }

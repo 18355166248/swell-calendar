@@ -2,6 +2,7 @@ import { CalendarStore } from '@/types/store.type';
 import { CalendarInfo, CalendarSlice } from '@/types/calendar.type';
 import { produce } from 'immer';
 import { EventObject } from '@/types/events.type';
+import { createEvents } from '@/controller/event.controller';
 
 function initializeCalendarOptions(calendars: CalendarInfo[]) {
   return {
@@ -23,7 +24,7 @@ export function createCalendarSlice(calendars: CalendarInfo[] = []) {
       createEvents: (events) => {
         set(
           produce((state: CalendarStore) => {
-            console.log('🚀 ~ return ~ events:', events);
+            createEvents(state.calendar, events);
           })
         );
       },

@@ -1,5 +1,6 @@
 import { Day, isWeekend, WEEK_DAYS } from '@/time/datetime';
 import DayjsTZDate from '@/time/dayjs-tzdate';
+import { CalendarData } from '@/types/calendar.type';
 import { FormattedTimeString } from '@/types/datetime.type';
 import { CommonGridColumn, GridPositionFinder, TimeGridData } from '@/types/grid.type';
 import { ClientMousePosition } from '@/types/mouse.type';
@@ -279,4 +280,16 @@ export function createGridPositionFinder({
       rowIndex: getIndexFromPosition(rowsCount, containerHeight, top),
     };
   };
+}
+
+export function getWeekViewEvents(
+  days: DayjsTZDate[],
+  calendar: CalendarData,
+  options: {
+    narrowWeekend: boolean;
+    hourStart: number;
+    hourEnd: number;
+  }
+) {
+  return [];
 }
