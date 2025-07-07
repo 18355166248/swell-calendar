@@ -8,7 +8,7 @@ import { createTimeGridData, getWeekViewEvents } from '@/helpers/grid';
 import Layout from '@/components/Layout';
 import Panel from '@/components/Panel';
 import { WEEK_DAY_NAME_BORDER, WEEK_DAY_NAME_HEIGHT } from '@/constants/style.const';
-import { getRowStyleInfo } from '@/time/datetime';
+import { getFilterRange, getRowStyleInfo } from '@/time/datetime';
 import GridHeader from '@/components/dayGridCommon/GridHeader';
 import { getDayNames } from '@/helpers/dayName';
 import { useDOMNode } from '@/hooks/common/useDOMNode';
@@ -42,14 +42,18 @@ export function Day(): JSX.Element {
   // 获取日历数据
   const calendar = useCalendarStore((state) => state.calendar);
 
+  const [weekStartDate, weekEndDate] = getFilterRange(days[0]);
+
   // 获取周视图事件数据
   const dayGridEvents = useMemo(() => {
     return getWeekViewEvents(days, calendar, {
       narrowWeekend,
       hourStart,
       hourEnd,
+      weekStartDate,
+      weekEndDate,
     });
-  }, [calendar]);
+  }, [calendar, days, hourEnd, hourStart, narrowWeekend, weekStartDate, weekEndDate]);
 
   // 计算行样式信息和单元格宽度映射
   const { rowStyleInfo } = getRowStyleInfo(days.length, narrowWeekend, startDayOfWeek, workweek);

@@ -1,5 +1,21 @@
+import { EventUIModel } from '@/model/eventUIModel';
 import DayjsTZDate from '@/time/dayjs-tzdate';
 import { MouseEvent, KeyboardEvent } from 'react';
+
+export type Matrix<T> = T[][];
+export type Matrix3d<T> = Matrix<T>[];
+
+export type DayGridEventMatrix = Matrix3d<EventUIModel>;
+export type TimeGridEventMatrix = Record<string, Matrix3d<EventUIModel>>;
+
+export type EventModelMap = {
+  milestone: EventUIModel[];
+  allday: EventUIModel[];
+  task: EventUIModel[];
+  time: EventUIModel[];
+};
+
+export type EventGroupMap = Record<keyof EventModelMap, DayGridEventMatrix | TimeGridEventMatrix>;
 
 export type TimeUnit = 'second' | 'minute' | 'hour' | 'date' | 'month' | 'year';
 
@@ -21,7 +37,7 @@ export interface EventObject {
   title?: string; // 事件标题
   start?: DateType; // 事件开始时间
   end?: DateType; // 事件结束时间
-  allDay?: boolean; // 是否为全天事件
+  isAllday?: boolean; // 是否为全天事件
   /**
    * 事件类别
    * 定义事件的类型，影响事件在日历中的显示方式

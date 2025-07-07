@@ -1,13 +1,13 @@
 import { CalendarStore } from '@/types/store.type';
 import { CalendarInfo, CalendarSlice } from '@/types/calendar.type';
 import { produce } from 'immer';
-import { EventObject } from '@/types/events.type';
-import { createEvents } from '@/controller/event.controller';
+import { createEventCollection, createEvents } from '@/controller/event.controller';
+import { EventModel } from '@/model/eventModel';
 
 function initializeCalendarOptions(calendars: CalendarInfo[]) {
   return {
     calendars,
-    events: [] as EventObject[],
+    events: createEventCollection<EventModel>(),
   };
 }
 

@@ -5,8 +5,10 @@ import { FormattedTimeString } from '@/types/datetime.type';
 import { CommonGridColumn, GridPositionFinder, TimeGridData } from '@/types/grid.type';
 import { ClientMousePosition } from '@/types/mouse.type';
 import { HourDivision } from '@/types/options.type';
+import { Panel } from '@/types/panel.type';
 import { limit, ratio } from '@/utils/math';
 import { findLastIndex, isNil, range } from 'lodash-es';
+import { findByDateRange as findByDateRangeForWeek } from '@/controller/week.controller';
 
 /**
  * 创建时间网格数据，用于日历组件的时间轴显示
@@ -285,11 +287,54 @@ export function createGridPositionFinder({
 export function getWeekViewEvents(
   days: DayjsTZDate[],
   calendar: CalendarData,
-  options: {
+  {
+    narrowWeekend,
+    hourStart,
+    hourEnd,
+    weekStartDate,
+    weekEndDate,
+  }: {
     narrowWeekend: boolean;
     hourStart: number;
     hourEnd: number;
+    weekStartDate: DayjsTZDate;
+    weekEndDate: DayjsTZDate;
   }
 ) {
-  return [];
+  const panels: Panel[] = [
+    {
+      name: 'milestone', // 里程碑事件 - 在日期网格中显示
+      type: 'daygrid', // 使用日期网格布局
+      show: true, // 显示此面板
+    },
+    {
+      name: 'task', // 任务事件 - 在日期网格中显示
+      type: 'daygrid', // 使用日期网格布局
+      show: true, // 显示此面板
+    },
+    {
+      name: 'allday', // 全天事件 - 在日期网格中显示
+      type: 'daygrid', // 使用日期网格布局
+      show: true, // 显示此面板
+    },
+    {
+      name: 'time', // 时间事件 - 在时间网格中显示
+      type: 'timegrid', // 使用时间网格布局
+      show: true, // 显示此面板
+    },
+  ];
+
+  // 根据日期范围和面板配置查找事件
+  const eventModels = findByDateRangeForWeek(calendar, {
+    start: weekStartDate, // 周开始日期
+    end: weekEndDate, // 周结束日期
+    panels, // 面板配置，用于过滤事件类型
+    options: {
+      hourStart, // 时间网格开始小时
+      hourEnd, // 时间网格结束小时
+    },
+  });
+  console.log('🚀 ~ eventModels:', eventModels);
+
+  return panels;
 }

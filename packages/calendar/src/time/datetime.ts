@@ -21,6 +21,10 @@ export enum Day {
  */
 export const WEEK_DAYS = 7;
 
+export const MS_PER_DAY = 86400000; // 一天的毫秒数
+export const MS_PER_HOUR = 3600000; // 一小时的毫秒数
+export const MS_PER_MINUTES = 60000; // 一分钟的毫秒数
+
 /**
  * 判断是否为周末
  * @param day 星期枚举值
@@ -165,4 +169,12 @@ export function addMinutes(d: DayjsTZDate, minutes: number) {
   date.setMinutes(d.getMinutes() + minutes);
 
   return date;
+}
+
+// 获取过滤范围
+export function getFilterRange(day: DayjsTZDate) {
+  const start = day.setHours(0, 0, 0, 0);
+  const end = day.setHours(23, 59, 59, 999);
+
+  return [start, end];
 }

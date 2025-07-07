@@ -1,5 +1,51 @@
-import { CalendarData, CalendarInfo } from '@/types/calendar.type';
+import { EventModel } from '@/model/eventModel';
+import { EventUIModel } from '@/model/eventUIModel';
+import { MS_PER_DAY } from '@/time/datetime';
+import { CalendarData } from '@/types/calendar.type';
 import { EventObject } from '@/types/events.type';
+import Collection from '@/utils/collection';
+
+// 创建事件集合
+export function createEventCollection<T extends EventModel | EventUIModel>(...initItems: T[]) {
+  const collection = new Collection<T>((event) => event.cid());
+  if (initItems) {
+    collection.add(...initItems);
+  }
+  return collection;
+}
+
+/**
+ * 判断事件是否为全天事件
+ * 全天事件的条件：
+ * 1. 明确标记为全天事件
+ * 2. 时间类别事件且持续时间超过一天
+ * @param {EventModel} event - 事件模型实例
+ * @returns {boolean} 是否为全天事件
+ */
+export function isAllday(event: EventModel) {
+  return (
+    event.isAllday ||
+    (event.category === 'time' && Number(event.end) - Number(event.start) > MS_PER_DAY)
+  );
+}
+
+/**
+ * 根据事件类别进行分组过滤
+ * 用于将事件按类型分组显示（全天事件、时间事件等）
+ * @param {EventUIModel} uiModel - UI模型实例
+ * @returns {string} 分组键名
+ */
+export function filterByCategory(uiModel: EventUIModel) {
+  const { model } = uiModel;
+
+  // 如果是全天事件，返回'allday'分组
+  if (isAllday(model)) {
+    return 'allday';
+  }
+
+  // 否则返回事件的原始类别
+  return model.category;
+}
 
 /**
  * 添加事件到日历数据中
@@ -8,8 +54,8 @@ import { EventObject } from '@/types/events.type';
  * @param {EventModel} event - 事件模型实例
  * @returns {EventModel} 添加的事件实例
  */
-export function addEvent(events: EventObject[], event: EventObject) {
-  events.push(event); // 添加到事件集合
+export function addEvent(calendarData: CalendarData, event: EventModel) {
+  calendarData.events.add(event); // 添加到事件集合
 
   return event;
 }
@@ -22,7 +68,8 @@ export function addEvent(events: EventObject[], event: EventObject) {
  * @returns {EventModel} 创建的事件实例
  */
 function createEvent(calendarData: CalendarData, event: EventObject) {
-  return addEvent(calendarData.events, event);
+  const eventModel = new EventModel(event);
+  return addEvent(calendarData, eventModel);
 }
 
 /**

@@ -1,4 +1,6 @@
+import Collection from '@/utils/collection';
 import { EventObject } from './events.type';
+import { EventModel } from '@/model/eventModel';
 
 /**
  * 日历颜色接口
@@ -26,7 +28,7 @@ export interface CalendarInfo extends CalendarColor {
 
 export interface CalendarData {
   calendars: CalendarInfo[];
-  events: EventObject[];
+  events: Collection<EventModel>;
 }
 
 export type CalendarSlice = {
