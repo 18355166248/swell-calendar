@@ -178,3 +178,71 @@ export function getFilterRange(day: DayjsTZDate) {
 
   return [start, end];
 }
+
+/**
+ * 根据起始日期、结束日期和步长生成日期数组
+ *
+ * 该函数用于生成一个从起始日期到结束日期的日期序列，每个日期之间的间隔由步长参数决定。
+ * 步长以毫秒为单位，常用于生成日历视图中的时间网格或事件时间轴。
+ *
+ * @param startDate - 起始日期对象
+ * @param endDate - 结束日期对象
+ * @param step - 日期间隔步长（毫秒）
+ * @returns 返回包含所有日期对象的数组，按时间顺序排列
+ *
+ * @example
+ * // 生成一天内每小时的日期数组
+ * const start = new DayjsTZDate('2024-01-01 00:00:00');
+ * const end = new DayjsTZDate('2024-01-01 23:59:59');
+ * const hourlyDates = makeDateRange(start, end, MS_PER_HOUR);
+ */
+export function makeDateRange(
+  startDate: DayjsTZDate,
+  endDate: DayjsTZDate,
+  step: number
+): DayjsTZDate[] {
+  // 获取起始和结束时间的时间戳（毫秒）
+  const startTime = startDate.getTime();
+  const endTime = endDate.getTime();
+
+  // 创建起始日期的副本，用于迭代
+  const date = new DayjsTZDate(startDate);
+
+  // 初始化结果数组
+  const result: DayjsTZDate[] = [];
+
+  // 当前时间游标，从起始时间开始
+  let cursor = startTime;
+
+  // 循环生成日期序列
+  // 条件1: cursor <= endTime - 确保不超过结束时间
+  // 条件2: endTime >= date.getTime() - 双重检查，确保日期对象的时间不超过结束时间
+  while (cursor <= endTime && endTime >= date.getTime()) {
+    // 将当前日期对象的副本添加到结果数组
+    result.push(new DayjsTZDate(date));
+
+    // 更新游标，移动到下一个时间点
+    cursor = cursor + step;
+
+    // 更新日期对象，增加指定的毫秒数
+    date.addMilliseconds(step);
+  }
+
+  return result;
+}
+
+export function toStartOfDay(date?: DayjsTZDate): DayjsTZDate {
+  const d = date ? new DayjsTZDate(date) : new DayjsTZDate();
+
+  d.setHours(0, 0, 0, 0);
+
+  return d;
+}
+
+export function toEndOfDay(date?: DayjsTZDate): DayjsTZDate {
+  const d = date ? new DayjsTZDate(date) : new DayjsTZDate();
+
+  d.setHours(23, 59, 59, 999);
+
+  return d;
+}

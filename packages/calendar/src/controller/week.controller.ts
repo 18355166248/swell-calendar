@@ -6,10 +6,39 @@ import { convertToUIModel, getEventInDateRangeFilter } from './core.controller';
 import { EventGroupMap } from '@/types/events.type';
 import Collection from '@/utils/collection';
 import { EventUIModel } from '@/model/eventUIModel';
-import { filterByCategory } from './event.controller';
+import { filterByCategory, getDateRange } from './event.controller';
 import { isNil } from 'lodash-es';
+import { EventModel } from '@/model/eventModel';
 
 function getUIModelForAlldayView(start: DayjsTZDate, end: DayjsTZDate) {}
+
+/**
+ * 按日期范围分割事件模型集合
+ *
+ * 该函数将事件集合按日期进行分组，每个日期对应一个事件集合。
+ * 主要用于时间视图的事件渲染，确保每天的事件能够正确显示在对应的列中。
+ *
+ * @param {IDS_OF_DAY} idsOfDay - 日期索引映射，键为YYYYMMDD格式的日期字符串，值为该日期的事件ID数组
+ * @param {TZDate} start - 日期范围的开始日期
+ * @param {TZDate} end - 日期范围的结束日期
+ * @param {Collection<EventModel | EventUIModel>} uiModelColl - 要分割的事件模型集合
+ * @returns {Record<string, Collection>} 按日期分组的事件集合映射，键为YYYYMMDD格式的日期字符串
+ */
+export function splitEventByDateRange(start: DayjsTZDate, end: DayjsTZDate) {
+  const result: Record<string, Collection<EventModel | EventUIModel>> = {};
+
+  const range = getDateRange(start, end);
+  console.log('🚀 ~ range:', range);
+
+  range.forEach((date) => {
+    // 将日期格式化为YYYYMMDD字符串，用作结果对象的键
+    const dateStr = date.dayjs.format('YYYYMMDD');
+
+    result[dateStr] = new Collection<EventModel | EventUIModel>((event) => event.cid());
+  });
+
+  return result;
+}
 
 /**
  * 为时间视图部分创建UI模型矩阵
@@ -37,6 +66,11 @@ function getUIModelForTimeView(condition: {
   hourEnd: number;
 }) {
   const { start, end, uiModelTimeColl, hourStart, hourEnd } = condition;
+
+  // 按日期范围分隔事件集合
+  const ymdSplitted = splitEventByDateRange(start, end);
+
+  console.log('🚀 ~ ymdSplitted:', ymdSplitted);
 }
 
 /**

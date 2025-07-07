@@ -1,6 +1,7 @@
 import { EventModel } from '@/model/eventModel';
 import { EventUIModel } from '@/model/eventUIModel';
-import { MS_PER_DAY } from '@/time/datetime';
+import DayjsTZDate from '@/time/dayjs-tzdate';
+import { makeDateRange, MS_PER_DAY, toEndOfDay, toStartOfDay } from '@/time/datetime';
 import { CalendarData } from '@/types/calendar.type';
 import { EventObject } from '@/types/events.type';
 import Collection from '@/utils/collection';
@@ -48,6 +49,18 @@ export function filterByCategory(uiModel: EventUIModel) {
 }
 
 /**
+ * 将事件添加到日期矩阵中
+ * 日期矩阵用于快速查找特定日期的事件
+ * @param {IDS_OF_DAY} idsOfDay - 日期ID映射对象
+ * @param {EventModel} event - 事件模型实例
+ */
+function addToMatrix (idsOfDay: Record<string, number[]>, event: EventModel) {
+    // 获取事件包含的所有日期
+  const containDates = getDateRange(event.getStarts(), event.getEnds());
+
+}
+
+/**
  * 添加事件到日历数据中
  * 将事件添加到事件集合并更新日期矩阵
  * @param {CalendarData} calendarData - 日历数据对象
@@ -56,6 +69,7 @@ export function filterByCategory(uiModel: EventUIModel) {
  */
 export function addEvent(calendarData: CalendarData, event: EventModel) {
   calendarData.events.add(event); // 添加到事件集合
+  addToMatrix(calendarData.idsOfDay, event); // 更新日期矩阵
 
   return event;
 }
@@ -81,4 +95,15 @@ function createEvent(calendarData: CalendarData, event: EventObject) {
  */
 export function createEvents(calendarData: CalendarData, events: EventObject[] = []) {
   return events.map((event) => createEvent(calendarData, event));
+}
+
+/**
+ * 计算事件包含的日期范围
+ * 根据开始和结束日期生成该范围内的所有日期
+ * @param {DayjsTZDate} start - 范围的开始日期
+ * @param {DayjsTZDate} end - 范围的结束日期
+ * @returns {DayjsTZDate[]} 包含的日期数组
+ */
+export function getDateRange(start: DayjsTZDate, end: DayjsTZDate) {
+  return makeDateRange(toStartOfDay(start), toEndOfDay(end), MS_PER_DAY);
 }

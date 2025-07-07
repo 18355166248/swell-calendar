@@ -8,6 +8,7 @@ function initializeCalendarOptions(calendars: CalendarInfo[]) {
   return {
     calendars,
     events: createEventCollection<EventModel>(),
+    idsOfDay: {},
   };
 }
 

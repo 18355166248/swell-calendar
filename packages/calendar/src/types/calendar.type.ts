@@ -29,6 +29,7 @@ export interface CalendarInfo extends CalendarColor {
 export interface CalendarData {
   calendars: CalendarInfo[];
   events: Collection<EventModel>;
+  idsOfDay: Record<string, number[]>; // 日期矩阵
 }
 
 export type CalendarSlice = {
