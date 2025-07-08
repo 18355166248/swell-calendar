@@ -139,7 +139,6 @@ function getUIModelForTimeView(
 
     // 计算事件碰撞组（用于处理重叠事件的布局）
     const collisionGroups = getCollisionGroup(uiModels, usingTravelTime);
-    console.log('🚀 ~ Object.entries ~ collisionGroups:', collisionGroups);
 
     // 生成3D矩阵
     const matrix = generate3DMatrix(uiModelColl, collisionGroups, usingTravelTime);

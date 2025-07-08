@@ -55,8 +55,6 @@ export function Day(): JSX.Element {
     });
   }, [calendar, days, hourEnd, hourStart, narrowWeekend, weekStartDate, weekEndDate]);
 
-  console.log('🚀 ~ dayGridEvents ~ dayGridEvents:', dayGridEvents);
-
   // 计算行样式信息和单元格宽度映射
   const { rowStyleInfo } = getRowStyleInfo(days.length, narrowWeekend, startDayOfWeek, workweek);
 
@@ -86,7 +84,7 @@ export function Day(): JSX.Element {
       </Panel>
       {activePanels.includes('time') ? (
         <Panel name="time" ref={setTimeGridRef}>
-          <TimeGrid timeGridData={timeGridData} />
+          <TimeGrid timeGridData={timeGridData} events={dayGridEvents.time} />
         </Panel>
       ) : null}
     </Layout>

@@ -4,7 +4,7 @@ import { TimeGridData } from '@/types/grid.type';
 import { cls, toPercent } from '@/helpers/css';
 import { useCallback, useLayoutEffect, useMemo, useState } from 'react';
 import DayjsTZDate from '@/time/dayjs-tzdate';
-import { isSameDate, setTimeStrToDate } from '@/time/datetime';
+import { isSameDate, setTimeStrToDate, toEndOfDay, toStartOfDay } from '@/time/datetime';
 import { isNil, last } from 'lodash-es';
 import { getTopPercentByTime } from '@/controller/time.controller';
 import { useIsMounted } from '@/hooks/common/useIsMounted';
@@ -16,6 +16,8 @@ import { useGridSelection } from '@/hooks/GridSelection/useGridSelection';
 import { createGridPositionFinder } from '@/helpers/grid';
 import { useDOMNode } from '@/hooks/common/useDOMNode';
 import { timeGridSelectionHelper } from '@/helpers/gridSelection';
+import { EventUIModel } from '@/model/eventUIModel';
+import { isBetweenColumn } from '@/controller/column.controller';
 
 const classNames = {
   timeGrid: cls(className),
@@ -24,9 +26,10 @@ const classNames = {
 
 export interface TimeGridProps {
   timeGridData: TimeGridData;
+  events: EventUIModel[]; // 需要在网格中显示的事件数组
 }
 
-export function TimeGrid({ timeGridData }: TimeGridProps) {
+export function TimeGrid({ timeGridData, events }: TimeGridProps) {
   const { columns } = timeGridData;
 
   // 获取列容器的 DOM 节点引用
@@ -44,6 +47,27 @@ export function TimeGrid({ timeGridData }: TimeGridProps) {
     top: number; // 指示器距离顶部的百分比位置
     now: DayjsTZDate; // 当前时间
   } | null>(null);
+
+  /**
+   * 计算所有列的事件 UI 模型
+   * 为每一列筛选当天的事件，并计算渲染信息（位置、重叠处理等）
+   */
+  const totalUIModels = useMemo(() => {
+    return (
+      columns
+        .map(({ date }) => {
+          return events
+            .filter(isBetweenColumn(toStartOfDay(date), toEndOfDay(date)))
+            .map((uiModel) => {
+              return uiModel.clone();
+            });
+        })
+        // 为每列的事件设置渲染信息（位置、层级、重叠处理等）
+        .map((uiModelsByColumn, columnsIndex) => {
+          console.log('🚀 ~ .map ~ uiModelsByColumn:', uiModelsByColumn);
+        })
+    );
+  }, [columns, events]);
 
   /**
    * 计算当前日期相关数据

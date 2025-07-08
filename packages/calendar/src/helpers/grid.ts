@@ -364,7 +364,7 @@ export function getWeekViewEvents(
     weekStartDate: DayjsTZDate;
     weekEndDate: DayjsTZDate;
   }
-) {
+): EventModelMap {
   const panels: Panel[] = [
     {
       name: 'milestone', // 里程碑事件 - 在日期网格中显示
@@ -424,6 +424,4 @@ export function getWeekViewEvents(
       time: [], // 时间事件矩阵（按日期分组）
     }
   );
-
-  return panels;
 }

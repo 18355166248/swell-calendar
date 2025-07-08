@@ -41,13 +41,8 @@ const mockTimeGridEvents = [
 let num = 0;
 
 function createTime(event: EventObject, start: DayjsTZDate, end: DayjsTZDate) {
-  // const startDate = start.dayjs.clone().add(4, 'hour');
-  // const endDate = end.dayjs.clone().add(8, 'hour');
-
-  // event.start = startDate.toDate();
-  // event.end = endDate.toDate();
-  event.start = mockTimeGridEvents[num].start.toDate();
-  event.end = mockTimeGridEvents[num].end.toDate();
+  event.start = mockTimeGridEvents[num].start;
+  event.end = mockTimeGridEvents[num].end;
   event.isAllday = mockTimeGridEvents[num].isAllday || false;
   num++;
   if (event.isAllday) {

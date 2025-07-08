@@ -238,9 +238,9 @@ export function makeDateRange(
 }
 
 export function toStartOfDay(date?: DayjsTZDate): DayjsTZDate {
-  const d = date ? new DayjsTZDate(date) : new DayjsTZDate();
+  let d = date ? new DayjsTZDate(date) : new DayjsTZDate();
 
-  d.setHours(0, 0, 0, 0);
+  d = d.setHours(0, 0, 0, 0);
 
   return d;
 }

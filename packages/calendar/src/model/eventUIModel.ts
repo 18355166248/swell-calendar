@@ -1,6 +1,23 @@
 import DayjsTZDate from '@/time/dayjs-tzdate';
 import { EventModel } from './eventModel';
 import { collidesWith } from '@/helpers/event';
+import { pick } from 'lodash-es';
+
+/**
+ * 事件UI属性键名数组
+ * 用于从EventUIModel实例中提取UI属性
+ */
+const eventUIPropsKey: (keyof EventUIProps)[] = [
+  'top',
+  'left',
+  'width',
+  'height',
+  'exceedLeft',
+  'exceedRight',
+  'croppedStart',
+  'croppedEnd',
+  'collapse',
+];
 
 /**
  * 事件UI属性接口
@@ -118,6 +135,21 @@ export class EventUIModel implements EventUIProps {
   valueOf(): EventModel {
     return this.model;
   }
+
+  /**
+   * 获取所有UI属性
+   * @returns {EventUIProps} UI属性对象
+   */
+  getUIProps(): EventUIProps {
+    return pick(this, ...eventUIPropsKey);
+  }
+  /**
+   * 设置UI属性
+   * @param {Partial<EventUIProps>} props - 要设置的UI属性
+   */
+  setUIProps(props: Partial<EventUIProps>) {
+    Object.assign(this, props);
+  }
   /**
    * 检查当前事件是否与指定事件冲突
    * @param {EventModel | EventUIModel} uiModel - 要检查的事件
@@ -169,5 +201,14 @@ export class EventUIModel implements EventUIProps {
       targetComingDuration: targetInfo.comingDuration,
       usingTravelTime, // 日网格不使用行程时间，时间网格使用行程时间
     });
+  }
+
+  clone() {
+    // 获取当前UI属性
+    const eventUIModelProps = this.getUIProps();
+    const clonedEventUIModel = new EventUIModel(this.model);
+    clonedEventUIModel.setUIProps(eventUIModelProps);
+
+    return clonedEventUIModel;
   }
 }
