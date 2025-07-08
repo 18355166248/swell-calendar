@@ -2,15 +2,23 @@ import DayjsTZDate from '@/time/dayjs-tzdate';
 import { CalendarData } from '@/types/calendar.type';
 import { WeekOptions } from '@/types/options.type';
 import { Panel } from '@/types/panel.type';
-import { convertToUIModel, getEventInDateRangeFilter } from './core.controller';
-import { EventGroupMap } from '@/types/events.type';
+import {
+  convertToUIModel,
+  generate3DMatrix,
+  getCollisionGroup,
+  getEventInDateRangeFilter,
+} from './core.controller';
+import { EventGroupMap, Matrix3d } from '@/types/events.type';
 import Collection from '@/utils/collection';
 import { EventUIModel } from '@/model/eventUIModel';
 import { filterByCategory, getDateRange } from './event.controller';
 import { isNil } from 'lodash-es';
 import { EventModel } from '@/model/eventModel';
+import array from '@/utils/array';
 
-function getUIModelForAlldayView(start: DayjsTZDate, end: DayjsTZDate) {}
+function getUIModelForAlldayView(start: DayjsTZDate, end: DayjsTZDate) {
+  return [];
+}
 
 /**
  * 按日期范围分割事件模型集合
@@ -24,22 +32,64 @@ function getUIModelForAlldayView(start: DayjsTZDate, end: DayjsTZDate) {}
  * @param {Collection<EventModel | EventUIModel>} uiModelColl - 要分割的事件模型集合
  * @returns {Record<string, Collection>} 按日期分组的事件集合映射，键为YYYYMMDD格式的日期字符串
  */
-export function splitEventByDateRange(start: DayjsTZDate, end: DayjsTZDate) {
+export function splitEventByDateRange(
+  idsOfDay: Record<string, number[]>,
+  start: DayjsTZDate,
+  end: DayjsTZDate,
+  uiModelTimeColl: Collection<EventUIModel> | Collection<EventModel>
+) {
   const result: Record<string, Collection<EventModel | EventUIModel>> = {};
 
   const range = getDateRange(start, end);
-  console.log('🚀 ~ range:', range);
 
   range.forEach((date) => {
     // 将日期格式化为YYYYMMDD字符串，用作结果对象的键
     const dateStr = date.dayjs.format('YYYYMMDD');
+    // 从日期索引中获取该日期的事件ID数组
+    const ids = idsOfDay[dateStr];
 
-    result[dateStr] = new Collection<EventModel | EventUIModel>((event) => event.cid());
+    // 为该日期创建一个新的事件集合，使用事件ID作为唯一标识
+    const collection = (result[dateStr] = new Collection<EventModel | EventUIModel>((event) =>
+      event.cid()
+    ));
+
+    // 如果该日期有事件，则将对应的事件添加到该日期的集合中
+    if (ids && ids.length > 0) {
+      ids.forEach((id) => {
+        uiModelTimeColl.doWhenHas(id, (event) => {
+          collection.add(event);
+        });
+      });
+    }
   });
 
   return result;
 }
 
+/**
+ * 创建时间视图的UI模型处理函数
+ *
+ * 根据时间视图的显示小时范围配置，返回相应的UI模型处理函数。
+ * 如果显示范围是全天（0-24小时），则只进行排序；否则会先过滤再排序。
+ *
+ * @param {number} hourStart - 时间视图显示的开始小时（0-23）
+ * @param {number} hourEnd - 时间视图显示的结束小时（0-23）
+ * @returns {function} 返回一个函数，接受UI模型集合，返回处理后的UI模型数组
+ */
+export function _makeGetUIModelFuncForTimeView(
+  hourStart: number,
+  hourEnd: number
+): (uiModelColl: Collection<EventUIModel>) => EventUIModel[] {
+  if (hourStart === 0 && hourEnd === 24) {
+    return (uiModelColl: Collection<EventUIModel>) => {
+      return uiModelColl.sort(array.compare.event.asc);
+    };
+  }
+
+  return (uiModelColl: Collection<EventUIModel>) => {
+    return uiModelColl.toArray();
+  };
+}
 /**
  * 为时间视图部分创建UI模型矩阵
  *
@@ -58,19 +108,47 @@ export function splitEventByDateRange(start: DayjsTZDate, end: DayjsTZDate) {
  *  @param {number} condition.hourEnd - 显示的结束小时（0-23）
  * @returns {Record<string, Matrix3d<EventUIModel>>} 按日期分组的3D事件矩阵，键为YYYYMMDD格式的日期字符串
  */
-function getUIModelForTimeView(condition: {
-  start: DayjsTZDate;
-  end: DayjsTZDate;
-  uiModelTimeColl: Collection<EventUIModel>;
-  hourStart: number;
-  hourEnd: number;
-}) {
+function getUIModelForTimeView(
+  idsOfDay: Record<string, number[]>,
+  condition: {
+    start: DayjsTZDate;
+    end: DayjsTZDate;
+    uiModelTimeColl: Collection<EventUIModel>;
+    hourStart: number;
+    hourEnd: number;
+  }
+) {
   const { start, end, uiModelTimeColl, hourStart, hourEnd } = condition;
 
   // 按日期范围分隔事件集合
-  const ymdSplitted = splitEventByDateRange(start, end);
+  const ymdSplitted = splitEventByDateRange(idsOfDay, start, end, uiModelTimeColl);
 
-  console.log('🚀 ~ ymdSplitted:', ymdSplitted);
+  // 初始化结果对象，用于存储每天的3D事件矩阵
+  const result: Record<string, Matrix3d<EventUIModel>> = {};
+
+  // 创建UI模型处理函数（包含小时范围过滤和排序）
+  const _getUIModel = _makeGetUIModelFuncForTimeView(hourStart, hourEnd);
+
+  // 启用旅行时间计算（用于更精确的碰撞检测）
+  const usingTravelTime = true;
+
+  // 遍历每天的事件集合，生成对应的3D矩阵
+  Object.entries(ymdSplitted).forEach(([dateStr, uiModelColl]) => {
+    // 处理当天的UI模型（过滤、排序）
+    const uiModels = _getUIModel(uiModelColl as Collection<EventUIModel>);
+
+    // 计算事件碰撞组（用于处理重叠事件的布局）
+    const collisionGroups = getCollisionGroup(uiModels, usingTravelTime);
+    console.log('🚀 ~ Object.entries ~ collisionGroups:', collisionGroups);
+
+    // 生成3D矩阵
+    const matrix = generate3DMatrix(uiModelColl, collisionGroups, usingTravelTime);
+
+    // 将3D矩阵添加到结果对象中
+    result[dateStr] = matrix as Matrix3d<EventUIModel>;
+  });
+
+  return result;
 }
 
 /**
@@ -116,7 +194,7 @@ export function findByDateRange(
 ) {
   const { start, end, panels, options } = params;
 
-  const { events } = calendar;
+  const { events, idsOfDay } = calendar;
   const hourStart = options.hourStart || 0; // 默认从0点开始
   const hourEnd = options.hourEnd || 24; // 默认到24点结束
 
@@ -143,7 +221,7 @@ export function findByDateRange(
         [name]:
           type === 'daygrid'
             ? getUIModelForAlldayView(start, end)
-            : getUIModelForTimeView({
+            : getUIModelForTimeView(idsOfDay, {
                 start,
                 end,
                 uiModelTimeColl: group[name],

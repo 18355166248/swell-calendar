@@ -4,6 +4,7 @@ import { MouseEvent, KeyboardEvent } from 'react';
 
 export type Matrix<T> = T[][];
 export type Matrix3d<T> = Matrix<T>[];
+export type CollisionGroup = Matrix<number>;
 
 export type DayGridEventMatrix = Matrix3d<EventUIModel>;
 export type TimeGridEventMatrix = Record<string, Matrix3d<EventUIModel>>;

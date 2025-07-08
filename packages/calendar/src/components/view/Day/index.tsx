@@ -55,6 +55,8 @@ export function Day(): JSX.Element {
     });
   }, [calendar, days, hourEnd, hourStart, narrowWeekend, weekStartDate, weekEndDate]);
 
+  console.log('🚀 ~ dayGridEvents ~ dayGridEvents:', dayGridEvents);
+
   // 计算行样式信息和单元格宽度映射
   const { rowStyleInfo } = getRowStyleInfo(days.length, narrowWeekend, startDayOfWeek, workweek);
 

@@ -8,20 +8,34 @@ let id = 1;
 
 const mockTimeGridEvents = [
   {
-    start: new DayjsTZDate('2025-07-07 01:00:00'),
-    end: new DayjsTZDate('2025-07-07 03:30:00'),
+    start: new DayjsTZDate('2025-07-08 04:30:00'),
+    end: new DayjsTZDate('2025-07-08 08:30:00'),
   },
   {
-    start: new DayjsTZDate('2025-07-07 02:00:00'),
-    end: new DayjsTZDate('2025-07-07 03:00:00'),
+    start: new DayjsTZDate('2025-07-08 03:30:00'),
+    end: new DayjsTZDate('2025-07-08 06:30:00'),
   },
   {
-    start: new DayjsTZDate('2025-07-07 01:30:00'),
-    end: new DayjsTZDate('2025-07-07 02:30:00'),
+    start: new DayjsTZDate('2025-07-08 07:30:00'),
+    end: new DayjsTZDate('2025-07-08 09:30:00'),
   },
   {
-    start: new DayjsTZDate('2025-07-07 01:30:00'),
-    end: new DayjsTZDate('2025-07-07 02:30:00'),
+    start: new DayjsTZDate('2025-07-08 04:00:00'),
+    end: new DayjsTZDate('2025-07-08 05:00:00'),
+  },
+
+  {
+    start: new DayjsTZDate('2025-07-08 10:30:00'),
+    end: new DayjsTZDate('2025-07-08 11:30:00'),
+  },
+  {
+    start: new DayjsTZDate('2025-07-08 12:30:00'),
+    end: new DayjsTZDate('2025-07-08 13:30:00'),
+    isAllday: true,
+  },
+  {
+    start: new DayjsTZDate('2025-07-12 01:30:00'),
+    end: new DayjsTZDate('2025-07-12 02:30:00'),
   },
 ];
 let num = 0;
@@ -34,8 +48,9 @@ function createTime(event: EventObject, start: DayjsTZDate, end: DayjsTZDate) {
   // event.end = endDate.toDate();
   event.start = mockTimeGridEvents[num].start.toDate();
   event.end = mockTimeGridEvents[num].end.toDate();
+  event.isAllday = mockTimeGridEvents[num].isAllday || false;
   num++;
-  if (num === 3) {
+  if (event.isAllday) {
     event.category = 'allday';
   }
   if (num >= mockTimeGridEvents.length) {

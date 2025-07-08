@@ -23,7 +23,7 @@ function createTimeGridEvents() {
   const start = today.addDate(-today.getDay());
   const end = start.addDate(1);
 
-  return createRandomEvents(start, end, 4).map((event) => new EventModel(event));
+  return createRandomEvents(start, end, 7).map((event) => new EventModel(event));
 }
 
 export default meta;

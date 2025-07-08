@@ -1,4 +1,6 @@
+import DayjsTZDate from '@/time/dayjs-tzdate';
 import { EventModel } from './eventModel';
+import { collidesWith } from '@/helpers/event';
 
 /**
  * 事件UI属性接口
@@ -34,6 +36,40 @@ export class EventUIModel implements EventUIProps {
 
   /** 事件的高度（像素） */
   height = 0;
+  /**
+   * 重复事件组中所有事件的排序列表
+   * @type {EventUIModel[]}
+   */
+  duplicateEvents: EventUIModel[] = [];
+  /**
+   * 当前事件在重复事件组中的索引
+   * @type {number}
+   */
+  duplicateEventIndex = -1;
+  /**
+   * 重复事件组的开始时间
+   * 取所有重复事件中最早的开始时间和前往时间
+   * @type {DayjsTZDate}
+   */
+  duplicateStarts?: DayjsTZDate;
+  /**
+   * 重复事件组的结束时间
+   * 取所有重复事件中最晚的结束时间和返回时间
+   * @type {DayjsTZDate}
+   */
+  duplicateEnds?: DayjsTZDate;
+  /**
+   * 重复事件在组中的水平位置
+   * 例如：calc(50% - 24px), calc(50%), ...
+   * @type {string}
+   */
+  duplicateLeft = '';
+  /**
+   * 重复事件在组中的宽度
+   * 例如：calc(50% - 24px), 9px, ...
+   * @type {string}
+   */
+  duplicateWidth = '';
 
   constructor(model: EventModel) {
     this.model = model;
@@ -50,5 +86,88 @@ export class EventUIModel implements EventUIProps {
    */
   cid() {
     return this.model.cid();
+  }
+
+  /**
+   * 获取渲染用的开始时间
+   * @returns {TZDate} 开始时间
+   */
+  getStarts() {
+    return this.model.getStarts();
+  }
+
+  /**
+   * 获取渲染用的结束时间
+   * @returns {TZDate} 结束时间
+   */
+  getEnds() {
+    return this.model.getEnds();
+  }
+
+  /**
+   * 获取事件持续时间
+   * @returns {number} 事件持续时间（毫秒）
+   */
+  duration() {
+    return this.model.duration();
+  }
+  /**
+   * 重写valueOf方法，用于事件排序
+   * @returns {EventModel} 事件数据模型
+   */
+  valueOf(): EventModel {
+    return this.model;
+  }
+  /**
+   * 检查当前事件是否与指定事件冲突
+   * @param {EventModel | EventUIModel} uiModel - 要检查的事件
+   * @param {boolean} usingTravelTime - 是否考虑行程时间
+   * @returns {boolean} 是否冲突
+   */
+  collidesWith(uiModel: EventModel | EventUIModel, usingTravelTime = true) {
+    const infos: {
+      start: DayjsTZDate;
+      end: DayjsTZDate;
+      goingDuration: number;
+      comingDuration: number;
+    }[] = [];
+
+    // 收集两个事件的时间信息
+    [this, uiModel].forEach((event) => {
+      const isDuplicateEvent = event instanceof EventUIModel && event.duplicateEvents.length > 0;
+
+      if (isDuplicateEvent) {
+        // 如果是重复事件，使用重复事件组的时间范围
+        infos.push({
+          start: event.duplicateStarts as DayjsTZDate,
+          end: event.duplicateEnds as DayjsTZDate,
+          goingDuration: 0,
+          comingDuration: 0,
+        });
+      } else {
+        // 普通事件使用自身的时间范围
+        infos.push({
+          start: event.getStarts(),
+          end: event.getEnds(),
+          goingDuration: event.valueOf().goingDuration,
+          comingDuration: event.valueOf().comingDuration,
+        });
+      }
+    });
+
+    const [thisInfo, targetInfo] = infos;
+
+    // 调用冲突检测函数
+    return collidesWith({
+      start: thisInfo.start.getTime(),
+      end: thisInfo.end.getTime(),
+      targetStart: targetInfo.start.getTime(),
+      targetEnd: targetInfo.end.getTime(),
+      goingDuration: thisInfo.goingDuration,
+      comingDuration: thisInfo.comingDuration,
+      targetGoingDuration: targetInfo.goingDuration,
+      targetComingDuration: targetInfo.comingDuration,
+      usingTravelTime, // 日网格不使用行程时间，时间网格使用行程时间
+    });
   }
 }

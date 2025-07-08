@@ -54,10 +54,16 @@ export function filterByCategory(uiModel: EventUIModel) {
  * @param {IDS_OF_DAY} idsOfDay - 日期ID映射对象
  * @param {EventModel} event - 事件模型实例
  */
-function addToMatrix (idsOfDay: Record<string, number[]>, event: EventModel) {
-    // 获取事件包含的所有日期
+function addToMatrix(idsOfDay: Record<string, number[]>, event: EventModel) {
+  // 获取事件包含的所有日期
   const containDates = getDateRange(event.getStarts(), event.getEnds());
 
+  // 为每个包含的日期添加事件 ID
+  containDates.forEach((date) => {
+    const dateStr = date.dayjs.format('YYYYMMDD');
+    const matrix = (idsOfDay[dateStr] = idsOfDay[dateStr] || []);
+    matrix.push(event.cid());
+  });
 }
 
 /**

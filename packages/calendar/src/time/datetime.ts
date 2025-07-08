@@ -1,6 +1,7 @@
 import { CellStyle, FormattedTimeString } from '@/types/datetime.type';
 import { clone, fill, range } from 'lodash-es';
 import DayjsTZDate from './dayjs-tzdate';
+import { UnitTypeLong } from 'dayjs';
 
 /**
  * 星期枚举
@@ -24,6 +25,11 @@ export const WEEK_DAYS = 7;
 export const MS_PER_DAY = 86400000; // 一天的毫秒数
 export const MS_PER_HOUR = 3600000; // 一小时的毫秒数
 export const MS_PER_MINUTES = 60000; // 一分钟的毫秒数
+
+/**
+ * The number of milliseconds 20 minutes for event min duration
+ */
+export const MS_EVENT_MIN_DURATION = 20 * MS_PER_MINUTES;
 
 /**
  * 判断是否为周末
@@ -245,4 +251,96 @@ export function toEndOfDay(date?: DayjsTZDate): DayjsTZDate {
   d.setHours(23, 59, 59, 999);
 
   return d;
+}
+
+/**
+ * 比较两个日期对象的时间先后顺序
+ *
+ * 该函数用于比较两个 DayjsTZDate 对象的时间戳，返回一个数值来表示它们的相对顺序。
+ * 这种比较方式常用于数组排序、事件时间排序等场景。
+ *
+ * @param d1 - 第一个日期对象
+ * @param d2 - 第二个日期对象
+ * @returns 返回比较结果：
+ *   - -1: 表示 d1 早于 d2
+ *   - 1: 表示 d1 晚于 d2
+ *   - 0: 表示 d1 和 d2 时间相同
+ *
+ * @example
+ * const date1 = new DayjsTZDate('2024-01-01 10:00:00');
+ * const date2 = new DayjsTZDate('2024-01-01 11:00:00');
+ * const result = compare(date1, date2); // 返回 -1，因为 date1 早于 date2
+ */
+export function compare(d1: DayjsTZDate, d2: DayjsTZDate): number {
+  // 获取两个日期对象的时间戳（毫秒数）
+  const _d1 = d1.getTime();
+  const _d2 = d2.getTime();
+
+  // 如果第一个日期早于第二个日期，返回 -1
+  if (_d1 < _d2) {
+    return -1;
+  }
+  // 如果第一个日期晚于第二个日期，返回 1
+  if (_d1 > _d2) {
+    return 1;
+  }
+
+  // 如果两个日期时间相同，返回 0
+  return 0;
+}
+
+/**
+ * 缓存对象
+ * 用于存储时间转换的缓存数据
+ */
+const memo: {
+  millisecondsTo: Record<string, number>;
+  millisecondsFrom: Record<string, number>;
+} = {
+  millisecondsTo: {},
+  millisecondsFrom: {},
+};
+
+// 将时间单位转换为毫秒
+export function millisecondsFrom(type: UnitTypeLong, value: number): number {
+  const cache = memo.millisecondsFrom;
+  const key = type + value;
+  if (cache[key]) {
+    return cache[key];
+  }
+
+  let result: number;
+
+  switch (type) {
+    case 'millisecond':
+      result = value;
+      break;
+    case 'second':
+      result = value * 1000;
+      break;
+    case 'minute':
+      result = value * MS_PER_MINUTES;
+      break;
+    case 'hour':
+      result = value * MS_PER_HOUR;
+      break;
+    case 'day':
+    case 'date':
+      result = value * MS_PER_DAY;
+      break;
+    case 'month':
+      // 月份转换比较复杂，使用平均值（30.44天）
+      result = value * MS_PER_DAY * 30.44;
+      break;
+    case 'year':
+      // 年份转换使用平均值（365.25天，考虑闰年）
+      result = value * MS_PER_DAY * 365.25;
+      break;
+    default:
+      throw new Error(`不支持的时间单位: ${type}`);
+  }
+
+  // 缓存结果
+  cache[key] = result;
+  return result;
 }

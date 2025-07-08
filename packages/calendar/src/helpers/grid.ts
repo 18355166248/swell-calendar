@@ -9,6 +9,8 @@ import { Panel } from '@/types/panel.type';
 import { limit, ratio } from '@/utils/math';
 import { findLastIndex, isNil, range } from 'lodash-es';
 import { findByDateRange as findByDateRangeForWeek } from '@/controller/week.controller';
+import { DayGridEventMatrix, EventModelMap, TimeGridEventMatrix } from '@/types/events.type';
+import { EventUIModel } from '@/model/eventUIModel';
 
 /**
  * 创建时间网格数据，用于日历组件的时间轴显示
@@ -284,6 +286,68 @@ export function createGridPositionFinder({
   };
 }
 
+/**
+ * 处理日网格事件模型，为每个事件计算位置和尺寸信息
+ * 遍历三维事件矩阵，为每个事件UI模型添加宽度、左边距和顶部位置
+ *
+ * @param eventModels 日网格事件矩阵 - 三维数组结构，包含所有日期网格事件
+ * @param row 日期数组 - 当前显示的日期行，用于计算事件位置
+ * @param narrowWeekend 是否缩窄周末显示 - 影响事件宽度计算
+ * @returns 处理后的扁平化事件UI模型数组
+ */
+function getDayGridEventModels(events: DayGridEventMatrix) {
+  return [];
+}
+
+/**
+ * 过滤有效的模型
+ * 移除数组中的空值、null 或 undefined 元素
+ *
+ * @param models 事件UI模型数组
+ * @returns 过滤后的有效模型数组
+ */
+const getModels = (models: EventUIModel[]) => models.filter((model) => !!model);
+
+/**
+ * 将三维矩阵扁平化为一维数组
+ * 将嵌套的三维事件矩阵结构转换为扁平的一维数组
+ * 结构：matrices[matrix][row][models] -> EventUIModel[]
+ *
+ * @param matrices 三维事件矩阵 - 包含多个二维矩阵，每个矩阵包含多行，每行包含多个事件模型
+ * @returns 扁平化后的事件UI模型数组
+ */
+function flattenMatrix3d(matrices: DayGridEventMatrix): EventUIModel[] {
+  // 使用 flatMap 进行两层扁平化：
+  // 1. 第一层：将三维矩阵扁平化为二维数组
+  // 2. 第二层：将二维数组扁平化为一维数组，同时过滤无效模型
+  return matrices.flatMap((matrix) => matrix.flatMap((models) => getModels(models)));
+}
+
+/**
+ * 获取时间网格事件模型
+ * 从时间网格事件矩阵中提取唯一的事件UI模型
+ * 由于时间网格中不同行可能包含相同的事件UI模型，需要去重处理
+ *
+ * @param eventMatrix 时间网格事件矩阵 - 按时间段组织的三维事件矩阵
+ * @returns 去重后的唯一事件UI模型数组
+ */
+function getTimeGridEventModels(eventMatrix: TimeGridEventMatrix) {
+  // 注意：不同行中有相同的UI模型，所以需要获取唯一的UI模型
+
+  // 1. 获取事件矩阵的所有值（三维矩阵数组）
+  // 2. 使用 reduce 将所有三维矩阵扁平化并合并为一个数组
+  // 3. 使用 Set 进行去重（基于对象引用）
+  // 4. 转换回数组格式
+  return Array.from(
+    new Set(
+      Object.values(eventMatrix).reduce<EventUIModel[]>(
+        (result, matrix3d) => result.concat(...flattenMatrix3d(matrix3d)),
+        []
+      )
+    )
+  );
+}
+
 export function getWeekViewEvents(
   days: DayjsTZDate[],
   calendar: CalendarData,
@@ -334,7 +398,32 @@ export function getWeekViewEvents(
       hourEnd, // 时间网格结束小时
     },
   });
-  console.log('🚀 ~ eventModels:', eventModels);
+
+  return Object.keys(eventModels).reduce<EventModelMap>(
+    (acc, cur) => {
+      // 获取当前面板类型的事件数据
+      const events = eventModels[cur as keyof EventModelMap];
+
+      // 根据事件类型进行不同的处理：
+      // - 如果是数组（daygrid类型）：使用 getDayGridEventModels 处理日期网格事件
+      // - 如果不是数组（timegrid类型）：使用 getTimeGridEventModels 处理时间网格事件
+
+      return {
+        ...acc,
+        [cur]: Array.isArray(events)
+          ? getDayGridEventModels(events) // 处理日期网格事件
+          : getTimeGridEventModels(events), // 处理时间网格事件
+      };
+
+      return acc;
+    },
+    {
+      milestone: [], // 里程碑事件矩阵
+      task: [], // 任务事件矩阵
+      allday: [], // 全天事件矩阵
+      time: [], // 时间事件矩阵（按日期分组）
+    }
+  );
 
   return panels;
 }
