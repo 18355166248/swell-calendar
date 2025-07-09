@@ -17,7 +17,7 @@ import { createGridPositionFinder } from '@/helpers/grid';
 import { useDOMNode } from '@/hooks/common/useDOMNode';
 import { timeGridSelectionHelper } from '@/helpers/gridSelection';
 import { EventUIModel } from '@/model/eventUIModel';
-import { isBetweenColumn } from '@/controller/column.controller';
+import { isBetweenColumn, setRenderInfoOfUIModels } from '@/controller/column.controller';
 
 const classNames = {
   timeGrid: cls(className),
@@ -64,7 +64,11 @@ export function TimeGrid({ timeGridData, events }: TimeGridProps) {
         })
         // 为每列的事件设置渲染信息（位置、层级、重叠处理等）
         .map((uiModelsByColumn, columnsIndex) => {
-          console.log('🚀 ~ .map ~ uiModelsByColumn:', uiModelsByColumn);
+          return setRenderInfoOfUIModels(
+            uiModelsByColumn,
+            setTimeStrToDate(columns[columnsIndex].date, timeGridData.rows[0].startTime),
+            setTimeStrToDate(columns[columnsIndex].date, timeGridData.rows[0].endTime)
+          );
         })
     );
   }, [columns, events]);

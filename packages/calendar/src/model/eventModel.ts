@@ -107,3 +107,16 @@ export class EventModel implements EventObject {
     });
   }
 }
+
+/**
+ * 判断是否为时间事件（非全天、非多日事件）
+ * 这个函数用于确定事件卡片的渲染方式
+ * @param {EventUIModel} eventUI 事件UI模型
+ * @returns {boolean} 如果是时间事件返回true
+ */
+export function isTimeEvent({ model }: EventUIModel) {
+  const { category, isAllday, hasMultiDates } = model;
+
+  // 时间事件：类别为time，非全天，非多日
+  return category === 'time' && !isAllday && !hasMultiDates;
+}

@@ -1,6 +1,10 @@
+import { isTimeEvent } from '@/model/eventModel';
 import { EventUIModel } from '@/model/eventUIModel';
 import { addMinutes } from '@/time/datetime';
 import DayjsTZDate from '@/time/dayjs-tzdate';
+import array from '@/utils/array';
+import { createEventCollection } from './event.controller';
+import { generate3DMatrix, getCollisionGroup } from './core.controller';
 
 /**
  * 事件过滤器：获取指定日期范围内的事件
@@ -18,4 +22,28 @@ export function isBetweenColumn(startColumnTime: DayjsTZDate, endColumnTime: Day
     // 返回事件是否在指定时间范围内
     return !(ownEnds <= startColumnTime || ownStarts >= endColumnTime);
   };
+}
+
+/**
+ * 转换事件为EventUIModel并设置渲染信息
+ * 这是主要的入口函数，处理事件列表的渲染信息计算
+ * @param {EventUIModel[]} events - 事件列表
+ * @param {TZDate} startColumnTime - 开始日期
+ * @param {TZDate} endColumnTime - 结束日期
+ */
+export function setRenderInfoOfUIModels(
+  events: EventUIModel[],
+  startColumnTime: DayjsTZDate,
+  endColumnTime: DayjsTZDate
+) {
+  // 过滤时间事件并按开始时间排序
+  const uiModels = events
+    .filter(isTimeEvent)
+    .filter(isBetweenColumn(startColumnTime, endColumnTime))
+    .sort(array.compare.num.asc);
+
+  const collections = createEventCollection(...uiModels);
+  const usingTravelTime = true;
+  const collisionGroups = getCollisionGroup(uiModels, usingTravelTime);
+  const matrices = generate3DMatrix(collections, collisionGroups, usingTravelTime);
 }
