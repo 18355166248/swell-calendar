@@ -45,5 +45,39 @@ export function setRenderInfoOfUIModels(
   const collections = createEventCollection(...uiModels);
   const usingTravelTime = true;
   const collisionGroups = getCollisionGroup(uiModels, usingTravelTime);
-  const matrices = generate3DMatrix(collections, collisionGroups, usingTravelTime);
+  const matrices3D = generate3DMatrix(collections, collisionGroups, usingTravelTime);
+  matrices3D.forEach((matrices) => {
+    // console.log('🚀 ~ matrix:', matrices);
+    const maxRowLength = Math.max(...matrices.map((matrix) => matrix.length));
+    const baseWidth = Math.round(100 / maxRowLength);
+    matrices.forEach((row) => {
+      row.forEach((uiModel, index) => {
+        setRenderInfo({
+          uiModel,
+          columnIndex: index,
+          baseWidth,
+          startColumnTime,
+          endColumnTime,
+        });
+      });
+    });
+  });
 }
+
+/**
+ * 设置单个事件的渲染信息
+ * 递归处理重复事件，为每个事件设置完整的渲染属性
+ */
+function setRenderInfo({
+  uiModel,
+  columnIndex,
+  baseWidth,
+  startColumnTime,
+  endColumnTime,
+}: {
+  uiModel: EventUIModel;
+  columnIndex: number;
+  baseWidth: number;
+  startColumnTime: DayjsTZDate;
+  endColumnTime: DayjsTZDate;
+}) {}

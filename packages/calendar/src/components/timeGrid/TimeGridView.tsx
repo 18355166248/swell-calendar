@@ -67,11 +67,14 @@ export function TimeGrid({ timeGridData, events }: TimeGridProps) {
           return setRenderInfoOfUIModels(
             uiModelsByColumn,
             setTimeStrToDate(columns[columnsIndex].date, timeGridData.rows[0].startTime),
-            setTimeStrToDate(columns[columnsIndex].date, timeGridData.rows[0].endTime)
+            setTimeStrToDate(
+              columns[columnsIndex].date,
+              timeGridData.rows[timeGridData.rows.length - 1].endTime
+            )
           );
         })
     );
-  }, [columns, events]);
+  }, [columns, events, timeGridData.rows]);
 
   /**
    * 计算当前日期相关数据
