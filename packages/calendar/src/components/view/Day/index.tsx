@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useCalendarStore } from '@/contexts/calendarStore';
 import { getActivePanels } from '@/helpers/view';
-import { TimeGrid } from '@/components/timeGrid/TimeGrid';
+import { TimeGrid } from '@/components/timeGrid/TimeGridView';
 import { useThemeStore } from '@/contexts/themeStore';
 import { WeekOptions } from '@/types/options.type';
 import { createTimeGridData, getWeekViewEvents } from '@/helpers/grid';
