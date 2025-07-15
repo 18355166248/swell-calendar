@@ -344,3 +344,12 @@ export function millisecondsFrom(type: UnitTypeLong, value: number): number {
   cache[key] = result;
   return result;
 }
+
+
+export function maxTime(d1: DayjsTZDate, d2: DayjsTZDate): DayjsTZDate {
+  return compare(d1, d2) === 1 ? d1 : d2;
+}
+
+export function minTime(d1: DayjsTZDate, d2: DayjsTZDate): DayjsTZDate {
+  return compare(d1, d2) === -1 ? d1 : d2;
+}

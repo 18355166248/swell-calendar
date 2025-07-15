@@ -18,3 +18,19 @@ export function getTopPercentByTime(date: DayjsTZDate, start: DayjsTZDate, end: 
 
   return limit(topPercent, [0], [100]);
 }
+
+export function getTopHeightByTime(
+  start: DayjsTZDate,
+  end: DayjsTZDate,
+  minTime: DayjsTZDate,
+  maxTime: DayjsTZDate
+) {
+  const top = getTopPercentByTime(start, minTime, maxTime);
+  const bottom = getTopPercentByTime(end, minTime, maxTime);
+  const height = bottom - top;
+
+  return {
+    top,
+    height,
+  };
+}

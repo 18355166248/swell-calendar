@@ -174,6 +174,7 @@ export function TimeGrid({ timeGridData, events }: TimeGridProps) {
               width={toPercent(col.width)}
               columnIndex={index}
               timeGridData={timeGridData}
+              totalUIModels={totalUIModels}
             />
           ))}
         </div>
