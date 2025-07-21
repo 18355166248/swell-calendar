@@ -25,6 +25,7 @@ export function createOptionsSlice(options: Options = {}): OptionsSlice {
       defaultView: options.defaultView ?? 'week',
       isReadOnly: options.isReadOnly ?? false,
       week: initializeWeekOptions(options.week),
+      calendars: options.calendars ?? [],
     },
   };
 }

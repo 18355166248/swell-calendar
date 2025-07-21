@@ -1,3 +1,4 @@
+import { EventUIModel } from '@/model/eventUIModel';
 import { DraggingTypes } from './drag.type';
 
 /**
@@ -18,11 +19,13 @@ export type DndState = {
   initY: number | null; // 拖拽开始时的 Y 坐标
   x: number | null; // 当前拖拽位置的 X 坐标
   y: number | null; // 当前拖拽位置的 Y 坐标
+  draggingEventUIModel: EventUIModel | null; // 正在拖拽的事件 UI 模型
 
   initDrag: (initState: Pick<DndState, 'draggingItemType' | 'initX' | 'initY'>) => void;
   setDragging: (state: Partial<DndState>) => void;
   cancelDrag: () => void;
   reset: () => void;
+  setDraggingEventUIModel: (uiModel: EventUIModel | null) => void;
 };
 
 export type DndSlice = {

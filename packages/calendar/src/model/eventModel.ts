@@ -16,6 +16,8 @@ export class EventModel implements EventObject {
   // 事件类别：time(时间事件)、allday(全天事件)、milestone(里程碑)、task(任务)
   category: EventCategory = 'time';
   isVisible = true;
+  /** 是否为只读事件 */
+  isReadOnly = false;
   // 是否包含多个日期
   hasMultiDates = false;
   /** 前往事件地点的行程时间（分钟） */

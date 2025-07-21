@@ -18,6 +18,7 @@ import { useDOMNode } from '@/hooks/common/useDOMNode';
 import { timeGridSelectionHelper } from '@/helpers/gridSelection';
 import { EventUIModel } from '@/model/eventUIModel';
 import { isBetweenColumn, setRenderInfoOfUIModels } from '@/controller/column.controller';
+import MovingEventShadow from './MovingEventShadow';
 
 const classNames = {
   timeGrid: cls(className),
@@ -166,6 +167,9 @@ export function TimeGrid({ timeGridData, events }: TimeGridProps) {
         >
           {/* 网格线 - 显示时间分隔线 */}
           <GridLines timeGridRows={timeGridData.rows} />
+
+          {/* 时间拖拽时的预览效果 */}
+          <MovingEventShadow gridPositionFinder={gridPositionFinder} timeGridData={timeGridData} />
 
           {/* 渲染日期列 */}
           {columns.map((col, index) => (

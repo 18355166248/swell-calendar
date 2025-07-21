@@ -82,6 +82,18 @@ export function createDndSlice() {
           })
         );
       },
+
+      /**
+       * 设置正在拖拽的事件 UI 模型
+       * 如果提供了事件模型，会创建一个克隆副本以避免引用问题
+       */
+      setDraggingEventUIModel: (uiModel) => {
+        set(
+          produce((state: CalendarStore) => {
+            state.dnd.draggingEventUIModel = uiModel?.clone() ?? null;
+          })
+        );
+      },
     },
   });
 }
