@@ -1,4 +1,5 @@
 import { useCalendarStore } from '@/contexts/calendarStore';
+import { useTimeGridEventMove } from '@/hooks/TimeGrid/useTimeGridEventMove';
 import { GridPositionFinder, TimeGridData } from '@/types/grid.type';
 
 interface MovingEventShadowProps {
@@ -13,7 +14,7 @@ function MovingEventShadow(
   }
 ) {
   const { gridPositionFinder, timeGridData } = props;
-  const { movingEvent, nextStartTime } = useTimeGridEventMove({
+  const { movingEvent } = useTimeGridEventMove({
     gridPositionFinder,
     timeGridData,
   });

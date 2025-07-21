@@ -4,15 +4,19 @@ import { produce } from 'immer';
 
 function initializeDndOptions(): Omit<
   DndState,
-  'initDrag' | 'setDragging' | 'cancelDrag' | 'reset'
+  'initDrag' | 'setDragging' | 'cancelDrag' | 'reset' | 'setDraggingEventUIModel'
 > {
-  const dnd: Omit<DndState, 'initDrag' | 'setDragging' | 'cancelDrag' | 'reset'> = {
+  const dnd: Omit<
+    DndState,
+    'initDrag' | 'setDragging' | 'cancelDrag' | 'reset' | 'setDraggingEventUIModel'
+  > = {
     draggingItemType: null,
     draggingState: DraggingState.IDLE,
     initX: null,
     initY: null,
     x: null,
     y: null,
+    draggingEventUIModel: null,
   };
 
   return dnd;
