@@ -1,6 +1,7 @@
 import { EventUIModel } from '@/model/eventUIModel';
 import DayjsTZDate from '@/time/dayjs-tzdate';
 import { MouseEvent, KeyboardEvent } from 'react';
+import { MarkOptional } from 'ts-essentials';
 
 export type Matrix<T> = T[][];
 export type Matrix3d<T> = Matrix<T>[];
@@ -35,6 +36,7 @@ export type DateType = Date | string | number | DayjsTZDate;
  */
 export interface EventObject {
   id?: string; // 事件唯一标识符
+  calendarId?: string; // 事件所属日历的ID
   title?: string; // 事件标题
   start?: DateType; // 事件开始时间
   end?: DateType; // 事件结束时间
@@ -48,4 +50,39 @@ export interface EventObject {
   isVisible?: boolean; // 是否可见
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   raw?: any; // 原始数据
+  /**
+   * 文本颜色
+   * 事件元素中文本的颜色值
+   * 支持CSS颜色格式：十六进制、RGB、颜色名称等
+   */
+  color?: string;
+  /**
+   * 背景颜色
+   * 事件元素的背景颜色
+   * 用于区分不同类型或重要程度的事件
+   */
+  backgroundColor?: string;
+  /**
+   * 拖拽背景颜色
+   * 事件在拖拽过程中显示的背景颜色
+   * 提供拖拽操作的视觉反馈
+   */
+  dragBackgroundColor?: string;
+  /**
+   * 边框颜色
+   * 事件元素左边框的颜色
+   * 通常用于标识事件类别或状态
+   */
+  borderColor?: string;
+  goingDuration?: number;
+  comingDuration?: number;
 }
+
+export type EventObjectWithDefaultValues = MarkOptional<
+  Required<EventObject>,
+  'color' | 'borderColor' | 'backgroundColor' | 'dragBackgroundColor'
+> & {
+  start: DayjsTZDate;
+  end: DayjsTZDate;
+  __cid: number;
+};

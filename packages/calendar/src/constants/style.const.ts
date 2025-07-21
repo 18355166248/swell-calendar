@@ -15,3 +15,6 @@ export const WEEK_DAY_NAME_HEIGHT = 42;
 export const WEEK_DAY_NAME_BORDER = 1;
 
 export const DEFAULT_DAY_NAME_MARGIN_LEFT = '0';
+
+// 时间事件容器左侧边距
+export const TIME_EVENT_CONTAINER_MARGIN_LEFT = 2;

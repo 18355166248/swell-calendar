@@ -1,0 +1,11 @@
+.event-time {
+  position: absolute;
+  overflow: hidden;
+  cursor: pointer;
+  white-space: nowrap;
+  &-content {
+    font-size: 12px;
+    overflow: hidden;
+    padding: 1px 0 0 3px;
+  }
+}

@@ -1,6 +1,6 @@
 import DayjsTZDate from '@/time/dayjs-tzdate';
 import { ReactElement } from 'react';
-import { TimeUnit } from './events.type';
+import { EventObjectWithDefaultValues, TimeUnit } from './events.type';
 
 export interface TemplateNow {
   unit: TimeUnit;
@@ -16,6 +16,7 @@ export interface Template {
   weekDayName: (model: TemplateWeekDayName) => TemplateReturnType;
   monthDayName: (model: TemplateMonthDayName) => string;
   timeGridNowIndicatorLabel: (props: TemplateNow) => TemplateReturnType;
+  time: (event: EventObjectWithDefaultValues) => TemplateReturnType;
 }
 
 export type TemplateConfig = Partial<Template>;

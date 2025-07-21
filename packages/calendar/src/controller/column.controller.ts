@@ -68,7 +68,6 @@ export function setRenderInfoOfUIModels(
   const collisionGroups = getCollisionGroup(uiModels, usingTravelTime);
   const matrices3D = generate3DMatrix(collections, collisionGroups, usingTravelTime);
   matrices3D.forEach((matrices) => {
-    // console.log('🚀 ~ matrix:', matrices);
     const maxRowLength = Math.max(...matrices.map((matrix) => matrix.length));
     const baseWidth = Math.round(100 / maxRowLength);
     matrices.forEach((row) => {
@@ -97,31 +96,13 @@ function setRenderInfo({
   baseWidth,
   startColumnTime,
   endColumnTime,
-  isDuplicateEvent = false,
 }: {
   uiModel: EventUIModel;
   columnIndex: number;
   baseWidth: number;
   startColumnTime: DayjsTZDate;
   endColumnTime: DayjsTZDate;
-  isDuplicateEvent?: boolean;
 }) {
-  // 如果不是重复事件且存在重复事件组，递归处理所有重复事件
-  if (!isDuplicateEvent && uiModel.duplicateEvents.length > 0) {
-    uiModel.duplicateEvents.forEach((event) => {
-      setRenderInfo({
-        uiModel: event,
-        columnIndex,
-        baseWidth,
-        startColumnTime,
-        endColumnTime,
-        isDuplicateEvent: true,
-      });
-    });
-
-    return;
-  }
-
   const renderInfoOptions = getRenderInfoOptions(
     uiModel,
     columnIndex,
@@ -129,7 +110,6 @@ function setRenderInfo({
     startColumnTime,
     endColumnTime
   );
-
   // 设置事件的尺寸、内部高度和裁剪边缘信息
   setDimension(uiModel, renderInfoOptions);
   // setInnerHeights(uiModel, renderInfoOptions);
@@ -159,7 +139,7 @@ function getRenderInfoOptions(
   baseWidth: number,
   startColumnTime: DayjsTZDate,
   endColumnTime: DayjsTZDate
-) {
+): RenderInfoOptions {
   // 从事件模型中提取前置时间和后置时间，默认为0
   // goingDuration: 事件开始前的时间（如准备时间）
   // comingDuration: 事件结束后的时间（如清理时间）
@@ -197,7 +177,6 @@ function getRenderInfoOptions(
     comingEnd, // 包含后置时间的完整结束时间
     startColumnTime, // 时间列开始边界
     endColumnTime, // 时间列结束边界
-    duplicateEvents: uiModel.duplicateEvents, // 重复事件组信息
   };
 }
 

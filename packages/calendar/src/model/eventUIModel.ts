@@ -88,6 +88,18 @@ export class EventUIModel implements EventUIProps {
    */
   duplicateWidth = '';
 
+  /** 事件文字颜色 */
+  color?: string;
+
+  /** 事件背景颜色 */
+  backgroundColor?: string;
+
+  /** 拖拽时的背景颜色 */
+  dragBackgroundColor?: string;
+
+  /** 事件边框颜色 */
+  borderColor?: string;
+
   constructor(model: EventModel) {
     this.model = model;
   }
@@ -210,5 +222,18 @@ export class EventUIModel implements EventUIProps {
     clonedEventUIModel.setUIProps(eventUIModelProps);
 
     return clonedEventUIModel;
+  }
+
+  /**
+   * 获取事件的颜色配置
+   * @returns 包含所有颜色属性的对象
+   */
+  getColors() {
+    return {
+      color: this.color,
+      backgroundColor: this.backgroundColor,
+      dragBackgroundColor: this.dragBackgroundColor,
+      borderColor: this.borderColor,
+    };
   }
 }

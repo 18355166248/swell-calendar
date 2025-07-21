@@ -1,4 +1,6 @@
-import { CSS_PREFIX } from '@/constants/style.const';
+import { CSS_PREFIX, DEFAULT_EVENT_COLORS } from '@/constants/style.const';
+import { EventUIModel } from '@/model/eventUIModel';
+import { CalendarColor } from '@/types/calendar.type';
 import isString from 'lodash-es/isString';
 
 interface ClassNameDictionary {
@@ -53,4 +55,15 @@ export function extractPercentPx(value: string) {
     percent: percentResult ? parseInt(percentResult[1], 10) : 0,
     px: pxResult ? parseInt(`${pxResult[1]}${pxResult[2]}`, 10) : 0,
   };
+}
+
+export function getEventColors(uiModel: EventUIModel, calendarColor: CalendarColor) {
+  const eventColors = uiModel.model.getColors();
+
+  return Object.keys(DEFAULT_EVENT_COLORS).reduce<CalendarColor>((colors, _key) => {
+    const key = _key as keyof CalendarColor;
+    colors[key] = eventColors[key] ?? calendarColor[key] ?? DEFAULT_EVENT_COLORS[key];
+
+    return colors;
+  }, {});
 }

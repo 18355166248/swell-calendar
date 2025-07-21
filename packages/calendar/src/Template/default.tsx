@@ -7,6 +7,8 @@ import {
 } from '@/types/template.type';
 import dayjs from 'dayjs';
 import { cls } from '@/helpers/css';
+import { EventObjectWithDefaultValues } from '@/types/events.type';
+import { stripTags } from '@/utils/dom';
 
 export const templates: Template = {
   timeGridDisplayPrimaryTime(props: TemplateNow) {
@@ -44,5 +46,20 @@ export const templates: Template = {
     const { time, format = 'HH:mm' } = props;
 
     return dayjs(time.toDate()).format(format);
+  },
+
+  time(model: EventObjectWithDefaultValues) {
+    const { start, title } = model;
+
+    if (start) {
+      return (
+        <span>
+          <strong>{start.dayjs.format('HH:mm')}</strong>&nbsp;
+          <span>{stripTags(title)}</span>
+        </span>
+      );
+    }
+
+    return stripTags(title);
   },
 };

@@ -1,12 +1,14 @@
 import { toEndOfDay, toStartOfDay } from '@/time/datetime';
 import DayjsTZDate from '@/time/dayjs-tzdate';
-import { EventCategory, EventObject } from '@/types/events.type';
+import { EventCategory, EventObject, EventObjectWithDefaultValues } from '@/types/events.type';
 import { stamp } from '@/utils/stamp';
 import { EventUIModel } from './eventUIModel';
 import { collidesWith } from '@/helpers/event';
 
 export class EventModel implements EventObject {
   id = '';
+  /** 所属日历的ID */
+  calendarId = '';
   title = '';
   start: DayjsTZDate = new DayjsTZDate();
   end: DayjsTZDate = new DayjsTZDate();
@@ -20,6 +22,16 @@ export class EventModel implements EventObject {
   goingDuration = 0;
   /** 从事件地点返回的行程时间（分钟） */
   comingDuration = 0;
+  /** 事件文字颜色 */
+  color?: string;
+  /** 事件背景颜色 */
+  backgroundColor?: string;
+  /** 拖拽时的背景颜色 */
+  dragBackgroundColor?: string;
+  /** 事件边框颜色 */
+  borderColor?: string;
+  /** 原始事件数据 */
+  raw: any = null;
 
   constructor(public event: EventObject) {
     stamp(this);
@@ -105,6 +117,43 @@ export class EventModel implements EventObject {
       targetComingDuration: event.comingDuration,
       usingTravelTime, // 日网格不使用行程时间，时间网格使用行程时间
     });
+  }
+  /**
+   * 获取事件的颜色配置
+   * @returns 包含所有颜色属性的对象
+   */
+  getColors() {
+    return {
+      color: this.color,
+      backgroundColor: this.backgroundColor,
+      dragBackgroundColor: this.dragBackgroundColor,
+      borderColor: this.borderColor,
+    };
+  }
+
+  /**
+   * 将事件模型转换为事件对象
+   * @returns {EventObjectWithDefaultValues} 事件对象
+   */
+  toEventObject(): EventObjectWithDefaultValues {
+    return {
+      id: this.id,
+      calendarId: this.calendarId,
+      __cid: this.cid(),
+      title: this.title,
+      isAllday: this.isAllday,
+      start: this.start,
+      end: this.end,
+      goingDuration: this.goingDuration,
+      comingDuration: this.comingDuration,
+      category: this.category,
+      isVisible: this.isVisible,
+      color: this.color,
+      backgroundColor: this.backgroundColor,
+      dragBackgroundColor: this.dragBackgroundColor,
+      borderColor: this.borderColor,
+      raw: this.raw,
+    };
   }
 }
 
