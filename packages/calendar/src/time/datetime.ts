@@ -29,8 +29,10 @@ export const MS_PER_MINUTES = 60000; // 一分钟的毫秒数
 /**
  * The number of milliseconds 20 minutes for event min duration
  */
+// 事件最小持续时间20分钟毫秒数
 export const MS_EVENT_MIN_DURATION = 20 * MS_PER_MINUTES;
-
+// 30分钟毫秒数
+export const MS_PER_THIRTY_MINUTES = 30 * MS_PER_MINUTES;
 /**
  * 判断是否为周末
  * @param day 星期枚举值
@@ -344,7 +346,6 @@ export function millisecondsFrom(type: UnitTypeLong, value: number): number {
   cache[key] = result;
   return result;
 }
-
 
 export function maxTime(d1: DayjsTZDate, d2: DayjsTZDate): DayjsTZDate {
   return compare(d1, d2) === 1 ? d1 : d2;

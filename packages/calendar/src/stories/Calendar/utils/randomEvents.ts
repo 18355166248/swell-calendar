@@ -1,36 +1,39 @@
 import DayjsTZDate from '@/time/dayjs-tzdate';
 import { EventObject } from '@/types/events.type';
 import Chance from 'chance';
+import dayjs from 'dayjs';
 
 const chance = new Chance();
+
+const currDayString = dayjs().format('YYYY-MM-DD');
 
 let id = 1;
 
 const mockTimeGridEvents = [
   {
-    start: new DayjsTZDate('2025-07-21 04:30:00'),
-    end: new DayjsTZDate('2025-07-21 08:30:00'),
+    start: new DayjsTZDate(`${currDayString} 04:30:00`),
+    end: new DayjsTZDate(`${currDayString} 08:30:00`),
   },
   {
-    start: new DayjsTZDate('2025-07-21 03:30:00'),
-    end: new DayjsTZDate('2025-07-21 06:30:00'),
+    start: new DayjsTZDate(`${currDayString} 03:30:00`),
+    end: new DayjsTZDate(`${currDayString} 06:30:00`),
   },
   {
-    start: new DayjsTZDate('2025-07-21 07:30:00'),
-    end: new DayjsTZDate('2025-07-21 09:30:00'),
+    start: new DayjsTZDate(`${currDayString} 07:30:00`),
+    end: new DayjsTZDate(`${currDayString} 09:30:00`),
   },
   {
-    start: new DayjsTZDate('2025-07-21 04:00:00'),
-    end: new DayjsTZDate('2025-07-21 05:00:00'),
+    start: new DayjsTZDate(`${currDayString} 04:00:00`),
+    end: new DayjsTZDate(`${currDayString} 05:00:00`),
   },
 
   {
-    start: new DayjsTZDate('2025-07-21 10:30:00'),
-    end: new DayjsTZDate('2025-07-21 11:30:00'),
+    start: new DayjsTZDate(`${currDayString} 10:30:00`),
+    end: new DayjsTZDate(`${currDayString} 11:30:00`),
   },
   {
-    start: new DayjsTZDate('2025-07-21 12:30:00'),
-    end: new DayjsTZDate('2025-07-21 13:30:00'),
+    start: new DayjsTZDate(`${currDayString} 12:30:00`),
+    end: new DayjsTZDate(`${currDayString} 13:30:00`),
     isAllday: true,
   },
   {
