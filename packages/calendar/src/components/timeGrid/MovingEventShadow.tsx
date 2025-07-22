@@ -1,6 +1,7 @@
-import { useCalendarStore } from '@/contexts/calendarStore';
 import { useTimeGridEventMove } from '@/hooks/TimeGrid/useTimeGridEventMove';
 import { GridPositionFinder, TimeGridData } from '@/types/grid.type';
+import { isNil } from 'lodash-es';
+import { TimeEvent } from '../events/TimeEvent';
 
 interface MovingEventShadowProps {
   timeGridData: TimeGridData;
@@ -14,16 +15,16 @@ function MovingEventShadow(
   }
 ) {
   const { gridPositionFinder, timeGridData } = props;
-  const { movingEvent } = useTimeGridEventMove({
+  const { movingEvent, nextStartTime } = useTimeGridEventMove({
     gridPositionFinder,
     timeGridData,
   });
-  const { dnd } = useCalendarStore();
-  const { draggingEventUIModel } = dnd;
 
-  if (!draggingEventUIModel) return null;
+  if (isNil(movingEvent)) {
+    return null;
+  }
 
-  return <div className="moving-event-shadow">MovingEventShadow</div>;
+  return <TimeEvent uiModel={movingEvent} nextStartTime={nextStartTime} />;
 }
 
 export default MovingEventShadow;

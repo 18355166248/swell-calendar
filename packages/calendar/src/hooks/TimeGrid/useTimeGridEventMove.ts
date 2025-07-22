@@ -5,7 +5,76 @@ import { useDraggingEvent } from '../event/useDraggingEvent';
 import { useCurrentPointerPositionInGrid } from '../event/useCurrentPointerPositionInGrid';
 import { useEffect, useMemo, useRef } from 'react';
 import { isNil } from 'lodash-es';
-import { MS_PER_DAY, MS_PER_THIRTY_MINUTES } from '@/time/datetime';
+import { addMinutes, MS_PER_DAY, MS_PER_THIRTY_MINUTES } from '@/time/datetime';
+import { EventUIModel } from '@/model/eventUIModel';
+import DayjsTZDate from '@/time/dayjs-tzdate';
+
+// 30分钟的时间间隔常量
+const THIRTY_MINUTES = 30;
+
+/**
+ * 根据时间获取当前在时间网格中的索引位置
+ * @param time - 目标时间
+ * @param hourStart - 时间网格的起始小时
+ * @returns 在时间网格中的行索引
+ */
+function getCurrentIndexByTime(time: DayjsTZDate, hourStart: number) {
+  const hour = time.getHours() - hourStart;
+  const minutes = time.getMinutes();
+
+  // 计算在30分钟间隔网格中的位置
+  return hour * 2 + Math.floor(minutes / THIRTY_MINUTES);
+}
+
+function getMovingEventPosition({
+  draggingEvent,
+  columnDiff,
+  rowDiff,
+  timeGridDataRows,
+  currentDate,
+}: {
+  draggingEvent: EventUIModel;
+  columnDiff: number;
+  rowDiff: number;
+  timeGridDataRows: TimeGridData['rows'];
+  currentDate: DayjsTZDate;
+}) {
+  const rowHeight = timeGridDataRows[0].height;
+  const maxHeight = rowHeight * timeGridDataRows.length;
+  // 计算时间差（毫秒）
+  const millisecondsDiff = rowDiff * MS_PER_THIRTY_MINUTES + columnDiff * MS_PER_DAY;
+  const hourStart = Number(timeGridDataRows[0].startTime.split(':')[0]);
+  // 获取事件的持续时间信息
+  const { goingDuration = 0, comingDuration = 0 } = draggingEvent.model;
+  // 计算包含缓冲时间的开始和结束时间
+  const goingStart = addMinutes(draggingEvent.getStarts(), -goingDuration);
+  const comingEnd = addMinutes(draggingEvent.getEnds(), comingDuration);
+  // 计算移动后的新开始和结束时间
+  const nextStart = goingStart.addMilliseconds(millisecondsDiff);
+  const nextEnd = comingEnd.addMilliseconds(millisecondsDiff);
+
+  // 计算在网格中的开始和结束索引
+  const startIndex = Math.max(getCurrentIndexByTime(nextStart, hourStart), 0);
+  const endIndex = Math.min(getCurrentIndexByTime(nextEnd, hourStart), timeGridDataRows.length - 1);
+
+  // 检查是否跨日期边界
+  const isStartAtPrevDate =
+    nextStart.getFullYear() < currentDate.getFullYear() ||
+    nextStart.getMonth() < currentDate.getMonth() ||
+    nextStart.getDate() < currentDate.getDate();
+  const isEndAtNextDate =
+    nextEnd.getFullYear() > currentDate.getFullYear() ||
+    nextEnd.getMonth() > currentDate.getMonth() ||
+    nextEnd.getDate() > currentDate.getDate();
+
+  const indexDiff = endIndex - (isStartAtPrevDate ? 0 : startIndex);
+
+  // 计算最终的top位置和height高度
+  const top = isStartAtPrevDate ? 0 : timeGridDataRows[startIndex].top;
+  const height = isEndAtNextDate ? maxHeight : Math.max(indexDiff, 1) * rowHeight;
+
+  return { top, height };
+}
 
 const initXSelector = (state: CalendarState) => state.dnd.initX;
 const initYSelector = (state: CalendarState) => state.dnd.initY;
@@ -82,7 +151,35 @@ export function useTimeGridEventMove({
       gridDiff.rowDiff * MS_PER_THIRTY_MINUTES + gridDiff.columnDiff * MS_PER_DAY
     );
   }, [gridDiff, startDateTime]);
+
+  const movingEvent = useMemo(() => {
+    if (isNil(draggingEvent) || isNil(currentGridPos) || isNil(gridDiff)) {
+      return null;
+    }
+
+    const clonedEvent = draggingEvent.clone();
+
+    const { top, height } = getMovingEventPosition({
+      draggingEvent: clonedEvent,
+      columnDiff: gridDiff.columnDiff,
+      rowDiff: gridDiff.rowDiff,
+      timeGridDataRows: timeGridData.rows,
+      currentDate: timeGridData.columns[currentGridPos.columnIndex].date,
+    });
+
+    // 更新事件的UI属性
+    clonedEvent.setUIProps({
+      left: timeGridData.columns[currentGridPos.columnIndex].left,
+      width: timeGridData.columns[currentGridPos.columnIndex].width,
+      top,
+      height,
+    });
+
+    return clonedEvent;
+  }, [currentGridPos, draggingEvent, gridDiff, timeGridData]);
+
   return {
-    movingEvent: null,
+    movingEvent,
+    nextStartTime, // 下一个开始时间
   };
 }

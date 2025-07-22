@@ -10,10 +10,12 @@ import { Template } from '../Template';
 import { useDrag } from '@/hooks/common/useDrag';
 import { DRAGGING_TYPE_CREATE } from '@/helpers/drag';
 import { useLayoutContainer } from '@/contexts/layoutContainer';
+import DayjsTZDate from '@/time/dayjs-tzdate';
 
 export interface TimeEventProps {
   uiModel: EventUIModel;
   minHeight?: number;
+  nextStartTime?: DayjsTZDate | null;
 }
 
 const classNames = {
@@ -36,7 +38,7 @@ function isDraggableEvent({
   return !isReadOnlyCalendar && !model.isReadOnly && !isDraggingTarget;
 }
 
-export function TimeEvent({ uiModel, minHeight = 0 }: TimeEventProps) {
+export function TimeEvent({ uiModel, minHeight = 0, nextStartTime }: TimeEventProps) {
   const calendarColor = useCalendarColor(uiModel.model);
   const { options, dnd } = useCalendarStore();
   const { setDraggingEventUIModel } = dnd;
