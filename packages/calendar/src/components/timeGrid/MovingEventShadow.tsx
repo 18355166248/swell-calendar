@@ -8,12 +8,7 @@ interface MovingEventShadowProps {
   gridPositionFinder: GridPositionFinder;
 }
 
-function MovingEventShadow(
-  props: MovingEventShadowProps & {
-    gridPositionFinder: GridPositionFinder;
-    timeGridData: TimeGridData;
-  }
-) {
+function MovingEventShadow(props: MovingEventShadowProps) {
   const { gridPositionFinder, timeGridData } = props;
   const { movingEvent, nextStartTime, nextEndTime } = useTimeGridEventMove({
     gridPositionFinder,

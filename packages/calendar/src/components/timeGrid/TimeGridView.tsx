@@ -179,6 +179,7 @@ export function TimeGrid({ timeGridData, events }: TimeGridProps) {
               columnIndex={index}
               timeGridData={timeGridData}
               totalUIModels={totalUIModels}
+              gridPositionFinder={gridPositionFinder}
             />
           ))}
         </div>
