@@ -4,7 +4,7 @@ import { isNil } from 'lodash-es';
 import { DraggingTypes } from '@/types/drag.type';
 
 function isTimeGridDraggingType(type: DraggingTypes | null) {
-  return /^gridSelection\/timeGrid/.test(type ?? '');
+  return /^(event|gridSelection)\/timeGrid/.test(type ?? '');
 }
 
 /**
@@ -16,6 +16,11 @@ function useTimeGridScrollSync(scrollArea: HTMLDivElement | null, rowCount: numb
   useTransientUpdatesCalendar<DndState>(
     (state) => state.dnd,
     ({ y, draggingState, draggingItemType }) => {
+      // 检查是否满足滚动同步的条件：
+      // 1. 滚动区域存在
+      // 2. 拖拽类型是时间网格相关
+      // 3. 当前处于拖拽状态
+      // 4. Y坐标存在
       if (
         isNil(scrollArea) ||
         isNil(rowCount) ||

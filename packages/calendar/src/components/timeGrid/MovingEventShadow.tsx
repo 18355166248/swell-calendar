@@ -15,7 +15,7 @@ function MovingEventShadow(
   }
 ) {
   const { gridPositionFinder, timeGridData } = props;
-  const { movingEvent, nextStartTime } = useTimeGridEventMove({
+  const { movingEvent, nextStartTime, nextEndTime } = useTimeGridEventMove({
     gridPositionFinder,
     timeGridData,
   });
@@ -24,7 +24,9 @@ function MovingEventShadow(
     return null;
   }
 
-  return <TimeEvent uiModel={movingEvent} nextStartTime={nextStartTime} />;
+  return (
+    <TimeEvent uiModel={movingEvent} nextStartTime={nextStartTime} nextEndTime={nextEndTime} />
+  );
 }
 
 export default MovingEventShadow;

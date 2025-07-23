@@ -4,18 +4,21 @@ import { cls, extractPercentPx, getEventColors, toPercent } from '@/helpers/css'
 import { useCalendarColor } from '@/hooks/calendar/useCalendarColor';
 import { EventUIModel } from '@/model/eventUIModel';
 import { CalendarColor } from '@/types/calendar.type';
-import { isString } from 'lodash-es';
+import { isNil, isString } from 'lodash-es';
 import { useState, MouseEvent } from 'react';
 import { Template } from '../Template';
 import { useDrag } from '@/hooks/common/useDrag';
 import { DRAGGING_TYPE_CREATE } from '@/helpers/drag';
 import { useLayoutContainer } from '@/contexts/layoutContainer';
 import DayjsTZDate from '@/time/dayjs-tzdate';
+import { useTransientUpdatesCalendar } from '@/hooks/common/useTransientUpdatesCalendar';
+import { DraggingState } from '@/types/dnd.type';
 
 export interface TimeEventProps {
   uiModel: EventUIModel;
   minHeight?: number;
   nextStartTime?: DayjsTZDate | null;
+  nextEndTime?: DayjsTZDate | null;
 }
 
 const classNames = {
@@ -38,7 +41,7 @@ function isDraggableEvent({
   return !isReadOnlyCalendar && !model.isReadOnly && !isDraggingTarget;
 }
 
-export function TimeEvent({ uiModel, minHeight = 0, nextStartTime }: TimeEventProps) {
+export function TimeEvent({ uiModel, minHeight = 0, nextStartTime, nextEndTime }: TimeEventProps) {
   const calendarColor = useCalendarColor(uiModel.model);
   const { options, dnd } = useCalendarStore();
   const { setDraggingEventUIModel } = dnd;
@@ -47,12 +50,29 @@ export function TimeEvent({ uiModel, minHeight = 0, nextStartTime }: TimeEventPr
   const { model } = uiModel;
   const layoutContainer = useLayoutContainer();
 
+  const hasNextStartTime = !isNil(nextStartTime);
   const { containerStyle } = getStyles({
     uiModel,
     minHeight,
     calendarColor,
     isDraggingTarget,
+    hasNextStartTime,
   });
+
+  useTransientUpdatesCalendar(
+    (state) => state.dnd,
+    ({ draggingEventUIModel, draggingState }) => {
+      if (
+        draggingEventUIModel?.cid() === uiModel.cid() &&
+        draggingState === DraggingState.DRAGGING &&
+        !hasNextStartTime
+      ) {
+        setIsDraggingTarget(true);
+      } else {
+        setIsDraggingTarget(false);
+      }
+    }
+  );
 
   const draggingType = DRAGGING_TYPE_CREATE.moveEvent('timeGrid', `${uiModel.cid()}`);
 
@@ -64,7 +84,6 @@ export function TimeEvent({ uiModel, minHeight = 0, nextStartTime }: TimeEventPr
 
   const startDragEvent = (className: string) => {
     setDraggingEventUIModel(uiModel);
-    console.log('🚀 ~ startDragEvent ~ layoutContainer:', layoutContainer);
     layoutContainer?.classList.add(className);
   };
   const endDragEvent = (className: string) => {
@@ -104,7 +123,14 @@ export function TimeEvent({ uiModel, minHeight = 0, nextStartTime }: TimeEventPr
   return (
     <div className={classNames.time} style={containerStyle} onMouseDown={handleMoveStart}>
       <div className={classNames.content}>
-        <Template template="time" param={{ ...model.toEventObject() }} />
+        <Template
+          template={hasNextStartTime ? 'timeMove' : 'time'}
+          param={{
+            ...model.toEventObject(),
+            start: hasNextStartTime ? nextStartTime : model.start,
+            end: hasNextStartTime ? nextEndTime : model.end,
+          }}
+        />
       </div>
     </div>
   );
@@ -115,11 +141,13 @@ function getStyles({
   minHeight,
   calendarColor,
   isDraggingTarget,
+  hasNextStartTime,
 }: {
   uiModel: EventUIModel;
   minHeight: number;
   calendarColor: CalendarColor;
   isDraggingTarget: boolean;
+  hasNextStartTime: boolean;
 }) {
   const { top, left, width, height, duplicateWidth, duplicateLeft } = uiModel;
 
@@ -141,6 +169,7 @@ function getStyles({
     borderColor,
     color,
     opacity: isDraggingTarget ? 0.5 : 1,
+    zIndex: hasNextStartTime ? 1 : 0,
   };
 
   return { containerStyle };

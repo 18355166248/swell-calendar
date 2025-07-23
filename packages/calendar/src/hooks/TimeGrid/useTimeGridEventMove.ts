@@ -194,6 +194,13 @@ export function useTimeGridEventMove({
     );
   }, [gridDiff, startDateTime]); // 依赖项：网格差值和开始时间
 
+  const nextEndTime = useMemo(() => {
+    if (isNil(nextStartTime)) {
+      return null;
+    }
+    return nextStartTime.addMilliseconds(draggingEvent?.model.duration() ?? 0);
+  }, [nextStartTime, draggingEvent]);
+
   // 清理状态的函数
   const clearState = useCallback(() => {
     clearCurrentGridPos();
@@ -259,5 +266,6 @@ export function useTimeGridEventMove({
   return {
     movingEvent, // 移动中的事件对象（包含更新后的位置信息）
     nextStartTime, // 下一个开始时间（移动后的新开始时间）
+    nextEndTime, // 下一个结束时间（移动后的新结束时间）
   };
 }

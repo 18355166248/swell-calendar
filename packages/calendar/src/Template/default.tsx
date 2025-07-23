@@ -62,4 +62,25 @@ export const templates: Template = {
 
     return stripTags(title);
   },
+
+  timeMove(model: EventObjectWithDefaultValues) {
+    const { start, end, title } = model;
+
+    if (start) {
+      return (
+        <>
+          <div>
+            <strong>{start.dayjs.format('HH:mm')}</strong>
+            <span> - </span>
+            <strong>{end.dayjs.format('HH:mm')}</strong>
+          </div>
+          <div>
+            <span>{stripTags(title)}</span>
+          </div>
+        </>
+      );
+    }
+
+    return stripTags(title);
+  },
 };
