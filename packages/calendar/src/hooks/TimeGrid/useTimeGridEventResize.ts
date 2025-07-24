@@ -161,6 +161,18 @@ export function useTimeGridEventResize({
   ]);
 
   useWhen(() => {
+    // 判断是否应该更新事件
+    const shouldUpdate =
+      !isDraggingCanceled && // 拖拽没有被取消
+      !isNil(baseResizingInfo) && // 基础信息存在
+      !isNil(currentGridPos) && // 当前网格位置存在
+      !isNil(resizingStartUIModel) && // 开始调整大小的UI模型存在
+      baseResizingInfo.eventEndDateColumnIndex === columnIndex; // 当前列是事件结束列
+
+    if (shouldUpdate) {
+      // 触发更新事件
+    }
+
     clearStates();
   }, isDraggingEnd);
 

@@ -131,6 +131,7 @@ const classNames = {
   content: cls('event-time-content'), // 事件内容容器类名
   moveEvent: cls('dragging--move-event'), // 拖拽移动事件时的类名
   resizeEvent: cls('dragging--resize-vertical-event'), // 拖拽调整大小时的类名
+  resizeHandleTop: cls('resize-handle-top'), // 调整大小顶部手柄
   resizeHandleBottom: cls('resize-handle-bottom'), // 调整大小底部手柄
 };
 
@@ -301,7 +302,12 @@ export function TimeEvent({
         />
       </div>
 
-      {/* 显示调整大小手柄 */}
+      {/* 显示调整大小顶部手柄 */}
+      {shouldShowResizeHandle && (
+        <div className={classNames.resizeHandleTop} onMouseDown={handleResizeStart} />
+      )}
+
+      {/* 显示调整大小底部手柄 */}
       {shouldShowResizeHandle && (
         <div className={classNames.resizeHandleBottom} onMouseDown={handleResizeStart} />
       )}
