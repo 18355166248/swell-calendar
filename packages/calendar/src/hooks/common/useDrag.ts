@@ -72,7 +72,7 @@ export function useDrag(
 
       setIsStarted(true);
       initDrag({
-      draggingItemType: draggingType,
+        draggingItemType: draggingType,
         initX: e.clientX,
         initY: e.clientY,
       });
