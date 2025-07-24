@@ -61,6 +61,10 @@ function createRandomEvent({ start, end }: { start: DayjsTZDate; end: DayjsTZDat
     id: `event-${id++}`,
     title: chance.sentence({ words: 4 }),
     category: 'time',
+    backgroundColor: chance.color({ format: 'hex' }),
+    dragBackgroundColor: chance.color({ format: 'hex' }),
+    borderColor: chance.color({ format: 'hex' }),
+    color: chance.color({ format: 'hex' }),
   };
 
   createTime(event, start, end);

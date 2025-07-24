@@ -13,18 +13,18 @@ export interface ResizingEventShadowProps {
 
 function ResizingEventShadow(props: ResizingEventShadowProps) {
   const { gridPositionFinder, timeGridData, columnIndex, totalUIModels } = props;
-  const { resizingEvent } = useTimeGridEventResize({
+  const { guideUIModel } = useTimeGridEventResize({
     gridPositionFinder,
     timeGridData,
     columnIndex,
     totalUIModels,
   });
 
-  if (isNil(resizingEvent)) {
+  if (isNil(guideUIModel)) {
     return null;
   }
 
-  return <TimeEvent uiModel={resizingEvent} />;
+  return <TimeEvent uiModel={guideUIModel} isResizingEvent={true} />;
 }
 
 export default ResizingEventShadow;

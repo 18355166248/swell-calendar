@@ -48,6 +48,10 @@ export class EventModel implements EventObject {
     end = new DayjsTZDate(),
     isAllday = false,
     category = 'time',
+    backgroundColor = '',
+    dragBackgroundColor = '',
+    borderColor = '',
+    color = '',
   }: EventObject) {
     this.id = id;
     this.title = title;
@@ -55,6 +59,10 @@ export class EventModel implements EventObject {
     this.end = end as DayjsTZDate;
     this.isAllday = category === 'allday' || isAllday;
     this.category = category;
+    this.backgroundColor = backgroundColor;
+    this.dragBackgroundColor = dragBackgroundColor;
+    this.borderColor = borderColor;
+    this.color = color;
   }
 
   /**

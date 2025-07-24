@@ -21,6 +21,7 @@ import { DraggingState } from '@/types/dnd.type';
  * @param calendarColor - 日历颜色配置
  * @param isDraggingTarget - 是否为拖拽目标
  * @param hasNextStartTime - 是否有下一个开始时间
+ * @param isResizingEvent - 是否为调整大小事件
  * @returns 返回包含容器样式的对象
  */
 function getStyles({
@@ -29,16 +30,20 @@ function getStyles({
   calendarColor,
   isDraggingTarget,
   hasNextStartTime,
+  isResizingEvent,
 }: {
   uiModel: EventUIModel;
   minHeight: number;
   calendarColor: CalendarColor;
   isDraggingTarget: boolean;
   hasNextStartTime: boolean;
+  isResizingEvent?: boolean;
 }) {
   // 从UI模型中提取位置和尺寸信息
   const { top, left, width, height, duplicateWidth, duplicateLeft } = uiModel;
 
+  // 边框圆角
+  const borderRadius = 2;
   // 默认底部边距
   const defaultMarginBottom = 1;
 
@@ -59,9 +64,10 @@ function getStyles({
     height: `calc(${toPercent(Math.max(minHeight, height))} - ${defaultMarginBottom}px)`, // 高度
     marginLeft, // 左边距
     backgroundColor: isDraggingTarget ? dragBackgroundColor : backgroundColor, // 背景色（拖拽时使用特殊颜色）
-    borderColor, // 边框颜色
+    borderRadius,
+    borderLeft: `3px solid ${borderColor}`, // 边框颜色
     color, // 文字颜色
-    opacity: isDraggingTarget ? 0.5 : 1, // 透明度（拖拽时半透明）
+    opacity: isDraggingTarget && !isResizingEvent ? 0.5 : 1, // 透明度（拖拽时半透明）
     zIndex: hasNextStartTime ? 1 : 0, // 层级（重叠事件时调整）
   };
 
@@ -113,6 +119,8 @@ export interface TimeEventProps {
   nextStartTime?: DayjsTZDate | null;
   /** 下一个事件的结束时间，用于处理事件重叠时的显示 */
   nextEndTime?: DayjsTZDate | null;
+  /** 是否为调整大小事件 */
+  isResizingEvent?: boolean;
 }
 
 /**
@@ -151,7 +159,13 @@ function isDraggableEvent({
  * 时间事件组件 - 用于在时间网格中显示单个事件
  * 支持拖拽移动、样式定制、重叠事件处理等功能
  */
-export function TimeEvent({ uiModel, minHeight = 0, nextStartTime, nextEndTime }: TimeEventProps) {
+export function TimeEvent({
+  uiModel,
+  minHeight = 0,
+  nextStartTime,
+  nextEndTime,
+  isResizingEvent,
+}: TimeEventProps) {
   // 获取事件的日历颜色配置
   const calendarColor = useCalendarColor(uiModel.model);
   // 获取日历状态和拖拽相关状态
@@ -176,6 +190,7 @@ export function TimeEvent({ uiModel, minHeight = 0, nextStartTime, nextEndTime }
     calendarColor,
     isDraggingTarget,
     hasNextStartTime,
+    isResizingEvent,
   });
 
   // 监听拖拽状态变化，更新当前事件是否为拖拽目标
