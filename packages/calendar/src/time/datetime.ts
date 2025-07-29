@@ -214,7 +214,7 @@ export function makeDateRange(
   const endTime = endDate.getTime();
 
   // 创建起始日期的副本，用于迭代
-  const date = new DayjsTZDate(startDate);
+  let date = new DayjsTZDate(startDate);
 
   // 初始化结果数组
   const result: DayjsTZDate[] = [];
@@ -233,7 +233,7 @@ export function makeDateRange(
     cursor = cursor + step;
 
     // 更新日期对象，增加指定的毫秒数
-    date.addMilliseconds(step);
+    date = date.addMilliseconds(step);
   }
 
   return result;

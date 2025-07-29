@@ -6,13 +6,14 @@ import { Template } from '../Template';
 interface DayNameProps {
   dayName: TemplateWeekDayName | TemplateMonthDayName;
   type: CalendarViewType;
+  style?: React.CSSProperties;
 }
 
-function DayName({ dayName, type }: DayNameProps) {
+function DayName({ dayName, type, style }: DayNameProps) {
   const templateType = `${type}DayName` as TemplateName;
 
   return (
-    <div className={cls('day-name')}>
+    <div className={cls('day-name')} style={style}>
       <Template template={templateType} param={dayName} />
     </div>
   );

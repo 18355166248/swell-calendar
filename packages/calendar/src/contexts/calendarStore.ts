@@ -23,7 +23,7 @@ type SetState = (fn: (state: CalendarStore) => Partial<CalendarStore>) => void;
  */
 const storeCreator = (options: Options) => (set: SetState) => ({
   // 创建选项切片 - 处理日历的基本配置
-  ...createOptionsSlice(options),
+  ...createOptionsSlice(options)(set),
   // 创建日历切片 - 处理日历相关功能
   ...createCalendarSlice(options.calendars)(set),
   // 创建模板切片 - 处理事件模板相关功能

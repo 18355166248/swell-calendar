@@ -26,6 +26,26 @@ function initializeWeekOptions(weekOptions: DeepPartial<WeekTheme> = {}) {
     gridSelection: {
       color: '#515ce6',
     },
+    dayGrid: {
+      borderRight: '1px solid #e5e5e5',
+      backgroundColor: 'inherit',
+    },
+    weekend: {
+      backgroundColor: 'inherit',
+    },
+    today: {
+      color: 'inherit',
+      backgroundColor: 'rgba(81, 92, 230, 0.05)',
+    },
+    pastDay: {
+      color: '#bbb',
+    },
+    dayName: {
+      borderLeft: 'none',
+      borderTop: '1px solid #e5e5e5',
+      borderBottom: '1px solid #e5e5e5',
+      backgroundColor: 'inherit',
+    },
   };
 
   return mergeObject(week, weekOptions);

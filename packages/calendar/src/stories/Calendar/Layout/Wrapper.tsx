@@ -3,15 +3,27 @@ import { PropsWithChildren } from 'react';
 import { createCalendarStore } from '@/contexts/calendarStore';
 import { EventObject } from '@/types/events.type';
 import { useStore } from 'zustand';
+import { Options } from '@/types/options.type';
 
 let start = false;
 
-export function Wrapper({ children, events }: PropsWithChildren<{ events?: EventObject[] }>) {
+export function Wrapper({
+  children,
+  events,
+  options,
+}: PropsWithChildren<{ events?: EventObject[]; options?: Options }>) {
   const store = createCalendarStore();
   useStore(store, (state) => {
-    if (events && events.length > 0 && !start) {
+    if (!start) {
       start = true;
-      state.calendar.createEvents(events);
+
+      if (events && events.length > 0) {
+        state.calendar.createEvents(events);
+      }
+
+      if (options) {
+        state.options.setOptions?.(options);
+      }
     }
   });
 

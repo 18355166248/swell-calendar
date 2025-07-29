@@ -8,6 +8,18 @@ function initializeCommonOptions(commonOptions: DeepPartial<CommonTheme> = {}) {
       backgroundColor: 'rgba(81, 92, 230, 0.15)',
       border: '1px solid rgba(81, 92, 230, 0.4)',
     },
+    dayName: {
+      color: 'inherit',
+    },
+    today: {
+      color: 'inherit',
+    },
+    holiday: {
+      color: '#bbb',
+    },
+    saturday: {
+      color: '#bbb',
+    },
   };
 
   return mergeObject(common, commonOptions);

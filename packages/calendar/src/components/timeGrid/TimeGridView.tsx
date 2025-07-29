@@ -32,6 +32,7 @@ export interface TimeGridProps {
 
 export function TimeGrid({ timeGridData, events }: TimeGridProps) {
   const { columns } = timeGridData;
+  console.log('🚀 ~ TimeGrid ~ columns:', columns);
 
   // 获取列容器的 DOM 节点引用
   const [columnsContainer, setColumnsContainer] = useDOMNode();
@@ -178,8 +179,10 @@ export function TimeGrid({ timeGridData, events }: TimeGridProps) {
               width={toPercent(col.width)}
               columnIndex={index}
               timeGridData={timeGridData}
+              columnDate={col.date}
               totalUIModels={totalUIModels}
               gridPositionFinder={gridPositionFinder}
+              isLastColumn={index === columns.length - 1}
             />
           ))}
         </div>

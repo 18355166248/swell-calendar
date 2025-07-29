@@ -24,6 +24,8 @@ export interface Options {
   dnd?: DndState;
   // 是否为只读模式
   isReadOnly?: boolean;
+
+  setOptions?: (options: Options) => void;
 }
 
 export interface WeekOptions {

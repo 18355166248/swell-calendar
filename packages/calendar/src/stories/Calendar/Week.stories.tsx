@@ -4,6 +4,7 @@ import { Wrapper } from './Layout/Wrapper';
 import { createRandomEvents } from './utils/randomEvents';
 import DayjsTZDate from '@/time/dayjs-tzdate';
 import { EventModel } from '@/model/eventModel';
+import { Day } from '@/time/datetime';
 
 const meta = {
   title: 'Calendar/Week',
@@ -31,7 +32,34 @@ type Story = StoryObj<typeof meta>;
 
 export const Primary: Story = {
   render: (args) => (
-    <Wrapper events={args.events}>
+    <Wrapper
+      events={args.events}
+      options={{
+        week: {
+          startDayOfWeek: Day.MON,
+          // workweek: true,
+        },
+      }}
+    >
+      <Week />
+    </Wrapper>
+  ),
+  args: {
+    events: createTimeGridEvents(),
+  },
+};
+
+export const Workweek: Story = {
+  render: (args) => (
+    <Wrapper
+      events={args.events}
+      options={{
+        week: {
+          startDayOfWeek: Day.MON,
+          workweek: true,
+        },
+      }}
+    >
       <Week />
     </Wrapper>
   ),

@@ -1,10 +1,10 @@
-import { Day, isWeekend, WEEK_DAYS } from '@/time/datetime';
+import { Day, isWeekend, toStartOfDay, WEEK_DAYS } from '@/time/datetime';
 import DayjsTZDate from '@/time/dayjs-tzdate';
 import { CalendarData } from '@/types/calendar.type';
 import { FormattedTimeString } from '@/types/datetime.type';
 import { CommonGridColumn, GridPositionFinder, TimeGridData } from '@/types/grid.type';
 import { ClientMousePosition } from '@/types/mouse.type';
-import { HourDivision } from '@/types/options.type';
+import { HourDivision, WeekOptions } from '@/types/options.type';
 import { Panel } from '@/types/panel.type';
 import { limit, ratio } from '@/utils/math';
 import { findLastIndex, isNil, range } from 'lodash-es';
@@ -348,6 +348,14 @@ function getTimeGridEventModels(eventMatrix: TimeGridEventMatrix) {
   );
 }
 
+/**
+ * 获取周视图事件
+ * 根据周选项和日期范围获取各种类型的事件，并按照面板类型进行分类处理
+ * @param days 日期数组
+ * @param calendar 日历数据
+ * @param options 周视图选项
+ * @returns 事件模型映射
+ */
 export function getWeekViewEvents(
   days: DayjsTZDate[],
   calendar: CalendarData,
@@ -424,4 +432,66 @@ export function getWeekViewEvents(
       time: [], // 时间事件矩阵（按日期分组）
     }
   );
+}
+
+/**
+ * 获取指定日期所在周的日期数组
+ *
+ * 该函数根据给定的渲染日期和配置选项，计算并返回该周的所有日期。
+ * 支持自定义一周的起始日和工作日模式，可以过滤掉周末日期。
+ *
+ * @param renderDate - 渲染的目标日期，用于确定要获取哪一周的日期
+ * @param options - 配置选项
+ * @param options.startDayOfWeek - 一周的起始日，默认为周日 (Day.SUN = 0)
+ * @param options.workweek - 是否为工作日模式，true时只返回工作日（周一到周五）
+ * @returns 返回该周的日期数组，每个元素为 DayjsTZDate 对象
+ *
+ * @example
+ * // 获取以周一为起始日的工作周日期
+ * getWeekDates(new DayjsTZDate('2024-01-15'), { startDayOfWeek: Day.MON, workweek: true })
+ * // 返回: [周一, 周二, 周三, 周四, 周五] (5个工作日)
+ *
+ * @example
+ * // 获取以周日为起始日的完整周日期
+ * getWeekDates(new DayjsTZDate('2024-01-15'), { startDayOfWeek: Day.SUN, workweek: false })
+ * // 返回: [周日, 周一, 周二, 周三, 周四, 周五, 周六] (7天)
+ */
+export function getWeekDates(
+  renderDate: DayjsTZDate,
+  { startDayOfWeek = Day.SUN, workweek }: WeekOptions
+): DayjsTZDate[] {
+  // 将渲染日期标准化到当天的开始时间（00:00:00）
+  const now = toStartOfDay(renderDate);
+
+  // 获取当前日期是周几（0=周日，1=周一，...，6=周六）
+  const nowDay = now.getDay();
+
+  // 计算需要向前偏移的天数，以对齐到指定的起始日
+  // 例如：如果当前是周三(3)，起始日是周一(1)，则需要向前偏移2天
+  const prevDateCount = nowDay - startDayOfWeek;
+
+  // 生成一周的日期偏移数组
+  // 根据偏移天数的正负情况，生成不同的范围：
+  // - 如果 prevDateCount >= 0：从 -prevDateCount 到 (7 - prevDateCount)
+  // - 如果 prevDateCount < 0：从 -(7 + prevDateCount) 到 -prevDateCount
+  const weekDayList =
+    prevDateCount >= 0
+      ? range(-prevDateCount, WEEK_DAYS - prevDateCount)
+      : range(-WEEK_DAYS - prevDateCount, -prevDateCount);
+
+  // 将偏移数组转换为实际的日期数组
+  return weekDayList.reduce<DayjsTZDate[]>((acc, day) => {
+    // 根据偏移天数计算实际日期
+    const date = now.addDate(day);
+
+    // 如果是工作日模式且当前日期是周末，则跳过该日期
+    if (workweek && isWeekend(date.getDay())) {
+      return acc;
+    }
+
+    // 将日期添加到结果数组中
+    acc.push(date);
+
+    return acc;
+  }, []);
 }

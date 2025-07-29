@@ -65,6 +65,7 @@ export function GridSelectionByColumn({
 }
 
 function GridSelection({ top, height, text }: { top: number; height: number; text: string }) {
+  // 直接使用选择器函数，不需要 useMemo 包装
   const common = useThemeStore((state) => state.common.gridSelection);
   const week = useThemeStore((state) => state.week.gridSelection);
   const { backgroundColor, border } = common;

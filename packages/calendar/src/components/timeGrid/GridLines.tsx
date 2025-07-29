@@ -1,12 +1,14 @@
 import { useThemeStore } from '@/contexts/themeStore';
 import { cls, toPercent } from '@/helpers/css';
 import { TimeGridRow } from '@/types/grid.type';
+import { useMemo } from 'react';
 
 interface GridLinesProps {
   timeGridRows: TimeGridRow[];
 }
 
 export function GridLines({ timeGridRows }: GridLinesProps) {
+  // 直接使用选择器函数，不需要 useMemo 包装
   const { timeGridHalfHourLine, timeGridHourLine } = useThemeStore((state) => state.week);
   return (
     <div className={cls('grid-lines')}>
