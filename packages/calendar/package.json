@@ -8,7 +8,7 @@
   "module": "./dist/Day/index.js",
   "types": "./dist/Day/index.d.ts",
   "scripts": {
-    "storybook": "../../scripts/changeNode.js 20 storybook dev -p 6006",
+    "storybook": "node ../../scripts/changeNode.js 20 storybook dev -p 6006",
     "build": "vite build",
     "dev": "vite build --watch",
     "lint": "eslint . --max-warnings 0",

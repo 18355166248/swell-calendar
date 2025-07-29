@@ -149,7 +149,7 @@ function Column({
         totalUIModels={totalUIModels}
       />
 
-      {/* 渲染网格选择 */}
+      {/* 渲染网格选择 空白区域滑动选择 */}
       <GridSelectionByColumn columnIndex={columnIndex} timeGridRows={timeGridData.rows} />
     </div>
   );

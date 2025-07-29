@@ -35,7 +35,7 @@ export default class DayjsTZDate implements DayjsTZDateMethods {
 
   tzOffset: number | null = null;
 
-  constructor(...args: DayjsTZDateConstructorArgs) {
+  constructor(...args: any[]) {
     let dayjsInstance: Dayjs;
 
     if (args.length === 0) {

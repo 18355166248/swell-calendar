@@ -2,6 +2,7 @@ import { CellStyle, FormattedTimeString } from '@/types/datetime.type';
 import { clone, fill, range } from 'lodash-es';
 import DayjsTZDate from './dayjs-tzdate';
 import { UnitTypeLong } from 'dayjs';
+import { InvalidDateTimeFormatError } from '@/utils/error';
 
 /**
  * 星期枚举
@@ -248,9 +249,9 @@ export function toStartOfDay(date?: DayjsTZDate): DayjsTZDate {
 }
 
 export function toEndOfDay(date?: DayjsTZDate): DayjsTZDate {
-  const d = date ? new DayjsTZDate(date) : new DayjsTZDate();
+  let d = date ? new DayjsTZDate(date) : new DayjsTZDate();
 
-  d.setHours(23, 59, 59, 999);
+  d = d.setHours(23, 59, 59, 999);
 
   return d;
 }
@@ -353,4 +354,54 @@ export function maxTime(d1: DayjsTZDate, d2: DayjsTZDate): DayjsTZDate {
 
 export function minTime(d1: DayjsTZDate, d2: DayjsTZDate): DayjsTZDate {
   return compare(d1, d2) === -1 ? d1 : d2;
+}
+
+const dateFormatRx = /^(\d{4}[-|/]*\d{2}[-|/]*\d{2})\s?(\d{2}:\d{2}:\d{2})?$/;
+
+/**
+ * Convert date string to date object.
+ * Only listed below formats available.
+ *
+ * - YYYYMMDD
+ * - YYYY/MM/DD
+ * - YYYY-MM-DD
+ * - YYYY/MM/DD HH:mm:SS
+ * - YYYY-MM-DD HH:mm:SS
+ */
+export function parseDateTime(str: string, fixMonth = -1): DayjsTZDate {
+  const matches = str.match(dateFormatRx);
+  let separator;
+  let ymd;
+  let hms;
+
+  if (!matches) {
+    throw new InvalidDateTimeFormatError(str);
+  }
+
+  if (str.length > 8) {
+    // YYYY/MM/DD
+    // YYYY-MM-DD
+    // YYYY/MM/DD HH:mm:SS
+    // YYYY-MM-DD HH:mm:SS
+    separator = ~str.indexOf('/') ? '/' : '-';
+    const result = matches.splice(1);
+
+    ymd = result[0].split(separator);
+    hms = result[1] ? result[1].split(':') : [0, 0, 0];
+  } else {
+    // YYYYMMDD
+    const [result] = matches;
+    ymd = [result.substr(0, 4), result.substr(4, 2), result.substr(6, 2)];
+    hms = [0, 0, 0];
+  }
+
+  return new DayjsTZDate().setWithRaw(
+    Number(ymd[0]),
+    Number(ymd[1]) + fixMonth,
+    Number(ymd[2]),
+    Number(hms[0]),
+    Number(hms[1]),
+    Number(hms[2]),
+    0
+  );
 }

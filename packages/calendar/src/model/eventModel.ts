@@ -1,9 +1,15 @@
-import { toEndOfDay, toStartOfDay } from '@/time/datetime';
+import { MS_PER_DAY, parseDateTime, toEndOfDay, toStartOfDay } from '@/time/datetime';
 import DayjsTZDate from '@/time/dayjs-tzdate';
-import { EventCategory, EventObject, EventObjectWithDefaultValues } from '@/types/events.type';
+import {
+  DateType,
+  EventCategory,
+  EventObject,
+  EventObjectWithDefaultValues,
+} from '@/types/events.type';
 import { stamp } from '@/utils/stamp';
 import { EventUIModel } from './eventUIModel';
 import { collidesWith } from '@/helpers/event';
+import { isString } from 'lodash-es';
 
 export class EventModel implements EventObject {
   id = '';
@@ -55,14 +61,67 @@ export class EventModel implements EventObject {
   }: EventObject) {
     this.id = id;
     this.title = title;
-    this.start = start as DayjsTZDate;
-    this.end = end as DayjsTZDate;
     this.isAllday = category === 'allday' || isAllday;
     this.category = category;
     this.backgroundColor = backgroundColor;
     this.dragBackgroundColor = dragBackgroundColor;
     this.borderColor = borderColor;
     this.color = color;
+
+    // 根据事件类型设置时间周期
+    if (this.isAllday) {
+      this.setAlldayPeriod(start, end);
+    } else {
+      this.setTimePeriod(start, end);
+    }
+  }
+
+  /**
+   * 设置全天事件的时间周期
+   * @param start 开始时间
+   * @param end 结束时间
+   */
+  setAlldayPeriod(start?: DateType, end?: DateType) {
+    // 全天事件只使用日期信息，忽略时间部分
+    let startedAt: DayjsTZDate;
+    let endedAt: DayjsTZDate;
+
+    if (isString(start)) {
+      // 如果是字符串，只取前10位（日期部分）
+      startedAt = parseDateTime(start.substring(0, 10));
+    } else {
+      startedAt = new DayjsTZDate(start || Date.now());
+    }
+
+    if (isString(end)) {
+      endedAt = parseDateTime(end.substring(0, 10));
+    } else {
+      endedAt = new DayjsTZDate(end || this.start);
+    }
+
+    this.start = startedAt;
+    this.start.setHours(0, 0, 0); // 设置为当天开始
+    this.end = (endedAt as DayjsTZDate) || new DayjsTZDate(this.start);
+    this.end.setHours(23, 59, 59); // 设置为当天结束
+  }
+
+  /**
+   * 设置时间事件的时间周期
+   * @param start 开始时间
+   * @param end 结束时间
+   */
+  setTimePeriod(start?: DateType, end?: DateType) {
+    this.start = new DayjsTZDate(start || Date.now());
+    this.end = new DayjsTZDate(end || this.start);
+
+    // 如果没有指定结束时间，默认设置为开始时间后30分钟
+    if (!end) {
+      this.end = this.end.setMinutes(this.end.getMinutes() + 30);
+    }
+
+    // 检查是否跨越多个日期（超过24小时）
+    // 这个属性对事件卡片的宽度计算很重要
+    this.hasMultiDates = this.end.getTime() - this.start.getTime() > MS_PER_DAY;
   }
 
   /**

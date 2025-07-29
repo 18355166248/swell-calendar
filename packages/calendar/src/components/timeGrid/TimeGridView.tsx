@@ -32,7 +32,6 @@ export interface TimeGridProps {
 
 export function TimeGrid({ timeGridData, events }: TimeGridProps) {
   const { columns } = timeGridData;
-  console.log('🚀 ~ TimeGrid ~ columns:', columns);
 
   // 获取列容器的 DOM 节点引用
   const [columnsContainer, setColumnsContainer] = useDOMNode();
@@ -169,7 +168,7 @@ export function TimeGrid({ timeGridData, events }: TimeGridProps) {
           {/* 网格线 - 显示时间分隔线 */}
           <GridLines timeGridRows={timeGridData.rows} />
 
-          {/* 时间拖拽时的预览效果 */}
+          {/* 已有事件时间拖拽时的预览效果 */}
           <MovingEventShadow gridPositionFinder={gridPositionFinder} timeGridData={timeGridData} />
 
           {/* 渲染日期列 */}

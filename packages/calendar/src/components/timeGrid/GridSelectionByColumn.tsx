@@ -6,6 +6,31 @@ import { TimeGridRow } from '@/types/grid.type';
 import { isNil } from 'lodash-es';
 import { useMemo } from 'react';
 
+function GridSelection({ top, height, text }: { top: number; height: number; text: string }) {
+  // 直接使用选择器函数，不需要 useMemo 包装
+  const common = useThemeStore((state) => state.common.gridSelection);
+  const week = useThemeStore((state) => state.week.gridSelection);
+  const { backgroundColor, border } = common;
+  const { color } = week;
+  const style = {
+    width: '100%',
+    height: toPercent(height),
+    top: toPercent(top),
+    backgroundColor,
+    border,
+  };
+
+  return (
+    <div className={cls('grid-selection')} style={style}>
+      {text.length > 0 ? (
+        <span className={cls('grid-selection-text')} style={{ color }}>
+          {text}
+        </span>
+      ) : null}
+    </div>
+  );
+}
+
 export function GridSelectionByColumn({
   columnIndex,
   timeGridRows,
@@ -62,28 +87,4 @@ export function GridSelectionByColumn({
   }
 
   return <GridSelection {...gridSelectionProps} />;
-}
-
-function GridSelection({ top, height, text }: { top: number; height: number; text: string }) {
-  // 直接使用选择器函数，不需要 useMemo 包装
-  const common = useThemeStore((state) => state.common.gridSelection);
-  const week = useThemeStore((state) => state.week.gridSelection);
-  const { backgroundColor, border } = common;
-  const { color } = week;
-  const style = {
-    top: toPercent(top),
-    height: toPercent(height),
-    backgroundColor,
-    border,
-  };
-
-  return (
-    <div className={cls('grid-selection')} style={style}>
-      {text.length > 0 ? (
-        <span className={cls('grid-selection-text')} style={{ color }}>
-          {text}
-        </span>
-      ) : null}
-    </div>
-  );
 }
