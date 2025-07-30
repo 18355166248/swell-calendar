@@ -19,6 +19,8 @@ export interface Options {
   calendars?: CalendarInfo[];
   // 周视图选项
   week?: WeekOptions;
+  // 月视图选项
+  month?: MonthOptions;
   // 模板配置
   template?: TemplateConfig;
   dnd?: DndState;
@@ -47,6 +49,21 @@ export interface WeekOptions {
   hourDivision?: HourDivision;
   // 是否为工作日模式，只显示工作日（周一到周五）
   workweek?: boolean;
+}
+
+export interface MonthOptions {
+  // 自定义星期名称数组，按照周日到周六的顺序
+  dayNames?: [string, string, string, string, string, string, string] | [];
+  startDayOfWeek?: number; // 一周的开始日期，0表示周日，1表示周一，依此类推
+  narrowWeekend?: boolean; // 是否缩小周末列的宽度（缩小为平日宽度的一半）
+  // 是否只显示工作日（即不显示周末）
+  workweek?: boolean;
+  // 是否总是显示6周
+  isAlways6Weeks?: boolean;
+  // 可见周数
+  visibleWeeksCount?: number;
+  // 每天可见的事件数量
+  visibleEventCount?: number;
 }
 
 export type OptionsSlice = {

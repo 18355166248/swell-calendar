@@ -138,7 +138,8 @@ export function useTimeGridEventResize({
         const newHeight = Math.max(
           oneRowHeight,
           timeGridData.rows[currentGridPos.rowIndex].top -
-            timeGridData.rows[eventStartDateRowIndex].top
+            timeGridData.rows[eventStartDateRowIndex].top +
+            oneRowHeight
         );
 
         // 更新UI模型的属性
