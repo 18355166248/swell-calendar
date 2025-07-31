@@ -240,6 +240,15 @@ export function makeDateRange(
   return result;
 }
 
+export function toStartOfMonth(date: DayjsTZDate): DayjsTZDate {
+  let d = new DayjsTZDate(date);
+
+  d = d.setDate(1);
+  d = d.setHours(0, 0, 0, 0);
+
+  return d;
+}
+
 export function toStartOfDay(date?: DayjsTZDate): DayjsTZDate {
   let d = date ? new DayjsTZDate(date) : new DayjsTZDate();
 
@@ -252,6 +261,16 @@ export function toEndOfDay(date?: DayjsTZDate): DayjsTZDate {
   let d = date ? new DayjsTZDate(date) : new DayjsTZDate();
 
   d = d.setHours(23, 59, 59, 999);
+
+  return d;
+}
+
+export function toEndOfMonth(date: DayjsTZDate): DayjsTZDate {
+  let d = toStartOfMonth(date); // 获取传入日期所在月份的第一天
+
+  d = d.setMonth(d.getMonth() + 1); // 将月份加1，跳到下个月
+  d = d.setDate(d.getDate() - 1); // 将日期设置为下个月的第一天减1，得到当前月的最后一天
+  d = d.setHours(23, 59, 59, 999); // 将时间设置为当天的23:59:59:999，确保是当天的最后时刻
 
   return d;
 }
@@ -404,4 +423,28 @@ export function parseDateTime(str: string, fixMonth = -1): DayjsTZDate {
     Number(hms[2]),
     0
   );
+}
+
+/**
+ * 从指定日期减去指定的天数
+ * @param d 要操作的日期
+ * @param steps 要减去的天数
+ * @returns 减去指定天数后的新日期
+ */
+export function subtractDate(d: DayjsTZDate, steps: number) {
+  const date = clone(d);
+  return date.setDate(d.getDate() - steps);
+}
+
+/**
+ * 计算两个日期之间的天数差
+ * @param d1 第一个日期
+ * @param d2 第二个日期
+ * @returns 两个日期之间的天数差（d1 - d2），结果四舍五入到整数
+ */
+export function getDateDifference(d1: DayjsTZDate, d2: DayjsTZDate) {
+  const _d1 = d1.getTime();
+  const _d2 = d2.getTime();
+
+  return Math.round((_d1 - _d2) / MS_PER_DAY);
 }

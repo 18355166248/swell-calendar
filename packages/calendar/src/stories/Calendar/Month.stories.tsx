@@ -56,9 +56,9 @@ export const Basic: Story = {
     <Wrapper
       events={args.events}
       options={{
-        week: {
-          startDayOfWeek: Day.MON, // 设置周开始日为周一
-          workweek: false, // 显示完整周（包括周末）
+        month: {
+          startDayOfWeek: Day.SUN, // 设置周开始日为周一
+          workweek: true, // 显示完整周（包括周末）
         },
       }}
     >

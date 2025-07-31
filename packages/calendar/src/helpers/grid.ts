@@ -1,16 +1,26 @@
-import { Day, isWeekend, toStartOfDay, WEEK_DAYS } from '@/time/datetime';
+import {
+  Day,
+  getDateDifference,
+  isWeekend,
+  subtractDate,
+  toEndOfMonth,
+  toStartOfDay,
+  toStartOfMonth,
+  WEEK_DAYS,
+} from '@/time/datetime';
 import DayjsTZDate from '@/time/dayjs-tzdate';
 import { CalendarData } from '@/types/calendar.type';
 import { FormattedTimeString } from '@/types/datetime.type';
 import { CommonGridColumn, GridPositionFinder, TimeGridData } from '@/types/grid.type';
 import { ClientMousePosition } from '@/types/mouse.type';
-import { HourDivision, WeekOptions } from '@/types/options.type';
+import { HourDivision, MonthOptions, WeekOptions } from '@/types/options.type';
 import { Panel } from '@/types/panel.type';
 import { limit, ratio } from '@/utils/math';
 import { findLastIndex, isNil, range } from 'lodash-es';
 import { findByDateRange as findByDateRangeForWeek } from '@/controller/week.controller';
 import { DayGridEventMatrix, EventModelMap, TimeGridEventMatrix } from '@/types/events.type';
 import { EventUIModel } from '@/model/eventUIModel';
+import { DEFAULT_VISIBLE_WEEKS } from '@/constants/grid.const';
 
 /**
  * 创建时间网格数据，用于日历组件的时间轴显示
@@ -494,4 +504,92 @@ export function getWeekDates(
 
     return acc;
   }, []);
+}
+
+/**
+ * 创建月视图的日期矩阵
+ *
+ * 该函数根据给定的目标日期和配置选项，生成一个二维数组表示的月视图日期矩阵。
+ * 矩阵的每一行代表一周，每一列代表一周中的某一天。
+ * 支持自定义一周的起始日、工作日模式、可见周数等配置。
+ *
+ * @param renderTargetDate - 渲染的目标日期，用于确定要生成哪个月的日期矩阵
+ * @param options - 月视图配置选项
+ * @param options.workweek - 是否为工作日模式，true时只返回工作日（周一到周五），默认为false
+ * @param options.visibleWeeksCount - 指定要显示的周数，0表示使用默认值，默认为0
+ * @param options.startDayOfWeek - 一周的起始日，0表示周日，1表示周一，依此类推，默认为0
+ * @param options.isAlways6Weeks - 是否始终显示6周（无论当月实际有多少周），默认为true
+ * @returns 返回一个二维数组，每个子数组代表一周的日期，每个元素为TZDate对象
+ *
+ * @example
+ * // 创建2024年1月的标准6周视图（以周日为起始日）
+ * createDateMatrixOfMonth(new Date('2024-01-15'), {})
+ *
+ * @example
+ * // 创建2024年1月的工作日视图（只显示周一到周五）
+ * createDateMatrixOfMonth(new Date('2024-01-15'), { workweek: true })
+ *
+ * @example
+ * // 创建2024年1月的4周视图（以周一为起始日）
+ * createDateMatrixOfMonth(new Date('2024-01-15'), {
+ *   visibleWeeksCount: 4,
+ *   startDayOfWeek: 1
+ * })
+ */
+export function createDateMatrixOfMonth(
+  renderDate: DayjsTZDate,
+  { workweek, visibleWeeksCount, startDayOfWeek, isAlways6Weeks }: Required<MonthOptions>
+) {
+  const targetDate = new DayjsTZDate(renderDate);
+
+  // 如果配置了要显示的周数，则使用配置的周数
+  const shouldApplyVisibleWeeksCount = visibleWeeksCount > 0;
+
+  // 确定基准日期：
+  // - 如果指定了可见周数，使用目标日期作为基准
+  // - 否则使用目标日期所在月的第一天作为基准
+  const baseDate = shouldApplyVisibleWeeksCount ? targetDate : toStartOfMonth(targetDate);
+
+  // 计算矩阵中第一个日期（左上角的日期）
+  // 这个日期需要确保矩阵的第一行包含指定起始日的完整一周
+  const firstDateOfMatrix = subtractDate(
+    baseDate,
+    baseDate.getDay() - startDayOfWeek + (baseDate.getDay() - startDayOfWeek < 0 ? WEEK_DAYS : 0)
+  );
+  console.log(baseDate);
+
+  console.log('🚀 ~ createDateMatrixOfMonth ~ firstDateOfMatrix:', firstDateOfMatrix);
+
+  // 获取矩阵第一个日期是周几（0=周日，1=周一，...，6=周六）
+  const dayOfFirstDateOfMatrix = firstDateOfMatrix.getDay();
+
+  // 获取目标月份的总天数
+  const totalDatesCountOfMonth = toEndOfMonth(targetDate).getDate();
+
+  // 计算矩阵第一个日期与基准日期之间的天数差
+  const initialDifference = getDateDifference(firstDateOfMatrix, baseDate);
+  // 计算矩阵中需要包含的总天数
+  // 包括目标月份的天数加上矩阵开始日期到月份开始日期的偏移天数
+  const totalDatesOfMatrix = Math.abs(initialDifference) + totalDatesCountOfMonth;
+
+  // 确定矩阵的总周数 (行数)
+  let totalWeeksOfMatrix = DEFAULT_VISIBLE_WEEKS; // 默认为6周
+
+  if (shouldApplyVisibleWeeksCount) {
+    // 如果指定了可见周数，使用指定的周数
+    totalWeeksOfMatrix = visibleWeeksCount;
+  } else if (isAlways6Weeks === false) {
+    // 如果不强制显示6周，则根据实际需要的天数计算周数
+    // 向上取整确保有足够的行数容纳所有日期
+    totalWeeksOfMatrix = Math.ceil(totalDatesOfMatrix / WEEK_DAYS);
+  }
+
+  // 生成日期矩阵
+  // 外层map生成每一周，内层reduce生成每一周中的每一天
+  range(0, totalWeeksOfMatrix).map((weekIndex) => {
+    return range(0, WEEK_DAYS).reduce((weekRow, dayOfWeek) => {
+
+      return weekRow
+    }, [] as DayjsTZDate[]);
+  });
 }
