@@ -58,7 +58,7 @@ export const Basic: Story = {
       options={{
         month: {
           startDayOfWeek: Day.SUN, // 设置周开始日为周一
-          workweek: true, // 显示完整周（包括周末）
+          workweek: false, // 显示完整周（包括周末）
         },
       }}
     >

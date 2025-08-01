@@ -18,6 +18,7 @@ export interface Template {
   timeGridNowIndicatorLabel: (props: TemplateNow) => TemplateReturnType;
   time: (event: EventObjectWithDefaultValues) => TemplateReturnType;
   timeMove: (event: EventObjectWithDefaultValues) => TemplateReturnType;
+  monthGridHeader: (model: TemplateMonthGrid) => TemplateReturnType;
 }
 
 export type TemplateConfig = Partial<Template>;
@@ -39,3 +40,13 @@ export interface TemplateMonthDayName {
 }
 
 export type TemplateName = keyof Template;
+
+export interface TemplateMonthGrid {
+  date: string;
+  day: number;
+  hiddenEventCount: number;
+  isOtherMonth: boolean;
+  isToday: boolean;
+  month: number;
+  ymd: string;
+}

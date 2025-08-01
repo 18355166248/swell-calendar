@@ -2,6 +2,7 @@ import { Fragment } from 'react';
 import {
   Template,
   TemplateMonthDayName,
+  TemplateMonthGrid,
   TemplateNow,
   TemplateWeekDayName,
 } from '@/types/template.type';
@@ -82,5 +83,11 @@ export const templates: Template = {
     }
 
     return stripTags(title);
+  },
+  monthGridHeader(model: TemplateMonthGrid) {
+    const date = parseInt(model.date.split('-')[2], 10);
+    const classNames = cls('weekday-grid-date', { 'weekday-grid-date-decorator': model.isToday });
+
+    return <span className={classNames}>{date}</span>;
   },
 };

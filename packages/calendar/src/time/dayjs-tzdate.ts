@@ -3,12 +3,7 @@ import dayjs, { type Dayjs } from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc';
-
-import type {
-  DayjsTZDateConstructorArgs,
-  DayjsTZDateMethods,
-  TimezoneValue,
-} from './dayjs-tzdate.types';
+import type { DayjsTZDateMethods, TimezoneValue } from './dayjs-tzdate.types';
 
 // 启用 dayjs 插件
 dayjs.extend(utc);
@@ -76,6 +71,10 @@ export default class DayjsTZDate implements DayjsTZDateMethods {
     this.dayjs = dayjsInstance;
 
     this.tzOffset = this.tzOffset ?? null;
+  }
+
+  format(format: string): string {
+    return this.dayjs.format(format);
   }
 
   /**

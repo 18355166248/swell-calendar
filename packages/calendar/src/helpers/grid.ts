@@ -556,9 +556,6 @@ export function createDateMatrixOfMonth(
     baseDate,
     baseDate.getDay() - startDayOfWeek + (baseDate.getDay() - startDayOfWeek < 0 ? WEEK_DAYS : 0)
   );
-  console.log(baseDate);
-
-  console.log('🚀 ~ createDateMatrixOfMonth ~ firstDateOfMatrix:', firstDateOfMatrix);
 
   // 获取矩阵第一个日期是周几（0=周日，1=周一，...，6=周六）
   const dayOfFirstDateOfMatrix = firstDateOfMatrix.getDay();
@@ -586,10 +583,23 @@ export function createDateMatrixOfMonth(
 
   // 生成日期矩阵
   // 外层map生成每一周，内层reduce生成每一周中的每一天
-  range(0, totalWeeksOfMatrix).map((weekIndex) => {
+  return range(0, totalWeeksOfMatrix).map((weekIndex) => {
     return range(0, WEEK_DAYS).reduce((weekRow, dayOfWeek) => {
+      // 计算从矩阵第一个日期开始的总步数（天数）
+      const steps = weekIndex * WEEK_DAYS + dayOfWeek;
+      // 计算当前日期是周几
+      // 使用模运算确保结果在0-6范围内
+      const currentDay = (steps + dayOfFirstDateOfMatrix) % WEEK_DAYS;
 
-      return weekRow
+      // 判断是否应该包含当前日期：
+      // - 如果不是工作日模式，包含所有日期
+      // - 如果是工作日模式，只包含非周末的日期
+      if (!workweek || (workweek && !isWeekend(currentDay))) {
+        // 根据步数计算实际日期 第一个日期+步数
+        weekRow.push(firstDateOfMatrix.addDate(steps));
+      }
+
+      return weekRow;
     }, [] as DayjsTZDate[]);
   });
 }

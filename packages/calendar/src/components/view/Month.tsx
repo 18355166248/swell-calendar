@@ -4,8 +4,9 @@ import GridHeader from '../dayGridCommon/GridHeader';
 import { useCalendarStore } from '@/contexts/calendarStore';
 import { useMemo } from 'react';
 import { MonthOptions, Options } from '@/types/options.type';
-import { isWeekend } from '@/time/datetime';
+import { getRowStyleInfo, isWeekend } from '@/time/datetime';
 import { createDateMatrixOfMonth } from '@/helpers/grid';
+import DayGridMonth from '../dayGridMonth/DayGridMonth';
 
 function useMonthViewState() {
   const { options, view } = useCalendarStore();
@@ -46,10 +47,30 @@ export function Month() {
     [monthOptions, renderDate]
   );
 
+  /**
+   * 计算行样式信息和单元格宽度映射
+   * 使用 useMemo 优化性能，只有当相关配置变化时才重新计算
+   */
+  const { rowStyleInfo, cellWidthMap } = useMemo(() => {
+    return getRowStyleInfo(dayNames.length, narrowWeekend, startDayOfWeek, workweek);
+  }, [dayNames.length, narrowWeekend, startDayOfWeek, workweek]);
+
+  /**
+   * 创建行信息数组，将样式信息与对应的日期结合
+   * 每行包含样式信息和该行对应的日期信息
+   */
+  const rowInfo = useMemo(() => {
+    return rowStyleInfo.map((row, index) => ({
+      ...row,
+      date: dateMatrix[0][index],
+    }));
+  }, [dateMatrix, rowStyleInfo]);
 
   return (
-    <Layout className={cls('month')}>
-      <GridHeader dayNames={[]} type="month" rowStyleInfo={[]} />
+    <Layout className="month">
+      <GridHeader dayNames={dayNames} type="month" rowStyleInfo={rowStyleInfo} />
+      {/* 渲染日期网格 */}
+      <DayGridMonth dateMatrix={dateMatrix} rowInfo={rowInfo} cellWidthMap={cellWidthMap} />
     </Layout>
   );
 }

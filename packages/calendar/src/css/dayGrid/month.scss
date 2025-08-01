@@ -1,0 +1,41 @@
+$border-color: #e5e5e5;
+
+.month {
+  position: relative;
+  .day-names {
+    height: 31px;
+    .day-name {
+      height: 100%;
+      line-height: 31px;
+    }
+  }
+  .day-grid-month {
+    height: calc(100% - 31px);
+    .day-grid-month-row {
+      border-top: 1px solid $border-color;
+      .week-day {
+        height: 100%;
+        .grid-row {
+          height: 100%;
+          .day-grid-month-cell {
+            display: inline-block;
+            height: 100%;
+            padding: 3px 10px;
+            & + .day-grid-month-cell {
+              border-left: 1px solid $border-color;
+            }
+            .day-grid-month-cell-date.active {
+              width: 20px;
+              height: 20px;
+              line-height: 20px;
+              text-align: center;
+              background-color: #007bff;
+              color: #fff;
+              border-radius: 3px;
+            }
+          }
+        }
+      }
+    }
+  }
+}
