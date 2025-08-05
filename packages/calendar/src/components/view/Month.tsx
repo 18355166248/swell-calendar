@@ -34,7 +34,6 @@ function getMonthDayNames(options: Options) {
 export function Month() {
   const { options, renderDate } = useMonthViewState();
   const dayNames = getMonthDayNames(options);
-  console.log('🚀 ~ Month ~ dayNames:', dayNames);
   const monthOptions = options.month as Required<MonthOptions>;
   const { narrowWeekend, startDayOfWeek, workweek } = monthOptions;
 

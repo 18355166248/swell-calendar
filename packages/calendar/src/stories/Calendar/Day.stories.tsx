@@ -19,11 +19,10 @@ const meta = {
 } satisfies Meta<typeof Day>;
 
 function createTimeGridEvents() {
-  const today = new DayjsTZDate();
-  const start = today.addDate(-today.getDay());
-  const end = start.addDate(1);
+  const start = new DayjsTZDate();
+  const end = start.setHours(23, 59, 59, 999);
 
-  return createRandomEvents(start, end, 7).map((event) => new EventModel(event));
+  return createRandomEvents(start, end, 10).map((event) => new EventModel(event));
 }
 
 export default meta;

@@ -14,7 +14,7 @@
     "lint": "eslint . --max-warnings 0",
     "clean": "rm -rf .turbo node_modules dist",
     "test": "jest",
-    "build-storybook": "storybook build"
+    "build-storybook": "node ../../scripts/changeNode.js 20 storybook build"
   },
   "exports": {
     "./Day": {
