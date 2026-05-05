@@ -1,0 +1,22 @@
+.allday-row {
+  border-bottom: 1px solid #e8e8e8;
+  background: #fafafa;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.allday-row-events {
+  position: absolute;
+  inset: 0;
+}
+
+.allday-event {
+  position: absolute;
+  border-radius: 3px;
+  font-size: 12px;
+  cursor: pointer;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  box-sizing: border-box;
+}

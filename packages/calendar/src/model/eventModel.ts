@@ -40,6 +40,8 @@ export class EventModel implements EventObject {
   borderColor?: string;
   /** 原始事件数据 */
   raw: any = null;
+  /** 资源ID，用于 Scheduler 视图 */
+  resourceId?: string;
 
   constructor(public event: EventObject) {
     stamp(this);
@@ -58,6 +60,7 @@ export class EventModel implements EventObject {
     dragBackgroundColor = '',
     borderColor = '',
     color = '',
+    resourceId,
   }: EventObject) {
     this.id = id;
     this.title = title;
@@ -67,6 +70,7 @@ export class EventModel implements EventObject {
     this.dragBackgroundColor = dragBackgroundColor;
     this.borderColor = borderColor;
     this.color = color;
+    this.resourceId = resourceId;
 
     // 根据事件类型设置时间周期
     if (this.isAllday) {
@@ -222,6 +226,7 @@ export class EventModel implements EventObject {
       dragBackgroundColor: this.dragBackgroundColor,
       borderColor: this.borderColor,
       raw: this.raw,
+      resourceId: this.resourceId,
     };
   }
 }

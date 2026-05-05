@@ -13,6 +13,7 @@ import GridHeader from '@/components/dayGridCommon/GridHeader';
 import { getDayNames } from '@/helpers/dayName';
 import { useDOMNode } from '@/hooks/common/useDOMNode';
 import useTimeGridScrollSync from '@/hooks/TimeGrid/useTimeGridScrollSync';
+import { AlldayRow, ALLDAY_EVENT_HEIGHT } from '@/components/dayGrid/AlldayRow';
 
 export function Day(): JSX.Element {
   const { options, view } = useCalendarStore();
@@ -72,6 +73,14 @@ export function Day(): JSX.Element {
   // 同步向上向下滚动
   useTimeGridScrollSync(timeGridRef, timeGridData.rows.length);
 
+  const alldayModels = dayGridEvents.allday;
+  const maxAlldaySlot = alldayModels.length > 0
+    ? Math.max(0, ...alldayModels.map((m) => m.top))
+    : -1;
+  const alldayPanelHeight = maxAlldaySlot >= 0
+    ? (maxAlldaySlot + 1) * ALLDAY_EVENT_HEIGHT
+    : 0;
+
   return (
     <Layout className="day-view">
       <Panel name="day-view-day-names" initialHeight={WEEK_DAY_NAME_HEIGHT + WEEK_DAY_NAME_BORDER}>
@@ -82,6 +91,13 @@ export function Day(): JSX.Element {
           rowStyleInfo={rowStyleInfo}
         />
       </Panel>
+
+      {activePanels.includes('allday') && alldayModels.length > 0 ? (
+        <Panel name="allday" initialHeight={alldayPanelHeight}>
+          <AlldayRow uiModels={alldayModels} marginLeft={timeGridLeftWidth} />
+        </Panel>
+      ) : null}
+
       {activePanels.includes('time') ? (
         <Panel name="time" ref={setTimeGridRef}>
           <TimeGrid timeGridData={timeGridData} events={dayGridEvents.time} />

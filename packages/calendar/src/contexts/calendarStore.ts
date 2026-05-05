@@ -28,8 +28,8 @@ const storeCreator = (options: Options) => (set: SetState) => ({
   ...createCalendarSlice(options.calendars)(set),
   // 创建模板切片 - 处理事件模板相关功能
   ...createTemplateSlice(options.template),
-  // 创建视图切片 - 处理日历视图状态（日视图、周视图等）
-  ...createViewSlice(options.defaultView),
+  // 创建视图切片 - 处理日历视图状态（日视图、周视图等），柯里化接收 set 以支持导航 actions
+  ...createViewSlice(options.defaultView)(set),
   // 创建布局切片 - 处理布局相关状态，需要 set 方法进行状态更新
   ...createLayoutSlice()(set),
   // 创建拖拽切片 - 处理拖拽相关功能，需要 set 方法进行状态更新

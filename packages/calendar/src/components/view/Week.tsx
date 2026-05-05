@@ -14,6 +14,7 @@ import { WEEK_DAY_NAME_BORDER, WEEK_DAY_NAME_HEIGHT } from '@/constants/style.co
 import GridHeader from '../dayGridCommon/GridHeader';
 import useTimeGridScrollSync from '@/hooks/TimeGrid/useTimeGridScrollSync';
 import { TimeGrid } from '../timeGrid/TimeGridView';
+import { AlldayRow, ALLDAY_EVENT_HEIGHT } from '../dayGrid/AlldayRow';
 
 /**
  * 周视图状态管理钩子
@@ -121,6 +122,14 @@ export function Week() {
   // 同步时间网格滚动
   useTimeGridScrollSync(timePanel, timeGridData.rows.length);
 
+  const alldayModels = dayGridEvents.allday;
+  const maxAlldaySlot = alldayModels.length > 0
+    ? Math.max(0, ...alldayModels.map((m) => m.top))
+    : -1;
+  const alldayPanelHeight = maxAlldaySlot >= 0
+    ? (maxAlldaySlot + 1) * ALLDAY_EVENT_HEIGHT
+    : 0;
+
   return (
     <Layout className={cls('week-view')}>
       <Panel name="week-view-day-names" initialHeight={WEEK_DAY_NAME_HEIGHT + WEEK_DAY_NAME_BORDER}>
@@ -131,6 +140,12 @@ export function Week() {
           rowStyleInfo={rowStyleInfo}
         />
       </Panel>
+
+      {activePanels.includes('allday') && alldayModels.length > 0 ? (
+        <Panel name="allday" initialHeight={alldayPanelHeight}>
+          <AlldayRow uiModels={alldayModels} marginLeft={timeGridLeftWidth} />
+        </Panel>
+      ) : null}
 
       {activePanels.includes('time') ? (
         <Panel name="time" ref={setTimePanelRef}>

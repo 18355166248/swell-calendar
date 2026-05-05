@@ -1,0 +1,139 @@
+.scheduler {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.scheduler-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #999;
+  font-size: 14px;
+}
+
+// 单一滚动容器，header 与 body 同步水平滚动
+.scheduler-scroll {
+  flex: 1;
+  overflow: auto;
+  min-height: 0;
+}
+
+.scheduler-inner {
+  display: flex;
+  flex-direction: column;
+}
+
+.scheduler-body {
+  display: flex;
+}
+
+// ─── Resource List ───────────────────────────────────────────────────────────
+
+.timeline-resource-list {
+  width: 150px;
+  flex-shrink: 0;
+  border-right: 1px solid #e8e8e8;
+  background: #fafafa;
+  position: sticky;
+  left: 0;
+  z-index: 2;
+}
+
+.timeline-resource-item {
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  border-bottom: 1px solid #e8e8e8;
+  gap: 8px;
+  overflow: hidden;
+}
+
+.timeline-resource-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.timeline-resource-name {
+  font-size: 13px;
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// ─── Header ──────────────────────────────────────────────────────────────────
+
+.timeline-header {
+  display: flex;
+  flex-shrink: 0;
+  border-bottom: 1px solid #e8e8e8;
+  background: #fff;
+  height: 48px;
+  position: sticky;
+  top: 0;
+  z-index: 3;
+}
+
+.timeline-header-placeholder {
+  flex-shrink: 0;
+  border-right: 1px solid #e8e8e8;
+  background: #fafafa;
+  position: sticky;
+  left: 0;
+  z-index: 4;
+}
+
+.timeline-header-cells {
+  display: flex;
+}
+
+.timeline-header-cell {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding-bottom: 4px;
+  padding-left: 4px;
+  border-right: 1px solid #f0f0f0;
+  overflow: hidden;
+}
+
+.timeline-header-date {
+  font-size: 11px;
+  color: #666;
+  white-space: nowrap;
+  line-height: 1.2;
+}
+
+.timeline-header-hour {
+  font-size: 11px;
+  color: #aaa;
+  white-space: nowrap;
+}
+
+// ─── Grid ─────────────────────────────────────────────────────────────────────
+
+.timeline-grid {
+  flex-shrink: 0;
+}
+
+.timeline-grid-row {
+  display: flex;
+  border-bottom: 1px solid #e8e8e8;
+  position: relative;
+}
+
+.timeline-grid-cell {
+  flex-shrink: 0;
+  border-right: 1px solid #f0f0f0;
+  height: 100%;
+
+  &.timeline-grid-cell--day-end {
+    border-right-color: #d8d8d8;
+  }
+}

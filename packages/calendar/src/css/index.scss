@@ -1,5 +1,7 @@
 @use './layout';
 
+@use './toolbar/toolbar';
+
 @use './dayGrid/dayNames';
 @use './dayGrid/month';
 
@@ -8,3 +10,9 @@
 @use './timeGrid/column';
 
 @use './events/time';
+
+@use './dayGrid/allday';
+
+@use './month/monthGrid';
+
+@use './timeline/timeline';

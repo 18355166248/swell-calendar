@@ -1,0 +1,94 @@
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  border-bottom: 1px solid #e5e5e5;
+  background: #fff;
+  min-height: 48px;
+  flex-shrink: 0;
+}
+
+.toolbar-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.toolbar-date {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  user-select: none;
+}
+
+.toolbar-views {
+  display: flex;
+  align-items: center;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.toolbar-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 12px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 14px;
+  color: #555;
+  transition: background 0.15s, color 0.15s;
+
+  &:hover {
+    background: #f5f5f5;
+  }
+
+  &:active {
+    background: #e8e8e8;
+  }
+}
+
+.toolbar-btn-nav {
+  font-size: 20px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 1px solid #d9d9d9;
+  color: #333;
+
+  &:hover {
+    background: #f0f0f0;
+  }
+}
+
+.toolbar-btn-today {
+  padding: 6px 14px;
+  border-radius: 4px;
+  border: 1px solid #d9d9d9;
+  font-size: 13px;
+  color: #333;
+
+  &:hover {
+    background: #f0f0f0;
+  }
+}
+
+.toolbar-btn-view {
+  border-right: 1px solid #d9d9d9;
+  border-radius: 0;
+
+  &:last-child {
+    border-right: none;
+  }
+}
+
+.toolbar-btn-view-active {
+  background: #1677ff;
+  color: #fff;
+
+  &:hover {
+    background: #4096ff;
+  }
+}

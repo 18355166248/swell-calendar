@@ -50,6 +50,7 @@ export function createOptionsSlice(options: Options = {}) {
       week: initializeWeekOptions(options.week),
       month: initializeMonthOptions(options.month),
       calendars: options.calendars ?? [],
+      scheduler: options.scheduler,
       setOptions: (options) => {
         set(
           produce((state: CalendarStore) => {

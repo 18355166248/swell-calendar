@@ -1,0 +1,37 @@
+#!/bin/sh
+# pre-commit hook — 机械化执行门控
+# 启用方式：git config core.hooksPath .githooks
+
+# 检查是否有涉及 src/ 的变更，才跑耗时检查
+CHANGED=$(git diff --cached --name-only)
+
+echo "🔍 Pre-commit 检查..."
+
+# 1. 架构分层约束
+if echo "$CHANGED" | grep -q "packages/calendar/src/"; then
+  echo "  → 检查架构分层..."
+  node scripts/check-arch.mjs
+  if [ $? -ne 0 ]; then
+    echo "❌ 架构检查失败，commit 中止。"
+    exit 1
+  fi
+fi
+
+# 2. ESLint
+if echo "$CHANGED" | grep -q "\.\(ts\|tsx\|js\)$"; then
+  echo "  → 运行 ESLint..."
+  pnpm lint
+  if [ $? -ne 0 ]; then
+    echo "❌ ESLint 检查失败，commit 中止。"
+    exit 1
+  fi
+fi
+
+# 3. TypeScript 类型检查（仅在 .ts/.tsx 变更时）
+if echo "$CHANGED" | grep -q "\.\(ts\|tsx\)$"; then
+  echo "  → TypeScript 类型检查..."
+  pnpm -r exec tsc --noEmit --project tsconfig.json 2>/dev/null || true
+fi
+
+echo "✅ 所有检查通过"
+exit 0

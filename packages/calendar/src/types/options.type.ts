@@ -7,7 +7,7 @@ import { CalendarInfo } from './calendar.type';
 export type EventView = 'allday' | 'time';
 export type TaskView = 'milestone' | 'task';
 
-export type ViewType = 'month' | 'week' | 'day';
+export type ViewType = 'month' | 'week' | 'day' | 'scheduler';
 
 // 时间分隔配置：2表示半小时一块，4表示15分钟一块
 export type HourDivision = 2 | 4;
@@ -21,6 +21,8 @@ export interface Options {
   week?: WeekOptions;
   // 月视图选项
   month?: MonthOptions;
+  // 调度器视图选项
+  scheduler?: SchedulerOptions;
   // 模板配置
   template?: TemplateConfig;
   dnd?: DndState;
@@ -66,6 +68,21 @@ export interface MonthOptions {
   visibleEventCount?: number;
 }
 
+export interface SchedulerOptions {
+  resources?: ResourceInfo[];
+  hourStart?: number;
+  hourEnd?: number;
+}
+
+export interface ResourceInfo {
+  id: string;
+  name: string;
+  color?: string;
+  backgroundColor?: string;
+}
+
 export type OptionsSlice = {
-  options: Omit<Required<Options>, 'theme' | 'template' | 'dnd'>;
+  options: Omit<Required<Options>, 'theme' | 'template' | 'dnd' | 'scheduler'> & {
+    scheduler?: SchedulerOptions;
+  };
 };

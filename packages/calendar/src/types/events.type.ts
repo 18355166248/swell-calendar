@@ -76,11 +76,12 @@ export interface EventObject {
   borderColor?: string;
   goingDuration?: number;
   comingDuration?: number;
+  resourceId?: string;
 }
 
 export type EventObjectWithDefaultValues = MarkOptional<
   Required<EventObject>,
-  'color' | 'borderColor' | 'backgroundColor' | 'dragBackgroundColor'
+  'color' | 'borderColor' | 'backgroundColor' | 'dragBackgroundColor' | 'resourceId'
 > & {
   start: DayjsTZDate;
   end: DayjsTZDate;

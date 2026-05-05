@@ -305,8 +305,15 @@ export function createGridPositionFinder({
  * @param narrowWeekend 是否缩窄周末显示 - 影响事件宽度计算
  * @returns 处理后的扁平化事件UI模型数组
  */
-function getDayGridEventModels(events: DayGridEventMatrix) {
-  return [];
+function getDayGridEventModels(events: DayGridEventMatrix): EventUIModel[] {
+  return events.flatMap((matrix) =>
+    matrix.flatMap((row, rowIndex) =>
+      row.filter(Boolean).map((model) => {
+        model.top = rowIndex;
+        return model;
+      })
+    )
+  );
 }
 
 /**
@@ -432,8 +439,6 @@ export function getWeekViewEvents(
           ? getDayGridEventModels(events) // 处理日期网格事件
           : getTimeGridEventModels(events), // 处理时间网格事件
       };
-
-      return acc;
     },
     {
       milestone: [], // 里程碑事件矩阵
