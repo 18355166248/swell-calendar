@@ -1,6 +1,6 @@
 import { addTimeGridPrefix, className } from '@/constants/timeGrid-const';
 import TimeColumn from './TimeColumn';
-import { TimeGridData } from '@/types/grid.type';
+import { CommonGridColumn, TimeGridData } from '@/types/grid.type';
 import { cls, toPercent } from '@/helpers/css';
 import { useCallback, useLayoutEffect, useMemo, useState } from 'react';
 import DayjsTZDate from '@/time/dayjs-tzdate';
@@ -30,6 +30,17 @@ export interface TimeGridProps {
   events: EventUIModel[]; // 需要在网格中显示的事件数组
 }
 
+function isSameResourceColumn(column: CommonGridColumn, uiModel: EventUIModel) {
+  if (!column.resourceId) {
+    return true;
+  }
+
+  const resourceId = uiModel.model.getResourceId();
+  const resourceIds = uiModel.model.toEventObject().resourceIds ?? [];
+
+  return resourceId === column.resourceId || resourceIds.includes(column.resourceId);
+}
+
 export function TimeGrid({ timeGridData, events }: TimeGridProps) {
   const { columns } = timeGridData;
 
@@ -56,9 +67,12 @@ export function TimeGrid({ timeGridData, events }: TimeGridProps) {
   const totalUIModels = useMemo(() => {
     return (
       columns
-        .map(({ date }) => {
+        .map((column) => {
           return events
-            .filter(isBetweenColumn(toStartOfDay(date), toEndOfDay(date)))
+            .filter((uiModel) =>
+              isBetweenColumn(toStartOfDay(column.date), toEndOfDay(column.date))(uiModel)
+            )
+            .filter((uiModel) => isSameResourceColumn(column, uiModel))
             .map((uiModel) => {
               return uiModel.clone();
             });

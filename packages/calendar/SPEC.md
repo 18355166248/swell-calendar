@@ -24,8 +24,8 @@ swell-calendar 是一个**可嵌入的 React 日历组件库**，面向需要在
 | 日视图（Day） | ✅ 完成 | 单日时间网格，24 小时展示 |
 | 周视图（Week） | ✅ 完成 | 7 天时间网格，支持 workweek 模式 |
 | 月视图（Month） | 🚧 开发中 | 月历格子，事件简要展示 |
-| 时间线（Timeline） | 🟡 基础版 | 资源行 + 横向时间轴，当前基于现有 scheduler 内核 |
-| 调度器（Scheduler） | 🟡 基础版 | 资源调度入口已建立，完整 time-grid 资源调度继续演进 |
+| 时间线（Timeline） | 🟡 基础版 | 资源行 + 横向时间轴，用于资源时间段展示 |
+| 调度器（Scheduler） | 🟡 进行中 | 垂直时间轴 + 资源列的 time-grid 视图，逐步对齐 Mobiscroll scheduler |
 
 ### 事件功能
 

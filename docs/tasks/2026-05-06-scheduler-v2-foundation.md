@@ -10,6 +10,7 @@
 - 扩展资源调度所需的数据模型
 - 暴露命令式实例 API 和基础回调能力
 - 为 `scheduler/timeline` 双视图能力铺路
+- 将 `scheduler` 与 `timeline` 视图从同一实现中拆开
 
 ## 非目标
 
@@ -31,22 +32,32 @@
 4. 增加 `timeline` 视图类型，并允许 toolbar 根据配置显示视图按钮。
 5. 建立 callbacks context，先打通 `onEventClick` 和 `onPageChange`。
 6. 修正包导出面，统一到 `src/index.ts`。
+7. 将 `timeline` 保持为横向资源时间轴，将 `scheduler` 重构为垂直 time-grid + 资源列。
 
 ## 文档变更
 
 - [x] 更新 `packages/calendar/SPEC.md`
 - [ ] 更新 `docs/ARCHITECTURE.md`
 - [ ] 新增或更新 ADR
-- [x] 无规格变更，仅补任务记录
+- [x] 更新本任务文档，记录 scheduler/timeline 拆分结果
 
 ## 验证计划
 
-- [ ] `node scripts/check-docs.mjs`
-- [ ] `node scripts/check-arch.mjs`
+- [x] `node scripts/check-docs.mjs`
+- [x] `node scripts/check-arch.mjs`
 - [ ] `pnpm lint`
-- [ ] `pnpm -r exec tsc --noEmit`
+- [x] `pnpm --filter swell-calendar exec tsc --noEmit`
+- [x] `pnpm --filter swell-calendar build`
 
 ## 风险与回滚
 
 - 风险：公开 API 先于内部实现成熟，可能出现“类型已开放但能力未全部生效”
 - 回滚方式：保留内部 `CalendarApp + store` 用法，撤回新的对外导出
+
+## 实施结果
+
+- `timeline` 保持为横向资源时间轴，迁移到独立的 `view/Timeline.tsx`
+- `scheduler` 重构为垂直 `TimeGrid`，按“日期 × 资源”生成列
+- `TimeGrid` 现在会基于列上的 `resourceId` 过滤事件，支持资源列归属
+- 新增 `SchedulerHeader`，在资源调度视图顶部展示日期组和资源列头
+- 当前范围仍是 Phase 0/1 底座建设，未包含 Mobiscroll 级别的 overlap policy、blocked time、agenda、递归展开和移动端适配

@@ -6,6 +6,7 @@ import { Day } from '@/components/view/Day';
 import { Week } from '@/components/view/Week';
 import { Month } from '@/components/view/Month';
 import { Scheduler } from '@/components/view/Scheduler';
+import { Timeline } from '@/components/view/Timeline';
 import { ViewType } from '@/types/options.type';
 import { CalendarCallbacks } from '@/types/callbacks.type';
 import { CalendarCallbacksProvider } from '@/contexts/calendarCallbacks';
@@ -18,7 +19,7 @@ function ViewRouter() {
     week: <Week />,
     month: <Month />,
     scheduler: <Scheduler />,
-    timeline: <Scheduler />,
+    timeline: <Timeline />,
   };
 
   return viewMap[currentView] ?? <Week />;

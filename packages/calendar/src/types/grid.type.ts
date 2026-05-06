@@ -37,6 +37,10 @@ export interface CommonGridColumn {
   left: number;
   /** 列宽度（像素） */
   width: number;
+  /** 该列关联的资源 ID（scheduler/timeline 视图） */
+  resourceId?: string;
+  /** 该列关联的资源名称 */
+  resourceName?: string;
 }
 
 /**

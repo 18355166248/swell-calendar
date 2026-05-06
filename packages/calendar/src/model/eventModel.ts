@@ -176,6 +176,9 @@ export class EventModel implements EventObject {
   getEnds() {
     return this.end;
   }
+  getResourceId() {
+    return this.resourceId;
+  }
   /**
    * 计算事件的持续时间
    * @returns {number} 持续时间（毫秒，UTC时间）

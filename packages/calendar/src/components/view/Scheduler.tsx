@@ -1,28 +1,36 @@
+import { WEEK_DAY_NAME_BORDER, WEEK_DAY_NAME_HEIGHT } from '@/constants/style.const';
 import { useCalendarStore } from '@/contexts/calendarStore';
+import { useThemeStore } from '@/contexts/themeStore';
 import { cls } from '@/helpers/css';
-import { getWeekDates } from '@/helpers/grid';
+import {
+  createSchedulerTimeGridData,
+  getVisibleResources,
+  getWeekDates,
+  getWeekViewEvents,
+} from '@/helpers/grid';
 import { toEndOfDay, toStartOfDay } from '@/time/datetime';
 import { useMemo } from 'react';
-import { ResourceList } from '../timeline/ResourceList';
-import { TimelineHeader } from '../timeline/TimelineHeader';
-import { TimelineGrid } from '../timeline/TimelineGrid';
+import Layout from '../Layout';
+import Panel from '../Panel';
+import { SchedulerHeader } from '../scheduler/SchedulerHeader';
+import { TimeGrid } from '../timeGrid/TimeGridView';
 
-const RESOURCE_LIST_WIDTH = 150;
-const ROW_HEIGHT = 56;
-const CELL_WIDTH = 80; // px per hour
+const SCHEDULER_HEADER_HEIGHT = WEEK_DAY_NAME_HEIGHT + 32 + WEEK_DAY_NAME_BORDER;
 
 export function Scheduler() {
   const { options, calendar, view } = useCalendarStore();
+  const { timeGridLeft } = useThemeStore((state) => state.week);
   const { renderDate } = view;
-  const activeView = view.currentView;
-  const schedulerOptions = activeView === 'timeline' ? options.timeline : options.scheduler;
+  const schedulerOptions = options.scheduler;
   const weekOptions = options.week;
 
-  const resources = schedulerOptions?.resources ?? [];
+  const resources = useMemo(
+    () => getVisibleResources(schedulerOptions?.resources ?? []),
+    [schedulerOptions?.resources]
+  );
   const hourStart = schedulerOptions?.hourStart ?? weekOptions?.hourStart ?? 0;
   const hourEnd = schedulerOptions?.hourEnd ?? weekOptions?.hourEnd ?? 24;
-  const rowHeight = activeView === 'timeline' ? options.timeline?.rowHeight ?? 56 : 56;
-  const cellWidth = activeView === 'timeline' ? options.timeline?.cellWidth ?? 80 : 80;
+  const hourDivision = weekOptions?.hourDivision ?? 2;
 
   const weekDates = useMemo(
     () => getWeekDates(renderDate, weekOptions ?? {}),
@@ -32,11 +40,34 @@ export function Scheduler() {
   const { weekStart, weekEnd } = useMemo(() => {
     const first = weekDates[0];
     const last = weekDates[weekDates.length - 1];
+
     return {
       weekStart: toStartOfDay(first),
       weekEnd: toEndOfDay(last),
     };
   }, [weekDates]);
+
+  const timeEvents = useMemo(
+    () =>
+      getWeekViewEvents(weekDates, calendar, {
+        narrowWeekend: false,
+        hourStart,
+        hourEnd,
+        weekStartDate: weekStart,
+        weekEndDate: weekEnd,
+      }).time,
+    [weekDates, calendar, hourStart, hourEnd, weekStart, weekEnd]
+  );
+
+  const timeGridData = useMemo(
+    () =>
+      createSchedulerTimeGridData(weekDates, resources, {
+        hourStart,
+        hourEnd,
+        hourDivision,
+      }),
+    [weekDates, resources, hourStart, hourEnd, hourDivision]
+  );
 
   if (resources.length === 0) {
     return (
@@ -46,40 +77,18 @@ export function Scheduler() {
     );
   }
 
-  const hoursPerDay = hourEnd - hourStart;
-  const totalCells = weekDates.length * hoursPerDay;
-  const gridWidth = totalCells * cellWidth;
-
   return (
-    <div className={cls('scheduler')}>
-      <div className={cls('scheduler-scroll')}>
-        <div
-          className={cls('scheduler-inner')}
-          style={{ width: RESOURCE_LIST_WIDTH + gridWidth }}
-        >
-          <TimelineHeader
-            weekDates={weekDates}
-            hourStart={hourStart}
-            hourEnd={hourEnd}
-            resourceListWidth={RESOURCE_LIST_WIDTH}
-            cellWidth={cellWidth}
-          />
-          <div className={cls('scheduler-body')}>
-            <ResourceList resources={resources} rowHeight={rowHeight} />
-            <TimelineGrid
-              resources={resources}
-              calendar={calendar}
-              weekDates={weekDates}
-              weekStart={weekStart}
-              weekEnd={weekEnd}
-              hourStart={hourStart}
-              hourEnd={hourEnd}
-              rowHeight={rowHeight}
-              cellWidth={cellWidth}
-            />
-          </div>
-        </div>
-      </div>
-    </div>
+    <Layout className={cls('scheduler-view')}>
+      <Panel name="scheduler-header" initialHeight={SCHEDULER_HEADER_HEIGHT}>
+        <SchedulerHeader
+          weekDates={weekDates}
+          resources={resources}
+          timeGridLeftWidth={timeGridLeft.width}
+        />
+      </Panel>
+      <Panel name="time">
+        <TimeGrid timeGridData={timeGridData} events={timeEvents} />
+      </Panel>
+    </Layout>
   );
 }

@@ -13,7 +13,7 @@ import { CalendarData } from '@/types/calendar.type';
 import { FormattedTimeString } from '@/types/datetime.type';
 import { CommonGridColumn, GridPositionFinder, TimeGridData } from '@/types/grid.type';
 import { ClientMousePosition } from '@/types/mouse.type';
-import { HourDivision, MonthOptions, WeekOptions } from '@/types/options.type';
+import { HourDivision, MonthOptions, ResourceInfo, WeekOptions } from '@/types/options.type';
 import { Panel } from '@/types/panel.type';
 import { limit, ratio } from '@/utils/math';
 import { findLastIndex, isNil, range } from 'lodash-es';
@@ -158,6 +158,65 @@ export function getColumnsData(
         return result;
       }, [])
   );
+}
+
+export function getVisibleResources(resources: ResourceInfo[] = []) {
+  return [...resources]
+    .filter((resource) => !resource.hidden)
+    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+}
+
+export function createSchedulerColumnsData(
+  datesOfWeek: DayjsTZDate[],
+  resources: ResourceInfo[]
+): CommonGridColumn[] {
+  const visibleResources = getVisibleResources(resources);
+
+  if (visibleResources.length === 0 || datesOfWeek.length === 0) {
+    return [];
+  }
+
+  const totalColumns = visibleResources.length * datesOfWeek.length;
+  const width = 100 / totalColumns;
+  const result: CommonGridColumn[] = [];
+
+  datesOfWeek.forEach((date) => {
+    visibleResources.forEach((resource) => {
+      const columnIndex = result.length;
+
+      result.push({
+        date,
+        resourceId: resource.id,
+        resourceName: resource.name,
+        width,
+        left: columnIndex * width,
+      });
+    });
+  });
+
+  return result;
+}
+
+export function createSchedulerTimeGridData(
+  datesOfWeek: DayjsTZDate[],
+  resources: ResourceInfo[],
+  options: {
+    hourStart: number;
+    hourEnd: number;
+    hourDivision: HourDivision;
+  }
+): TimeGridData {
+  const baseGridData = createTimeGridData(datesOfWeek, {
+    hourStart: options.hourStart,
+    hourEnd: options.hourEnd,
+    hourDivision: options.hourDivision,
+    narrowWeekend: false,
+  });
+
+  return {
+    rows: baseGridData.rows,
+    columns: createSchedulerColumnsData(datesOfWeek, resources),
+  };
 }
 
 /**
