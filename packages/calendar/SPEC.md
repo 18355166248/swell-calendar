@@ -207,4 +207,5 @@ interface CalendarInstance {
 - `timeline` 维持横向资源时间轴，面向资源时间段浏览
 - `scheduler` 使用垂直 time-grid + 资源列布局
 - `scheduler` 当前已向宿主暴露资源化的区间选择创建意图和拖拽移动更新意图
+- `scheduler` 当前已支持 time-grid 内单列事件 resize 后的更新意图回调
 - 内部尚未内建事件编辑弹窗、冲突校验、blocked time 和 recurrence 编辑

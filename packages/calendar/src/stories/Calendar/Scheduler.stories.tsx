@@ -1,10 +1,13 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { CalendarApp } from '@/components/CalendarApp';
-import { createCalendarStore } from '@/contexts/calendarStore';
+import { Calendar } from '@/components/Calendar';
+import { CalendarCallbacks } from '@/types/callbacks.type';
 import DayjsTZDate from '@/time/dayjs-tzdate';
 import { EventObject } from '@/types/events.type';
+import { useMemo, useState } from 'react';
 import Chance from 'chance';
 import dayjs from 'dayjs';
+
+const chance = new Chance();
 
 const RESOURCES = [
   { id: 'r1', name: '会议室 A', backgroundColor: '#3b82f6', color: '#fff' },
@@ -14,17 +17,7 @@ const RESOURCES = [
   { id: 'r5', name: '王五', backgroundColor: '#8b5cf6', color: '#fff' },
 ];
 
-const store = createCalendarStore({
-  defaultView: 'scheduler',
-  scheduler: {
-    resources: RESOURCES,
-    hourStart: 8,
-    hourEnd: 20,
-  },
-});
-
 function createSchedulerEvents(): EventObject[] {
-  const chance = new Chance();
   const today = new DayjsTZDate();
   const weekStart = today.addDate(-today.getDay());
   const events: EventObject[] = [];
@@ -55,24 +48,84 @@ function createSchedulerEvents(): EventObject[] {
   return events;
 }
 
-store.getState().calendar.createEvents(createSchedulerEvents());
-
 const meta = {
   title: 'Calendar/Scheduler',
-  component: CalendarApp,
+  component: Calendar,
   parameters: { layout: 'fullscreen' },
-} satisfies Meta<typeof CalendarApp>;
+} satisfies Meta<typeof Calendar>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
-  args: {
-    store,
-  },
   render: () => (
     <div style={{ position: 'absolute', inset: 0 }}>
-      <CalendarApp store={store} />
+      <Calendar
+        events={createSchedulerEvents()}
+        options={{
+          defaultView: 'scheduler',
+          scheduler: {
+            resources: RESOURCES,
+            hourStart: 8,
+            hourEnd: 20,
+          },
+        }}
+      />
     </div>
   ),
+};
+
+export const ControlledCrud: Story = {
+  render: function ControlledCrudStory() {
+    const [events, setEvents] = useState<EventObject[]>(() => createSchedulerEvents());
+    const callbacks = useMemo<CalendarCallbacks>(
+      () => ({
+        onEventCreate: ({ event }) => {
+          const resourceId = event.resourceId ?? event.resourceIds?.[0];
+          const resource = RESOURCES.find((item) => item.id === resourceId);
+
+          setEvents((current) => [
+            ...current,
+            {
+              ...event,
+              id: `sched-created-${current.length + 1}`,
+              title: event.title || '新建预约',
+              backgroundColor: resource?.backgroundColor ?? '#0f766e',
+              color: resource?.color ?? '#fff',
+            },
+          ]);
+        },
+        onEventUpdate: ({ event, previousEvent }) => {
+          setEvents((current) =>
+            current.map((item) =>
+              item.id === previousEvent.id
+                ? {
+                    ...item,
+                    ...event,
+                  }
+                : item
+            )
+          );
+        },
+      }),
+      []
+    );
+
+    return (
+      <div style={{ position: 'absolute', inset: 0 }}>
+        <Calendar
+          events={events}
+          callbacks={callbacks}
+          options={{
+            defaultView: 'scheduler',
+            scheduler: {
+              resources: RESOURCES,
+              hourStart: 8,
+              hourEnd: 20,
+            },
+          }}
+        />
+      </div>
+    );
+  },
 };
