@@ -68,6 +68,7 @@ interface ColumnProps {
   totalUIModels: EventUIModel[][];
   gridPositionFinder: GridPositionFinder;
   isLastColumn: boolean;
+  blockedLayouts?: Array<{ top: number; height: number }>;
 }
 
 /**
@@ -100,6 +101,28 @@ function VerticalEvents({
   );
 }
 
+function BlockedTimes({
+  blockedLayouts = [],
+}: {
+  blockedLayouts?: Array<{ top: number; height: number }>;
+}) {
+  if (blockedLayouts.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className={cls('blocked-times')}>
+      {blockedLayouts.map((layout, index) => (
+        <div
+          key={`${layout.top}-${layout.height}-${index}`}
+          className={cls('blocked-time')}
+          style={{ top: toPercent(layout.top), height: toPercent(layout.height) }}
+        />
+      ))}
+    </div>
+  );
+}
+
 function Column({
   width,
   columnIndex,
@@ -108,6 +131,7 @@ function Column({
   totalUIModels,
   gridPositionFinder,
   isLastColumn,
+  blockedLayouts,
 }: ColumnProps) {
   const uiModelsByColumn = totalUIModels[columnIndex];
 
@@ -138,6 +162,8 @@ function Column({
 
   return (
     <div className={cls('column')} style={style}>
+      <BlockedTimes blockedLayouts={blockedLayouts} />
+
       {/* 渲染多个事件 */}
       <VerticalEvents eventUIModels={uiModelsByColumn} minEventHeight={minEventHeight} />
 

@@ -23,6 +23,7 @@ import { useCalendarCallbacks } from '@/contexts/calendarCallbacks';
 import {
   createEventFromTimeGridSelection,
   createRangeSelectionInfo,
+  getBlockedTimeLayoutsForColumn,
   shouldAcceptEventChange,
 } from '@/controller/scheduler.controller';
 
@@ -98,6 +99,12 @@ export function TimeGrid({ timeGridData, events }: TimeGridProps) {
         })
     );
   }, [columns, events, timeGridData.rows]);
+
+  const blockedLayoutsByColumn = useMemo(() => {
+    return columns.map((column) =>
+      getBlockedTimeLayoutsForColumn(options, currentView, timeGridData, column)
+    );
+  }, [columns, currentView, options, timeGridData]);
 
   /**
    * 计算当前日期相关数据
@@ -219,6 +226,7 @@ export function TimeGrid({ timeGridData, events }: TimeGridProps) {
               totalUIModels={totalUIModels}
               gridPositionFinder={gridPositionFinder}
               isLastColumn={index === columns.length - 1}
+              blockedLayouts={blockedLayoutsByColumn[index]}
             />
           ))}
         </div>

@@ -56,6 +56,19 @@ function isBlockedForResource(blockedTime: BlockedTimeRange, event: EventObject)
   return eventResourceIds.some((resourceId) => blockedResourceIds.includes(resourceId));
 }
 
+function isBlockedForColumn(blockedTime: BlockedTimeRange, column: CommonGridColumn) {
+  const blockedResourceIds = [
+    blockedTime.resourceId,
+    ...(blockedTime.resourceIds ?? []),
+  ].filter((resourceId): resourceId is string => Boolean(resourceId));
+
+  if (blockedResourceIds.length === 0) {
+    return true;
+  }
+
+  return Boolean(column.resourceId && blockedResourceIds.includes(column.resourceId));
+}
+
 export function isBlockedEventChange(options: Options, view: ViewType, event: EventObject) {
   const blockedTimes = getBlockedTimesByView(options, view);
   const eventStart = getTimeValue(event.start);
@@ -71,6 +84,45 @@ export function isBlockedEventChange(options: Options, view: ViewType, event: Ev
 
     return eventStart < blockedEnd && eventEnd > blockedStart;
   });
+}
+
+export function getBlockedTimeLayoutsForColumn(
+  options: Options,
+  view: ViewType,
+  timeGridData: TimeGridData,
+  column: CommonGridColumn
+) {
+  const blockedTimes = getBlockedTimesByView(options, view);
+
+  if (blockedTimes.length === 0) {
+    return [];
+  }
+
+  const visibleStart = setTimeStrToDate(column.date, timeGridData.rows[0].startTime);
+  const visibleEnd = setTimeStrToDate(
+    column.date,
+    timeGridData.rows[timeGridData.rows.length - 1].endTime
+  );
+  const visibleDuration = visibleEnd.getTime() - visibleStart.getTime();
+
+  return blockedTimes
+    .filter((blockedTime) => isBlockedForColumn(blockedTime, column))
+    .map((blockedTime) => {
+      const blockedStart = new DayjsTZDate(blockedTime.start);
+      const blockedEnd = new DayjsTZDate(blockedTime.end);
+      const intersectStart = Math.max(blockedStart.getTime(), visibleStart.getTime());
+      const intersectEnd = Math.min(blockedEnd.getTime(), visibleEnd.getTime());
+
+      if (intersectStart >= intersectEnd) {
+        return null;
+      }
+
+      return {
+        top: ((intersectStart - visibleStart.getTime()) / visibleDuration) * 100,
+        height: ((intersectEnd - intersectStart) / visibleDuration) * 100,
+      };
+    })
+    .filter((layout): layout is { top: number; height: number } => Boolean(layout));
 }
 
 function getSelectionColumns(columns: CommonGridColumn[], selection: GridSelectionData) {

@@ -226,4 +226,5 @@ interface CalendarInstance {
 - `scheduler` 当前已支持 time-grid 内单列事件 resize 后的更新意图回调
 - `create/move/resize` 当前支持通过 `onValidateEventChange` 做同步准入校验
 - `create/move/resize` 当前也会先检查 `blockedTimes`，命中后直接拒绝提交
+- `blockedTimes` 当前会在 time-grid 中渲染为只读遮罩，提示不可操作区域
 - 内部尚未内建事件编辑弹窗、冲突校验、blocked time 和 recurrence 编辑
