@@ -179,7 +179,7 @@ export function TimeGrid({ timeGridData, events }: TimeGridProps) {
       callbacks?.onRangeSelect?.(createRangeSelectionInfo(timeGridData, selection, currentView));
 
       if (
-        shouldAcceptEventChange(callbacks, {
+        shouldAcceptEventChange(options, callbacks, {
           action: 'create',
           view: currentView,
           event,

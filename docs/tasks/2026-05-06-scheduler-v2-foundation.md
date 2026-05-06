@@ -64,4 +64,5 @@
 - 时间事件拖拽移动结束后会发出 `onEventUpdate`，宿主可接管真正的数据提交
 - 时间事件 resize 结束后也会发出 `onEventUpdate`，当前先覆盖单列 time-grid 事件
 - `create/move/resize` 在进入宿主回调前可通过 `onValidateEventChange` 做同步拦截
+- `create/move/resize` 现在还会先走内建 `blockedTimes` 校验，适合封禁时间段场景
 - 当前范围仍是 Phase 0/1 底座建设，未包含 Mobiscroll 级别的 overlap policy、blocked time、agenda、递归展开和移动端适配

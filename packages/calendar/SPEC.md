@@ -59,6 +59,7 @@ interface CalendarOptions {
     narrowWeekend?: boolean;
     hourStart?: number;
     hourEnd?: number;
+    blockedTimes?: BlockedTimeRange[];
   };
   month?: {
     startDayOfWeek?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
@@ -68,6 +69,7 @@ interface CalendarOptions {
     resources?: ResourceInfo[];
     hourStart?: number;
     hourEnd?: number;
+    blockedTimes?: BlockedTimeRange[];
   };
   timeline?: {
     resources?: ResourceInfo[];
@@ -75,6 +77,7 @@ interface CalendarOptions {
     hourEnd?: number;
     rowHeight?: number;
     cellWidth?: number;
+    blockedTimes?: BlockedTimeRange[];
   };
   template?: Partial<Template>;
 }
@@ -121,6 +124,13 @@ interface ResourceInfo {
   order?: number;
   width?: number | string;
   meta?: Record<string, unknown>;
+}
+
+interface BlockedTimeRange {
+  start: Date | string;
+  end: Date | string;
+  resourceId?: string;
+  resourceIds?: string[];
 }
 ```
 
@@ -215,4 +225,5 @@ interface CalendarInstance {
 - `scheduler` 当前已向宿主暴露资源化的区间选择创建意图和拖拽移动更新意图
 - `scheduler` 当前已支持 time-grid 内单列事件 resize 后的更新意图回调
 - `create/move/resize` 当前支持通过 `onValidateEventChange` 做同步准入校验
+- `create/move/resize` 当前也会先检查 `blockedTimes`，命中后直接拒绝提交
 - 内部尚未内建事件编辑弹窗、冲突校验、blocked time 和 recurrence 编辑

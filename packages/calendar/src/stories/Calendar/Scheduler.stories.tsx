@@ -167,3 +167,32 @@ export const ControlledCrud: Story = {
     );
   },
 };
+
+export const BlockedTimes: Story = {
+  render: () => (
+    <div style={{ position: 'absolute', inset: 0 }}>
+      <Calendar
+        events={createSchedulerEvents()}
+        options={{
+          defaultView: 'scheduler',
+          scheduler: {
+            resources: RESOURCES,
+            hourStart: 8,
+            hourEnd: 20,
+            blockedTimes: [
+              {
+                start: dayjs().startOf('day').hour(12).minute(0).toDate(),
+                end: dayjs().startOf('day').hour(14).minute(0).toDate(),
+              },
+              {
+                start: dayjs().startOf('day').add(1, 'day').hour(9).minute(0).toDate(),
+                end: dayjs().startOf('day').add(1, 'day').hour(11).minute(0).toDate(),
+                resourceId: 'r1',
+              },
+            ],
+          },
+        }}
+      />
+    </div>
+  ),
+};

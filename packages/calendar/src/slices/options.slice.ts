@@ -25,6 +25,7 @@ function initializeWeekOptions(weekOptions: Options['week'] = {}): CalendarWeekO
     eventView: true,
     taskView: true,
     hourDivision: 2,
+    blockedTimes: [],
     ...weekOptions,
   };
 
@@ -64,6 +65,7 @@ function initializeSchedulerOptions(schedulerOptions: Options['scheduler'] = {})
     resources: [],
     hourStart: 0,
     hourEnd: 24,
+    blockedTimes: [],
     ...schedulerOptions,
   };
 }
@@ -75,6 +77,7 @@ function initializeTimelineOptions(timelineOptions: Options['timeline'] = {}): T
     hourEnd: 24,
     rowHeight: 56,
     cellWidth: 80,
+    blockedTimes: [],
     ...timelineOptions,
   };
 }

@@ -136,6 +136,7 @@ export function useTimeGridEventMove({
   const initX = useCalendarStore(initXSelector);
   // 从store中获取拖拽初始Y坐标
   const initY = useCalendarStore(initYSelector);
+  const options = useCalendarStore((state) => state.options);
   const currentView = useCalendarStore((state) => state.view.currentView);
   const callbacks = useCalendarCallbacks();
 
@@ -269,7 +270,7 @@ export function useTimeGridEventMove({
       );
 
       if (
-        shouldAcceptEventChange(callbacks, {
+        shouldAcceptEventChange(options, callbacks, {
           action: 'move',
           view: currentView,
           event: updatedEvent,

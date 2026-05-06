@@ -3,12 +3,75 @@ import { setTimeStrToDate } from '@/time/datetime';
 import { EventObject, EventObjectWithDefaultValues } from '@/types/events.type';
 import { CommonGridColumn, TimeGridData } from '@/types/grid.type';
 import { GridSelectionData } from '@/types/gridSelection.type';
-import { ViewType } from '@/types/options.type';
+import { BlockedTimeRange, Options, ViewType } from '@/types/options.type';
 import { uniq } from 'lodash-es';
 import {
   CalendarCallbacks,
   CalendarEventChangeAction,
 } from '@/types/callbacks.type';
+
+function getTimeValue(value: EventObject['start']) {
+  if (!value) {
+    return 0;
+  }
+
+  if (typeof value === 'number' || typeof value === 'string' || value instanceof Date) {
+    return new Date(value).getTime();
+  }
+
+  return value.getTime();
+}
+
+function getBlockedTimesByView(options: Options, view: ViewType): BlockedTimeRange[] {
+  if (view === 'scheduler') {
+    return options.scheduler?.blockedTimes ?? [];
+  }
+
+  if (view === 'timeline') {
+    return options.timeline?.blockedTimes ?? [];
+  }
+
+  if (view === 'week' || view === 'day') {
+    return options.week?.blockedTimes ?? [];
+  }
+
+  return [];
+}
+
+function isBlockedForResource(blockedTime: BlockedTimeRange, event: EventObject) {
+  const blockedResourceIds = [
+    blockedTime.resourceId,
+    ...(blockedTime.resourceIds ?? []),
+  ].filter((resourceId): resourceId is string => Boolean(resourceId));
+
+  if (blockedResourceIds.length === 0) {
+    return true;
+  }
+
+  const eventResourceIds = [
+    event.resourceId,
+    ...(event.resourceIds ?? []),
+  ].filter((resourceId): resourceId is string => Boolean(resourceId));
+
+  return eventResourceIds.some((resourceId) => blockedResourceIds.includes(resourceId));
+}
+
+export function isBlockedEventChange(options: Options, view: ViewType, event: EventObject) {
+  const blockedTimes = getBlockedTimesByView(options, view);
+  const eventStart = getTimeValue(event.start);
+  const eventEnd = getTimeValue(event.end);
+
+  return blockedTimes.some((blockedTime) => {
+    if (!isBlockedForResource(blockedTime, event)) {
+      return false;
+    }
+
+    const blockedStart = getTimeValue(blockedTime.start);
+    const blockedEnd = getTimeValue(blockedTime.end);
+
+    return eventStart < blockedEnd && eventEnd > blockedStart;
+  });
+}
 
 function getSelectionColumns(columns: CommonGridColumn[], selection: GridSelectionData) {
   return columns.slice(selection.startColumnIndex, selection.endColumnIndex + 1);
@@ -92,6 +155,7 @@ export function createUpdatedTimeGridEvent(
 }
 
 export function shouldAcceptEventChange(
+  options: Options,
   callbacks: CalendarCallbacks | null | undefined,
   {
     action,
@@ -105,6 +169,10 @@ export function shouldAcceptEventChange(
     previousEvent?: EventObjectWithDefaultValues;
   }
 ) {
+  if (isBlockedEventChange(options, view, event)) {
+    return false;
+  }
+
   return callbacks?.onValidateEventChange?.({
     action,
     view,

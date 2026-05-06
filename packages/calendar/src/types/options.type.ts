@@ -14,6 +14,13 @@ export type EnabledViews = Record<ViewType, boolean>;
 // 时间分隔配置：2表示半小时一块，4表示15分钟一块
 export type HourDivision = 2 | 4;
 
+export interface BlockedTimeRange {
+  start: DateType;
+  end: DateType;
+  resourceId?: string;
+  resourceIds?: string[];
+}
+
 export interface Options {
   // 默认视图类型
   defaultView?: ViewType;
@@ -57,6 +64,7 @@ export interface WeekOptions {
   hourDivision?: HourDivision;
   // 是否为工作日模式，只显示工作日（周一到周五）
   workweek?: boolean;
+  blockedTimes?: BlockedTimeRange[];
 }
 
 export interface MonthOptions {
@@ -78,6 +86,7 @@ export interface SchedulerOptions {
   resources?: ResourceInfo[];
   hourStart?: number;
   hourEnd?: number;
+  blockedTimes?: BlockedTimeRange[];
 }
 
 export interface TimelineOptions extends SchedulerOptions {

@@ -21,6 +21,7 @@ export function useTimeGridEventResize({
   columnIndex,
   totalUIModels,
 }: ResizingEventShadowProps) {
+  const options = useCalendarStore((state) => state.options);
   const currentView = useCalendarStore((state) => state.view.currentView);
   const callbacks = useCalendarCallbacks();
   // 使用拖拽事件Hook，专门处理时间网格的调整大小操作
@@ -191,7 +192,7 @@ export function useTimeGridEventResize({
       );
 
       if (
-        shouldAcceptEventChange(callbacks, {
+        shouldAcceptEventChange(options, callbacks, {
           action: 'resize',
           view: currentView,
           event: updatedEvent,
