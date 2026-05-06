@@ -19,6 +19,8 @@ import { EventUIModel } from '@/model/eventUIModel';
 // 导入时区日期处理类
 import DayjsTZDate from '@/time/dayjs-tzdate';
 import { useWhen } from '../common/useWhen';
+import { useCalendarCallbacks } from '@/contexts/calendarCallbacks';
+import { createUpdatedTimeGridEvent } from '@/controller/scheduler.controller';
 
 // 定义30分钟的时间间隔常量，用于网格计算
 const THIRTY_MINUTES = 30;
@@ -131,6 +133,7 @@ export function useTimeGridEventMove({
   const initX = useCalendarStore(initXSelector);
   // 从store中获取拖拽初始Y坐标
   const initY = useCalendarStore(initYSelector);
+  const callbacks = useCalendarCallbacks();
 
   // 获取拖拽事件状态，包括是否正在拖拽、是否取消、拖拽事件对象和清理函数
   const { isDraggingEnd, isDraggingCanceled, draggingEvent, clearDraggingEvent } = useDraggingEvent(
@@ -252,11 +255,19 @@ export function useTimeGridEventMove({
 
     // 如果需要更新，则更新移动中的事件对象
     if (shouldUpdate) {
-      // 计算新的结束时间
-      const duration = draggingEvent.model.duration();
-      const nextEndTime = nextStartTime.addMilliseconds(duration);
+      const safeNextEndTime = nextEndTime as DayjsTZDate;
 
-      console.log('拖拽结束, 清理状态');
+      const updatedEvent = createUpdatedTimeGridEvent(
+        draggingEvent.model.toEventObject(),
+        nextStartTime,
+        safeNextEndTime,
+        timeGridData.columns[currentGridPos.columnIndex]
+      );
+
+      callbacks?.onEventUpdate?.({
+        event: updatedEvent,
+        previousEvent: draggingEvent.model.toEventObject(),
+      });
 
       clearState();
     }

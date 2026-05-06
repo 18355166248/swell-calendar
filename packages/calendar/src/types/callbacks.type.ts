@@ -1,5 +1,5 @@
 import DayjsTZDate from '@/time/dayjs-tzdate';
-import { EventObjectWithDefaultValues } from './events.type';
+import { EventObject, EventObjectWithDefaultValues } from './events.type';
 import { ViewType } from './options.type';
 
 export interface CalendarPageChangeInfo {
@@ -11,7 +11,28 @@ export interface CalendarEventClickInfo {
   event: EventObjectWithDefaultValues;
 }
 
+export interface CalendarRangeSelectInfo {
+  view: ViewType;
+  start: DayjsTZDate;
+  end: DayjsTZDate;
+  resourceId?: string;
+  resourceIds?: string[];
+  resourceNames?: string[];
+}
+
+export interface CalendarEventCreateInfo {
+  event: EventObject;
+}
+
+export interface CalendarEventUpdateInfo {
+  event: EventObject;
+  previousEvent: EventObjectWithDefaultValues;
+}
+
 export interface CalendarCallbacks {
   onEventClick?: (info: CalendarEventClickInfo) => void;
   onPageChange?: (info: CalendarPageChangeInfo) => void;
+  onRangeSelect?: (info: CalendarRangeSelectInfo) => void;
+  onEventCreate?: (info: CalendarEventCreateInfo) => void;
+  onEventUpdate?: (info: CalendarEventUpdateInfo) => void;
 }

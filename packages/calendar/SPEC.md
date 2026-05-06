@@ -151,6 +151,19 @@ interface CalendarProps {
   callbacks?: {
     onEventClick?: (info: { event: EventObjectWithDefaultValues }) => void;
     onPageChange?: (info: { view: ViewType; date: DayjsTZDate }) => void;
+    onRangeSelect?: (info: {
+      view: ViewType;
+      start: DayjsTZDate;
+      end: DayjsTZDate;
+      resourceId?: string;
+      resourceIds?: string[];
+      resourceNames?: string[];
+    }) => void;
+    onEventCreate?: (info: { event: EventObject }) => void;
+    onEventUpdate?: (info: {
+      event: EventObject;
+      previousEvent: EventObjectWithDefaultValues;
+    }) => void;
   };
 }
 ```
@@ -188,3 +201,10 @@ interface CalendarInstance {
 - [ ] 全天事件栏（time grid 顶部）
 - [ ] 键盘导航（无障碍访问）
 - [ ] 虚拟化（超长事件列表性能优化）
+
+## 当前阶段说明
+
+- `timeline` 维持横向资源时间轴，面向资源时间段浏览
+- `scheduler` 使用垂直 time-grid + 资源列布局
+- `scheduler` 当前已向宿主暴露资源化的区间选择创建意图和拖拽移动更新意图
+- 内部尚未内建事件编辑弹窗、冲突校验、blocked time 和 recurrence 编辑

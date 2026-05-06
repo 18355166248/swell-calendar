@@ -60,4 +60,6 @@
 - `scheduler` 重构为垂直 `TimeGrid`，按“日期 × 资源”生成列
 - `TimeGrid` 现在会基于列上的 `resourceId` 过滤事件，支持资源列归属
 - 新增 `SchedulerHeader`，在资源调度视图顶部展示日期组和资源列头
+- `TimeGrid` 现在会向宿主发出 `onRangeSelect` / `onEventCreate`，调度视图可感知资源化时间区间选择
+- 时间事件拖拽移动结束后会发出 `onEventUpdate`，宿主可接管真正的数据提交
 - 当前范围仍是 Phase 0/1 底座建设，未包含 Mobiscroll 级别的 overlap policy、blocked time、agenda、递归展开和移动端适配

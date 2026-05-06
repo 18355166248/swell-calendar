@@ -12,13 +12,15 @@ export function useGridSelection({
   type,
   gridPositionFinder,
   selectionSorter,
+  onSelectionEnd,
 }: {
   type: GridSelectionType;
   gridPositionFinder: GridPositionFinder;
   selectionSorter: (initPos: GridPosition, currentPos: GridPosition) => GridSelectionData;
+  onSelectionEnd?: (selection: GridSelectionData) => void;
 }) {
   const [initGridPosition, setInitGridPosition] = useState<GridPosition | null>(null);
-  const { setGridSelection } = useCalendarStore((state) => state.gridSelection);
+  const { setGridSelection, clearAll } = useCalendarStore((state) => state.gridSelection);
   const gridSelectionRef = useRef<GridSelectionData | null>(null); // 当前网格选择数据
 
   const currentGridSelectionType = DRAGGING_TYPE_CREATE.gridSelection(type);
@@ -42,11 +44,21 @@ export function useGridSelection({
   };
 
   const onMouseup = (e: MouseEvent, isClick: boolean) => {
+    let selection: GridSelectionData | null = null;
+
     if (isClick) {
       setGridSelectionByPosition(e);
+      selection = gridSelectionRef.current;
     } else {
-      console.log('🚀 ~ onMouseup ~ isClick:', isClick);
+      selection = gridSelectionRef.current;
     }
+
+    if (!isNil(selection)) {
+      onSelectionEnd?.(selection);
+    }
+
+    clearAll();
+    setInitGridPosition(null);
   };
 
   // 鼠标抬起事件处理函数 点击事件

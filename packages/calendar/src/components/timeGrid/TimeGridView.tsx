@@ -19,6 +19,11 @@ import { timeGridSelectionHelper } from '@/helpers/gridSelection';
 import { EventUIModel } from '@/model/eventUIModel';
 import { isBetweenColumn, setRenderInfoOfUIModels } from '@/controller/column.controller';
 import MovingEventShadow from './MovingEventShadow';
+import { useCalendarCallbacks } from '@/contexts/calendarCallbacks';
+import {
+  createEventFromTimeGridSelection,
+  createRangeSelectionInfo,
+} from '@/controller/scheduler.controller';
 
 const classNames = {
   timeGrid: cls(className),
@@ -50,9 +55,11 @@ export function TimeGrid({ timeGridData, events }: TimeGridProps) {
   const isMounted = useIsMounted();
 
   const { options } = useCalendarStore();
+  const currentView = useCalendarStore((state) => state.view.currentView);
   const { timeGridLeft } = useThemeStore((state) => state.week);
   const { isReadOnly } = options;
   const { startDayOfWeek, narrowWeekend } = options.week;
+  const callbacks = useCalendarCallbacks();
 
   // 当前时间指示器的状态
   const [nowIndicatorState, setNowIndicatorState] = useState<{
@@ -165,6 +172,12 @@ export function TimeGrid({ timeGridData, events }: TimeGridProps) {
     type: 'timeGrid',
     gridPositionFinder,
     selectionSorter: timeGridSelectionHelper.sortSelection, // 选择排序器
+    onSelectionEnd: (selection) => {
+      const event = createEventFromTimeGridSelection(timeGridData, selection);
+
+      callbacks?.onRangeSelect?.(createRangeSelectionInfo(timeGridData, selection, currentView));
+      callbacks?.onEventCreate?.({ event });
+    },
   });
 
   return (
