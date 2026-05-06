@@ -9,7 +9,7 @@ import {
   getWeekViewEvents,
 } from '@/helpers/grid';
 import { toEndOfDay, toStartOfDay } from '@/time/datetime';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Layout from '../Layout';
 import Panel from '../Panel';
 import { SchedulerHeader } from '../scheduler/SchedulerHeader';
@@ -23,6 +23,18 @@ export function Scheduler() {
   const { renderDate } = view;
   const schedulerOptions = options.scheduler;
   const weekOptions = options.week;
+
+  const [timePanelEl, setTimePanelEl] = useState<HTMLDivElement | null>(null);
+  const [scrollbarWidth, setScrollbarWidth] = useState(0);
+
+  useEffect(() => {
+    if (!timePanelEl) return;
+    const measure = () => setScrollbarWidth(timePanelEl.offsetWidth - timePanelEl.clientWidth);
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(timePanelEl);
+    return () => ro.disconnect();
+  }, [timePanelEl]);
 
   const resources = useMemo(
     () => getVisibleResources(schedulerOptions?.resources ?? []),
@@ -84,9 +96,10 @@ export function Scheduler() {
           weekDates={weekDates}
           resources={resources}
           timeGridLeftWidth={timeGridLeft.width}
+          scrollbarWidth={scrollbarWidth}
         />
       </Panel>
-      <Panel name="time">
+      <Panel name="time" ref={setTimePanelEl}>
         <TimeGrid timeGridData={timeGridData} events={timeEvents} />
       </Panel>
     </Layout>
