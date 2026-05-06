@@ -23,6 +23,7 @@ import { useCalendarCallbacks } from '@/contexts/calendarCallbacks';
 import {
   createEventFromTimeGridSelection,
   createRangeSelectionInfo,
+  shouldAcceptEventChange,
 } from '@/controller/scheduler.controller';
 
 const classNames = {
@@ -176,7 +177,16 @@ export function TimeGrid({ timeGridData, events }: TimeGridProps) {
       const event = createEventFromTimeGridSelection(timeGridData, selection);
 
       callbacks?.onRangeSelect?.(createRangeSelectionInfo(timeGridData, selection, currentView));
-      callbacks?.onEventCreate?.({ event });
+
+      if (
+        shouldAcceptEventChange(callbacks, {
+          action: 'create',
+          view: currentView,
+          event,
+        })
+      ) {
+        callbacks?.onEventCreate?.({ event });
+      }
     },
   });
 

@@ -5,6 +5,10 @@ import { CommonGridColumn, TimeGridData } from '@/types/grid.type';
 import { GridSelectionData } from '@/types/gridSelection.type';
 import { ViewType } from '@/types/options.type';
 import { uniq } from 'lodash-es';
+import {
+  CalendarCallbacks,
+  CalendarEventChangeAction,
+} from '@/types/callbacks.type';
 
 function getSelectionColumns(columns: CommonGridColumn[], selection: GridSelectionData) {
   return columns.slice(selection.startColumnIndex, selection.endColumnIndex + 1);
@@ -85,4 +89,26 @@ export function createUpdatedTimeGridEvent(
   }
 
   return nextEvent;
+}
+
+export function shouldAcceptEventChange(
+  callbacks: CalendarCallbacks | null | undefined,
+  {
+    action,
+    view,
+    event,
+    previousEvent,
+  }: {
+    action: CalendarEventChangeAction;
+    view: ViewType;
+    event: EventObject;
+    previousEvent?: EventObjectWithDefaultValues;
+  }
+) {
+  return callbacks?.onValidateEventChange?.({
+    action,
+    view,
+    event,
+    previousEvent,
+  }) ?? true;
 }

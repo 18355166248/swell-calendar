@@ -164,6 +164,12 @@ interface CalendarProps {
       event: EventObject;
       previousEvent: EventObjectWithDefaultValues;
     }) => void;
+    onValidateEventChange?: (info: {
+      action: 'create' | 'move' | 'resize';
+      view: ViewType;
+      event: EventObject;
+      previousEvent?: EventObjectWithDefaultValues;
+    }) => boolean;
   };
 }
 ```
@@ -208,4 +214,5 @@ interface CalendarInstance {
 - `scheduler` 使用垂直 time-grid + 资源列布局
 - `scheduler` 当前已向宿主暴露资源化的区间选择创建意图和拖拽移动更新意图
 - `scheduler` 当前已支持 time-grid 内单列事件 resize 后的更新意图回调
+- `create/move/resize` 当前支持通过 `onValidateEventChange` 做同步准入校验
 - 内部尚未内建事件编辑弹窗、冲突校验、blocked time 和 recurrence 编辑

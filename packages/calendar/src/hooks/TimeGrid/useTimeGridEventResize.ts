@@ -9,7 +9,11 @@ import { useWhen } from '../common/useWhen';
 import DayjsTZDate from '@/time/dayjs-tzdate';
 import { TimeGridRow } from '@/types/grid.type';
 import { useCalendarCallbacks } from '@/contexts/calendarCallbacks';
-import { createUpdatedTimeGridEvent } from '@/controller/scheduler.controller';
+import {
+  createUpdatedTimeGridEvent,
+  shouldAcceptEventChange,
+} from '@/controller/scheduler.controller';
+import { useCalendarStore } from '@/contexts/calendarStore';
 
 export function useTimeGridEventResize({
   gridPositionFinder,
@@ -17,6 +21,7 @@ export function useTimeGridEventResize({
   columnIndex,
   totalUIModels,
 }: ResizingEventShadowProps) {
+  const currentView = useCalendarStore((state) => state.view.currentView);
   const callbacks = useCalendarCallbacks();
   // 使用拖拽事件Hook，专门处理时间网格的调整大小操作
   const {
@@ -185,10 +190,19 @@ export function useTimeGridEventResize({
         timeGridData.columns[currentGridPos.columnIndex]
       );
 
-      callbacks?.onEventUpdate?.({
-        event: updatedEvent,
-        previousEvent: resizingStartUIModel.model.toEventObject(),
-      });
+      if (
+        shouldAcceptEventChange(callbacks, {
+          action: 'resize',
+          view: currentView,
+          event: updatedEvent,
+          previousEvent: resizingStartUIModel.model.toEventObject(),
+        })
+      ) {
+        callbacks?.onEventUpdate?.({
+          event: updatedEvent,
+          previousEvent: resizingStartUIModel.model.toEventObject(),
+        });
+      }
     }
 
     clearStates();

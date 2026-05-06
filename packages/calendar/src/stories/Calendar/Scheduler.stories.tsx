@@ -48,6 +48,41 @@ function createSchedulerEvents(): EventObject[] {
   return events;
 }
 
+function getTimeValue(value: EventObject['start']) {
+  if (!value) {
+    return 0;
+  }
+
+  if (typeof value === 'number' || typeof value === 'string' || value instanceof Date) {
+    return new Date(value).getTime();
+  }
+
+  return value.getTime();
+}
+
+function hasOverlap(events: EventObject[], targetEvent: EventObject, previousEventId?: string) {
+  const targetResourceId = targetEvent.resourceId ?? targetEvent.resourceIds?.[0];
+  const targetStart = getTimeValue(targetEvent.start);
+  const targetEnd = getTimeValue(targetEvent.end);
+
+  return events.some((event) => {
+    if (event.id === previousEventId) {
+      return false;
+    }
+
+    const eventResourceId = event.resourceId ?? event.resourceIds?.[0];
+
+    if (!targetResourceId || eventResourceId !== targetResourceId) {
+      return false;
+    }
+
+    const eventStart = getTimeValue(event.start);
+    const eventEnd = getTimeValue(event.end);
+
+    return targetStart < eventEnd && targetEnd > eventStart;
+  });
+}
+
 const meta = {
   title: 'Calendar/Scheduler',
   component: Calendar,
@@ -107,8 +142,11 @@ export const ControlledCrud: Story = {
             )
           );
         },
+        onValidateEventChange: ({ event, previousEvent }) => {
+          return !hasOverlap(events, event, previousEvent?.id);
+        },
       }),
-      []
+      [events]
     );
 
     return (
