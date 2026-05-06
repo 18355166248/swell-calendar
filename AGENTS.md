@@ -6,6 +6,7 @@
 
 | 目录 | 内容 |
 |------|------|
+| `docs/` | 开发约束、任务文档、ADR、完成标准 |
 | `packages/calendar/` | 核心组件库（主体） |
 | `packages/eslint-config/` | 共享 ESLint 配置 |
 | `packages/typescript-config/` | 共享 tsconfig |
@@ -35,14 +36,29 @@
 
 ## 核心入口
 
+- docs 入口：`docs/README.md`
+- 开发流程：`docs/WORKFLOW.md`
+- 架构规则：`docs/ARCHITECTURE.md`
 - 根 API：`packages/calendar/src/components/Calendar.tsx`
 - 日视图：`packages/calendar/src/components/view/Day.tsx`
 - 周视图：`packages/calendar/src/components/view/Week.tsx`
 - 月视图：`packages/calendar/src/components/view/Month.tsx`（开发中）
 
+## 开发准入规则
+
+**先文档，后代码。**
+
+- 新功能 / 重构 / API 变更前，先在 `docs/tasks/` 建任务文档
+- 规格变化先改 `packages/calendar/SPEC.md`
+- 架构变化先改 `docs/ARCHITECTURE.md`
+- 没有 docs 变更的实现提交，会被 `scripts/check-docs.mjs` 和 pre-commit 拦截
+
 ## 机械化检查
 
 ```bash
+# docs-first 检查
+node scripts/check-docs.mjs
+
 # 架构分层约束
 node scripts/check-arch.mjs
 
@@ -69,6 +85,8 @@ CI 兜底：`.github/workflows/ci.yml` 在每次 push/PR 时跑全量检查。
 
 ## 下一步
 
+- 了解开发流程：`docs/WORKFLOW.md`
+- 了解完成标准：`docs/DEFINITION-OF-DONE.md`
 - 了解组件库设计：`packages/calendar/SPEC.md`
 - 了解详细架构：`packages/calendar/AGENTS.md`
 - 了解状态管理：`packages/calendar/src/contexts/`

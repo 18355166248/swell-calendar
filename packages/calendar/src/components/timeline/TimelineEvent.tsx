@@ -1,5 +1,6 @@
 import { cls } from '@/helpers/css';
 import { EventUIModel } from '@/model/eventUIModel';
+import { useCalendarCallbacks } from '@/contexts/calendarCallbacks';
 
 interface TimelineEventProps {
   uiModel: EventUIModel;
@@ -9,6 +10,7 @@ interface TimelineEventProps {
 export function TimelineEvent({ uiModel, totalWidth }: TimelineEventProps) {
   const { model } = uiModel;
   const { title, backgroundColor, color, borderColor } = model;
+  const callbacks = useCalendarCallbacks();
 
   const leftPx = (uiModel.left / 100) * totalWidth;
   const widthPx = Math.max((uiModel.width / 100) * totalWidth, 4);
@@ -36,7 +38,12 @@ export function TimelineEvent({ uiModel, totalWidth }: TimelineEventProps) {
   };
 
   return (
-    <div className={cls('timeline-event')} style={style} title={title}>
+    <div
+      className={cls('timeline-event')}
+      style={style}
+      title={title}
+      onClick={() => callbacks?.onEventClick?.({ event: model.toEventObject() })}
+    >
       {uiModel.exceedLeft && <span style={{ marginRight: 2 }}>‹</span>}
       {title}
       {uiModel.exceedRight && <span style={{ marginLeft: 2 }}>›</span>}

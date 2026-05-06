@@ -3,11 +3,13 @@ import { ThemeState } from './theme.type';
 import { TemplateConfig } from './template.type';
 import { DndState } from './dnd.type';
 import { CalendarInfo } from './calendar.type';
+import { DateType } from './events.type';
 
 export type EventView = 'allday' | 'time';
 export type TaskView = 'milestone' | 'task';
 
-export type ViewType = 'month' | 'week' | 'day' | 'scheduler';
+export type ViewType = 'month' | 'week' | 'day' | 'scheduler' | 'timeline';
+export type EnabledViews = Record<ViewType, boolean>;
 
 // 时间分隔配置：2表示半小时一块，4表示15分钟一块
 export type HourDivision = 2 | 4;
@@ -15,14 +17,18 @@ export type HourDivision = 2 | 4;
 export interface Options {
   // 默认视图类型
   defaultView?: ViewType;
+  initialDate?: DateType;
   theme?: DeepPartial<ThemeState>;
   calendars?: CalendarInfo[];
+  views?: Partial<Record<ViewType, boolean>>;
   // 周视图选项
   week?: WeekOptions;
   // 月视图选项
   month?: MonthOptions;
   // 调度器视图选项
   scheduler?: SchedulerOptions;
+  // 时间线视图选项
+  timeline?: TimelineOptions;
   // 模板配置
   template?: TemplateConfig;
   dnd?: DndState;
@@ -74,15 +80,36 @@ export interface SchedulerOptions {
   hourEnd?: number;
 }
 
+export interface TimelineOptions extends SchedulerOptions {
+  rowHeight?: number;
+  cellWidth?: number;
+}
+
 export interface ResourceInfo {
   id: string;
   name: string;
+  parentId?: string;
   color?: string;
   backgroundColor?: string;
+  hidden?: boolean;
+  order?: number;
+  width?: number | string;
+  meta?: Record<string, unknown>;
+}
+
+export interface NormalizedOptions {
+  defaultView: ViewType;
+  initialDate?: DateType;
+  isReadOnly: boolean;
+  calendars: CalendarInfo[];
+  views: EnabledViews;
+  week: Required<WeekOptions>;
+  month: Required<MonthOptions>;
+  scheduler?: SchedulerOptions;
+  timeline?: TimelineOptions;
+  setOptions: (options: Options) => void;
 }
 
 export type OptionsSlice = {
-  options: Omit<Required<Options>, 'theme' | 'template' | 'dnd' | 'scheduler'> & {
-    scheduler?: SchedulerOptions;
-  };
+  options: NormalizedOptions;
 };

@@ -8,10 +8,11 @@ const VIEW_LABELS: Record<ViewType, string> = {
   day: '日',
   week: '周',
   month: '月',
-  scheduler: '资源',
+  scheduler: '调度',
+  timeline: '时间线',
 };
 
-const VIEW_ORDER: ViewType[] = ['day', 'week', 'month', 'scheduler'];
+const VIEW_ORDER: ViewType[] = ['day', 'week', 'month', 'scheduler', 'timeline'];
 
 function getDateRangeText(view: ViewType, renderDate: DayjsTZDate): string {
   const d = renderDate.dayjs;
@@ -21,7 +22,7 @@ function getDateRangeText(view: ViewType, renderDate: DayjsTZDate): string {
   if (view === 'month') {
     return d.format('YYYY年M月');
   }
-  // week / scheduler
+  // week / scheduler / timeline
   const startOfWeek = d.startOf('week');
   const endOfWeek = d.endOf('week');
   const sameMonth = startOfWeek.month() === endOfWeek.month();
@@ -34,6 +35,7 @@ function getDateRangeText(view: ViewType, renderDate: DayjsTZDate): string {
 export function Toolbar() {
   const currentView = useCalendarStore((s) => s.view.currentView);
   const renderDate = useCalendarStore((s) => s.view.renderDate);
+  const visibleViews = useCalendarStore((s) => s.options.views);
   const setView = useCalendarStore((s) => s.view.setView);
   const navigate = useCalendarStore((s) => s.view.navigate);
   const goToToday = useCalendarStore((s) => s.view.goToToday);
@@ -73,7 +75,7 @@ export function Toolbar() {
       <div className={cls('toolbar-date')}>{dateText}</div>
 
       <div className={cls('toolbar-views')}>
-        {VIEW_ORDER.map((v) => (
+        {VIEW_ORDER.filter((v) => visibleViews[v]).map((v) => (
           <button
             key={v}
             type="button"

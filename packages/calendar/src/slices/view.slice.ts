@@ -1,20 +1,26 @@
 import { produce } from 'immer';
 import DayjsTZDate from '@/time/dayjs-tzdate';
-import { ViewType } from '@/types/options.type';
+import { Options, ViewType } from '@/types/options.type';
 import { NavigateDirection, ViewSlice } from '@/types/view.type';
 import { CalendarStore } from '@/types/store.type';
 
 type SetState = (fn: (state: CalendarStore) => Partial<CalendarStore>) => void;
 
-export function createViewSlice(initialView: ViewType = 'week') {
+export function createViewSlice(initialView: ViewType = 'week', initialDate?: Options['initialDate']) {
   return (set: SetState): ViewSlice => ({
     view: {
       currentView: initialView,
-      renderDate: new DayjsTZDate(),
+      renderDate: new DayjsTZDate(initialDate ?? Date.now()),
       setView: (v: ViewType) =>
         set(
           produce((state) => {
             state.view.currentView = v;
+          })
+        ),
+      setDate: (date) =>
+        set(
+          produce((state) => {
+            state.view.renderDate = new DayjsTZDate(date);
           })
         ),
       navigate: (direction: NavigateDirection) =>

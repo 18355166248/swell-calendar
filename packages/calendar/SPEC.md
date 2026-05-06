@@ -24,6 +24,8 @@ swell-calendar 是一个**可嵌入的 React 日历组件库**，面向需要在
 | 日视图（Day） | ✅ 完成 | 单日时间网格，24 小时展示 |
 | 周视图（Week） | ✅ 完成 | 7 天时间网格，支持 workweek 模式 |
 | 月视图（Month） | 🚧 开发中 | 月历格子，事件简要展示 |
+| 时间线（Timeline） | 🟡 基础版 | 资源行 + 横向时间轴，当前基于现有 scheduler 内核 |
+| 调度器（Scheduler） | 🟡 基础版 | 资源调度入口已建立，完整 time-grid 资源调度继续演进 |
 
 ### 事件功能
 
@@ -41,18 +43,40 @@ swell-calendar 是一个**可嵌入的 React 日历组件库**，面向需要在
 
 ```ts
 interface CalendarOptions {
-  defaultView?: 'day' | 'week' | 'month';   // 默认: 'week'
-  isReadOnly?: boolean;                       // 默认: false
+  defaultView?: 'day' | 'week' | 'month' | 'scheduler' | 'timeline';
+  initialDate?: Date | string;
+  isReadOnly?: boolean;
+  views?: {
+    day?: boolean;
+    week?: boolean;
+    month?: boolean;
+    scheduler?: boolean;
+    timeline?: boolean;
+  };
   week?: {
-    startDayOfWeek?: 0 | 1 | 2 | 3 | 4 | 5 | 6;  // 默认: 0 (周日)
-    workweek?: boolean;                             // 默认: false
-    narrowWeekend?: boolean;                        // 默认: false
+    startDayOfWeek?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
+    workweek?: boolean;
+    narrowWeekend?: boolean;
+    hourStart?: number;
+    hourEnd?: number;
   };
   month?: {
     startDayOfWeek?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
     isAlways6Rows?: boolean;
   };
-  template?: Partial<Template>;  // 可覆盖任意渲染函数
+  scheduler?: {
+    resources?: ResourceInfo[];
+    hourStart?: number;
+    hourEnd?: number;
+  };
+  timeline?: {
+    resources?: ResourceInfo[];
+    hourStart?: number;
+    hourEnd?: number;
+    rowHeight?: number;
+    cellWidth?: number;
+  };
+  template?: Partial<Template>;
 }
 ```
 
@@ -66,13 +90,37 @@ interface EventObject {
   start: Date | string;  // ISO 8601
   end: Date | string;
   isAllDay?: boolean;
+  resourceId?: string;
+  resourceIds?: string[];
+  timezone?: string;
+  recurrence?: RecurrenceRule;
   category?: 'time' | 'allday' | 'milestone' | 'task';
   color?: string;
   backgroundColor?: string;
   borderColor?: string;
   dragBackgroundColor?: string;
   isReadOnly?: boolean;
-  body?: string;  // HTML 内容（DOMPurify 净化后渲染）
+  editable?: boolean;
+  draggable?: boolean;
+  resizable?: boolean;
+  meta?: Record<string, unknown>;
+  body?: string;
+}
+```
+
+### 资源结构（`ResourceInfo`）
+
+```ts
+interface ResourceInfo {
+  id: string;
+  name: string;
+  parentId?: string;
+  color?: string;
+  backgroundColor?: string;
+  hidden?: boolean;
+  order?: number;
+  width?: number | string;
+  meta?: Record<string, unknown>;
 }
 ```
 
@@ -100,10 +148,24 @@ interface CalendarProps {
   events?: EventObject[];        // 事件数据
   options?: CalendarOptions;     // 配置选项
   theme?: Partial<ThemeState>;   // 主题配置
-  onBeforeCreateEvent?: (event: EventObject) => boolean | void;
-  onAfterRenderEvent?: (event: EventObject) => void;
-  onClickEvent?: (event: EventObject) => void;
-  onSelectDateTime?: (info: SelectDateTimeInfo) => void;
+  callbacks?: {
+    onEventClick?: (info: { event: EventObjectWithDefaultValues }) => void;
+    onPageChange?: (info: { view: ViewType; date: DayjsTZDate }) => void;
+  };
+}
+```
+
+### 命令式实例 API（`CalendarInstance`）
+
+```ts
+interface CalendarInstance {
+  getDate(): DayjsTZDate;
+  setDate(date: Date | string): void;
+  setView(view: ViewType): void;
+  navigate(direction: 'prev' | 'next'): void;
+  goToToday(): void;
+  setEvents(events: EventObject[]): void;
+  getEvents(): EventObjectWithDefaultValues[];
 }
 ```
 
@@ -119,8 +181,10 @@ interface CalendarProps {
 
 ## 待开发功能（Backlog）
 
+- [ ] 完整资源 time-grid scheduler
+- [ ] agenda 视图
+- [ ] recurrence 实例展开与编辑协议
 - [ ] 月视图事件渲染
 - [ ] 全天事件栏（time grid 顶部）
 - [ ] 键盘导航（无障碍访问）
 - [ ] 虚拟化（超长事件列表性能优化）
-- [ ] 导出 `CalendarInstance` 命令式 API（`calendar.setDate()`、`calendar.next()`）

@@ -1,12 +1,14 @@
 import React from 'react';
 import { CalendarStoreContext, useCalendarStore } from '@/contexts/calendarStore';
-import { Calendar } from '@/components/Calendar';
+import { CalendarProvider } from '@/components/CalendarProvider';
 import { Toolbar } from '@/components/toolbar/Toolbar';
 import { Day } from '@/components/view/Day';
 import { Week } from '@/components/view/Week';
 import { Month } from '@/components/view/Month';
 import { Scheduler } from '@/components/view/Scheduler';
 import { ViewType } from '@/types/options.type';
+import { CalendarCallbacks } from '@/types/callbacks.type';
+import { CalendarCallbacksProvider } from '@/contexts/calendarCallbacks';
 
 function ViewRouter() {
   const currentView = useCalendarStore((s) => s.view.currentView);
@@ -16,6 +18,7 @@ function ViewRouter() {
     week: <Week />,
     month: <Month />,
     scheduler: <Scheduler />,
+    timeline: <Scheduler />,
   };
 
   return viewMap[currentView] ?? <Week />;
@@ -23,17 +26,22 @@ function ViewRouter() {
 
 interface CalendarAppProps {
   store: CalendarStoreContext;
+  callbacks?: CalendarCallbacks;
+  className?: string;
+  style?: React.CSSProperties;
 }
 
-export function CalendarApp({ store }: CalendarAppProps) {
+export function CalendarApp({ store, callbacks, className, style }: CalendarAppProps) {
   return (
-    <Calendar store={store}>
-      <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-        <Toolbar />
-        <div style={{ flex: 1, minHeight: 0 }}>
-          <ViewRouter />
+    <CalendarProvider store={store}>
+      <CalendarCallbacksProvider callbacks={callbacks}>
+        <div className={className} style={{ display: 'flex', flexDirection: 'column', height: '100%', ...style }}>
+          <Toolbar />
+          <div style={{ flex: 1, minHeight: 0 }}>
+            <ViewRouter />
+          </div>
         </div>
-      </div>
-    </Calendar>
+      </CalendarCallbacksProvider>
+    </CalendarProvider>
   );
 }

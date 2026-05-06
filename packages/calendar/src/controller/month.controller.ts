@@ -68,7 +68,9 @@ export function getMonthEventRows(
 ): MonthWeekEventData[] {
   const uiModelColl = convertToUIModel(calendarData.events);
   const allModels: EventUIModel[] = [];
-  uiModelColl.each((m) => allModels.push(m));
+  uiModelColl.each((m) => {
+    allModels.push(m);
+  });
 
   return weeks.map((week) => {
     const weekStart = toStartOfDay(week[0]);

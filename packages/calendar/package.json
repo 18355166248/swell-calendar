@@ -4,9 +4,9 @@
   "sideEffects": false,
   "type": "module",
   "license": "MIT",
-  "main": "./dist/Day/index.js",
-  "module": "./dist/Day/index.js",
-  "types": "./dist/Day/index.d.ts",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "scripts": {
     "storybook": "node ../../scripts/changeNode.js 20 storybook dev -p 6006",
     "build": "vite build",
@@ -17,10 +17,10 @@
     "build-storybook": "node ../../scripts/changeNode.js 20 storybook build"
   },
   "exports": {
-    "./Day": {
-      "types": "./dist/Day/index.d.ts",
-      "import": "./dist/Day/index.js",
-      "require": "./dist/Day/index.cjs"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
     },
     "./css": {
       "import": "./dist/css/index.js",

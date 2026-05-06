@@ -14,12 +14,15 @@ const CELL_WIDTH = 80; // px per hour
 export function Scheduler() {
   const { options, calendar, view } = useCalendarStore();
   const { renderDate } = view;
-  const schedulerOptions = options.scheduler;
+  const activeView = view.currentView;
+  const schedulerOptions = activeView === 'timeline' ? options.timeline : options.scheduler;
   const weekOptions = options.week;
 
   const resources = schedulerOptions?.resources ?? [];
   const hourStart = schedulerOptions?.hourStart ?? weekOptions?.hourStart ?? 0;
   const hourEnd = schedulerOptions?.hourEnd ?? weekOptions?.hourEnd ?? 24;
+  const rowHeight = activeView === 'timeline' ? options.timeline?.rowHeight ?? 56 : 56;
+  const cellWidth = activeView === 'timeline' ? options.timeline?.cellWidth ?? 80 : 80;
 
   const weekDates = useMemo(
     () => getWeekDates(renderDate, weekOptions ?? {}),
@@ -45,7 +48,7 @@ export function Scheduler() {
 
   const hoursPerDay = hourEnd - hourStart;
   const totalCells = weekDates.length * hoursPerDay;
-  const gridWidth = totalCells * CELL_WIDTH;
+  const gridWidth = totalCells * cellWidth;
 
   return (
     <div className={cls('scheduler')}>
@@ -59,10 +62,10 @@ export function Scheduler() {
             hourStart={hourStart}
             hourEnd={hourEnd}
             resourceListWidth={RESOURCE_LIST_WIDTH}
-            cellWidth={CELL_WIDTH}
+            cellWidth={cellWidth}
           />
           <div className={cls('scheduler-body')}>
-            <ResourceList resources={resources} rowHeight={ROW_HEIGHT} />
+            <ResourceList resources={resources} rowHeight={rowHeight} />
             <TimelineGrid
               resources={resources}
               calendar={calendar}
@@ -71,8 +74,8 @@ export function Scheduler() {
               weekEnd={weekEnd}
               hourStart={hourStart}
               hourEnd={hourEnd}
-              rowHeight={ROW_HEIGHT}
-              cellWidth={CELL_WIDTH}
+              rowHeight={rowHeight}
+              cellWidth={cellWidth}
             />
           </div>
         </div>

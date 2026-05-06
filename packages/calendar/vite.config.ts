@@ -28,8 +28,7 @@ export default defineConfig({
   build: {
     lib: {
       entry: {
-        'Day/index': resolve(__dirname, 'src/components/view/Day/index.tsx'),
-        'Calendar/index': resolve(__dirname, 'src/components/Calendar.tsx'),
+        index: resolve(__dirname, 'src/index.ts'),
         'css/index': resolve(__dirname, 'src/css/index.scss'),
       },
       formats: ['es', 'cjs'],
@@ -41,6 +40,7 @@ export default defineConfig({
     rollupOptions: {
       external: ['react', 'react-dom'],
       output: {
+        exports: 'named',
         globals: {
           react: 'React',
           'react-dom': 'ReactDOM',

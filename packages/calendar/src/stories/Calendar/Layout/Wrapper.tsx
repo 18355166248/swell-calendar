@@ -1,4 +1,4 @@
-import Calendar from '@/components/Calendar';
+import { CalendarProvider } from '@/components/CalendarProvider';
 import { PropsWithChildren } from 'react';
 import { createCalendarStore } from '@/contexts/calendarStore';
 import { EventObject } from '@/types/events.type';
@@ -28,8 +28,8 @@ export function Wrapper({
   });
 
   return (
-    <Calendar store={store}>
+    <CalendarProvider store={store}>
       <div style={{ position: 'absolute', inset: 0, paddingBottom: 3 }}>{children}</div>
-    </Calendar>
+    </CalendarProvider>
   );
 }

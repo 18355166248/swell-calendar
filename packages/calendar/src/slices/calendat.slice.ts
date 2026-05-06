@@ -29,6 +29,15 @@ export function createCalendarSlice(calendars: CalendarInfo[] = []) {
           })
         );
       },
+      setEvents: (events) => {
+        set(
+          produce((state: CalendarStore) => {
+            state.calendar.events = createEventCollection<EventModel>();
+            state.calendar.idsOfDay = {};
+            createEvents(state.calendar, events);
+          })
+        );
+      },
     },
   });
 }

@@ -2,6 +2,15 @@
 
 > 核心日历组件库。技术栈：React 18 + Zustand 5 + Immer + dayjs + SCSS。
 
+## 开发前先读
+
+- `../../docs/README.md`
+- `../../docs/WORKFLOW.md`
+- `../../docs/ARCHITECTURE.md`
+- `../calendar/SPEC.md`
+
+任何功能、交互或 API 变更，先更新文档，再改当前目录代码。
+
 ## src/ 目录结构
 
 ```

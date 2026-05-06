@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react';
 import { EventUIModel } from '@/model/eventUIModel';
 import { cls } from '@/helpers/css';
+import { useCalendarCallbacks } from '@/contexts/calendarCallbacks';
 
 interface AlldayEventProps {
   uiModel: EventUIModel;
@@ -9,6 +10,7 @@ interface AlldayEventProps {
 
 export function AlldayEvent({ uiModel, height }: AlldayEventProps) {
   const { model, left, width, exceedLeft, exceedRight } = uiModel;
+  const callbacks = useCalendarCallbacks();
 
   const style: CSSProperties = {
     position: 'absolute',
@@ -30,7 +32,12 @@ export function AlldayEvent({ uiModel, height }: AlldayEventProps) {
   };
 
   return (
-    <div className={cls('allday-event')} style={style} title={model.title}>
+    <div
+      className={cls('allday-event')}
+      style={style}
+      title={model.title}
+      onClick={() => callbacks?.onEventClick?.({ event: model.toEventObject() })}
+    >
       {exceedLeft && <span style={{ marginRight: 2 }}>&#8249;</span>}
       {model.title}
       {exceedRight && <span style={{ marginLeft: 2 }}>&#8250;</span>}

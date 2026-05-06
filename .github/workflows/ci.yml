@@ -16,7 +16,7 @@ jobs:
 
       - uses: pnpm/action-setup@v3
         with:
-          version: 9
+          version: 10.15.1
 
       - uses: actions/setup-node@v4
         with:
@@ -25,6 +25,9 @@ jobs:
 
       - name: 安装依赖
         run: pnpm install --frozen-lockfile
+
+      - name: Docs First 检查
+        run: node scripts/check-docs.mjs
 
       - name: 架构分层约束
         run: node scripts/check-arch.mjs

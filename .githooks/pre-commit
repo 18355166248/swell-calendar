@@ -7,6 +7,14 @@ CHANGED=$(git diff --cached --name-only)
 
 echo "🔍 Pre-commit 检查..."
 
+# 0. docs-first 门控
+echo "  → 检查文档同步..."
+node scripts/check-docs.mjs --staged
+if [ $? -ne 0 ]; then
+  echo "❌ 文档检查失败，commit 中止。"
+  exit 1
+fi
+
 # 1. 架构分层约束
 if echo "$CHANGED" | grep -q "packages/calendar/src/"; then
   echo "  → 检查架构分层..."

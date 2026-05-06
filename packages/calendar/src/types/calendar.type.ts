@@ -24,6 +24,7 @@ export interface CalendarInfo extends CalendarColor {
   id: string;
   // 日历名称
   name: string;
+  meta?: Record<string, unknown>;
 }
 
 export interface CalendarData {
@@ -35,5 +36,6 @@ export interface CalendarData {
 export type CalendarSlice = {
   calendar: CalendarData & {
     createEvents: (events: EventObject[]) => void;
+    setEvents: (events: EventObject[]) => void;
   };
 };

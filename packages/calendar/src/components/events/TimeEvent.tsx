@@ -13,6 +13,7 @@ import { useLayoutContainer } from '@/contexts/layoutContainer';
 import DayjsTZDate from '@/time/dayjs-tzdate';
 import { useTransientUpdatesCalendar } from '@/hooks/common/useTransientUpdatesCalendar';
 import { DraggingState } from '@/types/dnd.type';
+import { useCalendarCallbacks } from '@/contexts/calendarCallbacks';
 
 /**
  * 计算事件容器的样式
@@ -173,6 +174,7 @@ export function TimeEvent({
   const { options, dnd } = useCalendarStore();
   const { setDraggingEventUIModel } = dnd;
   const { isReadOnly } = options;
+  const callbacks = useCalendarCallbacks();
 
   // 当前事件是否为拖拽目标的状态
   const [isDraggingTarget, setIsDraggingTarget] = useState<boolean>(false);
@@ -267,6 +269,9 @@ export function TimeEvent({
       //   false
       // );
       // }
+      if (draggingState <= DraggingState.INIT) {
+        callbacks?.onEventClick?.({ event: model.toEventObject() });
+      }
     },
   });
 

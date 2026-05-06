@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react';
 import { EventUIModel } from '@/model/eventUIModel';
 import { cls } from '@/helpers/css';
+import { useCalendarCallbacks } from '@/contexts/calendarCallbacks';
 
 interface MonthEventProps {
   uiModel: EventUIModel;
@@ -22,6 +23,7 @@ export function MonthEvent({
   totalCols,
 }: MonthEventProps) {
   const { model } = uiModel;
+  const callbacks = useCalendarCallbacks();
   const leftPercent = (startCol / totalCols) * 100;
   const widthPercent = (colspan / totalCols) * 100;
   const top = cellHeaderHeight + slotIndex * cellEventHeight;
@@ -46,7 +48,12 @@ export function MonthEvent({
   };
 
   return (
-    <div className={cls('month-event')} style={style} title={model.title}>
+    <div
+      className={cls('month-event')}
+      style={style}
+      title={model.title}
+      onClick={() => callbacks?.onEventClick?.({ event: model.toEventObject() })}
+    >
       {model.title}
     </div>
   );

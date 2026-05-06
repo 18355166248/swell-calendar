@@ -28,6 +28,16 @@ export type KeyboardEventListener = (e: KeyboardEvent) => void;
 
 export type DateType = Date | string | number | DayjsTZDate;
 
+export interface RecurrenceRule {
+  frequency: 'daily' | 'weekly' | 'monthly' | 'yearly';
+  interval?: number;
+  count?: number;
+  until?: DateType;
+  byWeekDays?: number[];
+  byMonthDays?: number[];
+  exceptions?: DateType[];
+}
+
 /**
  * 事件对象接口 - 定义日历事件的基本属性和结构
  *
@@ -41,6 +51,8 @@ export interface EventObject {
   start?: DateType; // 事件开始时间
   end?: DateType; // 事件结束时间
   isAllday?: boolean; // 是否为全天事件
+  allDay?: boolean;
+  isReadOnly?: boolean;
   /**
    * 事件类别
    * 定义事件的类型，影响事件在日历中的显示方式
@@ -50,6 +62,8 @@ export interface EventObject {
   isVisible?: boolean; // 是否可见
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   raw?: any; // 原始数据
+  timezone?: string;
+  recurrence?: RecurrenceRule;
   /**
    * 文本颜色
    * 事件元素中文本的颜色值
@@ -74,14 +88,30 @@ export interface EventObject {
    * 通常用于标识事件类别或状态
    */
   borderColor?: string;
+  editable?: boolean;
+  draggable?: boolean;
+  resizable?: boolean;
+  cssClass?: string;
+  meta?: Record<string, unknown>;
   goingDuration?: number;
   comingDuration?: number;
   resourceId?: string;
+  resourceIds?: string[];
 }
 
 export type EventObjectWithDefaultValues = MarkOptional<
   Required<EventObject>,
-  'color' | 'borderColor' | 'backgroundColor' | 'dragBackgroundColor' | 'resourceId'
+  | 'color'
+  | 'borderColor'
+  | 'backgroundColor'
+  | 'dragBackgroundColor'
+  | 'resourceId'
+  | 'resourceIds'
+  | 'timezone'
+  | 'recurrence'
+  | 'cssClass'
+  | 'meta'
+  | 'allDay'
 > & {
   start: DayjsTZDate;
   end: DayjsTZDate;

@@ -24,6 +24,9 @@ export class EventModel implements EventObject {
   isVisible = true;
   /** 是否为只读事件 */
   isReadOnly = false;
+  editable = true;
+  draggable = true;
+  resizable = true;
   // 是否包含多个日期
   hasMultiDates = false;
   /** 前往事件地点的行程时间（分钟） */
@@ -42,6 +45,11 @@ export class EventModel implements EventObject {
   raw: any = null;
   /** 资源ID，用于 Scheduler 视图 */
   resourceId?: string;
+  resourceIds?: string[];
+  timezone?: string;
+  recurrence?: EventObject['recurrence'];
+  cssClass?: string;
+  meta?: Record<string, unknown>;
 
   constructor(public event: EventObject) {
     stamp(this);
@@ -55,22 +63,41 @@ export class EventModel implements EventObject {
     start = new DayjsTZDate(),
     end = new DayjsTZDate(),
     isAllday = false,
+    allDay = false,
+    isReadOnly = false,
     category = 'time',
     backgroundColor = '',
     dragBackgroundColor = '',
     borderColor = '',
     color = '',
+    editable = true,
+    draggable = true,
+    resizable = true,
     resourceId,
+    resourceIds,
+    timezone,
+    recurrence,
+    cssClass,
+    meta,
   }: EventObject) {
     this.id = id;
     this.title = title;
-    this.isAllday = category === 'allday' || isAllday;
+    this.isAllday = category === 'allday' || isAllday || allDay;
     this.category = category;
     this.backgroundColor = backgroundColor;
     this.dragBackgroundColor = dragBackgroundColor;
     this.borderColor = borderColor;
     this.color = color;
+    this.isReadOnly = isReadOnly;
+    this.editable = editable;
+    this.draggable = draggable;
+    this.resizable = resizable;
     this.resourceId = resourceId;
+    this.resourceIds = resourceIds;
+    this.timezone = timezone;
+    this.recurrence = recurrence;
+    this.cssClass = cssClass;
+    this.meta = meta;
 
     // 根据事件类型设置时间周期
     if (this.isAllday) {
@@ -201,6 +228,13 @@ export class EventModel implements EventObject {
       backgroundColor: this.backgroundColor,
       dragBackgroundColor: this.dragBackgroundColor,
       borderColor: this.borderColor,
+      editable: this.editable,
+      draggable: this.draggable,
+      resizable: this.resizable,
+      timezone: this.timezone,
+      recurrence: this.recurrence,
+      cssClass: this.cssClass,
+      meta: this.meta,
     };
   }
 
@@ -215,6 +249,8 @@ export class EventModel implements EventObject {
       __cid: this.cid(),
       title: this.title,
       isAllday: this.isAllday,
+      allDay: this.isAllday,
+      isReadOnly: this.isReadOnly,
       start: this.start,
       end: this.end,
       goingDuration: this.goingDuration,
@@ -225,8 +261,16 @@ export class EventModel implements EventObject {
       backgroundColor: this.backgroundColor,
       dragBackgroundColor: this.dragBackgroundColor,
       borderColor: this.borderColor,
+      editable: this.editable,
+      draggable: this.draggable,
+      resizable: this.resizable,
       raw: this.raw,
       resourceId: this.resourceId,
+      resourceIds: this.resourceIds,
+      timezone: this.timezone,
+      recurrence: this.recurrence,
+      cssClass: this.cssClass,
+      meta: this.meta,
     };
   }
 }
