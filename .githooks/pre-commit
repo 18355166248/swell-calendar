@@ -2,8 +2,11 @@
 # pre-commit hook — 机械化执行门控
 # 启用方式：git config core.hooksPath .githooks
 
+set -e
+
 # 检查是否有涉及 src/ 的变更，才跑耗时检查
 CHANGED=$(git diff --cached --name-only)
+CHANGED_EXISTING=$(git diff --cached --name-only --diff-filter=ACMR)
 
 echo "🔍 Pre-commit 检查..."
 
@@ -25,20 +28,27 @@ if echo "$CHANGED" | grep -q "packages/calendar/src/"; then
   fi
 fi
 
-# 2. ESLint
-if echo "$CHANGED" | grep -q "\.\(ts\|tsx\|js\)$"; then
-  echo "  → 运行 ESLint..."
-  pnpm lint
-  if [ $? -ne 0 ]; then
-    echo "❌ ESLint 检查失败，commit 中止。"
-    exit 1
-  fi
+# 2. ESLint（仅校验 staged 的 calendar 代码文件，避免被历史 warning 阻断）
+CALENDAR_LINT_FILES=$(echo "$CHANGED_EXISTING" | grep -E "^packages/calendar/.*\.(ts|tsx|js)$" || true)
+if [ -n "$CALENDAR_LINT_FILES" ]; then
+  echo "  → 运行 staged ESLint..."
+  (
+    cd packages/calendar || exit 1
+    REL_FILES=$(echo "$CALENDAR_LINT_FILES" | sed 's#^packages/calendar/##')
+    pnpm exec eslint --max-warnings 0 $REL_FILES
+  )
 fi
 
 # 3. TypeScript 类型检查（仅在 .ts/.tsx 变更时）
 if echo "$CHANGED" | grep -q "\.\(ts\|tsx\)$"; then
   echo "  → TypeScript 类型检查..."
-  pnpm -r exec tsc --noEmit --project tsconfig.json 2>/dev/null || true
+  pnpm --filter swell-calendar exec tsc --noEmit
+fi
+
+# 4. Calendar 测试（仅在 calendar 源码或测试配置变更时）
+if echo "$CHANGED" | grep -Eq "^packages/calendar/(src/.*\.(ts|tsx)|jest\.config\.js|tsconfig\.test\.json|package\.json)$"; then
+  echo "  → 运行 Calendar 测试..."
+  pnpm --filter swell-calendar exec jest --runInBand
 fi
 
 echo "✅ 所有检查通过"

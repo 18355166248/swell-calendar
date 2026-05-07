@@ -1,15 +1,17 @@
+import { useEffect, useMemo, useState } from 'react';
+
 import { WEEK_DAY_NAME_BORDER, WEEK_DAY_NAME_HEIGHT } from '@/constants/style.const';
 import { useCalendarStore } from '@/contexts/calendarStore';
 import { useThemeStore } from '@/contexts/themeStore';
+import { getSchedulerViewEvents } from '@/controller/scheduler-layout';
 import { cls } from '@/helpers/css';
 import {
   createSchedulerTimeGridData,
   getVisibleResources,
   getWeekDates,
-  getWeekViewEvents,
 } from '@/helpers/grid';
 import { toEndOfDay, toStartOfDay } from '@/time/datetime';
-import { useEffect, useMemo, useState } from 'react';
+
 import Layout from '../Layout';
 import Panel from '../Panel';
 import { SchedulerHeader } from '../scheduler/SchedulerHeader';
@@ -61,14 +63,13 @@ export function Scheduler() {
 
   const timeEvents = useMemo(
     () =>
-      getWeekViewEvents(weekDates, calendar, {
-        narrowWeekend: false,
+      getSchedulerViewEvents(calendar, {
+        start: weekStart,
+        end: weekEnd,
         hourStart,
         hourEnd,
-        weekStartDate: weekStart,
-        weekEndDate: weekEnd,
       }).time,
-    [weekDates, calendar, hourStart, hourEnd, weekStart, weekEnd]
+    [calendar, hourStart, hourEnd, weekStart, weekEnd]
   );
 
   const timeGridData = useMemo(

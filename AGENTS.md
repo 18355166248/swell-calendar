@@ -66,13 +66,26 @@ node scripts/check-arch.mjs
 pnpm lint
 
 # 类型检查
-pnpm -r exec tsc --noEmit
+pnpm --filter swell-calendar exec tsc --noEmit
+
+# Calendar 测试
+pnpm --filter swell-calendar exec jest --runInBand
 
 # 所有检查（pre-commit 跑这个）
 pnpm check
 ```
 
 启用本地 hook：`git config core.hooksPath .githooks`
+
+当前 pre-commit 会按 staged 变更范围执行：
+
+- `node scripts/check-docs.mjs --staged`
+- `node scripts/check-arch.mjs`
+- 对 staged 的 `packages/calendar` 代码文件执行 `eslint --max-warnings 0`
+- `pnpm --filter swell-calendar exec tsc --noEmit`
+- 当变更涉及 `packages/calendar` 源码或测试配置时，执行 `pnpm --filter swell-calendar exec jest --runInBand`
+
+说明：全量 `pnpm lint` 仍会受到仓库历史 warnings 影响，因此提交门禁先采用 staged-file lint，优先保证新增改动干净。
 
 CI 兜底：`.github/workflows/ci.yml` 在每次 push/PR 时跑全量检查。
 

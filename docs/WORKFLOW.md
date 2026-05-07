@@ -65,14 +65,20 @@
 node scripts/check-docs.mjs
 node scripts/check-arch.mjs
 pnpm lint
+pnpm --filter swell-calendar exec tsc --noEmit
+pnpm --filter swell-calendar exec jest --runInBand
 ```
 
-如任务影响类型边界或运行时行为，再补：
+说明：
 
-```bash
-pnpm -r exec tsc --noEmit
-pnpm test
-```
+- `pnpm check` 是全量基线检查，但当前仓库仍存在历史 lint warnings，可能在无关文件上失败。
+- `.githooks/pre-commit` 会按 staged 变更范围自动执行：
+  - `check-docs`
+  - `check-arch`
+  - 对 staged 的 `packages/calendar` 代码文件执行 `eslint --max-warnings 0`
+  - `pnpm --filter swell-calendar exec tsc --noEmit`
+  - 当变更涉及 `packages/calendar` 源码或测试配置时，额外执行 `pnpm --filter swell-calendar exec jest --runInBand`
+- 这样做的目的，是先保证“新增改动不能带入 lint / type / test 问题”，再逐步清理历史 lint 基线。
 
 ### 5. 回写结果
 

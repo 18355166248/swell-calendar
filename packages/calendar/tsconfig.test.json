@@ -4,6 +4,7 @@
     "jsx": "react-jsx",
     "jsxImportSource": "react",
     "isolatedModules": false,
+    "allowJs": true,
     "resolveJsonModule": false,
     "noEmit": true
   },

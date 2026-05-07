@@ -7,11 +7,11 @@
 
 ## 当前状态
 
-- 总状态：`[ ] 未开始`
+- 总状态：`[-] 进行中`
 
 ## 步骤清单
 
-- [ ] Step 6：建立 scheduler 独立 layout pipeline 骨架
+- [x] Step 6：建立 scheduler 独立 layout pipeline 骨架
 - [ ] Step 7：给 scheduler layout 增最小单测骨架
 - [ ] Step 8：接入 scheduler all-day lane 骨架
 - [ ] Step 9：接入多日事件分段算法
