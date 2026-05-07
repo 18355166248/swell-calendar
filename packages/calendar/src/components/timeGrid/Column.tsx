@@ -1,14 +1,16 @@
-import { cls, toPercent } from '@/helpers/css';
-import { GridPositionFinder, TimeGridData } from '@/types/grid.type';
-import { GridSelectionByColumn } from './GridSelectionByColumn';
-import { EventUIModel } from '@/model/eventUIModel';
-import { TimeEvent } from '../events/TimeEvent';
-import ResizingEventShadow from './ResizingEventShadow';
-import DayjsTZDate from '@/time/dayjs-tzdate';
-import { isSameDate, isWeekend } from '@/time/datetime';
-import { ThemeState } from '@/types/theme.type';
-import { useThemeStore } from '@/contexts/themeStore';
 import { useMemo } from 'react';
+
+import { useThemeStore } from '@/contexts/themeStore';
+import type { ColoredLayout } from '@/controller/scheduler-layout';
+import { cls, toPercent } from '@/helpers/css';
+import { EventUIModel } from '@/model/eventUIModel';
+import { isSameDate, isWeekend } from '@/time/datetime';
+import DayjsTZDate from '@/time/dayjs-tzdate';
+import { GridPositionFinder, TimeGridData } from '@/types/grid.type';
+
+import { TimeEvent } from '../events/TimeEvent';
+import { GridSelectionByColumn } from './GridSelectionByColumn';
+import ResizingEventShadow from './ResizingEventShadow';
 
 /**
  * 获取列的背景色
@@ -58,6 +60,8 @@ function getBackgroundColor({
 const classNames = {
   backgrounds: cls('background-events'), // 背景事件容器
   events: cls('events'), // 事件容器
+  colors: cls('colored-times'),
+  color: cls('colored-time'),
 };
 
 interface ColumnProps {
@@ -69,6 +73,7 @@ interface ColumnProps {
   gridPositionFinder: GridPositionFinder;
   isLastColumn: boolean;
   blockedLayouts?: Array<{ top: number; height: number }>;
+  coloredLayouts?: ColoredLayout[];
 }
 
 /**
@@ -123,6 +128,29 @@ function BlockedTimes({
   );
 }
 
+function ColoredTimes({ coloredLayouts = [] }: { coloredLayouts?: ColoredLayout[] }) {
+  if (coloredLayouts.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className={classNames.colors}>
+      {coloredLayouts.map((layout, index) => (
+        <div
+          key={`${layout.top}-${layout.height}-${index}`}
+          className={[classNames.color, layout.cssClass].filter(Boolean).join(' ')}
+          style={{
+            top: toPercent(layout.top),
+            height: toPercent(layout.height),
+            background: layout.background,
+            color: layout.color,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
 function Column({
   width,
   columnIndex,
@@ -132,11 +160,9 @@ function Column({
   gridPositionFinder,
   isLastColumn,
   blockedLayouts,
+  coloredLayouts,
 }: ColumnProps) {
   const uiModelsByColumn = totalUIModels[columnIndex];
-
-  // 获取当前时区的当前时间
-  const today = new DayjsTZDate();
 
   // 直接使用选择器函数，不需要 useMemo 包装
   const borderRight = useThemeStore((state) => state.week.dayGrid.borderRight);
@@ -147,13 +173,13 @@ function Column({
   // 使用 useMemo 缓存背景色计算结果 不然会死循环
   const backgroundColor = useMemo(() => {
     return getBackgroundColor({
-      today,
+      today: new DayjsTZDate(),
       columnDate,
       defaultBackgroundColor,
       todayBackgroundColor,
       weekendBackgroundColor,
     });
-  }, [today, columnDate, defaultBackgroundColor, todayBackgroundColor, weekendBackgroundColor]);
+  }, [columnDate, defaultBackgroundColor, todayBackgroundColor, weekendBackgroundColor]);
 
   const style = { width, backgroundColor, borderRight: isLastColumn ? 'none' : borderRight };
 
@@ -162,6 +188,7 @@ function Column({
 
   return (
     <div className={cls('column')} style={style}>
+      <ColoredTimes coloredLayouts={coloredLayouts} />
       <BlockedTimes blockedLayouts={blockedLayouts} />
 
       {/* 渲染多个事件 */}

@@ -1,9 +1,11 @@
 import { EventModel } from '@/model/eventModel';
 import { EventUIModel } from '@/model/eventUIModel';
-import { toEndOfDay, toStartOfDay } from '@/time/datetime';
+import { setTimeStrToDate, toEndOfDay, toStartOfDay } from '@/time/datetime';
 import DayjsTZDate from '@/time/dayjs-tzdate';
 import { CalendarData } from '@/types/calendar.type';
 import { DayGridEventMatrix, EventModelMap, TimeGridEventMatrix } from '@/types/events.type';
+import { CommonGridColumn, TimeGridData } from '@/types/grid.type';
+import { ColoredRange, Options, ViewType } from '@/types/options.type';
 import { Panel } from '@/types/panel.type';
 
 import { findByDateRange as findByDateRangeForWeek } from './week.controller';
@@ -116,4 +118,90 @@ export function getSchedulerViewEvents(
     allday: flattenSchedulerDayGridMatrix(eventGroups.allday as DayGridEventMatrix),
     time: splitMultiDayTimeEvents(timeEvents, start, end),
   };
+}
+
+export interface ColoredLayout {
+  top: number;
+  height: number;
+  background?: string;
+  color?: string;
+  cssClass?: string;
+}
+
+function getTimeValue(value: ColoredRange['start']) {
+  if (value instanceof Date) {
+    return value.getTime();
+  }
+
+  if (typeof value === 'number' || typeof value === 'string') {
+    return new Date(value).getTime();
+  }
+
+  return value.getTime();
+}
+
+function isColorMatchingColumn(coloredRange: ColoredRange, column: CommonGridColumn) {
+  const matchedResourceIds = [coloredRange.resourceId, ...(coloredRange.resourceIds ?? [])].filter(
+    (resourceId): resourceId is string => Boolean(resourceId)
+  );
+
+  if (matchedResourceIds.length === 0) {
+    return true;
+  }
+
+  return Boolean(column.resourceId && matchedResourceIds.includes(column.resourceId));
+}
+
+function getColorsByView(options: Options, view: ViewType): ColoredRange[] {
+  if (view === 'scheduler') {
+    return options.scheduler?.colors ?? [];
+  }
+
+  if (view === 'timeline') {
+    return options.timeline?.colors ?? [];
+  }
+
+  return [];
+}
+
+export function getColoredLayoutsForColumn(
+  options: Options,
+  view: ViewType,
+  timeGridData: TimeGridData,
+  column: CommonGridColumn
+): ColoredLayout[] {
+  const colors = getColorsByView(options, view);
+
+  if (colors.length === 0) {
+    return [];
+  }
+
+  const visibleStart = setTimeStrToDate(column.date, timeGridData.rows[0].startTime);
+  const visibleEnd = setTimeStrToDate(
+    column.date,
+    timeGridData.rows[timeGridData.rows.length - 1].endTime
+  );
+  const visibleDuration = visibleEnd.getTime() - visibleStart.getTime();
+
+  return colors
+    .filter((coloredRange) => isColorMatchingColumn(coloredRange, column))
+    .map((coloredRange): ColoredLayout | null => {
+      const colorStart = getTimeValue(coloredRange.start);
+      const colorEnd = getTimeValue(coloredRange.end);
+      const intersectStart = Math.max(colorStart, visibleStart.getTime());
+      const intersectEnd = Math.min(colorEnd, visibleEnd.getTime());
+
+      if (intersectStart >= intersectEnd) {
+        return null;
+      }
+
+      return {
+        top: ((intersectStart - visibleStart.getTime()) / visibleDuration) * 100,
+        height: ((intersectEnd - intersectStart) / visibleDuration) * 100,
+        background: coloredRange.background,
+        color: coloredRange.color,
+        cssClass: coloredRange.cssClass,
+      };
+    })
+    .filter((layout): layout is ColoredLayout => layout !== null);
 }

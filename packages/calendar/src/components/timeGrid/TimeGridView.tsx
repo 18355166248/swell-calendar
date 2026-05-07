@@ -1,31 +1,34 @@
-import { addTimeGridPrefix, className } from '@/constants/timeGrid-const';
-import TimeColumn from './TimeColumn';
-import { CommonGridColumn, TimeGridData } from '@/types/grid.type';
-import { cls, toPercent } from '@/helpers/css';
-import { useCallback, useLayoutEffect, useMemo, useState } from 'react';
-import DayjsTZDate from '@/time/dayjs-tzdate';
-import { isSameDate, setTimeStrToDate, toEndOfDay, toStartOfDay } from '@/time/datetime';
 import { isNil, last } from 'lodash-es';
-import { getTopPercentByTime } from '@/controller/time.controller';
-import { useIsMounted } from '@/hooks/common/useIsMounted';
-import GridLines from './GridLines';
-import Column from './Column';
-import { useThemeStore } from '@/contexts/themeStore';
-import { useCalendarStore } from '@/contexts/calendarStore';
-import { useGridSelection } from '@/hooks/GridSelection/useGridSelection';
-import { createGridPositionFinder } from '@/helpers/grid';
-import { useDOMNode } from '@/hooks/common/useDOMNode';
-import { timeGridSelectionHelper } from '@/helpers/gridSelection';
-import { EventUIModel } from '@/model/eventUIModel';
-import { isBetweenColumn, setRenderInfoOfUIModels } from '@/controller/column.controller';
-import MovingEventShadow from './MovingEventShadow';
+import { useCallback, useLayoutEffect, useMemo, useState } from 'react';
+
+import { addTimeGridPrefix, className } from '@/constants/timeGrid-const';
 import { useCalendarCallbacks } from '@/contexts/calendarCallbacks';
+import { useCalendarStore } from '@/contexts/calendarStore';
+import { useThemeStore } from '@/contexts/themeStore';
+import { isBetweenColumn, setRenderInfoOfUIModels } from '@/controller/column.controller';
 import {
   createEventFromTimeGridSelection,
   createRangeSelectionInfo,
   getBlockedTimeLayoutsForColumn,
   shouldAcceptEventChange,
 } from '@/controller/scheduler.controller';
+import { getColoredLayoutsForColumn } from '@/controller/scheduler-layout';
+import { getTopPercentByTime } from '@/controller/time.controller';
+import { cls, toPercent } from '@/helpers/css';
+import { createGridPositionFinder } from '@/helpers/grid';
+import { timeGridSelectionHelper } from '@/helpers/gridSelection';
+import { useDOMNode } from '@/hooks/common/useDOMNode';
+import { useIsMounted } from '@/hooks/common/useIsMounted';
+import { useGridSelection } from '@/hooks/GridSelection/useGridSelection';
+import { EventUIModel } from '@/model/eventUIModel';
+import { isSameDate, setTimeStrToDate, toEndOfDay, toStartOfDay } from '@/time/datetime';
+import DayjsTZDate from '@/time/dayjs-tzdate';
+import { CommonGridColumn, TimeGridData } from '@/types/grid.type';
+
+import Column from './Column';
+import GridLines from './GridLines';
+import MovingEventShadow from './MovingEventShadow';
+import TimeColumn from './TimeColumn';
 
 const classNames = {
   timeGrid: cls(className),
@@ -103,6 +106,12 @@ export function TimeGrid({ timeGridData, events }: TimeGridProps) {
   const blockedLayoutsByColumn = useMemo(() => {
     return columns.map((column) =>
       getBlockedTimeLayoutsForColumn(options, currentView, timeGridData, column)
+    );
+  }, [columns, currentView, options, timeGridData]);
+
+  const coloredLayoutsByColumn = useMemo(() => {
+    return columns.map((column) =>
+      getColoredLayoutsForColumn(options, currentView, timeGridData, column)
     );
   }, [columns, currentView, options, timeGridData]);
 
@@ -227,6 +236,7 @@ export function TimeGrid({ timeGridData, events }: TimeGridProps) {
               gridPositionFinder={gridPositionFinder}
               isLastColumn={index === columns.length - 1}
               blockedLayouts={blockedLayoutsByColumn[index]}
+              coloredLayouts={coloredLayoutsByColumn[index]}
             />
           ))}
         </div>

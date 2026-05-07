@@ -1,9 +1,10 @@
 import { DeepPartial } from 'ts-essentials';
-import { ThemeState } from './theme.type';
-import { TemplateConfig } from './template.type';
-import { DndState } from './dnd.type';
+
 import { CalendarInfo } from './calendar.type';
+import { DndState } from './dnd.type';
 import { DateType } from './events.type';
+import { TemplateConfig } from './template.type';
+import { ThemeState } from './theme.type';
 
 export type EventView = 'allday' | 'time';
 export type TaskView = 'milestone' | 'task';
@@ -22,6 +23,16 @@ export interface BlockedTimeRange {
 }
 
 export type InvalidRange = BlockedTimeRange;
+
+export interface ColoredRange {
+  start: DateType;
+  end: DateType;
+  resourceId?: string;
+  resourceIds?: string[];
+  background?: string;
+  color?: string;
+  cssClass?: string;
+}
 
 export interface Options {
   // 默认视图类型
@@ -91,6 +102,7 @@ export interface SchedulerOptions {
   hourEnd?: number;
   invalid?: InvalidRange[];
   blockedTimes?: BlockedTimeRange[];
+  colors?: ColoredRange[];
 }
 
 export interface TimelineOptions extends SchedulerOptions {

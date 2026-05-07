@@ -15,7 +15,7 @@
 - [x] Step 7：给 scheduler layout 增最小单测骨架
 - [x] Step 8：接入 scheduler all-day lane 骨架
 - [x] Step 9：接入多日事件分段算法
-- [ ] Step 10：接入 `colors`
+- [x] Step 10：接入 `colors`
 - [ ] Step 11：接入拖拽时间 tooltip
 - [ ] Step 12：接入 `EventObject.order`
 

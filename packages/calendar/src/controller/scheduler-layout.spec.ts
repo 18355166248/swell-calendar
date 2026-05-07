@@ -4,10 +4,13 @@ import { EventModel } from '@/model/eventModel';
 import { EventUIModel } from '@/model/eventUIModel';
 import DayjsTZDate from '@/time/dayjs-tzdate';
 import { CalendarData } from '@/types/calendar.type';
+import { TimeGridData } from '@/types/grid.type';
+import { Options } from '@/types/options.type';
 import Collection from '@/utils/collection';
 
 import {
   flattenSchedulerTimeEventMatrix,
+  getColoredLayoutsForColumn,
   getSchedulerViewEvents,
   splitMultiDayTimeEvents,
 } from './scheduler-layout';
@@ -205,5 +208,125 @@ describe('splitMultiDayTimeEvents', () => {
     const result = splitMultiDayTimeEvents([uiModel], viewStart, viewEnd);
 
     expect(result).toHaveLength(0);
+  });
+});
+
+describe('getColoredLayoutsForColumn', () => {
+  const timeGridData: TimeGridData = {
+    rows: [
+      { top: 0, height: 25, startTime: '09:00', endTime: '10:00' },
+      { top: 25, height: 25, startTime: '10:00', endTime: '11:00' },
+      { top: 50, height: 25, startTime: '11:00', endTime: '12:00' },
+      { top: 75, height: 25, startTime: '12:00', endTime: '13:00' },
+    ],
+    columns: [
+      {
+        date: new DayjsTZDate('2026-05-07T00:00:00'),
+        left: 0,
+        width: 100,
+        resourceId: 'room-a',
+        resourceName: '会议室 A',
+      },
+    ],
+  };
+
+  it('应该为命中资源的 colored 区段生成 layout 与样式', () => {
+    const options: Options = {
+      scheduler: {
+        colors: [
+          {
+            start: new DayjsTZDate('2026-05-07T10:00:00'),
+            end: new DayjsTZDate('2026-05-07T12:00:00'),
+            resourceId: 'room-a',
+            background: 'rgba(34, 197, 94, 0.18)',
+            cssClass: 'available',
+          },
+        ],
+      },
+    };
+
+    const layouts = getColoredLayoutsForColumn(
+      options,
+      'scheduler',
+      timeGridData,
+      timeGridData.columns[0]
+    );
+
+    expect(layouts).toHaveLength(1);
+    expect(layouts[0]).toMatchObject({
+      top: 25,
+      height: 50,
+      background: 'rgba(34, 197, 94, 0.18)',
+      cssClass: 'available',
+    });
+  });
+
+  it('未匹配资源时返回空', () => {
+    const options: Options = {
+      scheduler: {
+        colors: [
+          {
+            start: new DayjsTZDate('2026-05-07T10:00:00'),
+            end: new DayjsTZDate('2026-05-07T12:00:00'),
+            resourceId: 'room-b',
+          },
+        ],
+      },
+    };
+
+    const layouts = getColoredLayoutsForColumn(
+      options,
+      'scheduler',
+      timeGridData,
+      timeGridData.columns[0]
+    );
+
+    expect(layouts).toHaveLength(0);
+  });
+
+  it('未指定资源时所有列都匹配', () => {
+    const options: Options = {
+      scheduler: {
+        colors: [
+          {
+            start: new DayjsTZDate('2026-05-07T10:30:00'),
+            end: new DayjsTZDate('2026-05-07T11:30:00'),
+          },
+        ],
+      },
+    };
+
+    const layouts = getColoredLayoutsForColumn(
+      options,
+      'scheduler',
+      timeGridData,
+      timeGridData.columns[0]
+    );
+
+    expect(layouts).toHaveLength(1);
+    expect(layouts[0].top).toBeCloseTo(37.5);
+    expect(layouts[0].height).toBeCloseTo(25);
+  });
+
+  it('非 scheduler / timeline 视图返回空', () => {
+    const options: Options = {
+      scheduler: {
+        colors: [
+          {
+            start: new DayjsTZDate('2026-05-07T10:00:00'),
+            end: new DayjsTZDate('2026-05-07T11:00:00'),
+          },
+        ],
+      },
+    };
+
+    const layouts = getColoredLayoutsForColumn(
+      options,
+      'week',
+      timeGridData,
+      timeGridData.columns[0]
+    );
+
+    expect(layouts).toHaveLength(0);
   });
 });

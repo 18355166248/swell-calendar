@@ -12,7 +12,8 @@
       "Bash(pnpm install *)",
       "Bash(yes)",
       "Bash(pnpm check:types)",
-      "Bash(pnpm lint *)"
+      "Bash(pnpm lint *)",
+      "Bash(git stash *)"
     ]
   }
 }

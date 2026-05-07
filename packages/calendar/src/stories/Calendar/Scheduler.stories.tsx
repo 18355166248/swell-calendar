@@ -222,6 +222,47 @@ export const Invalid: Story = {
   ),
 };
 
+export const InvalidAndColors: Story = {
+  render: () => {
+    const today = dayjs().startOf('day');
+    return (
+      <div style={{ position: 'absolute', inset: 0 }}>
+        <Calendar
+          events={createSchedulerEvents()}
+          options={{
+            defaultView: 'scheduler',
+            scheduler: {
+              resources: RESOURCES,
+              hourStart: 8,
+              hourEnd: 20,
+              colors: [
+                {
+                  start: today.hour(9).minute(0).toDate(),
+                  end: today.hour(12).minute(0).toDate(),
+                  background: 'rgba(34, 197, 94, 0.18)',
+                  cssClass: 'available',
+                },
+                {
+                  start: today.add(1, 'day').hour(13).minute(0).toDate(),
+                  end: today.add(1, 'day').hour(17).minute(0).toDate(),
+                  resourceId: 'r1',
+                  background: 'rgba(59, 130, 246, 0.18)',
+                },
+              ],
+              invalid: [
+                {
+                  start: today.hour(11).minute(0).toDate(),
+                  end: today.hour(13).minute(0).toDate(),
+                },
+              ],
+            },
+          }}
+        />
+      </div>
+    );
+  },
+};
+
 export const AllDayAndMultiDay: Story = {
   render: () => {
     const today = dayjs().startOf('day');
