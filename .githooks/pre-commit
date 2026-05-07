@@ -39,17 +39,20 @@ if [ -n "$CALENDAR_LINT_FILES" ]; then
   )
 fi
 
-# 3. TypeScript 类型检查（仅在 .ts/.tsx 变更时）
-if echo "$CHANGED" | grep -q "\.\(ts\|tsx\)$"; then
-  echo "  → TypeScript 类型检查..."
-  pnpm --filter swell-calendar exec tsc --noEmit
+# 3. Prettier（仅校验 staged 的可格式化文件）
+PRETTIER_FILES=$(echo "$CHANGED_EXISTING" | grep -E "\.(ts|tsx|js|jsx|mjs|cjs|json|md|yml|yaml|css|scss)$" || true)
+if [ -n "$PRETTIER_FILES" ]; then
+  echo "  → 运行 staged Prettier 检查..."
+  pnpm exec prettier --check $PRETTIER_FILES
 fi
 
-# 4. Calendar 测试（仅在 calendar 源码或测试配置变更时）
-if echo "$CHANGED" | grep -Eq "^packages/calendar/(src/.*\.(ts|tsx)|jest\.config\.js|tsconfig\.test\.json|package\.json)$"; then
-  echo "  → 运行 Calendar 测试..."
-  pnpm --filter swell-calendar exec jest --runInBand
-fi
+# 4. TypeScript 类型检查（每次提交都执行）
+echo "  → TypeScript 类型检查..."
+pnpm --filter swell-calendar exec tsc --noEmit
+
+# 5. Calendar 测试（每次提交都执行）
+echo "  → 运行 Calendar 测试..."
+pnpm --filter swell-calendar test
 
 echo "✅ 所有检查通过"
 exit 0

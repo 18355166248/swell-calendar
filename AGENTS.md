@@ -69,7 +69,7 @@ pnpm lint
 pnpm --filter swell-calendar exec tsc --noEmit
 
 # Calendar 测试
-pnpm --filter swell-calendar exec jest --runInBand
+pnpm --filter swell-calendar test
 
 # 所有检查（pre-commit 跑这个）
 pnpm check
@@ -77,13 +77,16 @@ pnpm check
 
 启用本地 hook：`git config core.hooksPath .githooks`
 
-当前 pre-commit 会按 staged 变更范围执行：
+安装依赖后，根 `prepare` 脚本会自动执行一次上述配置。
+
+当前 pre-commit 会在每次 `git commit` 时执行：
 
 - `node scripts/check-docs.mjs --staged`
 - `node scripts/check-arch.mjs`
 - 对 staged 的 `packages/calendar` 代码文件执行 `eslint --max-warnings 0`
+- 对 staged 的可格式化文件执行 `prettier --check`
 - `pnpm --filter swell-calendar exec tsc --noEmit`
-- 当变更涉及 `packages/calendar` 源码或测试配置时，执行 `pnpm --filter swell-calendar exec jest --runInBand`
+- 执行 `pnpm --filter swell-calendar test`
 
 说明：全量 `pnpm lint` 仍会受到仓库历史 warnings 影响，因此提交门禁先采用 staged-file lint，优先保证新增改动干净。
 

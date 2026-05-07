@@ -2,7 +2,7 @@
 
 ## 背景
 
-当前仓库已经有 `docs-first`、架构分层和 lint 的 pre-commit 门禁，但类型检查没有真正阻断提交，测试也没有进入提交流程。
+当前仓库已经有 `docs-first`、架构分层和 lint 的 pre-commit 门禁，但类型检查没有真正阻断提交，测试也没有进入“每次提交必跑”的流程。
 
 这会导致两类问题：
 
@@ -12,7 +12,7 @@
 ## 目标
 
 - 让提交前门禁真正阻断类型错误
-- 让 `packages/calendar` 的现有测试在相关代码变更时自动验证
+- 让 `packages/calendar` 的现有测试在每次提交时自动验证
 - 让 `pnpm check` 成为“手动全量门禁”和“提交门禁”的统一参考
 
 ## 非目标
@@ -37,17 +37,17 @@
 
 ## 现状
 
-- `.githooks/pre-commit` 已接入 `check-docs`、`check-arch` 和 `pnpm lint`
+- `.githooks/pre-commit` 已接入 `check-docs`、`check-arch` 和 staged lint
 - TypeScript 检查不会阻断提交
-- `packages/calendar` 的测试未进入提交门禁
-- Jest 对 `lodash-es` 的 ESM 处理不完整，新增测试无法稳定通过
+- `packages/calendar` 的测试未进入“每次提交必跑”的门禁
+- 原 Jest 方案对 Vite / ESM 场景兼容性较差，不适合作为后续测试基建
 
 ## 方案
 
 - 保留现有 `.githooks/pre-commit`，不额外引入 `husky`
 - 将类型检查改为真正阻断失败提交
-- 当 staged 变更涉及 `packages/calendar` 的源码或测试配置时，自动执行 `pnpm --filter swell-calendar exec jest --runInBand`
-- 修复 `packages/calendar` 的 Jest 配置，使现有测试可稳定运行
+- 每次提交都执行 `pnpm --filter swell-calendar test`
+- 将 `packages/calendar` 的测试基建切到 Vitest，使测试与 Vite 工程保持一致
 - 将根 `pnpm check` 扩展为 docs / arch / lint / types / calendar tests 的统一全量门禁
 
 ## 文档变更
@@ -63,13 +63,13 @@
 - [ ] `node scripts/check-arch.mjs`
 - [ ] `pnpm lint`
 - [ ] `pnpm --filter swell-calendar exec tsc --noEmit`
-- [ ] `pnpm --filter swell-calendar exec jest --runInBand`
+- [ ] `pnpm --filter swell-calendar test`
 
 ## 风险与回滚
 
 - 风险：
   - pre-commit 执行时间会增加
-  - Jest 配置变更可能暴露历史测试兼容性问题
+  - Vitest 配置变更可能暴露历史测试兼容性问题
 - 回滚方式：
   - 回退 `.githooks/pre-commit` 中新增的类型 / 测试门禁
   - 回退 `package.json` 的 `check` 调整
