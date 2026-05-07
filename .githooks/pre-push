@@ -1,0 +1,15 @@
+#!/bin/sh
+# pre-push hook — 推送前二次门控
+
+set -e
+
+echo "🚀 Pre-push 检查..."
+
+echo "  → TypeScript 类型检查..."
+pnpm --filter swell-calendar exec tsc --noEmit
+
+echo "  → 运行 Calendar 测试..."
+pnpm --filter swell-calendar test
+
+echo "✅ Pre-push 检查通过"
+exit 0

@@ -1,8 +1,8 @@
-# Pre-commit 测试门禁
+# Pre-commit / Pre-push 测试门禁
 
 ## 背景
 
-当前仓库已经有 `docs-first`、架构分层和 lint 的 pre-commit 门禁，但类型检查没有真正阻断提交，测试也没有进入“每次提交必跑”的流程。
+当前仓库已经有 `docs-first`、架构分层和 lint 的 pre-commit 门禁，但类型检查没有真正阻断提交，测试也没有进入“每次提交 / 推送必跑”的流程。
 
 这会导致两类问题：
 
@@ -12,7 +12,7 @@
 ## 目标
 
 - 让提交前门禁真正阻断类型错误
-- 让 `packages/calendar` 的现有测试在每次提交时自动验证
+- 让 `packages/calendar` 的现有测试在每次提交和推送时自动验证
 - 让 `pnpm check` 成为“手动全量门禁”和“提交门禁”的统一参考
 
 ## 非目标
@@ -45,6 +45,7 @@
 ## 方案
 
 - 保留现有 `.githooks/pre-commit`，不额外引入 `husky`
+- 新增 `.githooks/pre-push`，让 `git push` 也具备本地阻断能力
 - 将类型检查改为真正阻断失败提交
 - 每次提交都执行 `pnpm --filter swell-calendar test`
 - 将 `packages/calendar` 的测试基建切到 Vitest，使测试与 Vite 工程保持一致

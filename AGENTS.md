@@ -88,6 +88,11 @@ pnpm check
 - `pnpm --filter swell-calendar exec tsc --noEmit`
 - 执行 `pnpm --filter swell-calendar test`
 
+当前 pre-push 会在每次 `git push` 时执行：
+
+- `pnpm --filter swell-calendar exec tsc --noEmit`
+- `pnpm --filter swell-calendar test`
+
 说明：全量 `pnpm lint` 仍会受到仓库历史 warnings 影响，因此提交门禁先采用 staged-file lint，优先保证新增改动干净。
 
 CI 兜底：`.github/workflows/ci.yml` 在每次 push/PR 时跑全量检查。

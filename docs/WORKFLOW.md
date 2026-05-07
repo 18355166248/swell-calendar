@@ -80,6 +80,9 @@ pnpm --filter swell-calendar test
   - 对 staged 的可格式化文件执行 `prettier --check`
   - `pnpm --filter swell-calendar exec tsc --noEmit`
   - `pnpm --filter swell-calendar test`
+- `.githooks/pre-push` 会在每次 `git push` 时自动执行：
+  - `pnpm --filter swell-calendar exec tsc --noEmit`
+  - `pnpm --filter swell-calendar test`
 - 这样做的目的，是先保证“新增改动不能带入 lint / type / test 问题”，再逐步清理历史 lint 基线。
 
 ### 5. 回写结果
