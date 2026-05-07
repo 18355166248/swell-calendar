@@ -18,6 +18,7 @@ export class EventModel implements EventObject {
   title = '';
   start: DayjsTZDate = new DayjsTZDate();
   end: DayjsTZDate = new DayjsTZDate();
+  allDay = false;
   isAllday = false;
   // 事件类别：time(时间事件)、allday(全天事件)、milestone(里程碑)、task(任务)
   category: EventCategory = 'time';
@@ -80,9 +81,12 @@ export class EventModel implements EventObject {
     cssClass,
     meta,
   }: EventObject) {
+    const normalizedAllDay = category === 'allday' || isAllday || allDay;
+
     this.id = id;
     this.title = title;
-    this.isAllday = category === 'allday' || isAllday || allDay;
+    this.allDay = normalizedAllDay;
+    this.isAllday = normalizedAllDay;
     this.category = category;
     this.backgroundColor = backgroundColor;
     this.dragBackgroundColor = dragBackgroundColor;
@@ -100,7 +104,7 @@ export class EventModel implements EventObject {
     this.meta = meta;
 
     // 根据事件类型设置时间周期
-    if (this.isAllday) {
+    if (this.allDay) {
       this.setAlldayPeriod(start, end);
     } else {
       this.setTimePeriod(start, end);
@@ -188,7 +192,7 @@ export class EventModel implements EventObject {
     const end = this.getEnds();
     let duration: number;
 
-    if (this.isAllday) {
+    if (this.allDay) {
       // 全天事件：从开始日期的开始到结束日期的结束
       duration = Number(toEndOfDay(end)) - Number(toStartOfDay(start));
     } else {
@@ -251,8 +255,8 @@ export class EventModel implements EventObject {
       calendarId: this.calendarId,
       __cid: this.cid(),
       title: this.title,
-      isAllday: this.isAllday,
-      allDay: this.isAllday,
+      isAllday: this.allDay,
+      allDay: this.allDay,
       isReadOnly: this.isReadOnly,
       start: this.start,
       end: this.end,
@@ -285,8 +289,8 @@ export class EventModel implements EventObject {
  * @returns {boolean} 如果是时间事件返回true
  */
 export function isTimeEvent({ model }: EventUIModel) {
-  const { category, isAllday, hasMultiDates } = model;
+  const { category, allDay, hasMultiDates } = model;
 
   // 时间事件：类别为time，非全天，非多日
-  return category === 'time' && !isAllday && !hasMultiDates;
+  return category === 'time' && !allDay && !hasMultiDates;
 }

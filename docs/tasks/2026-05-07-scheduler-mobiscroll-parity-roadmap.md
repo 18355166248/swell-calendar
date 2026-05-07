@@ -140,7 +140,7 @@ https://demo.mobiscroll.com/react/scheduler/desktop-week-view
 ## 当前状态
 
 - [x] 路线图建立
-- [ ] 代码实现开始
+- [-] 代码实现开始
 - [ ] Phase 1A 完成
 - [ ] Phase 1B 完成
 - [ ] Phase 2 完成

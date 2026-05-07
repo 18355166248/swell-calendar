@@ -21,6 +21,8 @@ export interface BlockedTimeRange {
   resourceIds?: string[];
 }
 
+export type InvalidRange = BlockedTimeRange;
+
 export interface Options {
   // 默认视图类型
   defaultView?: ViewType;
@@ -64,6 +66,7 @@ export interface WeekOptions {
   hourDivision?: HourDivision;
   // 是否为工作日模式，只显示工作日（周一到周五）
   workweek?: boolean;
+  invalid?: InvalidRange[];
   blockedTimes?: BlockedTimeRange[];
 }
 
@@ -86,6 +89,7 @@ export interface SchedulerOptions {
   resources?: ResourceInfo[];
   hourStart?: number;
   hourEnd?: number;
+  invalid?: InvalidRange[];
   blockedTimes?: BlockedTimeRange[];
 }
 

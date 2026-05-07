@@ -15,8 +15,8 @@
 
 | 文档 | 范围 | 状态 |
 |------|------|------|
-| `01-docs-and-normalization.md` | 文档落地、`invalid`、`allDay` | `[-]` |
-| `02-scheduler-pipeline-and-layout.md` | scheduler pipeline、all-day、多日分段、`colors` | `[ ]` |
+| `01-docs-and-normalization.md` | 文档落地、`invalid`、`allDay` | `[x]` |
+| `02-scheduler-pipeline-and-layout.md` | scheduler pipeline、all-day、多日分段、`colors` | `[-]` |
 | `03-template-and-interaction.md` | template、回调、交互闭环 | `[ ]` |
 | `04-resource-scheduling.md` | 资源显隐、分组、shared events | `[ ]` |
 | `05-advanced-scheduling.md` | recurrence、timezone、DnD | `[ ]` |
@@ -53,8 +53,8 @@
 
 ## 里程碑清单
 
-- [-] 阶段 01 进行中：文档、命名与共享判定入口收敛
-- [ ] 阶段 02 完成：scheduler 独立布局链路建立
+- [x] 阶段 01 完成：文档、命名与共享判定入口收敛
+- [-] 阶段 02 进行中：scheduler 独立布局链路建立
 - [ ] 阶段 03 完成：模板与交互闭环完成
 - [ ] 阶段 04 完成：资源调度能力完成
 - [ ] 阶段 05 完成：高级调度能力完成

@@ -25,10 +25,10 @@ function createTime(event: EventObject, start: DayjsTZDate, end: DayjsTZDate) {
   const diffDate = endDate.diff(startDate, 'days');
 
   // 30%的概率创建全天事件
-  event.isAllday = chance.bool({ likelihood: 30 });
+  event.allDay = chance.bool({ likelihood: 30 });
 
   // 根据事件类型设置类别
-  if (event.isAllday) {
+  if (event.allDay) {
     event.category = 'allday';
   } else if (chance.bool({ likelihood: 30 })) {
     // 30%的概率设置为里程碑或任务类型
@@ -46,7 +46,7 @@ function createTime(event: EventObject, start: DayjsTZDate, end: DayjsTZDate) {
 
   // 设置结束时间
   endDate = dayjs(startDate);
-  if (event.isAllday) {
+  if (event.allDay) {
     // 全天事件持续0-3天
     endDate = endDate.add(chance.integer({ min: 0, max: 3 }), 'days');
   }

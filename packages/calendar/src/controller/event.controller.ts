@@ -25,6 +25,7 @@ export function createEventCollection<T extends EventModel | EventUIModel>(...in
  */
 export function isAllday(event: EventModel) {
   return (
+    event.allDay ||
     event.isAllday ||
     (event.category === 'time' && Number(event.end) - Number(event.start) > MS_PER_DAY)
   );

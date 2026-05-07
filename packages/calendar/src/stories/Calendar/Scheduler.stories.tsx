@@ -196,3 +196,27 @@ export const BlockedTimes: Story = {
     </div>
   ),
 };
+
+export const Invalid: Story = {
+  render: () => (
+    <div style={{ position: 'absolute', inset: 0 }}>
+      <Calendar
+        events={createSchedulerEvents()}
+        options={{
+          defaultView: 'scheduler',
+          scheduler: {
+            resources: RESOURCES,
+            hourStart: 8,
+            hourEnd: 20,
+            invalid: [
+              {
+                start: dayjs().startOf('day').hour(13).minute(0).toDate(),
+                end: dayjs().startOf('day').hour(15).minute(0).toDate(),
+              },
+            ],
+          },
+        }}
+      />
+    </div>
+  ),
+};

@@ -7,14 +7,14 @@
 
 ## 当前状态
 
-- 总状态：`[-] 进行中`
+- 总状态：`[x] 已完成`
 
 ## 步骤清单
 
 - [x] Step 1：补齐文档工件
-- [ ] Step 2：引入 `invalid` 类型，不改旧行为
-- [ ] Step 3：接入 `invalid` 运行时兼容
-- [ ] Step 4：统一 `allDay` / `isAllday` 归一化入口
+- [x] Step 2：引入 `invalid` 类型，不改旧行为
+- [x] Step 3：接入 `invalid` 运行时兼容
+- [x] Step 4：统一 `allDay` / `isAllday` 归一化入口
 - [x] Step 5：写清兼容期文档与迁移说明
 
 ## 目标

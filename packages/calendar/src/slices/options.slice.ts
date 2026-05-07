@@ -2,6 +2,7 @@ import { Day } from '@/time/datetime';
 import {
   EnabledViews,
   MonthOptions,
+  InvalidRange,
   Options,
   OptionsSlice,
   SchedulerOptions,
@@ -14,7 +15,15 @@ import { DEFAULT_DAY_NAMES } from '@/helpers/dayName';
 
 type SetState = (fn: (state: CalendarStore) => Partial<CalendarStore>) => void;
 
+function normalizeInvalidRanges(
+  invalid?: InvalidRange[],
+  blockedTimes?: InvalidRange[]
+): InvalidRange[] {
+  return invalid ?? blockedTimes ?? [];
+}
+
 function initializeWeekOptions(weekOptions: Options['week'] = {}): CalendarWeekOptions {
+  const invalid = normalizeInvalidRanges(weekOptions.invalid, weekOptions.blockedTimes);
   const week: CalendarWeekOptions = {
     startDayOfWeek: Day.SUN,
     dayNames: [],
@@ -25,9 +34,13 @@ function initializeWeekOptions(weekOptions: Options['week'] = {}): CalendarWeekO
     eventView: true,
     taskView: true,
     hourDivision: 2,
-    blockedTimes: [],
+    invalid,
+    blockedTimes: invalid,
     ...weekOptions,
   };
+
+  week.invalid = invalid;
+  week.blockedTimes = invalid;
 
   return week;
 }
@@ -61,25 +74,39 @@ function initializeEnabledViews(options: Options = {}): EnabledViews {
 }
 
 function initializeSchedulerOptions(schedulerOptions: Options['scheduler'] = {}): SchedulerOptions {
-  return {
+  const invalid = normalizeInvalidRanges(schedulerOptions.invalid, schedulerOptions.blockedTimes);
+  const scheduler: SchedulerOptions = {
     resources: [],
     hourStart: 0,
     hourEnd: 24,
-    blockedTimes: [],
+    invalid,
+    blockedTimes: invalid,
     ...schedulerOptions,
   };
+
+  scheduler.invalid = invalid;
+  scheduler.blockedTimes = invalid;
+
+  return scheduler;
 }
 
 function initializeTimelineOptions(timelineOptions: Options['timeline'] = {}): TimelineOptions {
-  return {
+  const invalid = normalizeInvalidRanges(timelineOptions.invalid, timelineOptions.blockedTimes);
+  const timeline: TimelineOptions = {
     resources: [],
     hourStart: 0,
     hourEnd: 24,
     rowHeight: 56,
     cellWidth: 80,
-    blockedTimes: [],
+    invalid,
+    blockedTimes: invalid,
     ...timelineOptions,
   };
+
+  timeline.invalid = invalid;
+  timeline.blockedTimes = invalid;
+
+  return timeline;
 }
 
 export function createOptionsSlice(options: Options = {}) {

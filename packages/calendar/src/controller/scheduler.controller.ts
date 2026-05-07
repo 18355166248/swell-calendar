@@ -24,15 +24,15 @@ function getTimeValue(value: EventObject['start']) {
 
 function getBlockedTimesByView(options: Options, view: ViewType): BlockedTimeRange[] {
   if (view === 'scheduler') {
-    return options.scheduler?.blockedTimes ?? [];
+    return options.scheduler?.invalid ?? options.scheduler?.blockedTimes ?? [];
   }
 
   if (view === 'timeline') {
-    return options.timeline?.blockedTimes ?? [];
+    return options.timeline?.invalid ?? options.timeline?.blockedTimes ?? [];
   }
 
   if (view === 'week' || view === 'day') {
-    return options.week?.blockedTimes ?? [];
+    return options.week?.invalid ?? options.week?.blockedTimes ?? [];
   }
 
   return [];
