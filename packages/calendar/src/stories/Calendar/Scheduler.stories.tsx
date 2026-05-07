@@ -247,6 +247,26 @@ export const AllDayAndMultiDay: Story = {
         backgroundColor: '#7c3aed',
         color: '#fff',
       },
+      {
+        id: 'sched-multiday-1',
+        title: '跨天维保（r2）',
+        category: 'time' as const,
+        start: today.add(1, 'day').hour(20).minute(0).toDate(),
+        end: today.add(3, 'day').hour(8).minute(0).toDate(),
+        resourceId: 'r2',
+        backgroundColor: '#b45309',
+        color: '#fff',
+      },
+      {
+        id: 'sched-multiday-2',
+        title: '跨天项目（r4）',
+        category: 'time' as const,
+        start: today.add(3, 'day').hour(18).minute(0).toDate(),
+        end: today.add(5, 'day').hour(10).minute(0).toDate(),
+        resourceId: 'r4',
+        backgroundColor: '#9f1239',
+        color: '#fff',
+      },
     ] satisfies EventObject[];
 
     return (

@@ -1,4 +1,6 @@
+import { EventModel } from '@/model/eventModel';
 import { EventUIModel } from '@/model/eventUIModel';
+import { toEndOfDay, toStartOfDay } from '@/time/datetime';
 import DayjsTZDate from '@/time/dayjs-tzdate';
 import { CalendarData } from '@/types/calendar.type';
 import { DayGridEventMatrix, EventModelMap, TimeGridEventMatrix } from '@/types/events.type';
@@ -23,6 +25,52 @@ export function flattenSchedulerTimeEventMatrix(eventMatrix: TimeGridEventMatrix
       )
     )
   );
+}
+
+export function splitMultiDayTimeEvents(
+  events: EventUIModel[],
+  viewStart: DayjsTZDate,
+  viewEnd: DayjsTZDate
+): EventUIModel[] {
+  const result: EventUIModel[] = [];
+
+  for (const uiModel of events) {
+    const { model } = uiModel;
+
+    if (!model.hasMultiDates) {
+      result.push(uiModel);
+      continue;
+    }
+
+    const eventStart = model.getStarts();
+    const eventEnd = model.getEnds();
+
+    let currentDay = toStartOfDay(eventStart > viewStart ? eventStart : viewStart);
+
+    while (currentDay <= viewEnd && currentDay <= eventEnd) {
+      const dayStart = toStartOfDay(currentDay);
+      const dayEnd = toEndOfDay(currentDay);
+
+      const segStart = eventStart > dayStart ? eventStart : dayStart;
+      const segEnd = eventEnd < dayEnd ? eventEnd : dayEnd;
+
+      const segmentModel = new EventModel({
+        ...model.toEventObject(),
+        start: segStart,
+        end: segEnd,
+      });
+
+      const segmentUIModel = new EventUIModel(segmentModel);
+      segmentUIModel.croppedStart = eventStart < dayStart;
+      segmentUIModel.croppedEnd = eventEnd > dayEnd;
+
+      result.push(segmentUIModel);
+
+      currentDay = dayStart.addDate(1);
+    }
+  }
+
+  return result;
 }
 
 export function getSchedulerViewEvents(
@@ -62,8 +110,10 @@ export function getSchedulerViewEvents(
     },
   });
 
+  const timeEvents = flattenSchedulerTimeEventMatrix(eventGroups.time as TimeGridEventMatrix);
+
   return {
     allday: flattenSchedulerDayGridMatrix(eventGroups.allday as DayGridEventMatrix),
-    time: flattenSchedulerTimeEventMatrix(eventGroups.time as TimeGridEventMatrix),
+    time: splitMultiDayTimeEvents(timeEvents, start, end),
   };
 }

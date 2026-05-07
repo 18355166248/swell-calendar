@@ -2,7 +2,17 @@
   "permissions": {
     "allow": [
       "Skill(browse)",
-      "Bash(xargs grep -l \"time-columns\\\\|scroll-area\")"
+      "Bash(xargs grep -l \"time-columns\\\\|scroll-area\")",
+      "Bash(pnpm test *)",
+      "Bash(npx vitest *)",
+      "Bash(node_modules/.bin/vitest run *)",
+      "Bash(pnpm exec *)",
+      "Bash(grep -E \"^\\(vitest|jsdom|vite\\)$\")",
+      "Bash(grep -E \"^\\(vitest|jsdom\\)$\")",
+      "Bash(pnpm install *)",
+      "Bash(yes)",
+      "Bash(pnpm check:types)",
+      "Bash(pnpm lint *)"
     ]
   }
 }
