@@ -1,12 +1,16 @@
 import { EventUIModel } from '@/model/eventUIModel';
 import DayjsTZDate from '@/time/dayjs-tzdate';
 import { CalendarData } from '@/types/calendar.type';
-import { EventModelMap, TimeGridEventMatrix } from '@/types/events.type';
+import { DayGridEventMatrix, EventModelMap, TimeGridEventMatrix } from '@/types/events.type';
 import { Panel } from '@/types/panel.type';
 
 import { findByDateRange as findByDateRangeForWeek } from './week.controller';
 
 function flattenSchedulerMatrix3d(eventMatrix: TimeGridEventMatrix[keyof TimeGridEventMatrix]) {
+  return eventMatrix.flatMap((matrix) => matrix.flatMap((row) => row.filter(Boolean)));
+}
+
+function flattenSchedulerDayGridMatrix(eventMatrix: DayGridEventMatrix) {
   return eventMatrix.flatMap((matrix) => matrix.flatMap((row) => row.filter(Boolean)));
 }
 
@@ -34,8 +38,13 @@ export function getSchedulerViewEvents(
     hourStart: number;
     hourEnd: number;
   }
-): Pick<EventModelMap, 'time'> {
+): Pick<EventModelMap, 'allday' | 'time'> {
   const panels: Panel[] = [
+    {
+      name: 'allday',
+      type: 'daygrid',
+      show: true,
+    },
     {
       name: 'time',
       type: 'timegrid',
@@ -54,6 +63,7 @@ export function getSchedulerViewEvents(
   });
 
   return {
+    allday: flattenSchedulerDayGridMatrix(eventGroups.allday as DayGridEventMatrix),
     time: flattenSchedulerTimeEventMatrix(eventGroups.time as TimeGridEventMatrix),
   };
 }

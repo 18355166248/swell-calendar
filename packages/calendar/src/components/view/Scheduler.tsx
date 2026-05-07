@@ -5,15 +5,15 @@ import { useCalendarStore } from '@/contexts/calendarStore';
 import { useThemeStore } from '@/contexts/themeStore';
 import { getSchedulerViewEvents } from '@/controller/scheduler-layout';
 import { cls } from '@/helpers/css';
-import {
-  createSchedulerTimeGridData,
-  getVisibleResources,
-  getWeekDates,
-} from '@/helpers/grid';
+import { createSchedulerTimeGridData, getVisibleResources, getWeekDates } from '@/helpers/grid';
 import { toEndOfDay, toStartOfDay } from '@/time/datetime';
 
 import Layout from '../Layout';
 import Panel from '../Panel';
+import {
+  SCHEDULER_ALLDAY_EVENT_HEIGHT,
+  SchedulerAllDayLane,
+} from '../scheduler/SchedulerAllDayLane';
 import { SchedulerHeader } from '../scheduler/SchedulerHeader';
 import { TimeGrid } from '../timeGrid/TimeGridView';
 
@@ -61,16 +61,22 @@ export function Scheduler() {
     };
   }, [weekDates]);
 
-  const timeEvents = useMemo(
+  const schedulerEvents = useMemo(
     () =>
       getSchedulerViewEvents(calendar, {
         start: weekStart,
         end: weekEnd,
         hourStart,
         hourEnd,
-      }).time,
+      }),
     [calendar, hourStart, hourEnd, weekStart, weekEnd]
   );
+  const alldayEvents = schedulerEvents.allday;
+  const timeEvents = schedulerEvents.time;
+  const maxAlldaySlot =
+    alldayEvents.length > 0 ? Math.max(0, ...alldayEvents.map((m) => m.top)) : -1;
+  const alldayPanelHeight =
+    maxAlldaySlot >= 0 ? (maxAlldaySlot + 1) * SCHEDULER_ALLDAY_EVENT_HEIGHT : 0;
 
   const timeGridData = useMemo(
     () =>
@@ -100,6 +106,15 @@ export function Scheduler() {
           scrollbarWidth={scrollbarWidth}
         />
       </Panel>
+      {alldayEvents.length > 0 ? (
+        <Panel name="allday" initialHeight={alldayPanelHeight}>
+          <SchedulerAllDayLane
+            uiModels={alldayEvents}
+            timeGridLeftWidth={timeGridLeft.width}
+            scrollbarWidth={scrollbarWidth}
+          />
+        </Panel>
+      ) : null}
       <Panel name="time" ref={setTimePanelEl}>
         <TimeGrid timeGridData={timeGridData} events={timeEvents} />
       </Panel>

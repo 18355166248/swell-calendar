@@ -1,11 +1,12 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { Calendar } from '@/components/Calendar';
-import { CalendarCallbacks } from '@/types/callbacks.type';
-import DayjsTZDate from '@/time/dayjs-tzdate';
-import { EventObject } from '@/types/events.type';
-import { useMemo, useState } from 'react';
 import Chance from 'chance';
 import dayjs from 'dayjs';
+import { useMemo, useState } from 'react';
+
+import { Calendar } from '@/components/Calendar';
+import DayjsTZDate from '@/time/dayjs-tzdate';
+import { CalendarCallbacks } from '@/types/callbacks.type';
+import { EventObject } from '@/types/events.type';
 
 const chance = new Chance();
 
@@ -219,4 +220,49 @@ export const Invalid: Story = {
       />
     </div>
   ),
+};
+
+export const AllDayAndMultiDay: Story = {
+  render: () => {
+    const today = dayjs().startOf('day');
+    const events = [
+      ...createSchedulerEvents(),
+      {
+        id: 'sched-allday-1',
+        title: '全天值班',
+        allDay: true,
+        start: today.add(2, 'day').toDate(),
+        end: today.add(2, 'day').endOf('day').toDate(),
+        resourceId: 'r1',
+        backgroundColor: '#0f766e',
+        color: '#fff',
+      },
+      {
+        id: 'sched-allday-2',
+        title: '全天培训',
+        allDay: true,
+        start: today.add(4, 'day').toDate(),
+        end: today.add(4, 'day').endOf('day').toDate(),
+        resourceId: 'r3',
+        backgroundColor: '#7c3aed',
+        color: '#fff',
+      },
+    ] satisfies EventObject[];
+
+    return (
+      <div style={{ position: 'absolute', inset: 0 }}>
+        <Calendar
+          events={events}
+          options={{
+            defaultView: 'scheduler',
+            scheduler: {
+              resources: RESOURCES,
+              hourStart: 8,
+              hourEnd: 20,
+            },
+          }}
+        />
+      </div>
+    );
+  },
 };

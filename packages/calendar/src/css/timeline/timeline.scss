@@ -149,6 +149,10 @@
   border-bottom: 1px solid #e8e8e8;
 }
 
+.scheduler-allday-lane {
+  min-width: 0;
+}
+
 .scheduler-header-date-row {
   display: flex;
   background: #fafafa;
