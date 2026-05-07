@@ -28,8 +28,19 @@
 | [ARCHITECTURE.md](./ARCHITECTURE.md) | 定义仓库边界、模块职责、变更落点 |
 | [../packages/calendar/SPEC.md](../packages/calendar/SPEC.md) | 组件库产品规范、能力边界、API 契约 |
 | [DEFINITION-OF-DONE.md](./DEFINITION-OF-DONE.md) | 任务完成标准 |
+| [tasks/2026-05-07-scheduler-mobiscroll-parity-roadmap.md](./tasks/2026-05-07-scheduler-mobiscroll-parity-roadmap.md) | scheduler 对齐路线图任务文档 |
+| [MIGRATION.md](./MIGRATION.md) | 命名收敛与兼容期迁移说明 |
+| [adrs/ADR-2026-05-scheduler-parity-scope.md](./adrs/ADR-2026-05-scheduler-parity-scope.md) | scheduler 范围与设计原则 ADR |
 | [tasks/TEMPLATE.md](./tasks/TEMPLATE.md) | 单次开发任务模板 |
 | [adrs/ADR-TEMPLATE.md](./adrs/ADR-TEMPLATE.md) | 架构决策记录模板 |
+
+## Scheduler 路线图
+
+- 参考样例：Mobiscroll React Scheduler Desktop Week View
+- https://demo.mobiscroll.com/react/scheduler/desktop-week-view
+- 主计划：[agent-plan/plan.md](./agent-plan/plan.md)
+- 实施步骤：[agent-plan/implementation-steps.md](./agent-plan/implementation-steps.md)
+- 任务文档：[tasks/2026-05-07-scheduler-mobiscroll-parity-roadmap.md](./tasks/2026-05-07-scheduler-mobiscroll-parity-roadmap.md)
 
 ## 文档分类规则
 

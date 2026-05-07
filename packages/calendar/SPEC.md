@@ -7,6 +7,19 @@
 
 swell-calendar 是一个**可嵌入的 React 日历组件库**，面向需要在产品中集成日历功能的开发团队。发布为 NPM 包，与宿主应用的样式系统解耦。
 
+## 外部参考
+
+当前 scheduler 路线图的主参考样例为：
+
+- `Mobiscroll React Scheduler Desktop Week View`
+- <https://demo.mobiscroll.com/react/scheduler/desktop-week-view>
+
+说明：
+
+- 参考的是桌面端 scheduler 的产品行为、布局和交互闭环
+- 不要求与 Mobiscroll 保持同名 API
+- `agenda`、移动端适配、`connections`、`eventList` 不在当前近期范围
+
 ## 核心约束
 
 1. **零副作用样式**：所有 CSS 类名带 `swell-calendar-` 前缀，不污染宿主页面
@@ -24,8 +37,8 @@ swell-calendar 是一个**可嵌入的 React 日历组件库**，面向需要在
 | 日视图（Day） | ✅ 完成 | 单日时间网格，24 小时展示 |
 | 周视图（Week） | ✅ 完成 | 7 天时间网格，支持 workweek 模式 |
 | 月视图（Month） | 🚧 开发中 | 月历格子，事件简要展示 |
-| 时间线（Timeline） | 🟡 基础版 | 资源行 + 横向时间轴，用于资源时间段展示 |
-| 调度器（Scheduler） | 🟡 进行中 | 垂直时间轴 + 资源列的 time-grid 视图，逐步对齐 Mobiscroll scheduler |
+| 时间线（Timeline） | 🟡 基础版 | 资源行 + 横向时间轴，用于资源时间段展示，本轮只保证不退化 |
+| 调度器（Scheduler） | 🟡 进行中 | 垂直时间轴 + 资源列的 time-grid 视图，是当前近期核心 |
 
 ### 事件功能
 
@@ -38,6 +51,11 @@ swell-calendar 是一个**可嵌入的 React 日历组件库**，面向需要在
 | 新建事件 | ✅ | 点击或框选时间段触发创建 |
 | 只读模式 | ✅ | `isReadOnly: true` 禁用所有交互 |
 | 自定义颜色 | ✅ | 按日历 ID 配置事件颜色 |
+| `invalid` / `blockedTimes` | 🟡 | 当前以 `blockedTimes` 为主名，近期收敛到 `invalid` |
+| all-day lane（scheduler） | ❌ | 近期能力，尚未实现 |
+| 多日事件分段（scheduler） | ❌ | 近期能力，尚未实现 |
+| overlap policy | ❌ | 近期能力，尚未实现 |
+| recurrence / timezone | 🟡 | 字段已有，行为尚未接入 |
 
 ### 配置选项（`CalendarOptions`）
 
@@ -222,6 +240,8 @@ interface CalendarInstance {
 
 - `timeline` 维持横向资源时间轴，面向资源时间段浏览
 - `scheduler` 使用垂直 time-grid + 资源列布局
+- `scheduler` 当前为近期核心，`timeline` 本轮只保证不退化
+- 宿主受控是默认数据所有权模型，最终事件数据始终以 `props.events` 为准
 - `scheduler` 当前已向宿主暴露资源化的区间选择创建意图和拖拽移动更新意图
 - `scheduler` 当前已支持 time-grid 内单列事件 resize 后的更新意图回调
 - `create/move/resize` 当前支持通过 `onValidateEventChange` 做同步准入校验

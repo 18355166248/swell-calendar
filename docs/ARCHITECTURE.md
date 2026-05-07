@@ -52,6 +52,15 @@ types
 
 ## 模块边界
 
+### Scheduler Reference
+
+当前 scheduler 路线图的主参考样例为：
+
+- `Mobiscroll React Scheduler Desktop Week View`
+- <https://demo.mobiscroll.com/react/scheduler/desktop-week-view>
+
+该参考只用于对齐产品行为和交互闭环，不作为 API 兼容要求。
+
 ### Event Pipeline
 
 ```text
@@ -66,6 +75,41 @@ EventObject
 - `EventObject` 是宿主输入，不直接在组件里原地修改
 - 事件布局算法统一放在 `controller/`
 - 渲染层只消费已计算好的 UI 数据
+
+### Scheduler Subsystems
+
+`scheduler` 的后续演进在现有分层内继续细分为以下子系统：
+
+- `time/`
+  - range 归一化
+  - hour division 计算
+  - recurrence 视口窗口展开
+  - timezone 转换
+- `model/`
+  - `EventModel` 的 `allDay`、buffer、recurrence、timezone 归一化
+  - `ResourceModel` 或等价树形辅助结构
+- `controller/`
+  - `scheduler-layout`：all-day lane、多日分段、资源列布局
+  - `scheduler-validation`：invalid、overlap、editability、resource policy
+  - `scheduler-resources`：show/hide、group、collapse、shared events
+  - `scheduler-recurrence`：recurrence、exceptions、编辑作用域
+- `hooks/`
+  - create / move / resize
+  - external DnD
+  - cross-instance DnD
+- `components/`
+  - `SchedulerHeader`
+  - `SchedulerAllDayLane`
+  - `SchedulerTimeGrid`
+  - `SchedulerResourceColumns`
+  - `ResourceSidebar`
+  - `ResourceGroupHeader`
+  - `DragTimeTooltip`
+
+硬规则：
+
+- overlap、invalid、resource policy、recurrence scope 不允许写在组件层的临时条件分支里
+- 全天事件判定的唯一共享入口固定在 `controller/event.controller.ts`
 
 ### Store Pipeline
 
