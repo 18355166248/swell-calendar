@@ -3,12 +3,14 @@ import { EventUIModel } from '@/model/eventUIModel';
 import { addMinutes, maxTime, minTime } from '@/time/datetime';
 import DayjsTZDate from '@/time/dayjs-tzdate';
 import array from '@/utils/array';
-import { createEventCollection } from './event.controller';
+
 import { generate3DMatrix, getCollisionGroup } from './core.controller';
+import { createEventCollection } from './event.controller';
 import { getTopHeightByTime } from './time.controller';
 
 // 最小高度百分比，确保事件有最小显示高度
 const MIN_HEIGHT_PERCENT = 1;
+type EventSorter = (a: EventUIModel, b: EventUIModel) => number;
 
 /**
  * 渲染信息选项接口
@@ -55,13 +57,14 @@ export function isBetweenColumn(startColumnTime: DayjsTZDate, endColumnTime: Day
 export function setRenderInfoOfUIModels(
   events: EventUIModel[],
   startColumnTime: DayjsTZDate,
-  endColumnTime: DayjsTZDate
+  endColumnTime: DayjsTZDate,
+  eventSorter: EventSorter = array.compare.num.asc
 ) {
   // 过滤时间事件并按开始时间排序
   const uiModels = events
     .filter(isTimeEvent)
     .filter(isBetweenColumn(startColumnTime, endColumnTime))
-    .sort(array.compare.num.asc);
+    .sort(eventSorter);
 
   const collections = createEventCollection(...uiModels);
   const usingTravelTime = true;

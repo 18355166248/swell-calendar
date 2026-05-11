@@ -7,7 +7,7 @@
 
 ## 当前状态
 
-- 总状态：`[-] 进行中`
+- 总状态：`[x] 已完成`
 
 ## 步骤清单
 
@@ -16,8 +16,8 @@
 - [x] Step 8：接入 scheduler all-day lane 骨架
 - [x] Step 9：接入多日事件分段算法
 - [x] Step 10：接入 `colors`
-- [ ] Step 11：接入拖拽时间 tooltip
-- [ ] Step 12：接入 `EventObject.order`
+- [x] Step 11：接入拖拽时间 tooltip
+- [x] Step 12：接入 `EventObject.order`
 
 ## 目标
 

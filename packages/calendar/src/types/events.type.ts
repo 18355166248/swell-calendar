@@ -1,7 +1,8 @@
+import { KeyboardEvent, MouseEvent } from 'react';
+import { MarkOptional } from 'ts-essentials';
+
 import { EventUIModel } from '@/model/eventUIModel';
 import DayjsTZDate from '@/time/dayjs-tzdate';
-import { MouseEvent, KeyboardEvent } from 'react';
-import { MarkOptional } from 'ts-essentials';
 
 export type Matrix<T> = T[][];
 export type Matrix3d<T> = Matrix<T>[];
@@ -91,6 +92,7 @@ export interface EventObject {
   editable?: boolean;
   draggable?: boolean;
   resizable?: boolean;
+  order?: number;
   cssClass?: string;
   meta?: Record<string, unknown>;
   goingDuration?: number;
@@ -109,6 +111,7 @@ export type EventObjectWithDefaultValues = MarkOptional<
   | 'resourceIds'
   | 'timezone'
   | 'recurrence'
+  | 'order'
   | 'cssClass'
   | 'meta'
   | 'allDay'

@@ -1,19 +1,21 @@
-import { ResizingEventShadowProps } from '@/components/timeGrid/ResizingEventShadow';
-import { useDraggingEvent } from '../event/useDraggingEvent';
-import { useCurrentPointerPositionInGrid } from '../event/useCurrentPointerPositionInGrid';
-import { EventUIModel } from '@/model/eventUIModel';
-import { useCallback, useEffect, useMemo, useState } from 'react';
 import { findLastIndex, isNil } from 'lodash-es';
-import { addMinutes, setTimeStrToDate } from '@/time/datetime';
-import { useWhen } from '../common/useWhen';
-import DayjsTZDate from '@/time/dayjs-tzdate';
-import { TimeGridRow } from '@/types/grid.type';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+
+import { ResizingEventShadowProps } from '@/components/timeGrid/ResizingEventShadow';
 import { useCalendarCallbacks } from '@/contexts/calendarCallbacks';
+import { useCalendarStore } from '@/contexts/calendarStore';
 import {
   createUpdatedTimeGridEvent,
   shouldAcceptEventChange,
 } from '@/controller/scheduler.controller';
-import { useCalendarStore } from '@/contexts/calendarStore';
+import { EventUIModel } from '@/model/eventUIModel';
+import { addMinutes, setTimeStrToDate } from '@/time/datetime';
+import DayjsTZDate from '@/time/dayjs-tzdate';
+import { TimeGridRow } from '@/types/grid.type';
+
+import { useWhen } from '../common/useWhen';
+import { useCurrentPointerPositionInGrid } from '../event/useCurrentPointerPositionInGrid';
+import { useDraggingEvent } from '../event/useDraggingEvent';
 
 export function useTimeGridEventResize({
   gridPositionFinder,
@@ -129,6 +131,19 @@ export function useTimeGridEventResize({
     return baseResizingInfo ? timeGridData.rows[0].height : 0;
   }, [baseResizingInfo, timeGridData.rows]);
 
+  const nextStartTime = resizingStartUIModel?.getStarts() ?? null;
+
+  const nextEndTime = useMemo(() => {
+    if (!canCalculateGuideUIModel) {
+      return null;
+    }
+
+    return setTimeStrToDate(
+      timeGridData.columns[currentGridPos.columnIndex].date,
+      timeGridData.rows[currentGridPos.rowIndex].endTime
+    );
+  }, [canCalculateGuideUIModel, currentGridPos, timeGridData.columns, timeGridData.rows]);
+
   useEffect(() => {
     if (canCalculateGuideUIModel) {
       const { eventStartDateRowIndex, eventStartDateColumnIndex, eventEndDateColumnIndex } =
@@ -211,5 +226,7 @@ export function useTimeGridEventResize({
 
   return {
     guideUIModel,
+    nextEndTime,
+    nextStartTime,
   };
 }

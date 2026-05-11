@@ -1,4 +1,8 @@
+import dayjs from 'dayjs';
 import { Fragment } from 'react';
+
+import { cls } from '@/helpers/css';
+import { EventObjectWithDefaultValues } from '@/types/events.type';
 import {
   Template,
   TemplateMonthDayName,
@@ -6,9 +10,6 @@ import {
   TemplateNow,
   TemplateWeekDayName,
 } from '@/types/template.type';
-import dayjs from 'dayjs';
-import { cls } from '@/helpers/css';
-import { EventObjectWithDefaultValues } from '@/types/events.type';
 import { stripTags } from '@/utils/dom';
 
 export const templates: Template = {
@@ -69,21 +70,22 @@ export const templates: Template = {
 
     if (start) {
       return (
-        <>
-          <div>
-            <strong>{start.dayjs.format('HH:mm')}</strong>
-            <span> - </span>
-            <strong>{end.dayjs.format('HH:mm')}</strong>
-          </div>
-          <div>
-            <span>{stripTags(title)}</span>
-          </div>
-        </>
+        <span>
+          <strong>{start.dayjs.format('HH:mm')}</strong>
+          <span> - </span>
+          <strong>{end.dayjs.format('HH:mm')}</strong>&nbsp;
+          <span>{stripTags(title)}</span>
+        </span>
       );
     }
 
     return stripTags(title);
   },
+
+  timeMoveGuide(model: EventObjectWithDefaultValues) {
+    return `${model.start.dayjs.format('HH:mm')} - ${model.end.dayjs.format('HH:mm')}`;
+  },
+
   monthGridHeader(model: TemplateMonthGrid) {
     const date = parseInt(model.date.split('-')[2], 10);
     const classNames = cls('weekday-grid-date', { 'weekday-grid-date-decorator': model.isToday });

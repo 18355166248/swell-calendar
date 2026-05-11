@@ -12,7 +12,10 @@ import {
   getBlockedTimeLayoutsForColumn,
   shouldAcceptEventChange,
 } from '@/controller/scheduler.controller';
-import { getColoredLayoutsForColumn } from '@/controller/scheduler-layout';
+import {
+  compareSchedulerEventsByOrder,
+  getColoredLayoutsForColumn,
+} from '@/controller/scheduler-layout';
 import { getTopPercentByTime } from '@/controller/time.controller';
 import { cls, toPercent } from '@/helpers/css';
 import { createGridPositionFinder } from '@/helpers/grid';
@@ -77,6 +80,8 @@ export function TimeGrid({ timeGridData, events }: TimeGridProps) {
    * 为每一列筛选当天的事件，并计算渲染信息（位置、重叠处理等）
    */
   const totalUIModels = useMemo(() => {
+    const eventSorter = currentView === 'scheduler' ? compareSchedulerEventsByOrder : undefined;
+
     return (
       columns
         .map((column) => {
@@ -97,11 +102,12 @@ export function TimeGrid({ timeGridData, events }: TimeGridProps) {
             setTimeStrToDate(
               columns[columnsIndex].date,
               timeGridData.rows[timeGridData.rows.length - 1].endTime
-            )
+            ),
+            eventSorter
           );
         })
     );
-  }, [columns, events, timeGridData.rows]);
+  }, [columns, currentView, events, timeGridData.rows]);
 
   const blockedLayoutsByColumn = useMemo(() => {
     return columns.map((column) =>

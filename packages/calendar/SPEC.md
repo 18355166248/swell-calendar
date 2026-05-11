@@ -51,9 +51,10 @@ swell-calendar 是一个**可嵌入的 React 日历组件库**，面向需要在
 | 新建事件 | ✅ | 点击或框选时间段触发创建 |
 | 只读模式 | ✅ | `isReadOnly: true` 禁用所有交互 |
 | 自定义颜色 | ✅ | 按日历 ID 配置事件颜色 |
-| `invalid` / `blockedTimes` | 🟡 | 当前以 `blockedTimes` 为主名，近期收敛到 `invalid` |
-| all-day lane（scheduler） | ❌ | 近期能力，尚未实现 |
-| 多日事件分段（scheduler） | ❌ | 近期能力，尚未实现 |
+| `invalid` / `blockedTimes` | 🟡 | `invalid` 为主名，运行时兼容 `blockedTimes` |
+| `colors` 背景区段（scheduler） | ✅ | scheduler/timeline time-grid 背景时段，`invalid` 视觉层级在上 |
+| all-day lane（scheduler） | ✅ | scheduler 顶部全天事件栏 |
+| 多日事件分段（scheduler） | ✅ | scheduler time 事件按日期切分到资源列 |
 | overlap policy | ❌ | 近期能力，尚未实现 |
 | recurrence / timezone | 🟡 | 字段已有，行为尚未接入 |
 
@@ -77,6 +78,7 @@ interface CalendarOptions {
     narrowWeekend?: boolean;
     hourStart?: number;
     hourEnd?: number;
+    invalid?: BlockedTimeRange[];
     blockedTimes?: BlockedTimeRange[];
   };
   month?: {
@@ -87,7 +89,9 @@ interface CalendarOptions {
     resources?: ResourceInfo[];
     hourStart?: number;
     hourEnd?: number;
+    invalid?: BlockedTimeRange[];
     blockedTimes?: BlockedTimeRange[];
+    colors?: ColoredRange[];
   };
   timeline?: {
     resources?: ResourceInfo[];
@@ -95,7 +99,9 @@ interface CalendarOptions {
     hourEnd?: number;
     rowHeight?: number;
     cellWidth?: number;
+    invalid?: BlockedTimeRange[];
     blockedTimes?: BlockedTimeRange[];
+    colors?: ColoredRange[];
   };
   template?: Partial<Template>;
 }
@@ -120,6 +126,7 @@ interface EventObject {
   backgroundColor?: string;
   borderColor?: string;
   dragBackgroundColor?: string;
+  order?: number;
   isReadOnly?: boolean;
   editable?: boolean;
   draggable?: boolean;
@@ -149,6 +156,16 @@ interface BlockedTimeRange {
   end: Date | string;
   resourceId?: string;
   resourceIds?: string[];
+}
+
+interface ColoredRange {
+  start: Date | string;
+  end: Date | string;
+  resourceId?: string;
+  resourceIds?: string[];
+  background?: string;
+  color?: string;
+  cssClass?: string;
 }
 ```
 
@@ -244,7 +261,8 @@ interface CalendarInstance {
 - 宿主受控是默认数据所有权模型，最终事件数据始终以 `props.events` 为准
 - `scheduler` 当前已向宿主暴露资源化的区间选择创建意图和拖拽移动更新意图
 - `scheduler` 当前已支持 time-grid 内单列事件 resize 后的更新意图回调
+- `scheduler` 当前已有独立 layout pipeline，支持 all-day lane、多日 time 事件分段、`colors` 背景区段和同槽位 `order`
 - `create/move/resize` 当前支持通过 `onValidateEventChange` 做同步准入校验
-- `create/move/resize` 当前也会先检查 `blockedTimes`，命中后直接拒绝提交
-- `blockedTimes` 当前会在 time-grid 中渲染为只读遮罩，提示不可操作区域
+- `create/move/resize` 当前也会先检查 `invalid` / `blockedTimes`，命中后直接拒绝提交
+- `invalid` / `blockedTimes` 当前会在 time-grid 中渲染为只读遮罩，提示不可操作区域
 - 内部尚未内建事件编辑弹窗、冲突校验、blocked time 和 recurrence 编辑

@@ -1,8 +1,11 @@
-import { GridPositionFinder, TimeGridData } from '@/types/grid.type';
 import { isNil } from 'lodash-es';
-import { TimeEvent } from '../events/TimeEvent';
+
 import { useTimeGridEventResize } from '@/hooks/TimeGrid/useTimeGridEventResize';
 import { EventUIModel } from '@/model/eventUIModel';
+import { GridPositionFinder, TimeGridData } from '@/types/grid.type';
+
+import { TimeEvent } from '../events/TimeEvent';
+import { DragTimeTooltip } from '../scheduler/DragTimeTooltip';
 
 export interface ResizingEventShadowProps {
   totalUIModels: EventUIModel[][];
@@ -13,7 +16,7 @@ export interface ResizingEventShadowProps {
 
 function ResizingEventShadow(props: ResizingEventShadowProps) {
   const { gridPositionFinder, timeGridData, columnIndex, totalUIModels } = props;
-  const { guideUIModel } = useTimeGridEventResize({
+  const { guideUIModel, nextEndTime, nextStartTime } = useTimeGridEventResize({
     gridPositionFinder,
     timeGridData,
     columnIndex,
@@ -24,7 +27,12 @@ function ResizingEventShadow(props: ResizingEventShadowProps) {
     return null;
   }
 
-  return <TimeEvent uiModel={guideUIModel} isResizingEvent={true} />;
+  return (
+    <>
+      <TimeEvent uiModel={guideUIModel} isResizingEvent={true} />
+      <DragTimeTooltip uiModel={guideUIModel} start={nextStartTime} end={nextEndTime} />
+    </>
+  );
 }
 
 export default ResizingEventShadow;

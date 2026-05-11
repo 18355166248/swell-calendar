@@ -327,3 +327,59 @@ export const AllDayAndMultiDay: Story = {
     );
   },
 };
+
+export const DragTimeTooltipAndOrder: Story = {
+  render: () => {
+    const today = dayjs().startOf('day');
+    const events = [
+      {
+        id: 'order-2',
+        title: 'Order 2 - 右侧',
+        category: 'time' as const,
+        order: 2,
+        start: today.hour(9).minute(0).toDate(),
+        end: today.hour(11).minute(0).toDate(),
+        resourceId: 'r1',
+        backgroundColor: '#7c3aed',
+        color: '#fff',
+      },
+      {
+        id: 'order-1',
+        title: 'Order 1 - 左侧',
+        category: 'time' as const,
+        order: 1,
+        start: today.hour(9).minute(0).toDate(),
+        end: today.hour(11).minute(0).toDate(),
+        resourceId: 'r1',
+        backgroundColor: '#0f766e',
+        color: '#fff',
+      },
+      {
+        id: 'tooltip-target',
+        title: '拖拽或 resize 查看时间提示',
+        category: 'time' as const,
+        start: today.add(1, 'day').hour(13).minute(0).toDate(),
+        end: today.add(1, 'day').hour(15).minute(0).toDate(),
+        resourceId: 'r2',
+        backgroundColor: '#b45309',
+        color: '#fff',
+      },
+    ] satisfies EventObject[];
+
+    return (
+      <div style={{ position: 'absolute', inset: 0 }}>
+        <Calendar
+          events={events}
+          options={{
+            defaultView: 'scheduler',
+            scheduler: {
+              resources: RESOURCES,
+              hourStart: 8,
+              hourEnd: 20,
+            },
+          }}
+        />
+      </div>
+    );
+  },
+};

@@ -1,7 +1,10 @@
+import { isNil } from 'lodash-es';
+
 import { useTimeGridEventMove } from '@/hooks/TimeGrid/useTimeGridEventMove';
 import { GridPositionFinder, TimeGridData } from '@/types/grid.type';
-import { isNil } from 'lodash-es';
+
 import { TimeEvent } from '../events/TimeEvent';
+import { DragTimeTooltip } from '../scheduler/DragTimeTooltip';
 
 interface MovingEventShadowProps {
   timeGridData: TimeGridData;
@@ -20,7 +23,10 @@ function MovingEventShadow(props: MovingEventShadowProps) {
   }
 
   return (
-    <TimeEvent uiModel={movingEvent} nextStartTime={nextStartTime} nextEndTime={nextEndTime} />
+    <>
+      <TimeEvent uiModel={movingEvent} nextStartTime={nextStartTime} nextEndTime={nextEndTime} />
+      <DragTimeTooltip uiModel={movingEvent} start={nextStartTime} end={nextEndTime} />
+    </>
   );
 }
 

@@ -75,6 +75,20 @@ export function splitMultiDayTimeEvents(
   return result;
 }
 
+export function compareSchedulerEventsByOrder(a: EventUIModel, b: EventUIModel): number {
+  const orderCompare = (a.model.order ?? 0) - (b.model.order ?? 0);
+
+  if (orderCompare !== 0) {
+    return orderCompare;
+  }
+
+  return a.cid() - b.cid();
+}
+
+export function sortSchedulerEventsByOrder(events: EventUIModel[]): EventUIModel[] {
+  return [...events].sort(compareSchedulerEventsByOrder);
+}
+
 export function getSchedulerViewEvents(
   calendar: CalendarData,
   {
@@ -116,7 +130,7 @@ export function getSchedulerViewEvents(
 
   return {
     allday: flattenSchedulerDayGridMatrix(eventGroups.allday as DayGridEventMatrix),
-    time: splitMultiDayTimeEvents(timeEvents, start, end),
+    time: sortSchedulerEventsByOrder(splitMultiDayTimeEvents(timeEvents, start, end)),
   };
 }
 

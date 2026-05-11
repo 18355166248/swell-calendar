@@ -1,5 +1,7 @@
-import DayjsTZDate from '@/time/dayjs-tzdate';
 import { ReactElement } from 'react';
+
+import DayjsTZDate from '@/time/dayjs-tzdate';
+
 import { EventObjectWithDefaultValues, TimeUnit } from './events.type';
 
 export interface TemplateNow {
@@ -18,6 +20,7 @@ export interface Template {
   timeGridNowIndicatorLabel: (props: TemplateNow) => TemplateReturnType;
   time: (event: EventObjectWithDefaultValues) => TemplateReturnType;
   timeMove: (event: EventObjectWithDefaultValues) => TemplateReturnType;
+  timeMoveGuide: (event: EventObjectWithDefaultValues) => TemplateReturnType;
   monthGridHeader: (model: TemplateMonthGrid) => TemplateReturnType;
 }
 

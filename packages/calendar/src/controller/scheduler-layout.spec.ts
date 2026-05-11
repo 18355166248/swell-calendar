@@ -12,6 +12,7 @@ import {
   flattenSchedulerTimeEventMatrix,
   getColoredLayoutsForColumn,
   getSchedulerViewEvents,
+  sortSchedulerEventsByOrder,
   splitMultiDayTimeEvents,
 } from './scheduler-layout';
 
@@ -98,6 +99,46 @@ describe('scheduler-layout', () => {
     expect(result.allday).toHaveLength(1);
     expect(result.allday[0].model.id).toBe('e-all-day-1');
     expect(result.allday[0].model.title).toBe('scheduler-allday-event');
+  });
+
+  it('应该按 EventObject.order 对 scheduler 同槽位事件稳定排序', () => {
+    const first = new EventUIModel(
+      new EventModel({
+        id: 'order-first',
+        title: 'first',
+        order: 1,
+        start: new DayjsTZDate('2026-05-07T09:00:00'),
+        end: new DayjsTZDate('2026-05-07T10:00:00'),
+        resourceId: 'room-a',
+      })
+    );
+    const second = new EventUIModel(
+      new EventModel({
+        id: 'order-second',
+        title: 'second',
+        order: 2,
+        start: new DayjsTZDate('2026-05-07T09:00:00'),
+        end: new DayjsTZDate('2026-05-07T10:00:00'),
+        resourceId: 'room-a',
+      })
+    );
+    const defaultOrder = new EventUIModel(
+      new EventModel({
+        id: 'order-default',
+        title: 'default',
+        start: new DayjsTZDate('2026-05-07T09:00:00'),
+        end: new DayjsTZDate('2026-05-07T10:00:00'),
+        resourceId: 'room-a',
+      })
+    );
+
+    const result = sortSchedulerEventsByOrder([second, first, defaultOrder]);
+
+    expect(result.map((uiModel) => uiModel.model.id)).toEqual([
+      'order-default',
+      'order-first',
+      'order-second',
+    ]);
   });
 });
 

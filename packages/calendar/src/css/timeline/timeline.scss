@@ -153,6 +153,34 @@
   min-width: 0;
 }
 
+.scheduler-drag-time-tooltip {
+  position: fixed;
+  z-index: 1000;
+  pointer-events: none;
+  transform: translate(10px, -100%);
+  padding: 6px 10px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(15, 23, 42, 0.96);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 18px;
+  white-space: nowrap;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.28);
+}
+
+.scheduler-drag-time-tooltip::after {
+  position: absolute;
+  bottom: -5px;
+  left: 12px;
+  width: 8px;
+  height: 8px;
+  background: rgba(15, 23, 42, 0.96);
+  transform: rotate(45deg);
+  content: '';
+}
+
 .scheduler-header-date-row {
   display: flex;
   background: #fafafa;

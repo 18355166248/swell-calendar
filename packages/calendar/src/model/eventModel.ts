@@ -1,3 +1,6 @@
+import { isString } from 'lodash-es';
+
+import { collidesWith } from '@/helpers/event';
 import { MS_PER_DAY, parseDateTime, toEndOfDay, toStartOfDay } from '@/time/datetime';
 import DayjsTZDate from '@/time/dayjs-tzdate';
 import {
@@ -7,9 +10,8 @@ import {
   EventObjectWithDefaultValues,
 } from '@/types/events.type';
 import { stamp } from '@/utils/stamp';
+
 import { EventUIModel } from './eventUIModel';
-import { collidesWith } from '@/helpers/event';
-import { isString } from 'lodash-es';
 
 export class EventModel implements EventObject {
   id = '';
@@ -28,6 +30,7 @@ export class EventModel implements EventObject {
   editable = true;
   draggable = true;
   resizable = true;
+  order?: number;
   // 是否包含多个日期
   hasMultiDates = false;
   /** 前往事件地点的行程时间（分钟） */
@@ -43,7 +46,7 @@ export class EventModel implements EventObject {
   /** 事件边框颜色 */
   borderColor?: string;
   /** 原始事件数据 */
-  raw: any = null;
+  raw: EventObject['raw'] = null;
   /** 资源ID，用于 Scheduler 视图 */
   resourceId?: string;
   resourceIds?: string[];
@@ -74,6 +77,7 @@ export class EventModel implements EventObject {
     editable = true,
     draggable = true,
     resizable = true,
+    order,
     resourceId,
     resourceIds,
     timezone,
@@ -96,6 +100,7 @@ export class EventModel implements EventObject {
     this.editable = editable;
     this.draggable = draggable;
     this.resizable = resizable;
+    this.order = order;
     this.resourceId = resourceId;
     this.resourceIds = resourceIds;
     this.timezone = timezone;
@@ -238,6 +243,7 @@ export class EventModel implements EventObject {
       editable: this.editable,
       draggable: this.draggable,
       resizable: this.resizable,
+      order: this.order,
       timezone: this.timezone,
       recurrence: this.recurrence,
       cssClass: this.cssClass,
@@ -271,6 +277,7 @@ export class EventModel implements EventObject {
       editable: this.editable,
       draggable: this.draggable,
       resizable: this.resizable,
+      order: this.order,
       raw: this.raw,
       resourceId: this.resourceId,
       resourceIds: this.resourceIds,

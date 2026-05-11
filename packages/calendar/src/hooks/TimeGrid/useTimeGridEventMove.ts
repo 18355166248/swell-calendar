@@ -1,79 +1,68 @@
 // 导入日历状态管理store，用于获取拖拽初始位置
-import { useCalendarStore } from '@/contexts/calendarStore';
-// 导入网格位置相关类型定义
-import { GridPosition, GridPositionFinder, TimeGridData } from '@/types/grid.type';
-// 导入日历状态类型定义
-import { CalendarState } from '@/types/store.type';
-// 导入拖拽事件钩子，用于管理拖拽状态
-import { useDraggingEvent } from '../event/useDraggingEvent';
-// 导入当前指针在网格中位置的钩子
-import { useCurrentPointerPositionInGrid } from '../event/useCurrentPointerPositionInGrid';
-// 导入React核心钩子
-import { useCallback, useEffect, useMemo, useRef } from 'react';
 // 导入lodash工具函数，用于空值检查
 import { isNil } from 'lodash-es';
-// 导入时间处理工具函数和常量
-import { addMinutes, MS_PER_DAY, MS_PER_THIRTY_MINUTES } from '@/time/datetime';
-// 导入事件UI模型类
-import { EventUIModel } from '@/model/eventUIModel';
-// 导入时区日期处理类
-import DayjsTZDate from '@/time/dayjs-tzdate';
-import { useWhen } from '../common/useWhen';
+// 导入React核心钩子
+import { useCallback, useEffect, useMemo, useRef } from 'react';
+
 import { useCalendarCallbacks } from '@/contexts/calendarCallbacks';
+import { useCalendarStore } from '@/contexts/calendarStore';
 import {
   createUpdatedTimeGridEvent,
   shouldAcceptEventChange,
 } from '@/controller/scheduler.controller';
+// 导入网格位置相关类型定义
+import { getTopHeightByTime } from '@/controller/time.controller';
+// 导入事件UI模型类
+import { EventUIModel } from '@/model/eventUIModel';
+// 导入时间处理工具函数和常量
+import {
+  addMinutes,
+  getDateDifference,
+  MS_PER_DAY,
+  MS_PER_THIRTY_MINUTES,
+  setTimeStrToDate,
+} from '@/time/datetime';
+// 导入时区日期处理类
+import DayjsTZDate from '@/time/dayjs-tzdate';
+import {
+  CommonGridColumn,
+  GridPosition,
+  GridPositionFinder,
+  TimeGridData,
+} from '@/types/grid.type';
+// 导入日历状态类型定义
+import { CalendarState } from '@/types/store.type';
 
-// 定义30分钟的时间间隔常量，用于网格计算
-const THIRTY_MINUTES = 30;
-
-/**
- * 根据时间获取当前在时间网格中的索引位置
- * @param time - 目标时间
- * @param hourStart - 时间网格的起始小时
- * @returns 在时间网格中的行索引
- */
-function getCurrentIndexByTime(time: DayjsTZDate, hourStart: number) {
-  // 计算相对于起始小时的小时差
-  const hour = time.getHours() - hourStart;
-  // 获取分钟数
-  const minutes = time.getMinutes();
-
-  // 计算在30分钟间隔网格中的位置：每小时2行（30分钟一行）
-  return hour * 2 + Math.floor(minutes / THIRTY_MINUTES);
-}
+import { useWhen } from '../common/useWhen';
+// 导入当前指针在网格中位置的钩子
+import { useCurrentPointerPositionInGrid } from '../event/useCurrentPointerPositionInGrid';
+// 导入拖拽事件钩子，用于管理拖拽状态
+import { useDraggingEvent } from '../event/useDraggingEvent';
 
 /**
  * 计算移动中事件的位置信息
  * @param draggingEvent - 正在拖拽的事件
- * @param columnDiff - 列索引差值
+ * @param dateDiff - 日期差值
  * @param rowDiff - 行索引差值
  * @param timeGridDataRows - 时间网格行数据
  * @param currentDate - 当前日期
  * @returns 包含top和height的位置信息
  */
-function getMovingEventPosition({
+export function getMovingEventLayout({
   draggingEvent,
-  columnDiff,
+  dateDiff,
   rowDiff,
   timeGridDataRows,
-  currentDate,
+  targetColumn,
 }: {
   draggingEvent: EventUIModel;
-  columnDiff: number;
+  dateDiff: number;
   rowDiff: number;
   timeGridDataRows: TimeGridData['rows'];
-  currentDate: DayjsTZDate;
+  targetColumn: CommonGridColumn;
 }) {
-  // 获取单行高度
-  const rowHeight = timeGridDataRows[0].height;
-  // 计算网格最大高度
-  const maxHeight = rowHeight * timeGridDataRows.length;
-  // 计算时间差（毫秒）：行差*30分钟 + 列差*1天
-  const millisecondsDiff = rowDiff * MS_PER_THIRTY_MINUTES + columnDiff * MS_PER_DAY;
-  // 从第一行数据中提取起始小时
-  const hourStart = Number(timeGridDataRows[0].startTime.split(':')[0]);
+  // 计算时间差（毫秒）：行差*30分钟 + 日期差*1天
+  const millisecondsDiff = rowDiff * MS_PER_THIRTY_MINUTES + dateDiff * MS_PER_DAY;
   // 获取事件的持续时间信息（缓冲时间）
   const { goingDuration = 0, comingDuration = 0 } = draggingEvent.model;
   // 计算包含缓冲时间的开始时间（减去going缓冲时间）
@@ -84,33 +73,22 @@ function getMovingEventPosition({
   const nextStart = goingStart.addMilliseconds(millisecondsDiff);
   // 计算移动后的新结束时间
   const nextEnd = comingEnd.addMilliseconds(millisecondsDiff);
-
-  // 计算在网格中的开始索引，确保不小于0
-  const startIndex = Math.max(getCurrentIndexByTime(nextStart, hourStart), 0);
-  // 计算在网格中的结束索引，确保不超过最大行数
-  const endIndex = Math.min(getCurrentIndexByTime(nextEnd, hourStart), timeGridDataRows.length - 1);
-
-  // 检查是否跨日期边界：开始时间是否在前一天
-  const isStartAtPrevDate =
-    nextStart.getFullYear() < currentDate.getFullYear() ||
-    nextStart.getMonth() < currentDate.getMonth() ||
-    nextStart.getDate() < currentDate.getDate();
-  // 检查是否跨日期边界：结束时间是否在后一天
-  const isEndAtNextDate =
-    nextEnd.getFullYear() > currentDate.getFullYear() ||
-    nextEnd.getMonth() > currentDate.getMonth() ||
-    nextEnd.getDate() > currentDate.getDate();
-
-  // 计算索引差值，如果开始时间在前一天则从0开始计算
-  const indexDiff = endIndex - (isStartAtPrevDate ? 0 : startIndex);
-
-  // 计算最终的top位置：如果开始时间在前一天则从0开始，否则使用计算出的开始位置
-  const top = isStartAtPrevDate ? 0 : timeGridDataRows[startIndex].top;
-  // 计算最终的高度：如果结束时间在后一天则使用最大高度，否则使用计算出的高度
-  const height = isEndAtNextDate ? maxHeight : Math.max(indexDiff, 1) * rowHeight;
+  const visibleStart = setTimeStrToDate(targetColumn.date, timeGridDataRows[0].startTime);
+  const visibleEnd = setTimeStrToDate(
+    targetColumn.date,
+    timeGridDataRows[timeGridDataRows.length - 1].endTime
+  );
+  const renderStart = nextStart < visibleStart ? visibleStart : nextStart;
+  const renderEnd = nextEnd > visibleEnd ? visibleEnd : nextEnd;
+  const { top, height } = getTopHeightByTime(renderStart, renderEnd, visibleStart, visibleEnd);
 
   // 返回计算出的位置信息
-  return { top, height };
+  return {
+    left: targetColumn.left + (targetColumn.width * draggingEvent.left) / 100,
+    width: (targetColumn.width * draggingEvent.width) / 100,
+    top,
+    height,
+  };
 }
 
 // 选择器：从状态中获取拖拽初始X坐标
@@ -174,9 +152,13 @@ export function useTimeGridEventMove({
     // 返回列差和行差
     return {
       columnDiff: currentGridPos.columnIndex - initGridPosRef.current.columnIndex, // 列索引差值
+      dateDiff: getDateDifference(
+        timeGridData.columns[currentGridPos.columnIndex].date,
+        timeGridData.columns[initGridPosRef.current.columnIndex].date
+      ), // 日期差值
       rowDiff: currentGridPos.rowIndex - initGridPosRef.current.rowIndex, // 行索引差值
     };
-  }, [currentGridPos]); // 依赖项：当前网格位置
+  }, [currentGridPos, timeGridData.columns]); // 依赖项：当前网格位置
 
   // 获取拖拽事件的开始时间
   const startDateTime = useMemo(() => {
@@ -196,9 +178,9 @@ export function useTimeGridEventMove({
       return null;
     }
 
-    // 根据网格差值计算新的开始时间：行差*30分钟 + 列差*1天
+    // 根据网格差值计算新的开始时间：行差*30分钟 + 日期差*1天
     return startDateTime.addMilliseconds(
-      gridDiff.rowDiff * MS_PER_THIRTY_MINUTES + gridDiff.columnDiff * MS_PER_DAY
+      gridDiff.rowDiff * MS_PER_THIRTY_MINUTES + gridDiff.dateDiff * MS_PER_DAY
     );
   }, [gridDiff, startDateTime]); // 依赖项：网格差值和开始时间
 
@@ -227,18 +209,19 @@ export function useTimeGridEventMove({
     const clonedEvent = draggingEvent.clone();
 
     // 计算移动后的位置信息
-    const { top, height } = getMovingEventPosition({
+    const targetColumn = timeGridData.columns[currentGridPos.columnIndex];
+    const { left, width, top, height } = getMovingEventLayout({
       draggingEvent: clonedEvent, // 克隆的事件对象
-      columnDiff: gridDiff.columnDiff, // 列差值
+      dateDiff: gridDiff.dateDiff, // 日期差值
       rowDiff: gridDiff.rowDiff, // 行差值
       timeGridDataRows: timeGridData.rows, // 时间网格行数据
-      currentDate: timeGridData.columns[currentGridPos.columnIndex].date, // 当前列对应的日期
+      targetColumn,
     });
 
     // 更新事件的UI属性（位置和尺寸）
     clonedEvent.setUIProps({
-      left: timeGridData.columns[currentGridPos.columnIndex].left, // 左边界位置
-      width: timeGridData.columns[currentGridPos.columnIndex].width, // 宽度
+      left, // 左边界位置
+      width, // 宽度
       top, // 顶部位置
       height, // 高度
     });
