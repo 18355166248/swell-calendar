@@ -18,7 +18,7 @@
 - [x] Step 17：接入已有 per-event gate
 - [x] Step 18：建立 failed callback 骨架
 - [x] Step 19：接入 `invalid` 失败原因
-- [ ] Step 20：接入全局 overlap 策略
+- [x] Step 20：接入全局 overlap 策略
 - [ ] Step 21：接入 per-event `overlap`
 - [ ] Step 22：接入 `bufferBefore` / `bufferAfter`
 - [ ] Step 23：扩展 delete action
@@ -245,3 +245,4 @@
 - scheduler 已接入事件级 `editable` / `draggable` / `resizable`：controller 会拒绝被禁用的 move / resize，事件卡片在 scheduler 下也会隐藏对应拖拽或 resize 入口
 - 已新增 `onEventCreateFailed` / `onEventUpdateFailed` / `onEventDelete` 类型入口，并在 scheduler policy 拒绝 create / move / resize 时派发 `reason=policy` 与 `policySource`
 - scheduler create / move / resize 命中 `invalid` 时会派发 failed callback，`reason=invalid`
+- scheduler 已接入全局 `eventOverlap=false` 策略：同资源事件时间重叠时拒绝 create / move / resize，并派发 `reason=overlap`

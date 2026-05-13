@@ -106,9 +106,11 @@ const initYSelector = (state: CalendarState) => state.dnd.initY;
 export function useTimeGridEventMove({
   gridPositionFinder,
   timeGridData,
+  existingEvents,
 }: {
   gridPositionFinder: GridPositionFinder;
   timeGridData: TimeGridData;
+  existingEvents: EventUIModel[];
 }) {
   // 从store中获取拖拽初始X坐标
   const initX = useCalendarStore(initXSelector);
@@ -258,6 +260,7 @@ export function useTimeGridEventMove({
           view: currentView,
           event: updatedEvent,
           previousEvent: draggingEvent.model.toEventObject(),
+          existingEvents: existingEvents.map((uiModel) => uiModel.model.toEventObject()),
         })
       ) {
         callbacks?.onEventUpdate?.({

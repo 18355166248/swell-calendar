@@ -212,6 +212,7 @@ export function useTimeGridEventResize({
           view: currentView,
           event: updatedEvent,
           previousEvent: resizingStartUIModel.model.toEventObject(),
+          existingEvents: totalUIModels.flat().map((uiModel) => uiModel.model.toEventObject()),
         })
       ) {
         callbacks?.onEventUpdate?.({

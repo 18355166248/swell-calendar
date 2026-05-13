@@ -210,6 +210,7 @@ export function TimeGrid({ timeGridData, events }: TimeGridProps) {
           action: 'create',
           view: currentView,
           event,
+          existingEvents: events.map((uiModel) => uiModel.model.toEventObject()),
         })
       ) {
         callbacks?.onEventCreate?.({ event });
@@ -233,7 +234,11 @@ export function TimeGrid({ timeGridData, events }: TimeGridProps) {
           <GridLines timeGridRows={timeGridData.rows} />
 
           {/* 已有事件时间拖拽时的预览效果 */}
-          <MovingEventShadow gridPositionFinder={gridPositionFinder} timeGridData={timeGridData} />
+          <MovingEventShadow
+            gridPositionFinder={gridPositionFinder}
+            timeGridData={timeGridData}
+            events={events}
+          />
 
           {/* 渲染日期列 */}
           {columns.map((col, index) => (

@@ -107,6 +107,7 @@ export interface SchedulerOptions {
   dragToMove?: boolean;
   dragToResize?: boolean;
   dragInTime?: boolean;
+  eventOverlap?: boolean;
 }
 
 export interface TimelineOptions extends SchedulerOptions {

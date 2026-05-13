@@ -25,6 +25,52 @@ function getTimeValue(value: EventObject['start']) {
   return value.getTime();
 }
 
+function hasTimeValue(event: EventObject) {
+  return Boolean(event.start && event.end);
+}
+
+function getResourceIds(event: EventObject) {
+  return [event.resourceId, ...(event.resourceIds ?? [])].filter(
+    (resourceId): resourceId is string => Boolean(resourceId)
+  );
+}
+
+function isSameEvent(event: EventObject, previousEvent?: EventObjectWithDefaultValues) {
+  if (!previousEvent) {
+    return false;
+  }
+
+  const eventCid = (event as EventObjectWithDefaultValues).__cid;
+
+  if (eventCid && eventCid === previousEvent.__cid) {
+    return true;
+  }
+
+  return Boolean(event.id && event.id === previousEvent.id);
+}
+
+function isSameResourceScope(event: EventObject, targetEvent: EventObject) {
+  const resourceIds = getResourceIds(event);
+  const targetResourceIds = getResourceIds(targetEvent);
+
+  if (resourceIds.length === 0 || targetResourceIds.length === 0) {
+    return true;
+  }
+
+  return resourceIds.some((resourceId) => targetResourceIds.includes(resourceId));
+}
+
+function overlapsTime(event: EventObject, targetEvent: EventObject) {
+  if (!hasTimeValue(event) || !hasTimeValue(targetEvent)) {
+    return false;
+  }
+
+  return (
+    getTimeValue(event.start) < getTimeValue(targetEvent.end) &&
+    getTimeValue(event.end) > getTimeValue(targetEvent.start)
+  );
+}
+
 function getBlockedTimesByView(options: Options, view: ViewType): BlockedTimeRange[] {
   if (view === 'scheduler') {
     return options.scheduler?.invalid ?? options.scheduler?.blockedTimes ?? [];
@@ -286,6 +332,25 @@ function dispatchEventChangeFailed(
   callbacks?.onEventUpdateFailed?.(info);
 }
 
+function isOverlappingSchedulerEventChange(
+  options: Options,
+  event: EventObject,
+  existingEvents: EventObject[] = [],
+  previousEvent?: EventObjectWithDefaultValues
+) {
+  if (options.scheduler?.eventOverlap !== false) {
+    return false;
+  }
+
+  return existingEvents.some((existingEvent) => {
+    return (
+      !isSameEvent(existingEvent, previousEvent) &&
+      isSameResourceScope(event, existingEvent) &&
+      overlapsTime(event, existingEvent)
+    );
+  });
+}
+
 export function shouldAcceptEventChange(
   options: Options,
   callbacks: CalendarCallbacks | null | undefined,
@@ -294,11 +359,13 @@ export function shouldAcceptEventChange(
     view,
     event,
     previousEvent,
+    existingEvents,
   }: {
     action: CalendarEventChangeAction;
     view: ViewType;
     event: EventObject;
     previousEvent?: EventObjectWithDefaultValues;
+    existingEvents?: EventObject[];
   }
 ) {
   if (view === 'scheduler') {
@@ -316,6 +383,19 @@ export function shouldAcceptEventChange(
       });
       return false;
     }
+  }
+
+  if (
+    view === 'scheduler' &&
+    isOverlappingSchedulerEventChange(options, event, existingEvents, previousEvent)
+  ) {
+    dispatchEventChangeFailed(callbacks, {
+      reason: 'overlap',
+      action,
+      event,
+      previousEvent,
+    });
+    return false;
   }
 
   if (isBlockedEventChange(options, view, event)) {

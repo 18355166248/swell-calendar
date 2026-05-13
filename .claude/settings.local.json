@@ -13,7 +13,9 @@
       "Bash(yes)",
       "Bash(pnpm check:types)",
       "Bash(pnpm lint *)",
-      "Bash(git stash *)"
+      "Bash(git stash *)",
+      "Bash(node scripts/check-arch.mjs)",
+      "Bash(npx prettier *)"
     ]
   }
 }
