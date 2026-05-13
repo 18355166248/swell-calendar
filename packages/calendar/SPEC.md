@@ -55,7 +55,7 @@ swell-calendar 是一个**可嵌入的 React 日历组件库**，面向需要在
 | `colors` 背景区段（scheduler） | ✅ | scheduler/timeline time-grid 背景时段，`invalid` 视觉层级在上 |
 | all-day lane（scheduler） | ✅ | scheduler 顶部全天事件栏 |
 | 多日事件分段（scheduler） | ✅ | scheduler time 事件按日期切分到资源列 |
-| overlap policy | 🟡 | scheduler 全局 `eventOverlap` 已接入，per-event `overlap` 待接入 |
+| overlap policy | ✅ | scheduler 全局 `eventOverlap` 与 per-event `overlap` 均已接入 |
 | recurrence / timezone | 🟡 | 字段已有，行为尚未接入 |
 
 ### 配置选项（`CalendarOptions`）

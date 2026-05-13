@@ -319,4 +319,40 @@ describe('scheduler validation', () => {
       previousEvent,
     });
   });
+
+  it('应该在 scheduler 事件 editable 关闭时拒绝删除并触发 onEventUpdateFailed', () => {
+    const callbacks = {
+      onEventUpdateFailed: vi.fn(),
+    };
+    const previousEvent = createPreviousEvent({ editable: false });
+
+    const accepted = shouldAcceptEventChange({}, callbacks, {
+      action: 'delete',
+      view: 'scheduler',
+      event: previousEvent,
+      previousEvent,
+    });
+
+    expect(accepted).toBe(false);
+    expect(callbacks.onEventUpdateFailed).toHaveBeenCalledWith({
+      reason: 'policy',
+      policySource: 'event',
+      action: 'delete',
+      event: previousEvent,
+      previousEvent,
+    });
+  });
+
+  it('应该在 scheduler 事件 editable 开启时允许删除', () => {
+    const previousEvent = createPreviousEvent({ editable: true });
+
+    const accepted = shouldAcceptEventChange({}, null, {
+      action: 'delete',
+      view: 'scheduler',
+      event: previousEvent,
+      previousEvent,
+    });
+
+    expect(accepted).toBe(true);
+  });
 });

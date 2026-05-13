@@ -15,7 +15,9 @@
       "Bash(pnpm lint *)",
       "Bash(git stash *)",
       "Bash(node scripts/check-arch.mjs)",
-      "Bash(npx prettier *)"
+      "Bash(npx prettier *)",
+      "Bash(pnpm storybook *)",
+      "Bash(npx storybook *)"
     ]
   }
 }

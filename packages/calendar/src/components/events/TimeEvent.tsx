@@ -1,10 +1,11 @@
 import { isNil, isString } from 'lodash-es';
-import { MouseEvent, useState } from 'react';
+import { KeyboardEvent, MouseEvent, useState } from 'react';
 
 import { TIME_EVENT_CONTAINER_MARGIN_LEFT } from '@/constants/style.const';
 import { useCalendarCallbacks } from '@/contexts/calendarCallbacks';
 import { useCalendarStore } from '@/contexts/calendarStore';
 import { useLayoutContainer } from '@/contexts/layoutContainer';
+import { shouldAcceptEventChange } from '@/controller/scheduler.controller';
 import { cls, extractPercentPx, getEventColors, toPercent } from '@/helpers/css';
 import { DRAGGING_TYPE_CREATE } from '@/helpers/drag';
 import { useCalendarColor } from '@/hooks/calendar/useCalendarColor';
@@ -336,13 +337,38 @@ export function TimeEvent({
     });
   };
 
+  const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (currentView !== 'scheduler') {
+      return;
+    }
+
+    if (e.key !== 'Delete' && e.key !== 'Backspace') {
+      return;
+    }
+
+    const eventObject = model.toEventObject();
+
+    if (
+      shouldAcceptEventChange(options, callbacks, {
+        action: 'delete',
+        view: currentView,
+        event: eventObject,
+        previousEvent: eventObject,
+      })
+    ) {
+      callbacks?.onEventDelete?.({ event: eventObject });
+    }
+  };
+
   const templateName = currentView === 'scheduler' && !hasNextStartTime ? 'schedulerTime' : 'time';
 
   return (
     <div
       className={classNames.time}
       style={containerStyle}
+      tabIndex={currentView === 'scheduler' ? 0 : undefined}
       onMouseDown={handleMoveStart}
+      onKeyDown={handleKeyDown}
       onPointerEnter={handleMouseEnter}
       onPointerLeave={handleMouseLeave}
     >

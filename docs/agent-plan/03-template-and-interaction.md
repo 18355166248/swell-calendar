@@ -7,7 +7,7 @@
 
 ## 当前状态
 
-- 总状态：`[-] 进行中`
+- 总状态：`[x] 已完成`
 
 ## 步骤清单
 
@@ -19,9 +19,8 @@
 - [x] Step 18：建立 failed callback 骨架
 - [x] Step 19：接入 `invalid` 失败原因
 - [x] Step 20：接入全局 overlap 策略
-- [ ] Step 21：接入 per-event `overlap`
-- [ ] Step 22：接入 `bufferBefore` / `bufferAfter`
-- [ ] Step 23：扩展 delete action
+- [x] Step 21：接入 per-event `overlap`
+- [x] Step 22：接入 `bufferBefore` / `bufferAfter`- [x] Step 23：扩展 delete action
 
 ## 目标
 
@@ -245,4 +244,6 @@
 - scheduler 已接入事件级 `editable` / `draggable` / `resizable`：controller 会拒绝被禁用的 move / resize，事件卡片在 scheduler 下也会隐藏对应拖拽或 resize 入口
 - 已新增 `onEventCreateFailed` / `onEventUpdateFailed` / `onEventDelete` 类型入口，并在 scheduler policy 拒绝 create / move / resize 时派发 `reason=policy` 与 `policySource`
 - scheduler create / move / resize 命中 `invalid` 时会派发 failed callback，`reason=invalid`
-- scheduler 已接入全局 `eventOverlap=false` 策略：同资源事件时间重叠时拒绝 create / move / resize，并派发 `reason=overlap`
+- scheduler 已接入 per-event `overlap` 字段：`overlap=false` 拒绝被任何事件覆盖或覆盖任何事件；`overlap=true` 覆盖全局 `eventOverlap=false`；两侧互斥时 `false` 优先级最高
+- scheduler 已接入 per-event `bufferBefore` / `bufferAfter`（分钟）：buffer 参与 overlap 冲突判定，不影响视觉高度和时间长度
+- `CalendarEventChangeAction` 已包含 `delete`；scheduler 事件卡片在聚焦状态下按 Delete/Backspace 键触发删除，经 per-event editable gate 校验后派发 `onEventDelete`；被拒绝时派发 `onEventUpdateFailed(reason=policy)`

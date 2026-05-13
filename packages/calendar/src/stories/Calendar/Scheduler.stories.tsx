@@ -506,3 +506,306 @@ export const InteractionCallbacks: Story = {
     );
   },
 };
+
+const OVERLAP_RESOURCES = [
+  { id: 'r1', name: '会议室 A', backgroundColor: '#3b82f6', color: '#fff' },
+  { id: 'r2', name: '会议室 B', backgroundColor: '#10b981', color: '#fff' },
+];
+
+function makeDate(hour: number, minute = 0) {
+  const today = new DayjsTZDate();
+  return dayjs(today.getTime()).startOf('week').add(1, 'day').hour(hour).minute(minute).toDate();
+}
+
+const OVERLAP_EVENTS: EventObject[] = [
+  {
+    id: 'ov-1',
+    title: '🔒 不可被覆盖 (overlap=false)',
+    start: makeDate(9),
+    end: makeDate(10),
+    resourceId: 'r1',
+    backgroundColor: '#ef4444',
+    color: '#fff',
+    overlap: false,
+  },
+  {
+    id: 'ov-2',
+    title: '✅ 允许重叠 (overlap=true)',
+    start: makeDate(11),
+    end: makeDate(12),
+    resourceId: 'r1',
+    backgroundColor: '#22c55e',
+    color: '#fff',
+    overlap: true,
+  },
+  {
+    id: 'ov-3',
+    title: '默认事件 (跟随全局)',
+    start: makeDate(13),
+    end: makeDate(14),
+    resourceId: 'r1',
+    backgroundColor: '#6366f1',
+    color: '#fff',
+  },
+  {
+    id: 'ov-4',
+    title: '移动我到 r1 试试',
+    start: makeDate(9),
+    end: makeDate(10),
+    resourceId: 'r2',
+    backgroundColor: '#f59e0b',
+    color: '#fff',
+  },
+];
+
+export const OverlapPolicy: Story = {
+  render: function OverlapPolicyStory() {
+    const [events, setEvents] = useState<EventObject[]>(OVERLAP_EVENTS);
+    const [log, setLog] = useState<string[]>(['操作日志（最新在上）']);
+
+    const addLog = (msg: string) => setLog((prev) => [msg, ...prev.slice(0, 6)]);
+
+    const callbacks = useMemo<CalendarCallbacks>(
+      () => ({
+        onEventUpdate: ({ event, previousEvent }) => {
+          setEvents((cur) => cur.map((e) => (e.id === previousEvent.id ? { ...e, ...event } : e)));
+          addLog(`✅ 移动成功: ${event.title ?? event.id}`);
+        },
+        onEventCreateFailed: ({ reason, event }) => {
+          addLog(`❌ 创建失败 [${reason}]: ${event.title ?? event.id}`);
+        },
+        onEventUpdateFailed: ({ reason, event }) => {
+          addLog(`❌ 移动失败 [${reason}]: ${event.title ?? event.id}`);
+        },
+      }),
+      []
+    );
+
+    return (
+      <SchedulerStoryFrame>
+        <div
+          style={{
+            position: 'absolute',
+            top: 12,
+            right: 12,
+            zIndex: 10,
+            padding: '10px 14px',
+            borderRadius: 8,
+            background: 'rgba(15, 23, 42, 0.88)',
+            color: '#fff',
+            fontSize: 11,
+            lineHeight: 1.7,
+            maxWidth: 320,
+          }}
+        >
+          <div style={{ marginBottom: 6, fontWeight: 600, fontSize: 12 }}>
+            全局 eventOverlap=false，per-event 可覆盖
+          </div>
+          {log.map((l, i) => (
+            <div key={i}>{l}</div>
+          ))}
+        </div>
+        <Calendar
+          events={events}
+          callbacks={callbacks}
+          options={{
+            defaultView: 'scheduler',
+            scheduler: {
+              resources: OVERLAP_RESOURCES,
+              hourStart: 8,
+              hourEnd: 18,
+              eventOverlap: false,
+            },
+          }}
+        />
+      </SchedulerStoryFrame>
+    );
+  },
+};
+
+const BUFFER_EVENTS: EventObject[] = [
+  {
+    id: 'buf-1',
+    title: '⏱ bufferAfter=60min',
+    start: makeDate(9),
+    end: makeDate(10),
+    resourceId: 'r1',
+    backgroundColor: '#7c3aed',
+    color: '#fff',
+    bufferAfter: 60,
+  },
+  {
+    id: 'buf-2',
+    title: '⏱ bufferBefore=30min',
+    start: makeDate(13),
+    end: makeDate(14),
+    resourceId: 'r1',
+    backgroundColor: '#0891b2',
+    color: '#fff',
+    bufferBefore: 30,
+  },
+  {
+    id: 'buf-3',
+    title: '拖我到 r1 的缓冲区',
+    start: makeDate(9),
+    end: makeDate(10),
+    resourceId: 'r2',
+    backgroundColor: '#f59e0b',
+    color: '#fff',
+  },
+];
+
+export const BufferTimes: Story = {
+  render: function BufferTimesStory() {
+    const [events, setEvents] = useState<EventObject[]>(BUFFER_EVENTS);
+    const [log, setLog] = useState<string[]>(['拖拽到缓冲区内会被拒绝']);
+
+    const addLog = (msg: string) => setLog((prev) => [msg, ...prev.slice(0, 6)]);
+
+    const callbacks = useMemo<CalendarCallbacks>(
+      () => ({
+        onEventUpdate: ({ event, previousEvent }) => {
+          setEvents((cur) => cur.map((e) => (e.id === previousEvent.id ? { ...e, ...event } : e)));
+          addLog(`✅ 移动成功: ${event.title ?? event.id}`);
+        },
+        onEventUpdateFailed: ({ reason, event }) => {
+          addLog(`❌ 移动失败 [${reason}]: ${event.title ?? event.id}`);
+        },
+      }),
+      []
+    );
+
+    return (
+      <SchedulerStoryFrame>
+        <div
+          style={{
+            position: 'absolute',
+            top: 12,
+            right: 12,
+            zIndex: 10,
+            padding: '10px 14px',
+            borderRadius: 8,
+            background: 'rgba(15, 23, 42, 0.88)',
+            color: '#fff',
+            fontSize: 11,
+            lineHeight: 1.7,
+            maxWidth: 320,
+          }}
+        >
+          <div style={{ marginBottom: 6, fontWeight: 600, fontSize: 12 }}>
+            bufferAfter / bufferBefore 参与冲突判定
+          </div>
+          {log.map((l, i) => (
+            <div key={i}>{l}</div>
+          ))}
+        </div>
+        <Calendar
+          events={events}
+          callbacks={callbacks}
+          options={{
+            defaultView: 'scheduler',
+            scheduler: {
+              resources: OVERLAP_RESOURCES,
+              hourStart: 8,
+              hourEnd: 18,
+              eventOverlap: false,
+            },
+          }}
+        />
+      </SchedulerStoryFrame>
+    );
+  },
+};
+
+const DELETE_EVENTS: EventObject[] = [
+  {
+    id: 'del-1',
+    title: '✅ 可删除（点击聚焦后按 Delete）',
+    start: makeDate(9),
+    end: makeDate(10),
+    resourceId: 'r1',
+    backgroundColor: '#3b82f6',
+    color: '#fff',
+    editable: true,
+  },
+  {
+    id: 'del-2',
+    title: '🔒 不可删除（editable=false）',
+    start: makeDate(11),
+    end: makeDate(12),
+    resourceId: 'r1',
+    backgroundColor: '#9ca3af',
+    color: '#fff',
+    editable: false,
+  },
+  {
+    id: 'del-3',
+    title: '✅ 可删除事件 2',
+    start: makeDate(9),
+    end: makeDate(10, 30),
+    resourceId: 'r2',
+    backgroundColor: '#10b981',
+    color: '#fff',
+  },
+];
+
+export const Delete: Story = {
+  render: function DeleteStory() {
+    const [events, setEvents] = useState<EventObject[]>(DELETE_EVENTS);
+    const [log, setLog] = useState<string[]>(['点击事件聚焦，再按 Delete/Backspace']);
+
+    const addLog = (msg: string) => setLog((prev) => [msg, ...prev.slice(0, 6)]);
+
+    const callbacks = useMemo<CalendarCallbacks>(
+      () => ({
+        onEventDelete: ({ event }) => {
+          setEvents((cur) => cur.filter((e) => e.id !== event.id));
+          addLog(`🗑 已删除: ${event.title ?? event.id}`);
+        },
+        onEventUpdateFailed: ({ reason, policySource, event }) => {
+          addLog(`❌ 删除失败 [${reason}/${policySource}]: ${event.title ?? event.id}`);
+        },
+      }),
+      []
+    );
+
+    return (
+      <SchedulerStoryFrame>
+        <div
+          style={{
+            position: 'absolute',
+            top: 12,
+            right: 12,
+            zIndex: 10,
+            padding: '10px 14px',
+            borderRadius: 8,
+            background: 'rgba(15, 23, 42, 0.88)',
+            color: '#fff',
+            fontSize: 11,
+            lineHeight: 1.7,
+            maxWidth: 340,
+          }}
+        >
+          <div style={{ marginBottom: 6, fontWeight: 600, fontSize: 12 }}>
+            聚焦事件卡片 → Delete / Backspace
+          </div>
+          {log.map((l, i) => (
+            <div key={i}>{l}</div>
+          ))}
+        </div>
+        <Calendar
+          events={events}
+          callbacks={callbacks}
+          options={{
+            defaultView: 'scheduler',
+            scheduler: {
+              resources: OVERLAP_RESOURCES,
+              hourStart: 8,
+              hourEnd: 18,
+            },
+          }}
+        />
+      </SchedulerStoryFrame>
+    );
+  },
+};

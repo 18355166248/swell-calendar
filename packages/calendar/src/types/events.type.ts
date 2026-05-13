@@ -92,6 +92,9 @@ export interface EventObject {
   editable?: boolean;
   draggable?: boolean;
   resizable?: boolean;
+  overlap?: boolean;
+  bufferBefore?: number;
+  bufferAfter?: number;
   order?: number;
   cssClass?: string;
   meta?: Record<string, unknown>;
@@ -115,6 +118,9 @@ export type EventObjectWithDefaultValues = MarkOptional<
   | 'cssClass'
   | 'meta'
   | 'allDay'
+  | 'overlap'
+  | 'bufferBefore'
+  | 'bufferAfter'
 > & {
   start: DayjsTZDate;
   end: DayjsTZDate;

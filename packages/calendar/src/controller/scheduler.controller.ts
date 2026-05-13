@@ -60,15 +60,19 @@ function isSameResourceScope(event: EventObject, targetEvent: EventObject) {
   return resourceIds.some((resourceId) => targetResourceIds.includes(resourceId));
 }
 
+const MINUTE_MS = 60_000;
+
 function overlapsTime(event: EventObject, targetEvent: EventObject) {
   if (!hasTimeValue(event) || !hasTimeValue(targetEvent)) {
     return false;
   }
 
-  return (
-    getTimeValue(event.start) < getTimeValue(targetEvent.end) &&
-    getTimeValue(event.end) > getTimeValue(targetEvent.start)
-  );
+  const eventStart = getTimeValue(event.start) - (event.bufferBefore ?? 0) * MINUTE_MS;
+  const eventEnd = getTimeValue(event.end) + (event.bufferAfter ?? 0) * MINUTE_MS;
+  const targetStart = getTimeValue(targetEvent.start) - (targetEvent.bufferBefore ?? 0) * MINUTE_MS;
+  const targetEnd = getTimeValue(targetEvent.end) + (targetEvent.bufferAfter ?? 0) * MINUTE_MS;
+
+  return eventStart < targetEnd && eventEnd > targetStart;
 }
 
 function getBlockedTimesByView(options: Options, view: ViewType): BlockedTimeRange[] {
@@ -305,7 +309,10 @@ function getDisabledSchedulerEventPolicySource(
 ): CalendarPolicySource | null {
   const policyEvent = previousEvent ?? event;
 
-  if ((action === 'move' || action === 'resize') && policyEvent.editable === false) {
+  if (
+    (action === 'move' || action === 'resize' || action === 'delete') &&
+    policyEvent.editable === false
+  ) {
     return 'event';
   }
 
@@ -332,21 +339,32 @@ function dispatchEventChangeFailed(
   callbacks?.onEventUpdateFailed?.(info);
 }
 
+function isPairOverlapDenied(options: Options, event: EventObject, existingEvent: EventObject) {
+  // per-event false on either side → always deny
+  if (event.overlap === false || existingEvent.overlap === false) {
+    return true;
+  }
+
+  // per-event true on either side → override global, allow
+  if (event.overlap === true || existingEvent.overlap === true) {
+    return false;
+  }
+
+  return options.scheduler?.eventOverlap === false;
+}
+
 function isOverlappingSchedulerEventChange(
   options: Options,
   event: EventObject,
   existingEvents: EventObject[] = [],
   previousEvent?: EventObjectWithDefaultValues
 ) {
-  if (options.scheduler?.eventOverlap !== false) {
-    return false;
-  }
-
   return existingEvents.some((existingEvent) => {
     return (
       !isSameEvent(existingEvent, previousEvent) &&
       isSameResourceScope(event, existingEvent) &&
-      overlapsTime(event, existingEvent)
+      overlapsTime(event, existingEvent) &&
+      isPairOverlapDenied(options, event, existingEvent)
     );
   });
 }
