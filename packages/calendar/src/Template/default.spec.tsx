@@ -19,4 +19,18 @@ describe('default templates', () => {
     expect(isValidElement(result)).toBe(true);
     expect(isValidElement(result) ? result.type : null).toBe('span');
   });
+
+  it('renders scheduler resource header as a fragment', () => {
+    const result = templates.schedulerResourceHeader({
+      resourceId: 'room-a',
+      resourceName: '会议室 A',
+      dateInstance: new DayjsTZDate('2026-05-07T00:00:00'),
+      dateIndex: 0,
+      resourceIndex: 0,
+      isLastResourceOfDay: false,
+    });
+
+    expect(isValidElement(result)).toBe(true);
+    expect(isValidElement(result) ? result.type : null).toBe(Symbol.for('react.fragment'));
+  });
 });

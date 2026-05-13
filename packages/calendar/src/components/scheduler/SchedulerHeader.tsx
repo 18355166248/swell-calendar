@@ -2,6 +2,8 @@ import { cls } from '@/helpers/css';
 import DayjsTZDate from '@/time/dayjs-tzdate';
 import { ResourceInfo } from '@/types/options.type';
 
+import { Template } from '../Template';
+
 const DAY_NAMES = ['日', '一', '二', '三', '四', '五', '六'];
 
 interface SchedulerHeaderProps {
@@ -35,7 +37,6 @@ export function SchedulerHeader({
         {weekDates.map((date) => {
           const month = date.dayjs.month() + 1;
           const day = date.dayjs.date();
-          const weekday = DAY_NAMES[date.dayjs.day()];
 
           return (
             <div
@@ -43,7 +44,18 @@ export function SchedulerHeader({
               className={cls('scheduler-header-day-label')}
               style={{ flex: `0 0 ${dayWidthPct}` }}
             >
-              {month}/{day} 周{weekday}
+              <Template
+                template="schedulerDayHeader"
+                as="span"
+                param={{
+                  date: day,
+                  day: date.dayjs.day(),
+                  dayName: DAY_NAMES[date.dayjs.day()],
+                  month,
+                  isToday: date.dayjs.isSame(new DayjsTZDate().dayjs, 'day'),
+                  dateInstance: date,
+                }}
+              />
             </div>
           );
         })}
@@ -57,18 +69,24 @@ export function SchedulerHeader({
               style={{
                 flex: `0 0 ${colWidthPct}`,
                 borderRight:
-                  resIdx === resources.length - 1
-                    ? '1px solid #e8e8e8'
-                    : '1px solid #f0f0f0',
+                  resIdx === resources.length - 1 ? '1px solid #e8e8e8' : '1px solid #f0f0f0',
               }}
             >
-              <span
-                className={cls('scheduler-header-resource-dot')}
-                style={{
-                  backgroundColor: resource.backgroundColor || resource.color || '#3b82f6',
+              <Template
+                template="schedulerResourceHeader"
+                as="span"
+                param={{
+                  resourceId: resource.id,
+                  resourceName: resource.name,
+                  resourceColor: resource.color,
+                  resourceBackgroundColor: resource.backgroundColor,
+                  resourceMeta: resource.meta,
+                  dateInstance: date,
+                  dateIndex: dayIdx,
+                  resourceIndex: resIdx,
+                  isLastResourceOfDay: resIdx === resources.length - 1,
                 }}
               />
-              <span className={cls('scheduler-header-resource-name')}>{resource.name}</span>
             </div>
           ))
         )}

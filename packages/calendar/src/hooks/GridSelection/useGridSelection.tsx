@@ -1,22 +1,26 @@
-import { GridPosition, GridPositionFinder } from '@/types/grid.type';
-import { useDrag } from '../common/useDrag';
-import { useState, MouseEvent, useRef } from 'react';
 import { isNil } from 'lodash-es';
-import { DraggingState } from '@/types/dnd.type';
-import { GridSelectionData, GridSelectionType } from '@/types/gridSelection.type';
+import { MouseEvent, useRef, useState } from 'react';
+
 import { useCalendarStore } from '@/contexts/calendarStore';
-import { useTransientUpdatesCalendar } from '../common/useTransientUpdatesCalendar';
 import { DRAGGING_TYPE_CREATE } from '@/helpers/drag';
+import { DraggingState } from '@/types/dnd.type';
+import { GridPosition, GridPositionFinder } from '@/types/grid.type';
+import { GridSelectionData, GridSelectionType } from '@/types/gridSelection.type';
+
+import { useDrag } from '../common/useDrag';
+import { useTransientUpdatesCalendar } from '../common/useTransientUpdatesCalendar';
 
 export function useGridSelection({
   type,
   gridPositionFinder,
   selectionSorter,
+  onClickSelection,
   onSelectionEnd,
 }: {
   type: GridSelectionType;
   gridPositionFinder: GridPositionFinder;
   selectionSorter: (initPos: GridPosition, currentPos: GridPosition) => GridSelectionData;
+  onClickSelection?: (selection: GridSelectionData) => void;
   onSelectionEnd?: (selection: GridSelectionData) => void;
 }) {
   const [initGridPosition, setInitGridPosition] = useState<GridPosition | null>(null);
@@ -54,7 +58,11 @@ export function useGridSelection({
     }
 
     if (!isNil(selection)) {
-      onSelectionEnd?.(selection);
+      if (isClick) {
+        onClickSelection?.(selection);
+      } else {
+        onSelectionEnd?.(selection);
+      }
     }
 
     clearAll();

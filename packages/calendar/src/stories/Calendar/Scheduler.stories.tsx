@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import Chance from 'chance';
 import dayjs from 'dayjs';
-import { useMemo, useState } from 'react';
+import { ReactNode, useMemo, useState } from 'react';
 
 import { Calendar } from '@/components/Calendar';
 import DayjsTZDate from '@/time/dayjs-tzdate';
@@ -18,14 +18,34 @@ const RESOURCES = [
   { id: 'r5', name: '王五', backgroundColor: '#8b5cf6', color: '#fff' },
 ];
 
-function createSchedulerEvents(): EventObject[] {
+const TEMPLATE_RESOURCES = RESOURCES.slice(0, 3);
+const SCHEDULER_STORY_MIN_WIDTH = 1360;
+
+function SchedulerStoryFrame({
+  children,
+  minWidth = SCHEDULER_STORY_MIN_WIDTH,
+}: {
+  children: ReactNode;
+  minWidth?: number;
+}) {
+  return (
+    <div style={{ position: 'absolute', inset: 0, overflowX: 'auto', overflowY: 'hidden' }}>
+      <div style={{ position: 'relative', minWidth, height: '100%' }}>{children}</div>
+    </div>
+  );
+}
+
+function createSchedulerEvents(
+  resources: typeof RESOURCES = RESOURCES,
+  countPerResource = 6
+): EventObject[] {
   const today = new DayjsTZDate();
   const weekStart = today.addDate(-today.getDay());
   const events: EventObject[] = [];
   let id = 1;
 
-  RESOURCES.forEach((resource) => {
-    for (let i = 0; i < 6; i++) {
+  resources.forEach((resource) => {
+    for (let i = 0; i < countPerResource; i++) {
       const dayOffset = chance.integer({ min: 0, max: 6 });
       const startHour = chance.integer({ min: 8, max: 18 });
       const duration = chance.integer({ min: 1, max: 3 });
@@ -95,7 +115,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   render: () => (
-    <div style={{ position: 'absolute', inset: 0 }}>
+    <SchedulerStoryFrame>
       <Calendar
         events={createSchedulerEvents()}
         options={{
@@ -107,7 +127,7 @@ export const Default: Story = {
           },
         }}
       />
-    </div>
+    </SchedulerStoryFrame>
   ),
 };
 
@@ -151,7 +171,7 @@ export const ControlledCrud: Story = {
     );
 
     return (
-      <div style={{ position: 'absolute', inset: 0 }}>
+      <SchedulerStoryFrame>
         <Calendar
           events={events}
           callbacks={callbacks}
@@ -164,14 +184,14 @@ export const ControlledCrud: Story = {
             },
           }}
         />
-      </div>
+      </SchedulerStoryFrame>
     );
   },
 };
 
 export const BlockedTimes: Story = {
   render: () => (
-    <div style={{ position: 'absolute', inset: 0 }}>
+    <SchedulerStoryFrame>
       <Calendar
         events={createSchedulerEvents()}
         options={{
@@ -194,13 +214,13 @@ export const BlockedTimes: Story = {
           },
         }}
       />
-    </div>
+    </SchedulerStoryFrame>
   ),
 };
 
 export const Invalid: Story = {
   render: () => (
-    <div style={{ position: 'absolute', inset: 0 }}>
+    <SchedulerStoryFrame>
       <Calendar
         events={createSchedulerEvents()}
         options={{
@@ -218,7 +238,7 @@ export const Invalid: Story = {
           },
         }}
       />
-    </div>
+    </SchedulerStoryFrame>
   ),
 };
 
@@ -226,7 +246,7 @@ export const InvalidAndColors: Story = {
   render: () => {
     const today = dayjs().startOf('day');
     return (
-      <div style={{ position: 'absolute', inset: 0 }}>
+      <SchedulerStoryFrame>
         <Calendar
           events={createSchedulerEvents()}
           options={{
@@ -258,7 +278,7 @@ export const InvalidAndColors: Story = {
             },
           }}
         />
-      </div>
+      </SchedulerStoryFrame>
     );
   },
 };
@@ -311,7 +331,7 @@ export const AllDayAndMultiDay: Story = {
     ] satisfies EventObject[];
 
     return (
-      <div style={{ position: 'absolute', inset: 0 }}>
+      <SchedulerStoryFrame>
         <Calendar
           events={events}
           options={{
@@ -323,7 +343,7 @@ export const AllDayAndMultiDay: Story = {
             },
           }}
         />
-      </div>
+      </SchedulerStoryFrame>
     );
   },
 };
@@ -367,7 +387,7 @@ export const DragTimeTooltipAndOrder: Story = {
     ] satisfies EventObject[];
 
     return (
-      <div style={{ position: 'absolute', inset: 0 }}>
+      <SchedulerStoryFrame>
         <Calendar
           events={events}
           options={{
@@ -379,7 +399,110 @@ export const DragTimeTooltipAndOrder: Story = {
             },
           }}
         />
-      </div>
+      </SchedulerStoryFrame>
+    );
+  },
+};
+
+export const Templates: Story = {
+  render: function TemplatesStory() {
+    const events = useMemo(() => createSchedulerEvents(TEMPLATE_RESOURCES, 4), []);
+
+    return (
+      <SchedulerStoryFrame>
+        <Calendar
+          events={events}
+          options={{
+            defaultView: 'scheduler',
+            scheduler: {
+              resources: TEMPLATE_RESOURCES,
+              hourStart: 8,
+              hourEnd: 20,
+            },
+            template: {
+              schedulerDayHeader: ({ month, date, dayName }) => (
+                <span style={{ fontWeight: 700, fontSize: 11 }}>
+                  {month}.{date} / 周{dayName}
+                </span>
+              ),
+              schedulerResourceHeader: ({ resourceName, resourceBackgroundColor }) => (
+                <>
+                  <span
+                    style={{
+                      display: 'inline-block',
+                      flex: '0 0 8px',
+                      width: 8,
+                      minWidth: 8,
+                      height: 8,
+                      minHeight: 8,
+                      borderRadius: '50%',
+                      background: resourceBackgroundColor ?? '#3b82f6',
+                    }}
+                  />
+                  <span title={resourceName} style={{ fontSize: 10 }}>
+                    {resourceName}
+                  </span>
+                </>
+              ),
+              schedulerTime: ({ title, resourceId }) => (
+                <span>
+                  <strong>{resourceId}</strong> {title}
+                </span>
+              ),
+            },
+          }}
+        />
+      </SchedulerStoryFrame>
+    );
+  },
+};
+
+export const InteractionCallbacks: Story = {
+  render: function InteractionCallbacksStory() {
+    const [lastLog, setLastLog] = useState('等待交互');
+    const events = useMemo(() => createSchedulerEvents(), []);
+    const callbacks = useMemo<CalendarCallbacks>(
+      () => ({
+        onCellClick: ({ start, resourceId }) => {
+          setLastLog(`cell ${start.dayjs.format('MM-DD HH:mm')} @ ${resourceId ?? 'none'}`);
+        },
+        onEventHover: ({ event, hovering }) => {
+          setLastLog(`${hovering ? 'enter' : 'leave'} ${event.title ?? event.id ?? 'untitled'}`);
+        },
+      }),
+      []
+    );
+
+    return (
+      <SchedulerStoryFrame>
+        <div
+          style={{
+            position: 'absolute',
+            top: 12,
+            right: 12,
+            zIndex: 10,
+            padding: '8px 12px',
+            borderRadius: 8,
+            background: 'rgba(15, 23, 42, 0.82)',
+            color: '#fff',
+            fontSize: 12,
+          }}
+        >
+          {lastLog}
+        </div>
+        <Calendar
+          events={events}
+          callbacks={callbacks}
+          options={{
+            defaultView: 'scheduler',
+            scheduler: {
+              resources: RESOURCES,
+              hourStart: 8,
+              hourEnd: 20,
+            },
+          }}
+        />
+      </SchedulerStoryFrame>
     );
   },
 };

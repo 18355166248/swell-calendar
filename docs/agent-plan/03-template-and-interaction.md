@@ -7,13 +7,13 @@
 
 ## 当前状态
 
-- 总状态：`[ ] 未开始`
+- 总状态：`[-] 进行中`
 
 ## 步骤清单
 
-- [ ] Step 13：收敛 scheduler template slots
-- [ ] Step 14：接入 `onCellClick`
-- [ ] Step 15：接入 `onEventHover`
+- [x] Step 13：收敛 scheduler template slots
+- [x] Step 14：接入 `onCellClick`
+- [x] Step 15：接入 `onEventHover`
 - [ ] Step 16：接入 scheduler 全局交互开关
 - [ ] Step 17：接入已有 per-event gate
 - [ ] Step 18：建立 failed callback 骨架
@@ -235,3 +235,9 @@
 - 将本文档“总状态”改为 `[-] 进行中` 或 `[x] 已完成`
 - 勾选已完成步骤
 - 回到 [implementation-steps.md](./implementation-steps.md) 更新对应阶段状态
+
+## 当前落地说明
+
+- 已新增 scheduler 专属模板槽位：日期头、资源头、时间事件内容
+- `TimeGrid` 点击空白 cell 时会派发 `onCellClick`，拖拽选择仍走 `onRangeSelect` / `onEventCreate`
+- scheduler 时间事件已补 `onEventHover`，进入和离开都会回调 `hovering`

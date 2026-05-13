@@ -19,9 +19,12 @@ export interface Template {
   monthDayName: (model: TemplateMonthDayName) => string;
   timeGridNowIndicatorLabel: (props: TemplateNow) => TemplateReturnType;
   time: (event: EventObjectWithDefaultValues) => TemplateReturnType;
+  schedulerTime: (event: EventObjectWithDefaultValues) => TemplateReturnType;
   timeMove: (event: EventObjectWithDefaultValues) => TemplateReturnType;
   timeMoveGuide: (event: EventObjectWithDefaultValues) => TemplateReturnType;
   monthGridHeader: (model: TemplateMonthGrid) => TemplateReturnType;
+  schedulerDayHeader: (model: TemplateSchedulerDayHeader) => TemplateReturnType;
+  schedulerResourceHeader: (model: TemplateSchedulerResourceHeader) => TemplateReturnType;
 }
 
 export type TemplateConfig = Partial<Template>;
@@ -52,4 +55,25 @@ export interface TemplateMonthGrid {
   isToday: boolean;
   month: number;
   ymd: string;
+}
+
+export interface TemplateSchedulerDayHeader {
+  date: number;
+  day: number;
+  dayName: string;
+  month: number;
+  isToday: boolean;
+  dateInstance: DayjsTZDate;
+}
+
+export interface TemplateSchedulerResourceHeader {
+  resourceId: string;
+  resourceName: string;
+  resourceColor?: string;
+  resourceBackgroundColor?: string;
+  resourceMeta?: Record<string, unknown>;
+  dateInstance: DayjsTZDate;
+  dateIndex: number;
+  resourceIndex: number;
+  isLastResourceOfDay: boolean;
 }

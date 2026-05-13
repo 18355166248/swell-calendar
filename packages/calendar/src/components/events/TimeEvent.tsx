@@ -1,19 +1,21 @@
-import { TIME_EVENT_CONTAINER_MARGIN_LEFT } from '@/constants/style.const';
-import { useCalendarStore } from '@/contexts/calendarStore';
-import { cls, extractPercentPx, getEventColors, toPercent } from '@/helpers/css';
-import { useCalendarColor } from '@/hooks/calendar/useCalendarColor';
-import { EventUIModel } from '@/model/eventUIModel';
-import { CalendarColor } from '@/types/calendar.type';
 import { isNil, isString } from 'lodash-es';
-import { useState, MouseEvent } from 'react';
-import { Template } from '../Template';
-import { useDrag } from '@/hooks/common/useDrag';
-import { DRAGGING_TYPE_CREATE } from '@/helpers/drag';
-import { useLayoutContainer } from '@/contexts/layoutContainer';
-import DayjsTZDate from '@/time/dayjs-tzdate';
-import { useTransientUpdatesCalendar } from '@/hooks/common/useTransientUpdatesCalendar';
-import { DraggingState } from '@/types/dnd.type';
+import { MouseEvent, useState } from 'react';
+
+import { TIME_EVENT_CONTAINER_MARGIN_LEFT } from '@/constants/style.const';
 import { useCalendarCallbacks } from '@/contexts/calendarCallbacks';
+import { useCalendarStore } from '@/contexts/calendarStore';
+import { useLayoutContainer } from '@/contexts/layoutContainer';
+import { cls, extractPercentPx, getEventColors, toPercent } from '@/helpers/css';
+import { DRAGGING_TYPE_CREATE } from '@/helpers/drag';
+import { useCalendarColor } from '@/hooks/calendar/useCalendarColor';
+import { useDrag } from '@/hooks/common/useDrag';
+import { useTransientUpdatesCalendar } from '@/hooks/common/useTransientUpdatesCalendar';
+import { EventUIModel } from '@/model/eventUIModel';
+import DayjsTZDate from '@/time/dayjs-tzdate';
+import { CalendarColor } from '@/types/calendar.type';
+import { DraggingState } from '@/types/dnd.type';
+
+import { Template } from '../Template';
 
 /**
  * 计算事件容器的样式
@@ -174,6 +176,7 @@ export function TimeEvent({
   const { options, dnd } = useCalendarStore();
   const { setDraggingEventUIModel } = dnd;
   const { isReadOnly } = options;
+  const currentView = useCalendarStore((state) => state.view.currentView);
   const callbacks = useCalendarCallbacks();
 
   // 当前事件是否为拖拽目标的状态
@@ -294,11 +297,41 @@ export function TimeEvent({
     onResizeStart(e);
   };
 
+  const handleMouseEnter = () => {
+    if (currentView !== 'scheduler') {
+      return;
+    }
+
+    callbacks?.onEventHover?.({
+      event: model.toEventObject(),
+      hovering: true,
+    });
+  };
+
+  const handleMouseLeave = () => {
+    if (currentView !== 'scheduler') {
+      return;
+    }
+
+    callbacks?.onEventHover?.({
+      event: model.toEventObject(),
+      hovering: false,
+    });
+  };
+
+  const templateName = currentView === 'scheduler' && !hasNextStartTime ? 'schedulerTime' : 'time';
+
   return (
-    <div className={classNames.time} style={containerStyle} onMouseDown={handleMoveStart}>
+    <div
+      className={classNames.time}
+      style={containerStyle}
+      onMouseDown={handleMoveStart}
+      onPointerEnter={handleMouseEnter}
+      onPointerLeave={handleMouseLeave}
+    >
       <div className={classNames.content}>
         <Template
-          template={hasNextStartTime ? 'timeMove' : 'time'}
+          template={hasNextStartTime ? 'timeMove' : templateName}
           param={{
             ...model.toEventObject(),
             start: hasNextStartTime ? nextStartTime : model.start,

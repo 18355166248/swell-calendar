@@ -171,7 +171,7 @@ interface ColoredRange {
 
 ### 模板接口（`Template`）
 
-7 个可定制渲染点：
+10 个可定制渲染点：
 
 | 函数名 | 渲染位置 |
 |--------|---------|
@@ -179,9 +179,13 @@ interface ColoredRange {
 | `timeGridDisplayTime` | 时间轴其他时间格 |
 | `weekDayName` | 周视图顶部星期名称 |
 | `time` | 时间事件卡片内容 |
+| `schedulerTime` | scheduler 时间事件卡片内容 |
 | `timeMove` | 拖拽中的事件卡片内容 |
 | `timeMoveGuide` | 拖拽时间提示 |
-| `nowIndicatorLabel` | 当前时间指示器标签 |
+| `timeGridNowIndicatorLabel` | 当前时间指示器标签 |
+| `monthGridHeader` | 月视图日期格头部 |
+| `schedulerDayHeader` | scheduler 顶部日期头 |
+| `schedulerResourceHeader` | scheduler 资源列头 |
 
 ## API 接口
 
@@ -195,6 +199,18 @@ interface CalendarProps {
   theme?: Partial<ThemeState>;   // 主题配置
   callbacks?: {
     onEventClick?: (info: { event: EventObjectWithDefaultValues }) => void;
+    onCellClick?: (info: {
+      view: ViewType;
+      start: DayjsTZDate;
+      end: DayjsTZDate;
+      resourceId?: string;
+      resourceIds?: string[];
+      resourceNames?: string[];
+    }) => void;
+    onEventHover?: (info: {
+      event: EventObjectWithDefaultValues;
+      hovering: boolean;
+    }) => void;
     onPageChange?: (info: { view: ViewType; date: DayjsTZDate }) => void;
     onRangeSelect?: (info: {
       view: ViewType;

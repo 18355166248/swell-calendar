@@ -8,6 +8,8 @@ import {
   TemplateMonthDayName,
   TemplateMonthGrid,
   TemplateNow,
+  TemplateSchedulerDayHeader,
+  TemplateSchedulerResourceHeader,
   TemplateWeekDayName,
 } from '@/types/template.type';
 import { stripTags } from '@/utils/dom';
@@ -65,6 +67,10 @@ export const templates: Template = {
     return stripTags(title);
   },
 
+  schedulerTime(model: EventObjectWithDefaultValues) {
+    return templates.time(model);
+  },
+
   timeMove(model: EventObjectWithDefaultValues) {
     const { start, end, title } = model;
 
@@ -91,5 +97,27 @@ export const templates: Template = {
     const classNames = cls('weekday-grid-date', { 'weekday-grid-date-decorator': model.isToday });
 
     return <span className={classNames}>{date}</span>;
+  },
+
+  schedulerDayHeader(model: TemplateSchedulerDayHeader) {
+    return (
+      <span>
+        {model.month}/{model.date} 周{model.dayName}
+      </span>
+    );
+  },
+
+  schedulerResourceHeader(model: TemplateSchedulerResourceHeader) {
+    return (
+      <>
+        <span
+          className={cls('scheduler-header-resource-dot')}
+          style={{
+            backgroundColor: model.resourceBackgroundColor || model.resourceColor || '#3b82f6',
+          }}
+        />
+        <span className={cls('scheduler-header-resource-name')}>{model.resourceName}</span>
+      </>
+    );
   },
 };

@@ -195,6 +195,11 @@ export function TimeGrid({ timeGridData, events }: TimeGridProps) {
     type: 'timeGrid',
     gridPositionFinder,
     selectionSorter: timeGridSelectionHelper.sortSelection, // 选择排序器
+    onClickSelection: (selection) => {
+      if (currentView === 'scheduler') {
+        callbacks?.onCellClick?.(createRangeSelectionInfo(timeGridData, selection, currentView));
+      }
+    },
     onSelectionEnd: (selection) => {
       const event = createEventFromTimeGridSelection(timeGridData, selection);
 
