@@ -1,14 +1,17 @@
-import DayjsTZDate from '@/time/dayjs-tzdate';
+import { uniq } from 'lodash-es';
+
 import { setTimeStrToDate } from '@/time/datetime';
+import DayjsTZDate from '@/time/dayjs-tzdate';
+import {
+  CalendarCallbacks,
+  CalendarEventChangeAction,
+  CalendarEventChangeFailedInfo,
+  CalendarPolicySource,
+} from '@/types/callbacks.type';
 import { EventObject, EventObjectWithDefaultValues } from '@/types/events.type';
 import { CommonGridColumn, TimeGridData } from '@/types/grid.type';
 import { GridSelectionData } from '@/types/gridSelection.type';
 import { BlockedTimeRange, Options, ViewType } from '@/types/options.type';
-import { uniq } from 'lodash-es';
-import {
-  CalendarCallbacks,
-  CalendarEventChangeAction,
-} from '@/types/callbacks.type';
 
 function getTimeValue(value: EventObject['start']) {
   if (!value) {
@@ -39,28 +42,25 @@ function getBlockedTimesByView(options: Options, view: ViewType): BlockedTimeRan
 }
 
 function isBlockedForResource(blockedTime: BlockedTimeRange, event: EventObject) {
-  const blockedResourceIds = [
-    blockedTime.resourceId,
-    ...(blockedTime.resourceIds ?? []),
-  ].filter((resourceId): resourceId is string => Boolean(resourceId));
+  const blockedResourceIds = [blockedTime.resourceId, ...(blockedTime.resourceIds ?? [])].filter(
+    (resourceId): resourceId is string => Boolean(resourceId)
+  );
 
   if (blockedResourceIds.length === 0) {
     return true;
   }
 
-  const eventResourceIds = [
-    event.resourceId,
-    ...(event.resourceIds ?? []),
-  ].filter((resourceId): resourceId is string => Boolean(resourceId));
+  const eventResourceIds = [event.resourceId, ...(event.resourceIds ?? [])].filter(
+    (resourceId): resourceId is string => Boolean(resourceId)
+  );
 
   return eventResourceIds.some((resourceId) => blockedResourceIds.includes(resourceId));
 }
 
 function isBlockedForColumn(blockedTime: BlockedTimeRange, column: CommonGridColumn) {
-  const blockedResourceIds = [
-    blockedTime.resourceId,
-    ...(blockedTime.resourceIds ?? []),
-  ].filter((resourceId): resourceId is string => Boolean(resourceId));
+  const blockedResourceIds = [blockedTime.resourceId, ...(blockedTime.resourceIds ?? [])].filter(
+    (resourceId): resourceId is string => Boolean(resourceId)
+  );
 
   if (blockedResourceIds.length === 0) {
     return true;
@@ -206,6 +206,86 @@ export function createUpdatedTimeGridEvent(
   return nextEvent;
 }
 
+function hasTimeChanged(event: EventObject, previousEvent?: EventObjectWithDefaultValues) {
+  if (!previousEvent) {
+    return false;
+  }
+
+  return (
+    getTimeValue(event.start) !== getTimeValue(previousEvent.start) ||
+    getTimeValue(event.end) !== getTimeValue(previousEvent.end)
+  );
+}
+
+function getDisabledSchedulerInteractionPolicySource(
+  options: Options,
+  action: CalendarEventChangeAction,
+  event: EventObject,
+  previousEvent?: EventObjectWithDefaultValues
+): CalendarPolicySource | null {
+  const schedulerOptions = options.scheduler;
+
+  if (!schedulerOptions) {
+    return null;
+  }
+
+  if (action === 'create' && schedulerOptions.dragToCreate === false) {
+    return 'view';
+  }
+
+  if (action === 'move' && schedulerOptions.dragToMove === false) {
+    return 'view';
+  }
+
+  if (action === 'resize' && schedulerOptions.dragToResize === false) {
+    return 'view';
+  }
+
+  if (
+    schedulerOptions.dragInTime === false &&
+    (action === 'move' || action === 'resize') &&
+    hasTimeChanged(event, previousEvent)
+  ) {
+    return 'view';
+  }
+
+  return null;
+}
+
+function getDisabledSchedulerEventPolicySource(
+  action: CalendarEventChangeAction,
+  event: EventObject,
+  previousEvent?: EventObjectWithDefaultValues
+): CalendarPolicySource | null {
+  const policyEvent = previousEvent ?? event;
+
+  if ((action === 'move' || action === 'resize') && policyEvent.editable === false) {
+    return 'event';
+  }
+
+  if (action === 'move' && policyEvent.draggable === false) {
+    return 'event';
+  }
+
+  if (action === 'resize' && policyEvent.resizable === false) {
+    return 'event';
+  }
+
+  return null;
+}
+
+function dispatchEventChangeFailed(
+  callbacks: CalendarCallbacks | null | undefined,
+  info: CalendarEventChangeFailedInfo
+) {
+  if (info.action === 'create') {
+    callbacks?.onEventCreateFailed?.(info);
+    return;
+  }
+
+  callbacks?.onEventUpdateFailed?.(info);
+}
+
 export function shouldAcceptEventChange(
   options: Options,
   callbacks: CalendarCallbacks | null | undefined,
@@ -221,14 +301,33 @@ export function shouldAcceptEventChange(
     previousEvent?: EventObjectWithDefaultValues;
   }
 ) {
+  if (view === 'scheduler') {
+    const policySource =
+      getDisabledSchedulerInteractionPolicySource(options, action, event, previousEvent) ??
+      getDisabledSchedulerEventPolicySource(action, event, previousEvent);
+
+    if (policySource) {
+      dispatchEventChangeFailed(callbacks, {
+        reason: 'policy',
+        policySource,
+        action,
+        event,
+        previousEvent,
+      });
+      return false;
+    }
+  }
+
   if (isBlockedEventChange(options, view, event)) {
     return false;
   }
 
-  return callbacks?.onValidateEventChange?.({
-    action,
-    view,
-    event,
-    previousEvent,
-  }) ?? true;
+  return (
+    callbacks?.onValidateEventChange?.({
+      action,
+      view,
+      event,
+      previousEvent,
+    }) ?? true
+  );
 }

@@ -138,25 +138,36 @@ const classNames = {
   resizeHandleBottom: cls('resize-handle-bottom'), // 调整大小底部手柄
 };
 
-/**
- * 判断事件是否可拖拽
- * @param uiModel - 事件的UI模型
- * @param isReadOnlyCalendar - 日历是否为只读模式
- * @param isDraggingTarget - 当前事件是否为拖拽目标
- * @returns 返回事件是否可拖拽
- */
-function isDraggableEvent({
+type TimeEventInteraction = 'move' | 'resize';
+
+function canInteractWithTimeEvent({
   uiModel,
   isReadOnlyCalendar,
   isDraggingTarget,
+  currentView,
+  interaction,
 }: {
   uiModel: EventUIModel;
   isReadOnlyCalendar: boolean;
   isDraggingTarget: boolean;
+  currentView: string;
+  interaction: TimeEventInteraction;
 }) {
   const { model } = uiModel;
-  // 只有在非只读日历、事件非只读且不是拖拽目标时才可拖拽
-  return !isReadOnlyCalendar && !model.isReadOnly && !isDraggingTarget;
+
+  if (isReadOnlyCalendar || model.isReadOnly || isDraggingTarget) {
+    return false;
+  }
+
+  if (currentView !== 'scheduler') {
+    return true;
+  }
+
+  if (!model.editable) {
+    return false;
+  }
+
+  return interaction === 'move' ? model.draggable : model.resizable;
 }
 
 /**
@@ -221,14 +232,20 @@ export function TimeEvent({
   const moveType = DRAGGING_TYPE_CREATE.moveEvent('timeGrid', `${uiModel.cid()}`);
   const resizeType = DRAGGING_TYPE_CREATE.resizeEvent('timeGrid', `${uiModel.cid()}`);
 
-  // 判断当前事件是否可拖拽
-  const isDraggable = isDraggableEvent({
+  const canMove = canInteractWithTimeEvent({
     uiModel,
     isReadOnlyCalendar: isReadOnly,
     isDraggingTarget,
+    currentView,
+    interaction: 'move',
   });
-  // 判断是否需要显示调整大小手柄
-  const shouldShowResizeHandle = isDraggable;
+  const canResize = canInteractWithTimeEvent({
+    uiModel,
+    isReadOnlyCalendar: isReadOnly,
+    isDraggingTarget,
+    currentView,
+    interaction: 'resize',
+  });
 
   /**
    * 开始拖拽事件，设置拖拽状态并添加样式类
@@ -251,7 +268,7 @@ export function TimeEvent({
   // 设置拖拽事件处理
   const onMoveStart = useDrag(moveType, {
     onDragStart: () => {
-      if (isDraggable) {
+      if (canMove) {
         // 如果事件可拖拽，开始拖拽并添加移动样式
         startDragEvent(classNames.moveEvent);
       }
@@ -341,12 +358,10 @@ export function TimeEvent({
       </div>
 
       {/* 显示调整大小顶部手柄 */}
-      {shouldShowResizeHandle && (
-        <div className={classNames.resizeHandleTop} onMouseDown={handleResizeStart} />
-      )}
+      {canResize && <div className={classNames.resizeHandleTop} onMouseDown={handleResizeStart} />}
 
       {/* 显示调整大小底部手柄 */}
-      {shouldShowResizeHandle && (
+      {canResize && (
         <div className={classNames.resizeHandleBottom} onMouseDown={handleResizeStart} />
       )}
     </div>

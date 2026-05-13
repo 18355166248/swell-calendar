@@ -103,6 +103,10 @@ export interface SchedulerOptions {
   invalid?: InvalidRange[];
   blockedTimes?: BlockedTimeRange[];
   colors?: ColoredRange[];
+  dragToCreate?: boolean;
+  dragToMove?: boolean;
+  dragToResize?: boolean;
+  dragInTime?: boolean;
 }
 
 export interface TimelineOptions extends SchedulerOptions {

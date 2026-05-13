@@ -4,6 +4,19 @@
 
 set -e
 
+export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/c/Program Files/Git/usr/bin:/c/Program Files/Git/mingw64/bin:/c/Program Files/nodejs:$PATH"
+
+run_pnpm() {
+  if command -v pnpm >/dev/null 2>&1; then
+    pnpm "$@"
+  elif command -v corepack >/dev/null 2>&1; then
+    corepack pnpm "$@"
+  else
+    echo "❌ 未找到 pnpm 或 corepack。请先安装 Node.js 18+，或启用 corepack：corepack enable"
+    exit 1
+  fi
+}
+
 # 检查是否有涉及 src/ 的变更，才跑耗时检查
 CHANGED=$(git diff --cached --name-only)
 CHANGED_EXISTING=$(git diff --cached --name-only --diff-filter=ACMR)
@@ -35,7 +48,7 @@ if [ -n "$CALENDAR_LINT_FILES" ]; then
   (
     cd packages/calendar || exit 1
     REL_FILES=$(echo "$CALENDAR_LINT_FILES" | sed 's#^packages/calendar/##')
-    pnpm exec eslint --max-warnings 0 $REL_FILES
+    run_pnpm exec eslint --max-warnings 0 $REL_FILES
   )
 fi
 
@@ -43,16 +56,16 @@ fi
 PRETTIER_FILES=$(echo "$CHANGED_EXISTING" | grep -E "\.(ts|tsx|js|jsx|mjs|cjs|json|md|yml|yaml|css|scss)$" || true)
 if [ -n "$PRETTIER_FILES" ]; then
   echo "  → 运行 staged Prettier 检查..."
-  pnpm exec prettier --check $PRETTIER_FILES
+  run_pnpm exec prettier --check $PRETTIER_FILES
 fi
 
 # 4. TypeScript 类型检查（每次提交都执行）
 echo "  → TypeScript 类型检查..."
-pnpm --filter swell-calendar exec tsc --noEmit
+run_pnpm --filter swell-calendar exec tsc --noEmit
 
 # 5. Calendar 测试（每次提交都执行）
 echo "  → 运行 Calendar 测试..."
-pnpm --filter swell-calendar test
+run_pnpm --filter swell-calendar test
 
 echo "✅ 所有检查通过"
 exit 0

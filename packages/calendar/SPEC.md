@@ -92,6 +92,10 @@ interface CalendarOptions {
     invalid?: BlockedTimeRange[];
     blockedTimes?: BlockedTimeRange[];
     colors?: ColoredRange[];
+    dragToCreate?: boolean;
+    dragToMove?: boolean;
+    dragToResize?: boolean;
+    dragInTime?: boolean;
   };
   timeline?: {
     resources?: ResourceInfo[];
@@ -225,8 +229,23 @@ interface CalendarProps {
       event: EventObject;
       previousEvent: EventObjectWithDefaultValues;
     }) => void;
+    onEventCreateFailed?: (info: {
+      reason: 'invalid' | 'overlap' | 'readonly' | 'policy';
+      policySource?: 'event' | 'resource' | 'view';
+      action: 'create' | 'move' | 'resize' | 'delete';
+      event: EventObject;
+      previousEvent?: EventObjectWithDefaultValues;
+    }) => void;
+    onEventUpdateFailed?: (info: {
+      reason: 'invalid' | 'overlap' | 'readonly' | 'policy';
+      policySource?: 'event' | 'resource' | 'view';
+      action: 'create' | 'move' | 'resize' | 'delete';
+      event: EventObject;
+      previousEvent?: EventObjectWithDefaultValues;
+    }) => void;
+    onEventDelete?: (info: { event: EventObjectWithDefaultValues }) => void;
     onValidateEventChange?: (info: {
-      action: 'create' | 'move' | 'resize';
+      action: 'create' | 'move' | 'resize' | 'delete';
       view: ViewType;
       event: EventObject;
       previousEvent?: EventObjectWithDefaultValues;

@@ -3,13 +3,26 @@
 
 set -e
 
+export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/c/Program Files/Git/usr/bin:/c/Program Files/Git/mingw64/bin:/c/Program Files/nodejs:$PATH"
+
+run_pnpm() {
+  if command -v pnpm >/dev/null 2>&1; then
+    pnpm "$@"
+  elif command -v corepack >/dev/null 2>&1; then
+    corepack pnpm "$@"
+  else
+    echo "❌ 未找到 pnpm 或 corepack。请先安装 Node.js 18+，或启用 corepack：corepack enable"
+    exit 1
+  fi
+}
+
 echo "🚀 Pre-push 检查..."
 
 echo "  → TypeScript 类型检查..."
-pnpm --filter swell-calendar exec tsc --noEmit
+run_pnpm --filter swell-calendar exec tsc --noEmit
 
 echo "  → 运行 Calendar 测试..."
-pnpm --filter swell-calendar test
+run_pnpm --filter swell-calendar test
 
 echo "✅ Pre-push 检查通过"
 exit 0

@@ -37,13 +37,29 @@ export interface CalendarEventHoverInfo {
   hovering: boolean;
 }
 
-export type CalendarEventChangeAction = 'create' | 'move' | 'resize';
+export type CalendarEventChangeAction = 'create' | 'move' | 'resize' | 'delete';
+
+export type CalendarEventChangeFailReason = 'invalid' | 'overlap' | 'readonly' | 'policy';
+
+export type CalendarPolicySource = 'event' | 'resource' | 'view';
 
 export interface CalendarValidateEventChangeInfo {
   action: CalendarEventChangeAction;
   view: ViewType;
   event: EventObject;
   previousEvent?: EventObjectWithDefaultValues;
+}
+
+export interface CalendarEventChangeFailedInfo {
+  reason: CalendarEventChangeFailReason;
+  policySource?: CalendarPolicySource;
+  action: CalendarEventChangeAction;
+  event: EventObject;
+  previousEvent?: EventObjectWithDefaultValues;
+}
+
+export interface CalendarEventDeleteInfo {
+  event: EventObjectWithDefaultValues;
 }
 
 export interface CalendarCallbacks {
@@ -54,5 +70,8 @@ export interface CalendarCallbacks {
   onRangeSelect?: (info: CalendarRangeSelectInfo) => void;
   onEventCreate?: (info: CalendarEventCreateInfo) => void;
   onEventUpdate?: (info: CalendarEventUpdateInfo) => void;
+  onEventCreateFailed?: (info: CalendarEventChangeFailedInfo) => void;
+  onEventUpdateFailed?: (info: CalendarEventChangeFailedInfo) => void;
+  onEventDelete?: (info: CalendarEventDeleteInfo) => void;
   onValidateEventChange?: (info: CalendarValidateEventChangeInfo) => boolean;
 }
