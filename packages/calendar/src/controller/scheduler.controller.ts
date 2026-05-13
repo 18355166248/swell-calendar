@@ -319,6 +319,15 @@ export function shouldAcceptEventChange(
   }
 
   if (isBlockedEventChange(options, view, event)) {
+    if (view === 'scheduler') {
+      dispatchEventChangeFailed(callbacks, {
+        reason: 'invalid',
+        action,
+        event,
+        previousEvent,
+      });
+    }
+
     return false;
   }
 

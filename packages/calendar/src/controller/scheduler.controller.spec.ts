@@ -312,4 +312,84 @@ describe('scheduler.controller', () => {
       previousEvent,
     });
   });
+
+  it('应该在 scheduler 创建命中 invalid 时触发 onEventCreateFailed', () => {
+    const callbacks = {
+      onEventCreateFailed: vi.fn(),
+    };
+    const event = {
+      start: new DayjsTZDate('2026-05-07T10:15:00'),
+      end: new DayjsTZDate('2026-05-07T10:45:00'),
+      resourceId: 'room-a',
+    };
+
+    const accepted = shouldAcceptEventChange(
+      {
+        scheduler: {
+          invalid: [
+            {
+              start: new DayjsTZDate('2026-05-07T10:00:00'),
+              end: new DayjsTZDate('2026-05-07T11:00:00'),
+              resourceId: 'room-a',
+            },
+          ],
+        },
+      },
+      callbacks,
+      {
+        action: 'create',
+        view: 'scheduler',
+        event,
+      }
+    );
+
+    expect(accepted).toBe(false);
+    expect(callbacks.onEventCreateFailed).toHaveBeenCalledWith({
+      reason: 'invalid',
+      action: 'create',
+      event,
+      previousEvent: undefined,
+    });
+  });
+
+  it('应该在 scheduler 更新命中 invalid 时触发 onEventUpdateFailed', () => {
+    const callbacks = {
+      onEventUpdateFailed: vi.fn(),
+    };
+    const previousEvent = createPreviousEvent({ resourceId: 'room-a' });
+    const event = {
+      ...previousEvent,
+      start: new DayjsTZDate('2026-05-07T10:15:00'),
+      end: new DayjsTZDate('2026-05-07T10:45:00'),
+    };
+
+    const accepted = shouldAcceptEventChange(
+      {
+        scheduler: {
+          invalid: [
+            {
+              start: new DayjsTZDate('2026-05-07T10:00:00'),
+              end: new DayjsTZDate('2026-05-07T11:00:00'),
+              resourceId: 'room-a',
+            },
+          ],
+        },
+      },
+      callbacks,
+      {
+        action: 'move',
+        view: 'scheduler',
+        event,
+        previousEvent,
+      }
+    );
+
+    expect(accepted).toBe(false);
+    expect(callbacks.onEventUpdateFailed).toHaveBeenCalledWith({
+      reason: 'invalid',
+      action: 'move',
+      event,
+      previousEvent,
+    });
+  });
 });
