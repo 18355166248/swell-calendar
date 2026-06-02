@@ -366,6 +366,7 @@ export function TimeEvent({
     <div
       className={classNames.time}
       style={containerStyle}
+      data-testid={`event-card-${model.id}`}
       tabIndex={currentView === 'scheduler' ? 0 : undefined}
       onMouseDown={handleMoveStart}
       onKeyDown={handleKeyDown}
@@ -384,11 +385,21 @@ export function TimeEvent({
       </div>
 
       {/* 显示调整大小顶部手柄 */}
-      {canResize && <div className={classNames.resizeHandleTop} onMouseDown={handleResizeStart} />}
+      {canResize && (
+        <div
+          className={classNames.resizeHandleTop}
+          data-testid={`resize-handle-top-${model.id}`}
+          onMouseDown={handleResizeStart}
+        />
+      )}
 
       {/* 显示调整大小底部手柄 */}
       {canResize && (
-        <div className={classNames.resizeHandleBottom} onMouseDown={handleResizeStart} />
+        <div
+          className={classNames.resizeHandleBottom}
+          data-testid={`resize-handle-bottom-${model.id}`}
+          onMouseDown={handleResizeStart}
+        />
       )}
     </div>
   );

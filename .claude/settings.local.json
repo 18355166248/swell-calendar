@@ -17,7 +17,10 @@
       "Bash(node scripts/check-arch.mjs)",
       "Bash(npx prettier *)",
       "Bash(pnpm storybook *)",
-      "Bash(npx storybook *)"
+      "Bash(npx storybook *)",
+      "Bash(Select-Object -Last 50)",
+      "Bash(Get-Content F:\\\\FrontEnd\\\\code\\\\swell-calendar\\\\packages\\\\calendar\\\\package.json)",
+      "Bash(Select-String -Pattern \"vitest|test|storybook\" -Context 0,2)"
     ]
   }
 }

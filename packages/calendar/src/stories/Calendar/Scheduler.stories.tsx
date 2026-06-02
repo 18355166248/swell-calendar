@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import Chance from 'chance';
 import dayjs from 'dayjs';
 import { ReactNode, useMemo, useState } from 'react';
+import { expect, userEvent, waitFor, within } from 'storybook/test';
 
 import { Calendar } from '@/components/Calendar';
 import DayjsTZDate from '@/time/dayjs-tzdate';
@@ -455,6 +456,21 @@ export const Templates: Story = {
       </SchedulerStoryFrame>
     );
   },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+
+    // 验证事件卡片渲染（至少 8 张卡片，3 个资源 x 4 个事件 = 12，去重后 >= 8）
+    const cards = canvas.getAllByTestId(/^event-card-sched-/);
+    expect(cards.length).toBeGreaterThanOrEqual(8);
+
+    // 验证自定义 day header 格式："M.D / 周X"
+    const dayHeaders = canvas.getAllByText(/\d+\.\d+ \/ 周[一二三四五六日]/);
+    expect(dayHeaders.length).toBeGreaterThan(0);
+
+    // 验证自定义 resource header 中的资源名称
+    const resourceNames = canvas.getAllByText('会议室 A');
+    expect(resourceNames.length).toBeGreaterThan(0);
+  },
 };
 
 export const InteractionCallbacks: Story = {
@@ -621,6 +637,27 @@ export const OverlapPolicy: Story = {
       </SchedulerStoryFrame>
     );
   },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+
+    // 源事件 'ov-4' 在 r2 上
+    const srcCard = canvas.getByTestId('event-card-ov-4');
+    await expect(srcCard).toBeInTheDocument();
+
+    // 验证不可重叠事件 'ov-1' (overlap=false) 和 'ov-2' (overlap=true) 都存在
+    const lockedCard = canvas.getByTestId('event-card-ov-1');
+    const allowCard = canvas.getByTestId('event-card-ov-2');
+    await expect(lockedCard).toBeInTheDocument();
+    await expect(allowCard).toBeInTheDocument();
+
+    // 验证默认事件 'ov-3' 也在 DOM 中（跟随全局 eventOverlap=false）
+    const defaultCard = canvas.getByTestId('event-card-ov-3');
+    await expect(defaultCard).toBeInTheDocument();
+
+    // 拖拽模拟在 test-runner page.evaluate 环境下受限于 React ref/state 异步时序，
+    // overlap/buffer 冲突的详细验证由 vitest controller 层单测覆盖
+    // (scheduler-overlap.spec.ts / scheduler-buffer.spec.ts)
+  },
 };
 
 const BUFFER_EVENTS: EventObject[] = [
@@ -715,6 +752,23 @@ export const BufferTimes: Story = {
       </SchedulerStoryFrame>
     );
   },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+
+    // 找到 r2 上的可拖事件 'buf-3'（"拖我到 r1 的缓冲区"）
+    const srcCard = canvas.getByTestId('event-card-buf-3');
+    await expect(srcCard).toBeInTheDocument();
+
+    // 验证带 buffer 的事件都存在
+    const buf1Card = canvas.getByTestId('event-card-buf-1');
+    const buf2Card = canvas.getByTestId('event-card-buf-2');
+    await expect(buf1Card).toBeInTheDocument();
+    await expect(buf2Card).toBeInTheDocument();
+
+    // 拖拽模拟在 test-runner page.evaluate 环境下受限于 React ref/state 异步时序，
+    // buffer 冲突的详细边界验证由 vitest controller 层单测覆盖
+    // (scheduler-buffer.spec.ts)
+  },
 };
 
 const DELETE_EVENTS: EventObject[] = [
@@ -807,5 +861,33 @@ export const Delete: Story = {
         />
       </SchedulerStoryFrame>
     );
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+
+    // 找到可删除的事件卡片 'del-1'
+    const editableCard = canvas.getByTestId('event-card-del-1');
+    await expect(editableCard).toBeInTheDocument();
+
+    // 聚焦卡片（keydown 监听在卡片上，需要聚焦）
+    editableCard.focus();
+    await expect(editableCard).toHaveFocus();
+
+    // 按 Delete 键触发删除
+    await userEvent.keyboard('{Delete}');
+
+    // 等待日志显示"已删除"
+    await waitFor(() => {
+      expect(canvas.getByText(/已删除/)).toBeInTheDocument();
+    });
+
+    // 卡片从 DOM 中移除
+    await waitFor(() => {
+      expect(canvas.queryByTestId('event-card-del-1')).toBeNull();
+    });
+
+    // 不可删除的卡片 'del-2' 仍然存在
+    const nonEditableCard = canvas.getByTestId('event-card-del-2');
+    await expect(nonEditableCard).toBeInTheDocument();
   },
 };
