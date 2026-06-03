@@ -1,6 +1,7 @@
+import { DeepPartial } from 'ts-essentials';
+
 import { WeekTheme } from '@/types/theme.type';
 import { mergeObject } from '@/utils/object';
-import { DeepPartial } from 'ts-essentials';
 
 function initializeWeekOptions(weekOptions: DeepPartial<WeekTheme> = {}) {
   const week = {

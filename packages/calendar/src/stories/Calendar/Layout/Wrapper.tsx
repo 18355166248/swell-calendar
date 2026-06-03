@@ -1,8 +1,9 @@
-import { CalendarProvider } from '@/components/CalendarProvider';
 import { PropsWithChildren } from 'react';
+import { useStore } from 'zustand';
+
+import { CalendarProvider } from '@/components/CalendarProvider';
 import { createCalendarStore } from '@/contexts/calendarStore';
 import { EventObject } from '@/types/events.type';
-import { useStore } from 'zustand';
 import { Options } from '@/types/options.type';
 
 let start = false;

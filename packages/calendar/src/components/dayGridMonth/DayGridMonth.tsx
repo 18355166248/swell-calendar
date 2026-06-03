@@ -1,6 +1,7 @@
 import { cls, toPercent } from '@/helpers/css';
 import DayjsTZDate from '@/time/dayjs-tzdate';
 import { CellStyle } from '@/types/datetime.type';
+
 import GridRow from './GridRow';
 
 interface DayGridMonthProps {
@@ -9,14 +10,7 @@ interface DayGridMonthProps {
   cellWidthMap: number[][];
 }
 
-const DayGridMonth = ({ dateMatrix, rowInfo, cellWidthMap }: DayGridMonthProps) => {
-  console.log(
-    '🚀 ~ DayGridMonth ~ dateMatrix, rowInfo, cellWidthMap:',
-    dateMatrix,
-    rowInfo,
-    cellWidthMap
-  );
-
+const DayGridMonth = ({ dateMatrix, rowInfo }: DayGridMonthProps) => {
   const height = 100 / dateMatrix.length;
 
   return (

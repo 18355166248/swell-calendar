@@ -1,12 +1,14 @@
+import { isNil } from 'lodash-es';
+import { KeyboardEvent, MouseEvent, useCallback, useEffect, useRef, useState } from 'react';
+
 import { MINIMUM_DRAG_MOUSE_DISTANCE } from '@/constants/mouse.const';
 import { useCalendarStore } from '@/contexts/calendarStore';
 import { DndState, DraggingState } from '@/types/dnd.type';
+import { DraggingTypes } from '@/types/drag.type';
 import { MouseEventListener } from '@/types/events.type';
 import { isLeftMouseButton } from '@/utils/mouse';
-import { isNil } from 'lodash-es';
-import { useCallback, useRef, useState, MouseEvent, KeyboardEvent, useEffect } from 'react';
+
 import useLatest from './useLatest';
-import { DraggingTypes } from '@/types/drag.type';
 
 type MouseListener = (e: MouseEvent, dnd: DndState) => void;
 type KeyboardListener = (e: KeyboardEvent, dnd: DndState) => void;
@@ -137,8 +139,11 @@ export function useDrag(
   // 根据拖拽状态添加/移除全局事件监听器
   useEffect(() => {
     const wrappedHandleMouseMove = (e: globalThis.MouseEvent) =>
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       handleMouseMoveRef.current?.(e as any);
-    const wrappedHandleMouseUp = (e: globalThis.MouseEvent) => handleMouseUpRef.current?.(e as any);
+    const wrappedHandleMouseUp = (e: globalThis.MouseEvent) =>
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      handleMouseUpRef.current?.(e as any);
 
     if (isStarted) {
       // 拖拽开始时添加全局事件监听器

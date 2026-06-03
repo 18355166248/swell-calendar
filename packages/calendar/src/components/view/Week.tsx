@@ -1,20 +1,22 @@
+import { useMemo } from 'react';
+
+import { WEEK_DAY_NAME_BORDER, WEEK_DAY_NAME_HEIGHT } from '@/constants/style.const';
 import { useCalendarStore } from '@/contexts/calendarStore';
 import { useThemeStore } from '@/contexts/themeStore';
+import { cls } from '@/helpers/css';
 import { getDayNames } from '@/helpers/dayName';
 import { createTimeGridData, getWeekDates, getWeekViewEvents } from '@/helpers/grid';
 import { getActivePanels } from '@/helpers/view';
 import { useDOMNode } from '@/hooks/common/useDOMNode';
+import useTimeGridScrollSync from '@/hooks/TimeGrid/useTimeGridScrollSync';
 import { getRowStyleInfo, toEndOfDay, toStartOfDay } from '@/time/datetime';
 import { WeekOptions } from '@/types/options.type';
-import { useMemo } from 'react';
+
+import { ALLDAY_EVENT_HEIGHT, AlldayRow } from '../dayGrid/AlldayRow';
+import GridHeader from '../dayGridCommon/GridHeader';
 import Layout from '../Layout';
 import Panel from '../Panel';
-import { cls } from '@/helpers/css';
-import { WEEK_DAY_NAME_BORDER, WEEK_DAY_NAME_HEIGHT } from '@/constants/style.const';
-import GridHeader from '../dayGridCommon/GridHeader';
-import useTimeGridScrollSync from '@/hooks/TimeGrid/useTimeGridScrollSync';
 import { TimeGrid } from '../timeGrid/TimeGridView';
-import { AlldayRow, ALLDAY_EVENT_HEIGHT } from '../dayGrid/AlldayRow';
 
 /**
  * 周视图状态管理钩子
@@ -49,7 +51,7 @@ function useWeekViewState() {
 
 export function Week() {
   // 获取周视图状态
-  const { options, calendar, gridRowLayout, lastPanelType, renderDate } = useWeekViewState();
+  const { options, calendar, renderDate } = useWeekViewState();
   // 获取主题中的网格头部左边距
   const { timeGridLeft } = useThemeStore((state) => state.week);
 
@@ -79,7 +81,7 @@ export function Week() {
   const dayNames = getDayNames(weekDates, options.week?.dayNames ?? []);
 
   // 计算行样式信息和单元格宽度映射
-  const { rowStyleInfo, cellWidthMap } = getRowStyleInfo(
+  const { rowStyleInfo } = getRowStyleInfo(
     weekDates.length,
     narrowWeekend,
     startDayOfWeek,
@@ -123,12 +125,9 @@ export function Week() {
   useTimeGridScrollSync(timePanel, timeGridData.rows.length);
 
   const alldayModels = dayGridEvents.allday;
-  const maxAlldaySlot = alldayModels.length > 0
-    ? Math.max(0, ...alldayModels.map((m) => m.top))
-    : -1;
-  const alldayPanelHeight = maxAlldaySlot >= 0
-    ? (maxAlldaySlot + 1) * ALLDAY_EVENT_HEIGHT
-    : 0;
+  const maxAlldaySlot =
+    alldayModels.length > 0 ? Math.max(0, ...alldayModels.map((m) => m.top)) : -1;
+  const alldayPanelHeight = maxAlldaySlot >= 0 ? (maxAlldaySlot + 1) * ALLDAY_EVENT_HEIGHT : 0;
 
   return (
     <Layout className={cls('week-view')}>

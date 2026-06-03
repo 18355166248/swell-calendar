@@ -1,10 +1,10 @@
-import type { OptionsSlice, WeekOptions } from './options.type';
-import { ViewSlice } from './view.type';
-import { TemplateSlice } from './template.type';
-import { OptionsSlice as LayoutSlice } from './layout.type';
+import { CalendarSlice } from './calendar.type';
 import { DndSlice } from './dnd.type';
 import { GridSelectionSlice } from './gridSelection.type';
-import { CalendarSlice } from './calendar.type';
+import { OptionsSlice as LayoutSlice } from './layout.type';
+import type { OptionsSlice, WeekOptions } from './options.type';
+import { TemplateSlice } from './template.type';
+import { ViewSlice } from './view.type';
 
 export type CalendarWeekOptions = Required<WeekOptions>;
 

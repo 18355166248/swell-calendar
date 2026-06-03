@@ -1,10 +1,11 @@
+import { isNil } from 'lodash-es';
+import { useMemo } from 'react';
+
 import { useCalendarStore } from '@/contexts/calendarStore';
 import { useThemeStore } from '@/contexts/themeStore';
 import { cls, toPercent } from '@/helpers/css';
 import { timeGridSelectionHelper } from '@/helpers/gridSelection';
 import { TimeGridRow } from '@/types/grid.type';
-import { isNil } from 'lodash-es';
-import { useMemo } from 'react';
 
 function GridSelection({ top, height, text }: { top: number; height: number; text: string }) {
   // 直接使用选择器函数，不需要 useMemo 包装

@@ -1,12 +1,14 @@
-import { useThemeStore } from '@/contexts/themeStore';
-import { addTimeGridPrefix } from '@/constants/timeGrid-const';
-import { TimeGridRow } from '@/types/grid.type';
+import { isNil } from 'lodash-es';
 import { memo, useCallback, useMemo } from 'react';
-import DayjsTZDate from '@/time/dayjs-tzdate';
+
+import { addTimeGridPrefix } from '@/constants/timeGrid-const';
+import { useThemeStore } from '@/contexts/themeStore';
 import { cls, toPercent } from '@/helpers/css';
 import { addMinutes, setTimeStrToDate } from '@/time/datetime';
+import DayjsTZDate from '@/time/dayjs-tzdate';
+import { TimeGridRow } from '@/types/grid.type';
+
 import { Template } from '../Template';
-import { isNil } from 'lodash-es';
 import NowIndicatorLabel from './NowIndicatorLabel';
 
 type NowIndicatorState = {
@@ -116,6 +118,7 @@ function TimeColumn({ timeGridRows, nowIndicatorState }: TimeColumnProps) {
         className,
       };
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [rowsByHour, nowIndicatorState]
   );
 

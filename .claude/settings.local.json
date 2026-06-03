@@ -20,7 +20,32 @@
       "Bash(npx storybook *)",
       "Bash(Select-Object -Last 50)",
       "Bash(Get-Content F:\\\\FrontEnd\\\\code\\\\swell-calendar\\\\packages\\\\calendar\\\\package.json)",
-      "Bash(Select-String -Pattern \"vitest|test|storybook\" -Context 0,2)"
+      "Bash(Select-String -Pattern \"vitest|test|storybook\" -Context 0,2)",
+      "Bash(pnpm vitest *)",
+      "Bash(pnpm eslint *)",
+      "Bash(node ../../scripts/changeNode.js 20 storybook dev -p 6006 --no-open)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:6006)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:6007)",
+      "Bash(node *)",
+      "Bash(npx test-storybook *)",
+      "Bash(npx playwright *)",
+      "Bash(npx playwright@1.60.0 install chromium-headless-shell)",
+      "Bash(ln -sf /Users/xmly/Library/Caches/ms-playwright/chromium_headless_shell-1208 /Users/xmly/Library/Caches/ms-playwright/chromium_headless_shell-1223)",
+      "Bash(pkill -f \"storybook dev\")",
+      "Read(//Users/xmly/.skillet/skills/spec-check/**)",
+      "Read(//Users/xmly/.skillet/skills/**)",
+      "Read(//Users/xmly/.codex/**)",
+      "Read(//Users/xmly/.codex/skills/**)",
+      "Bash(ln *)",
+      "Bash(./node_modules/.pnpm/playwright-core@1.60.0/node_modules/playwright-core/cli.js install *)",
+      "Bash(HEADLESS=false npx test-storybook *)",
+      "Bash(PWDEBUG=1 npx test-storybook --url http://localhost:6006 --maxWorkers 1)",
+      "Bash(HEADED=true npx test-storybook *)",
+      "Bash(PWHEADLESS=false npx test-storybook *)",
+      "Bash(grep -oP \".{0,80}launch.{0,80}\" /Users/xmly/Swell/code/swell-calendar/node_modules/.pnpm/@storybook+test-runner@0.19.1_@types+node@22.15.33_storybook@9.0.14_@testing-library+dom@10.4.0_prettier@3.2.5_/node_modules/@storybook/test-runner/dist/index.mjs)",
+      "Bash(grep -oP \".{0,80}headless.{0,80}\" /Users/xmly/Swell/code/swell-calendar/node_modules/.pnpm/@storybook+test-runner@0.19.1_@types+node@22.15.33_storybook@9.0.14_@testing-library+dom@10.4.0_prettier@3.2.5_/node_modules/@storybook/test-runner/dist/index.mjs)",
+      "Bash(grep -oP '.{0,200}jest-playwright.{0,200}' /Users/xmly/Swell/code/swell-calendar/node_modules/.pnpm/@storybook+test-runner@0.19.1_@types+node@22.15.33_storybook@9.0.14_@testing-library+dom@10.4.0_prettier@3.2.5_/node_modules/@storybook/test-runner/dist/index.mjs)",
+      "Bash(grep *)"
     ]
   }
 }

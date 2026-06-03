@@ -1,20 +1,22 @@
+import { isNil } from 'lodash-es';
+
+import { EventModel } from '@/model/eventModel';
+import { EventUIModel } from '@/model/eventUIModel';
 import DayjsTZDate from '@/time/dayjs-tzdate';
 import { CalendarData } from '@/types/calendar.type';
+import { DayGridEventMatrix, EventGroupMap, Matrix3d } from '@/types/events.type';
 import { WeekOptions } from '@/types/options.type';
 import { Panel } from '@/types/panel.type';
+import array from '@/utils/array';
+import Collection from '@/utils/collection';
+
 import {
   convertToUIModel,
   generate3DMatrix,
   getCollisionGroup,
   getEventInDateRangeFilter,
 } from './core.controller';
-import { DayGridEventMatrix, EventGroupMap, Matrix3d } from '@/types/events.type';
-import Collection from '@/utils/collection';
-import { EventUIModel } from '@/model/eventUIModel';
 import { filterByCategory, getDateRange } from './event.controller';
-import { isNil } from 'lodash-es';
-import { EventModel } from '@/model/eventModel';
-import array from '@/utils/array';
 
 function getUIModelForAlldayView(
   start: DayjsTZDate,

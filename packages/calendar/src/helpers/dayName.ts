@@ -1,6 +1,7 @@
+import { capitalize } from 'lodash-es';
+
 import DayjsTZDate from '@/time/dayjs-tzdate';
 import { TemplateWeekDayName } from '@/types/template.type';
-import { capitalize } from 'lodash-es';
 
 export const DEFAULT_DAY_NAMES = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
 

@@ -1,6 +1,7 @@
+import { DeepPartial } from 'ts-essentials';
+
 import { CommonTheme } from '@/types/theme.type';
 import { mergeObject } from '@/utils/object';
-import { DeepPartial } from 'ts-essentials';
 
 function initializeCommonOptions(commonOptions: DeepPartial<CommonTheme> = {}) {
   const common = {

@@ -1,7 +1,8 @@
 import type { CSSProperties } from 'react';
-import { EventUIModel } from '@/model/eventUIModel';
-import { cls } from '@/helpers/css';
+
 import { useCalendarCallbacks } from '@/contexts/calendarCallbacks';
+import { cls } from '@/helpers/css';
+import { EventUIModel } from '@/model/eventUIModel';
 
 interface AlldayEventProps {
   uiModel: EventUIModel;
@@ -35,6 +36,7 @@ export function AlldayEvent({ uiModel, height }: AlldayEventProps) {
     <div
       className={cls('allday-event')}
       style={style}
+      data-testid={`event-card-${model.id}`}
       title={model.title}
       onClick={() => callbacks?.onEventClick?.({ event: model.toEventObject() })}
     >

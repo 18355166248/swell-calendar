@@ -1,7 +1,6 @@
 import { useThemeStore } from '@/contexts/themeStore';
 import { cls, toPercent } from '@/helpers/css';
 import { TimeGridRow } from '@/types/grid.type';
-import { useMemo } from 'react';
 
 interface GridLinesProps {
   timeGridRows: TimeGridRow[];

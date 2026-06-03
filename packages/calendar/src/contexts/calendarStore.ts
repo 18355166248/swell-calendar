@@ -1,15 +1,16 @@
-import { Options } from '@/types/options.type';
-import { createOptionsSlice } from '@/slices/options.slice';
+import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
-import { createViewSlice } from '@/slices/view.slice';
-import { CalendarStore } from '@/types/store.type';
-import { createTemplateSlice } from '@/slices/template.slice';
-import { createLayoutSlice } from '@/slices/layout.slice';
+
+import { createCalendarSlice } from '@/slices/calendat.slice';
 import { createDndSlice } from '@/slices/dnd.slice';
 import { createGridSelectionSlice } from '@/slices/gridSelection.slice';
-import { create } from 'zustand';
+import { createLayoutSlice } from '@/slices/layout.slice';
+import { createOptionsSlice } from '@/slices/options.slice';
+import { createTemplateSlice } from '@/slices/template.slice';
+import { createViewSlice } from '@/slices/view.slice';
 import { createStoreContext } from '@/store';
-import { createCalendarSlice } from '@/slices/calendat.slice';
+import { Options } from '@/types/options.type';
+import { CalendarStore } from '@/types/store.type';
 
 // 定义状态更新函数的类型
 // 这个函数接收一个状态转换函数，返回部分状态更新

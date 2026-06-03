@@ -1,8 +1,10 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+
 import { CalendarApp } from '@/components/CalendarApp';
 import { createCalendarStore } from '@/contexts/calendarStore';
-import { createRandomEvents } from './utils/randomEvents';
 import DayjsTZDate from '@/time/dayjs-tzdate';
+
+import { createRandomEvents } from './utils/randomEvents';
 
 const store = createCalendarStore({ defaultView: 'week' });
 

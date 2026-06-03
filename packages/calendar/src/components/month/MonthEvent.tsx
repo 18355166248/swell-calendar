@@ -1,7 +1,8 @@
 import type { CSSProperties } from 'react';
-import { EventUIModel } from '@/model/eventUIModel';
-import { cls } from '@/helpers/css';
+
 import { useCalendarCallbacks } from '@/contexts/calendarCallbacks';
+import { cls } from '@/helpers/css';
+import { EventUIModel } from '@/model/eventUIModel';
 
 interface MonthEventProps {
   uiModel: EventUIModel;

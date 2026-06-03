@@ -1,7 +1,8 @@
-import { MonthTheme, ThemeState } from '@/types/theme.type';
-import { mergeObject } from '@/utils/object';
 import { produce } from 'immer';
 import { DeepPartial } from 'ts-essentials';
+
+import { MonthTheme, ThemeState } from '@/types/theme.type';
+import { mergeObject } from '@/utils/object';
 
 function initializeMonthOptions(monthOptions: DeepPartial<MonthTheme> = {}) {
   const month = {

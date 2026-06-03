@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import Chance from 'chance';
 import dayjs from 'dayjs';
 import { ReactNode, useMemo, useState } from 'react';
-import { expect, userEvent, waitFor, within } from 'storybook/test';
+import { expect, fireEvent, userEvent, waitFor, within } from 'storybook/test';
 
 import { Calendar } from '@/components/Calendar';
 import DayjsTZDate from '@/time/dayjs-tzdate';
@@ -114,6 +114,10 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
+// 演示模式下先停顿，让观众看清组件全貌
+// 可通过 SLOWMO 环境变量控制速度：SLOWMO=8000 pnpm test:storybook:headed
+const DEMO_PAUSE = 2000; // 每个 story 开始前停顿 2 秒
+
 export const Default: Story = {
   render: () => (
     <SchedulerStoryFrame>
@@ -130,6 +134,22 @@ export const Default: Story = {
       />
     </SchedulerStoryFrame>
   ),
+  play: async ({ canvasElement }) => {
+    await new Promise((r) => setTimeout(r, DEMO_PAUSE));
+    const canvas = within(canvasElement);
+
+    // 验证资源列头渲染（多个资源行包含相同名称，使用 getAllByText）
+    const roomA = canvas.getAllByText('会议室 A');
+    expect(roomA.length).toBeGreaterThanOrEqual(1);
+    const zhangSan = canvas.getAllByText('张三');
+    expect(zhangSan.length).toBeGreaterThanOrEqual(1);
+    const wangWu = canvas.getAllByText('王五');
+    expect(wangWu.length).toBeGreaterThanOrEqual(1);
+
+    // 验证事件卡片渲染（5 资源 x 6 事件 = 30 张卡片）
+    const cards = canvas.getAllByTestId(/^event-card-sched-/);
+    expect(cards.length).toBeGreaterThanOrEqual(20);
+  },
 };
 
 export const ControlledCrud: Story = {
@@ -217,6 +237,18 @@ export const BlockedTimes: Story = {
       />
     </SchedulerStoryFrame>
   ),
+  play: async ({ canvasElement }) => {
+    await new Promise((r) => setTimeout(r, DEMO_PAUSE));
+    const canvas = within(canvasElement);
+
+    // 验证资源列头仍在（多个资源列包含相同名称）
+    const roomA = canvas.getAllByText('会议室 A');
+    expect(roomA.length).toBeGreaterThanOrEqual(1);
+
+    // 验证事件卡片正常渲染（blockedTimes 不应影响已有事件渲染）
+    const cards = canvas.getAllByTestId(/^event-card-sched-/);
+    expect(cards.length).toBeGreaterThanOrEqual(20);
+  },
 };
 
 export const Invalid: Story = {
@@ -347,6 +379,27 @@ export const AllDayAndMultiDay: Story = {
       </SchedulerStoryFrame>
     );
   },
+  play: async ({ canvasElement }) => {
+    await new Promise((r) => setTimeout(r, DEMO_PAUSE));
+    const canvas = within(canvasElement);
+
+    // 验证全天事件标题（today+2 天在当前周内一定可见）
+    await expect(canvas.getByText('全天值班')).toBeInTheDocument();
+
+    // 验证跨天事件标题渲染
+    await expect(canvas.getByText('跨天维保（r2）')).toBeInTheDocument();
+    await expect(canvas.getByText('跨天项目（r4）')).toBeInTheDocument();
+
+    // 验证跨天和全天事件的 data-testid（TimeEvent 和 AlldayEvent 均支持）
+    const multiDay1 = canvas.getByTestId('event-card-sched-multiday-1');
+    const multiDay2 = canvas.getByTestId('event-card-sched-multiday-2');
+    await expect(multiDay1).toBeInTheDocument();
+    await expect(multiDay2).toBeInTheDocument();
+
+    // 验证常规事件也正常渲染
+    const cards = canvas.getAllByTestId(/^event-card-sched-/);
+    expect(cards.length).toBeGreaterThanOrEqual(20);
+  },
 };
 
 export const DragTimeTooltipAndOrder: Story = {
@@ -457,6 +510,7 @@ export const Templates: Story = {
     );
   },
   play: async ({ canvasElement }) => {
+    await new Promise((r) => setTimeout(r, DEMO_PAUSE));
     const canvas = within(canvasElement);
 
     // 验证事件卡片渲染（至少 8 张卡片，3 个资源 x 4 个事件 = 12，去重后 >= 8）
@@ -520,6 +574,26 @@ export const InteractionCallbacks: Story = {
         />
       </SchedulerStoryFrame>
     );
+  },
+  play: async ({ canvasElement }) => {
+    await new Promise((r) => setTimeout(r, DEMO_PAUSE));
+    const canvas = within(canvasElement);
+
+    // 验证初始日志文本
+    await expect(canvas.getByText('等待交互')).toBeInTheDocument();
+
+    // 验证事件卡片渲染
+    const cards = canvas.getAllByTestId(/^event-card-sched-/);
+    expect(cards.length).toBeGreaterThanOrEqual(20);
+
+    // 模拟 hover 第一个事件卡片 — 验证不会报错
+    const firstCard = cards[0];
+    await userEvent.hover(firstCard);
+
+    // 等待 hover 回调触发
+    await waitFor(() => {
+      expect(canvas.getByText(/enter|leave/)).toBeInTheDocument();
+    });
   },
 };
 
@@ -638,25 +712,42 @@ export const OverlapPolicy: Story = {
     );
   },
   play: async ({ canvasElement }) => {
+    await new Promise((r) => setTimeout(r, DEMO_PAUSE));
     const canvas = within(canvasElement);
 
-    // 源事件 'ov-4' 在 r2 上
-    const srcCard = canvas.getByTestId('event-card-ov-4');
-    await expect(srcCard).toBeInTheDocument();
-
-    // 验证不可重叠事件 'ov-1' (overlap=false) 和 'ov-2' (overlap=true) 都存在
+    // 验证所有事件卡片渲染
     const lockedCard = canvas.getByTestId('event-card-ov-1');
     const allowCard = canvas.getByTestId('event-card-ov-2');
+    const defaultCard = canvas.getByTestId('event-card-ov-3');
+    const srcCard = canvas.getByTestId('event-card-ov-4');
     await expect(lockedCard).toBeInTheDocument();
     await expect(allowCard).toBeInTheDocument();
-
-    // 验证默认事件 'ov-3' 也在 DOM 中（跟随全局 eventOverlap=false）
-    const defaultCard = canvas.getByTestId('event-card-ov-3');
     await expect(defaultCard).toBeInTheDocument();
+    await expect(srcCard).toBeInTheDocument();
 
-    // 拖拽模拟在 test-runner page.evaluate 环境下受限于 React ref/state 异步时序，
-    // overlap/buffer 冲突的详细验证由 vitest controller 层单测覆盖
-    // (scheduler-overlap.spec.ts / scheduler-buffer.spec.ts)
+    // 验证日志面板
+    await expect(canvas.getByText('全局 eventOverlap=false，per-event 可覆盖')).toBeInTheDocument();
+
+    // 步骤 1: 单击可重叠事件（绿色），无报错
+    await userEvent.click(allowCard);
+
+    // 步骤 2: 聚焦不可重叠事件（红色），验证可聚焦
+    lockedCard.focus();
+    await expect(lockedCard).toHaveFocus();
+
+    // 步骤 3: 输入回车，验证键盘事件不崩溃
+    fireEvent.keyDown(lockedCard, { key: 'Enter' });
+
+    // 步骤 4: 演示拖拽 — 拖 ov-4（"移动我到 r1 试试"）向左 200px
+    // pointer down 在源元素中心
+    await userEvent.pointer({ keys: '[MouseLeft>]', target: srcCard, coords: { x: 0, y: 0 } });
+    // 按住左键向左移动 200px（从 r2 列拖到 r1 列）
+    await userEvent.pointer({ keys: '[MouseLeft]', target: srcCard, coords: { x: -200, y: 0 } });
+    // 释放鼠标
+    await userEvent.pointer({ keys: '[/MouseLeft]', target: srcCard, coords: { x: -200, y: 0 } });
+
+    // 等待拖拽结果日志更新
+    await new Promise((r) => setTimeout(r, 1000));
   },
 };
 
@@ -753,21 +844,32 @@ export const BufferTimes: Story = {
     );
   },
   play: async ({ canvasElement }) => {
+    await new Promise((r) => setTimeout(r, DEMO_PAUSE));
     const canvas = within(canvasElement);
 
-    // 找到 r2 上的可拖事件 'buf-3'（"拖我到 r1 的缓冲区"）
-    const srcCard = canvas.getByTestId('event-card-buf-3');
-    await expect(srcCard).toBeInTheDocument();
-
-    // 验证带 buffer 的事件都存在
+    // 验证所有事件卡片渲染
     const buf1Card = canvas.getByTestId('event-card-buf-1');
     const buf2Card = canvas.getByTestId('event-card-buf-2');
+    const srcCard = canvas.getByTestId('event-card-buf-3');
     await expect(buf1Card).toBeInTheDocument();
     await expect(buf2Card).toBeInTheDocument();
+    await expect(srcCard).toBeInTheDocument();
 
-    // 拖拽模拟在 test-runner page.evaluate 环境下受限于 React ref/state 异步时序，
-    // buffer 冲突的详细边界验证由 vitest controller 层单测覆盖
-    // (scheduler-buffer.spec.ts)
+    // 验证 buffer 提示面板
+    await expect(canvas.getByText('bufferAfter / bufferBefore 参与冲突判定')).toBeInTheDocument();
+
+    // 聚焦 buffer 事件，验证可交互
+    buf1Card.focus();
+    await expect(buf1Card).toHaveFocus();
+
+    // Tab 切换到下一个 buffer 事件
+    await userEvent.tab();
+    // buf2Card 不在自然的 tab 顺序中（可能在不同资源列），
+    // 但至少验证焦点从 buf1 转移后 DOM 仍然稳定
+    await expect(buf2Card).toBeInTheDocument();
+
+    // 单击可拖事件，验证不会报错
+    await userEvent.click(srcCard);
   },
 };
 
@@ -863,6 +965,7 @@ export const Delete: Story = {
     );
   },
   play: async ({ canvasElement }) => {
+    await new Promise((r) => setTimeout(r, DEMO_PAUSE));
     const canvas = within(canvasElement);
 
     // 找到可删除的事件卡片 'del-1'

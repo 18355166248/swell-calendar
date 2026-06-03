@@ -1,17 +1,12 @@
-import React, {
-  forwardRef,
-  useEffect,
-  useImperativeHandle,
-  useMemo,
-  useRef,
-} from 'react';
-import { createCalendarStore, CalendarStoreContext } from '@/contexts/calendarStore';
+import React, { forwardRef, useEffect, useImperativeHandle, useMemo, useRef } from 'react';
+
 import { CalendarApp } from '@/components/CalendarApp';
+import { CalendarStoreContext, createCalendarStore } from '@/contexts/calendarStore';
+import { createThemeStore, useThemeStore } from '@/contexts/themeStore';
 import { CalendarInstance, EventCalendarProps } from '@/types/api.type';
-import { useThemeStore, createThemeStore } from '@/contexts/themeStore';
 import { CalendarInfo } from '@/types/calendar.type';
-import { Options } from '@/types/options.type';
 import { EventObject } from '@/types/events.type';
+import { Options } from '@/types/options.type';
 
 function buildStoreOptions(
   options: Options | undefined,
@@ -31,7 +26,11 @@ function createCalendarInstance(store: CalendarStoreContext): CalendarInstance {
     navigate: (direction) => store.getState().view.navigate(direction),
     goToToday: () => store.getState().view.goToToday(),
     setEvents: (events: EventObject[]) => store.getState().calendar.setEvents(events),
-    getEvents: () => store.getState().calendar.events.toArray().map((event) => event.toEventObject()),
+    getEvents: () =>
+      store
+        .getState()
+        .calendar.events.toArray()
+        .map((event) => event.toEventObject()),
   };
 }
 

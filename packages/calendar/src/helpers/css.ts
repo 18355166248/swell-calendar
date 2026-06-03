@@ -1,7 +1,8 @@
+import isString from 'lodash-es/isString';
+
 import { CSS_PREFIX, DEFAULT_EVENT_COLORS } from '@/constants/style.const';
 import { EventUIModel } from '@/model/eventUIModel';
 import { CalendarColor } from '@/types/calendar.type';
-import isString from 'lodash-es/isString';
 
 interface ClassNameDictionary {
   [id: string]: boolean | undefined | null;

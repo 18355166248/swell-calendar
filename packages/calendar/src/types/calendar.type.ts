@@ -1,6 +1,7 @@
-import Collection from '@/utils/collection';
-import { EventObject } from './events.type';
 import { EventModel } from '@/model/eventModel';
+import Collection from '@/utils/collection';
+
+import { EventObject } from './events.type';
 
 /**
  * 日历颜色接口

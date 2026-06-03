@@ -1,6 +1,7 @@
+import { EventUIModel } from '@/model/eventUIModel';
 import DayjsTZDate from '@/time/dayjs-tzdate';
 import { CalendarData } from '@/types/calendar.type';
-import { EventUIModel } from '@/model/eventUIModel';
+
 import { convertToUIModel, getEventInDateRangeFilter } from './core.controller';
 
 const MS_PER_HOUR = 60 * 60 * 1000;

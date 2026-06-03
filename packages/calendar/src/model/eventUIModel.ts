@@ -1,7 +1,9 @@
-import DayjsTZDate from '@/time/dayjs-tzdate';
-import { EventModel } from './eventModel';
-import { collidesWith } from '@/helpers/event';
 import { pick } from 'lodash-es';
+
+import { collidesWith } from '@/helpers/event';
+import DayjsTZDate from '@/time/dayjs-tzdate';
+
+import { EventModel } from './eventModel';
 
 /**
  * 事件UI属性键名数组

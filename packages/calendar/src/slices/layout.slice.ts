@@ -1,6 +1,7 @@
+import { produce } from 'immer';
+
 import { OptionsSlice, WeekViewLayoutSlice } from '@/types/layout.type';
 import { CalendarStore } from '@/types/store.type';
-import { produce } from 'immer';
 
 function initializeLayoutOptions(): Pick<WeekViewLayoutSlice, 'layout' | 'weekViewLayout'> {
   return {

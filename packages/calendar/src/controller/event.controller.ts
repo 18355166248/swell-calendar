@@ -1,7 +1,7 @@
 import { EventModel } from '@/model/eventModel';
 import { EventUIModel } from '@/model/eventUIModel';
-import DayjsTZDate from '@/time/dayjs-tzdate';
 import { makeDateRange, MS_PER_DAY, toEndOfDay, toStartOfDay } from '@/time/datetime';
+import DayjsTZDate from '@/time/dayjs-tzdate';
 import { CalendarData } from '@/types/calendar.type';
 import { EventObject } from '@/types/events.type';
 import Collection from '@/utils/collection';

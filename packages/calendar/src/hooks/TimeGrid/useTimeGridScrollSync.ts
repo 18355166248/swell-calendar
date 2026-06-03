@@ -1,7 +1,9 @@
-import { DndState, DraggingState } from '@/types/dnd.type';
-import { useTransientUpdatesCalendar } from '../common/useTransientUpdatesCalendar';
 import { isNil } from 'lodash-es';
+
+import { DndState, DraggingState } from '@/types/dnd.type';
 import { DraggingTypes } from '@/types/drag.type';
+
+import { useTransientUpdatesCalendar } from '../common/useTransientUpdatesCalendar';
 
 function isTimeGridDraggingType(type: DraggingTypes | null) {
   return /^(event|gridSelection)\/timeGrid/.test(type ?? '');

@@ -1,3 +1,5 @@
+import { isNil } from 'lodash-es';
+
 import { useGridSelection } from '@/hooks/GridSelection/useGridSelection';
 import { GridPosition } from '@/types/grid.type';
 import {
@@ -6,7 +8,6 @@ import {
   TimeGridSelectionDataByCol,
 } from '@/types/gridSelection.type';
 import { isBetween } from '@/utils/math';
-import { isNil } from 'lodash-es';
 
 /**
  * 从 useGridSelection hook 参数中提取必需的选择排序器参数类型
@@ -24,6 +25,7 @@ type RequiredGridSelectionHookParams = Pick<
 type GridSelectionHelper<
   SelectionCalculator extends (
     gridSelection: GridSelectionData | null,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ...rest: any[]
   ) => (TimeGridSelectionDataByCol | null) | (GridSelectionDataByRow | null),
 > = {

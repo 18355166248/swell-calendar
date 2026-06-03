@@ -1,6 +1,7 @@
+import { useEffect, useRef } from 'react';
+
 import { useCalendarStoreInternal } from '@/contexts/calendarStore';
 import { CalendarState } from '@/types/store.type';
-import { useEffect, useRef } from 'react';
 
 export function useTransientUpdatesCalendar<T>(
   selector: (state: CalendarState) => T,

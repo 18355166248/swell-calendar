@@ -1,8 +1,9 @@
 import { EventUIModel } from '@/model/eventUIModel';
+import { toEndOfDay, toStartOfDay } from '@/time/datetime';
 import DayjsTZDate from '@/time/dayjs-tzdate';
-import { toStartOfDay, toEndOfDay } from '@/time/datetime';
 import { CalendarData } from '@/types/calendar.type';
 import { MonthOptions } from '@/types/options.type';
+
 import { convertToUIModel, getEventInDateRangeFilter } from './core.controller';
 
 export interface MonthEventRowInfo {
@@ -27,7 +28,7 @@ export function getMonthWeeks(
 
   // 找到网格起始日（对齐到 startDayOfWeek）
   const startDay = monthStart.getDay();
-  const offsetDays = ((startDay - startDayOfWeek) + 7) % 7;
+  const offsetDays = (startDay - startDayOfWeek + 7) % 7;
   let gridStart = monthStart.addDate(-offsetDays);
 
   const weeks: DayjsTZDate[][] = [];

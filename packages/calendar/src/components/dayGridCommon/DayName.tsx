@@ -1,6 +1,7 @@
 import { cls } from '@/helpers/css';
 import { CalendarViewType } from '@/types/components/common.type';
 import { TemplateMonthDayName, TemplateName, TemplateWeekDayName } from '@/types/template.type';
+
 import { Template } from '../Template';
 
 interface DayNameProps {

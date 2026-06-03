@@ -1,8 +1,8 @@
-/* eslint-disable no-undefined */
 import dayjs, { type Dayjs } from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc';
+
 import type { DayjsTZDateMethods, TimezoneValue } from './dayjs-tzdate.types';
 
 // 启用 dayjs 插件
@@ -30,6 +30,7 @@ export default class DayjsTZDate implements DayjsTZDateMethods {
 
   tzOffset: number | null = null;
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   constructor(...args: any[]) {
     let dayjsInstance: Dayjs;
 
@@ -327,7 +328,7 @@ export default class DayjsTZDate implements DayjsTZDateMethods {
   /**
    * 批量设置年月日时分秒毫秒
    */
-  // eslint-disable-next-line max-params
+
   setWithRaw(
     y: number,
     m: number,

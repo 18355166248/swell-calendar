@@ -1,6 +1,6 @@
-import type { ClientMousePosition } from '@/types/mouse.type';
-import type { FormattedTimeString } from '@/types/datetime.type';
 import DayjsTZDate from '@/time/dayjs-tzdate';
+import type { FormattedTimeString } from '@/types/datetime.type';
+import type { ClientMousePosition } from '@/types/mouse.type';
 
 /**
  * 网格UI模型接口

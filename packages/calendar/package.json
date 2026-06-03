@@ -15,7 +15,9 @@
     "clean": "rm -rf .turbo node_modules dist",
     "test": "vitest run",
     "test:watch": "vitest",
-    "build-storybook": "node ../../scripts/changeNode.js 20 storybook build"
+    "test:storybook": "node ../../scripts/changeNode.js 20 test-storybook",
+    "test:storybook:headed": "HEADED=true node ../../scripts/changeNode.js 20 test-storybook --maxWorkers 1",
+    "build-storybook": "node  ../../scripts/changeNode.js 20 storybook build"
   },
   "exports": {
     ".": {

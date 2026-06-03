@@ -1,7 +1,8 @@
-import DayjsTZDate from '@/time/dayjs-tzdate';
 import { MonthWeekEventData } from '@/controller/month.controller';
-import { MonthEvent } from './MonthEvent';
 import { cls } from '@/helpers/css';
+import DayjsTZDate from '@/time/dayjs-tzdate';
+
+import { MonthEvent } from './MonthEvent';
 
 const CELL_EVENT_HEIGHT = 22;
 const CELL_HEADER_HEIGHT = 28;
@@ -27,8 +28,7 @@ function isToday(date: DayjsTZDate) {
 
 function isCurrentMonth(date: DayjsTZDate, renderDate: DayjsTZDate) {
   return (
-    date.getFullYear() === renderDate.getFullYear() &&
-    date.getMonth() === renderDate.getMonth()
+    date.getFullYear() === renderDate.getFullYear() && date.getMonth() === renderDate.getMonth()
   );
 }
 

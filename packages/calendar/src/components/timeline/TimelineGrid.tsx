@@ -1,9 +1,11 @@
+import { useMemo } from 'react';
+
+import { getTimelineEvents } from '@/controller/timeline.controller';
 import { cls } from '@/helpers/css';
+import DayjsTZDate from '@/time/dayjs-tzdate';
 import { CalendarData } from '@/types/calendar.type';
 import { ResourceInfo } from '@/types/options.type';
-import DayjsTZDate from '@/time/dayjs-tzdate';
-import { useMemo } from 'react';
-import { getTimelineEvents } from '@/controller/timeline.controller';
+
 import { TimelineEvent } from './TimelineEvent';
 
 interface TimelineGridProps {
@@ -44,11 +46,7 @@ export function TimelineGrid({
   return (
     <div className={cls('timeline-grid')} style={{ width: totalWidth }}>
       {resources.map((resource, rowIndex) => (
-        <div
-          key={resource.id}
-          className={cls('timeline-grid-row')}
-          style={{ height: rowHeight }}
-        >
+        <div key={resource.id} className={cls('timeline-grid-row')} style={{ height: rowHeight }}>
           {weekDates.map((_, dayIndex) =>
             Array.from({ length: hoursPerDay }, (__, h) => {
               const cellIndex = dayIndex * hoursPerDay + h;
@@ -65,11 +63,7 @@ export function TimelineGrid({
             })
           )}
           {resourceEvents[rowIndex].map((uiModel) => (
-            <TimelineEvent
-              key={uiModel.cid()}
-              uiModel={uiModel}
-              totalWidth={totalWidth}
-            />
+            <TimelineEvent key={uiModel.cid()} uiModel={uiModel} totalWidth={totalWidth} />
           ))}
         </div>
       ))}

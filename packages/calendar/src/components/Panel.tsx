@@ -1,8 +1,9 @@
+import { forwardRef, PropsWithChildren, useLayoutEffect, useMemo } from 'react';
+
 import { DEFAULT_PANEL_HEIGHT } from '@/constants/style.const';
 import { addTimeGridPrefix } from '@/constants/timeGrid-const';
 import { useCalendarStore } from '@/contexts/calendarStore';
 import { cls } from '@/helpers/css';
-import { forwardRef, PropsWithChildren, useLayoutEffect, useMemo } from 'react';
 
 interface PanelProps {
   name: string;

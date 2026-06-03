@@ -1,19 +1,20 @@
 import { useMemo } from 'react';
-import { useCalendarStore } from '@/contexts/calendarStore';
-import { getActivePanels } from '@/helpers/view';
-import { TimeGrid } from '@/components/timeGrid/TimeGridView';
-import { useThemeStore } from '@/contexts/themeStore';
-import { WeekOptions } from '@/types/options.type';
-import { createTimeGridData, getWeekViewEvents } from '@/helpers/grid';
+
+import { ALLDAY_EVENT_HEIGHT, AlldayRow } from '@/components/dayGrid/AlldayRow';
+import GridHeader from '@/components/dayGridCommon/GridHeader';
 import Layout from '@/components/Layout';
 import Panel from '@/components/Panel';
+import { TimeGrid } from '@/components/timeGrid/TimeGridView';
 import { WEEK_DAY_NAME_BORDER, WEEK_DAY_NAME_HEIGHT } from '@/constants/style.const';
-import { getFilterRange, getRowStyleInfo } from '@/time/datetime';
-import GridHeader from '@/components/dayGridCommon/GridHeader';
+import { useCalendarStore } from '@/contexts/calendarStore';
+import { useThemeStore } from '@/contexts/themeStore';
 import { getDayNames } from '@/helpers/dayName';
+import { createTimeGridData, getWeekViewEvents } from '@/helpers/grid';
+import { getActivePanels } from '@/helpers/view';
 import { useDOMNode } from '@/hooks/common/useDOMNode';
 import useTimeGridScrollSync from '@/hooks/TimeGrid/useTimeGridScrollSync';
-import { AlldayRow, ALLDAY_EVENT_HEIGHT } from '@/components/dayGrid/AlldayRow';
+import { getFilterRange, getRowStyleInfo } from '@/time/datetime';
+import { WeekOptions } from '@/types/options.type';
 
 export function Day(): JSX.Element {
   const { options, view } = useCalendarStore();
@@ -74,12 +75,9 @@ export function Day(): JSX.Element {
   useTimeGridScrollSync(timeGridRef, timeGridData.rows.length);
 
   const alldayModels = dayGridEvents.allday;
-  const maxAlldaySlot = alldayModels.length > 0
-    ? Math.max(0, ...alldayModels.map((m) => m.top))
-    : -1;
-  const alldayPanelHeight = maxAlldaySlot >= 0
-    ? (maxAlldaySlot + 1) * ALLDAY_EVENT_HEIGHT
-    : 0;
+  const maxAlldaySlot =
+    alldayModels.length > 0 ? Math.max(0, ...alldayModels.map((m) => m.top)) : -1;
+  const alldayPanelHeight = maxAlldaySlot >= 0 ? (maxAlldaySlot + 1) * ALLDAY_EVENT_HEIGHT : 0;
 
   return (
     <Layout className="day-view">

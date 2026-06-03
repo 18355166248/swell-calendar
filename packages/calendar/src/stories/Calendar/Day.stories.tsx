@@ -1,9 +1,11 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+
 import { Day } from '@/components/view/Day';
+import { EventModel } from '@/model/eventModel';
+import DayjsTZDate from '@/time/dayjs-tzdate';
+
 import { Wrapper } from './Layout/Wrapper';
 import { createRandomEvents } from './utils/randomEvents';
-import DayjsTZDate from '@/time/dayjs-tzdate';
-import { EventModel } from '@/model/eventModel';
 
 const meta = {
   title: 'Calendar/Day',

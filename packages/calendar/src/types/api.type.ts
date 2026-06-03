@@ -1,12 +1,14 @@
 import type { CSSProperties } from 'react';
+import { DeepPartial } from 'ts-essentials';
+
+import DayjsTZDate from '@/time/dayjs-tzdate';
+
 import { CalendarInfo } from './calendar.type';
 import { CalendarCallbacks } from './callbacks.type';
-import { EventObject, EventObjectWithDefaultValues, DateType } from './events.type';
+import { DateType, EventObject, EventObjectWithDefaultValues } from './events.type';
 import { Options, ViewType } from './options.type';
-import DayjsTZDate from '@/time/dayjs-tzdate';
-import { NavigateDirection } from './view.type';
-import { DeepPartial } from 'ts-essentials';
 import { ThemeState } from './theme.type';
+import { NavigateDirection } from './view.type';
 
 export interface CalendarInstance {
   getDate: () => DayjsTZDate;

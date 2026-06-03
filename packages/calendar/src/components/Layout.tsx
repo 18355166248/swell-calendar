@@ -1,10 +1,10 @@
-import { addTimeGridPrefix } from '@/constants/timeGrid-const';
+import { isNil, isNumber, isString } from 'lodash-es';
+import { Children, ReactElement, useEffect, useMemo } from 'react';
+
 import { useCalendarStore } from '@/contexts/calendarStore';
 import { LayoutContainerProvider } from '@/contexts/layoutContainer';
 import { cls, toPercent } from '@/helpers/css';
 import { useDOMNode } from '@/hooks/common/useDOMNode';
-import { isNil, isNumber, isString } from 'lodash-es';
-import { Children, ReactElement, useEffect, useMemo } from 'react';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -44,6 +44,7 @@ const Layout = ({ children, className, width, height, backgroundColor }: LayoutP
 
       return () => window.removeEventListener('resize', onResizeWindow);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [container]);
 
   useEffect(() => {
@@ -52,9 +53,11 @@ const Layout = ({ children, className, width, height, backgroundColor }: LayoutP
       const lastChild = childArray[childArray.length - 1];
 
       if (lastChild && !isString(lastChild) && !isNumber(lastChild) && !isNil(lastChild)) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         setLastPanelType((lastChild as unknown as ReactElement<any, string>).props.name);
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [container]);
 
   return (

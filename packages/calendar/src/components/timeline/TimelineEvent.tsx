@@ -1,6 +1,6 @@
+import { useCalendarCallbacks } from '@/contexts/calendarCallbacks';
 import { cls } from '@/helpers/css';
 import { EventUIModel } from '@/model/eventUIModel';
-import { useCalendarCallbacks } from '@/contexts/calendarCallbacks';
 
 interface TimelineEventProps {
   uiModel: EventUIModel;

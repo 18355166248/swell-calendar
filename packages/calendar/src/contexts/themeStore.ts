@@ -1,10 +1,11 @@
-import { create } from 'zustand';
-import { ThemeState } from '@/types/theme.type';
-import { createWeekThemeSlice } from '@/slices/theme/theme.week.slice';
-import { StateCreator } from 'zustand';
 import { DeepPartial } from 'ts-essentials';
+import { create } from 'zustand';
+import { StateCreator } from 'zustand';
+
 import { createCommonThemeSlice } from '@/slices/theme/theme.common.slice';
 import { createMonthThemeSlice } from '@/slices/theme/theme.month.slice';
+import { createWeekThemeSlice } from '@/slices/theme/theme.week.slice';
+import { ThemeState } from '@/types/theme.type';
 
 const storeCreator =
   (options: DeepPartial<ThemeState>): StateCreator<ThemeState> =>

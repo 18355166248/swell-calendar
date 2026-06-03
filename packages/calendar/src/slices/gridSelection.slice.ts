@@ -1,6 +1,7 @@
-import { CalendarStore } from '@/types/store.type';
-import { GridSelectionSlice, GridSelectionState } from '@/types/gridSelection.type';
 import { produce } from 'immer';
+
+import { GridSelectionSlice, GridSelectionState } from '@/types/gridSelection.type';
+import { CalendarStore } from '@/types/store.type';
 
 type SetState = (fn: (state: CalendarStore) => Partial<CalendarStore>) => void;
 

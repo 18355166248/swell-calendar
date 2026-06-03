@@ -1,12 +1,14 @@
+import { isNil, isString } from 'lodash-es';
+import { cloneElement, createElement } from 'react';
+
 import { useCalendarStore } from '@/contexts/calendarStore';
 import { cls } from '@/helpers/css';
 import { TemplateName, TemplateReturnType } from '@/types/template.type';
 import { sanitize } from '@/utils/sanitizer';
-import { isNil, isString } from 'lodash-es';
-import { cloneElement, createElement } from 'react';
 
 interface Props {
   template: TemplateName;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   param?: any;
   as?: keyof HTMLElementTagNameMap;
 }

@@ -1,4 +1,5 @@
 import { EventUIModel } from '@/model/eventUIModel';
+
 import { DraggingTypes } from './drag.type';
 
 /**

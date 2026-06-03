@@ -1,5 +1,6 @@
-import { CalendarCallbacks } from '@/types/callbacks.type';
 import { createContext, useContext } from 'react';
+
+import { CalendarCallbacks } from '@/types/callbacks.type';
 
 const CalendarCallbacksContext = createContext<CalendarCallbacks | null>(null);
 

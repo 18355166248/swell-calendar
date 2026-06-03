@@ -1,9 +1,9 @@
+import { useThemeStore } from '@/contexts/themeStore';
 import { cls, toPercent } from '@/helpers/css';
 import DayjsTZDate from '@/time/dayjs-tzdate';
 import { TimeUnit } from '@/types/events.type';
+
 import { Template } from '../Template';
-import { useThemeStore } from '@/contexts/themeStore';
-import { useMemo } from 'react';
 
 interface NowIndicatorLabelProps {
   unit: TimeUnit;
@@ -12,7 +12,7 @@ interface NowIndicatorLabelProps {
   zonedNow: DayjsTZDate;
 }
 
-function NowIndicatorLabel({ unit, top, now, zonedNow }: NowIndicatorLabelProps) {
+function NowIndicatorLabel({ unit, top, zonedNow }: NowIndicatorLabelProps) {
   // 直接使用选择器函数，不需要 useMemo 包装
   const color = useThemeStore((state) => state.week.nowIndicatorLabel.color);
   return (

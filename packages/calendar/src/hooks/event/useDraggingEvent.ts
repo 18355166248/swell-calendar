@@ -1,9 +1,11 @@
-import { EventUIModel } from '@/model/eventUIModel';
-import { useState } from 'react';
-import { useTransientUpdatesCalendar } from '../common/useTransientUpdatesCalendar';
-import { EventDragging, EventDraggingArea, EventDraggingBehavior } from '@/types/drag.type';
 import { isNil, last } from 'lodash-es';
+import { useState } from 'react';
+
+import { EventUIModel } from '@/model/eventUIModel';
 import { DraggingState } from '@/types/dnd.type';
+import { EventDragging, EventDraggingArea, EventDraggingBehavior } from '@/types/drag.type';
+
+import { useTransientUpdatesCalendar } from '../common/useTransientUpdatesCalendar';
 
 const getTargetEventId = (
   itemType: string | null,

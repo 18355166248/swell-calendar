@@ -1,10 +1,11 @@
+import { isUndefined } from 'lodash-es';
+
 import { EventModel } from '@/model/eventModel';
 import { EventUIModel } from '@/model/eventUIModel';
 import DayjsTZDate from '@/time/dayjs-tzdate';
 import { Filter } from '@/types/base.type';
 import { CollisionGroup, EventObject, Matrix, Matrix3d } from '@/types/events.type';
 import Collection from '@/utils/collection';
-import { isUndefined } from 'lodash-es';
 
 /* 创建日期范围过滤器
  * 用于筛选在指定日期范围内的事件
@@ -143,6 +144,7 @@ export function getCollisionGroup<Events extends EventUIModel | EventModel>(
  * getLastRowInColumn(matrix, 1) => 2 (G在最后一行)
  * getLastRowInColumn(matrix, 2) => 1 (E在倒数第二行)
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function getLastRowInColumn(matrix: Array<any[]>, col: number) {
   let { length: row } = matrix;
 

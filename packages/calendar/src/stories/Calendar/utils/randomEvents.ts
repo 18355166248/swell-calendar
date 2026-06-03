@@ -1,8 +1,9 @@
 // 导入必要的依赖
-import DayjsTZDate from '@/time/dayjs-tzdate';
-import { EventCategory, EventObject } from '@/types/events.type';
 import Chance from 'chance';
 import dayjs from 'dayjs';
+
+import DayjsTZDate from '@/time/dayjs-tzdate';
+import { EventCategory, EventObject } from '@/types/events.type';
 
 // 创建随机数生成器实例
 const chance = new Chance();

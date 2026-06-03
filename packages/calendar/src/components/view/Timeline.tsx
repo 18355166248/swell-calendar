@@ -1,11 +1,13 @@
+import { useMemo } from 'react';
+
 import { useCalendarStore } from '@/contexts/calendarStore';
 import { cls } from '@/helpers/css';
 import { getVisibleResources, getWeekDates } from '@/helpers/grid';
 import { toEndOfDay, toStartOfDay } from '@/time/datetime';
-import { useMemo } from 'react';
+
 import { ResourceList } from '../timeline/ResourceList';
-import { TimelineHeader } from '../timeline/TimelineHeader';
 import { TimelineGrid } from '../timeline/TimelineGrid';
+import { TimelineHeader } from '../timeline/TimelineHeader';
 
 const RESOURCE_LIST_WIDTH = 150;
 

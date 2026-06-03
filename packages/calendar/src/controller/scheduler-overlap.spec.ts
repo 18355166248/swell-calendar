@@ -1,33 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import DayjsTZDate from '@/time/dayjs-tzdate';
-import { EventObjectWithDefaultValues } from '@/types/events.type';
 
+import { createPreviousEvent } from './__test-helpers__/createPreviousEvent';
 import { shouldAcceptEventChange } from './scheduler.controller';
-
-function createPreviousEvent(
-  event: Partial<EventObjectWithDefaultValues> = {}
-): EventObjectWithDefaultValues {
-  return {
-    id: 'event-a',
-    calendarId: 'calendar-a',
-    title: 'Event A',
-    start: new DayjsTZDate('2026-05-07T10:00:00'),
-    end: new DayjsTZDate('2026-05-07T10:30:00'),
-    isAllday: false,
-    category: 'time',
-    isVisible: true,
-    isReadOnly: false,
-    editable: true,
-    draggable: true,
-    resizable: true,
-    goingDuration: 0,
-    comingDuration: 0,
-    raw: null,
-    __cid: 1,
-    ...event,
-  };
-}
 
 describe('scheduler overlap validation', () => {
   it('应该在 scheduler eventOverlap 关闭时拒绝创建重叠事件', () => {

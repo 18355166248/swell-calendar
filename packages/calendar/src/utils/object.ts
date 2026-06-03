@@ -1,11 +1,12 @@
-import DayjsTZDate from '@/time/dayjs-tzdate';
 import { isObject } from 'lodash-es';
 import type { DeepPartial } from 'ts-essentials';
+
+import DayjsTZDate from '@/time/dayjs-tzdate';
 
 export function pick<T extends object, K extends keyof T>(obj: T, ...propNames: K[]) {
   return propNames.reduce(
     (acc, key) => {
-      if (obj.hasOwnProperty(key)) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
         acc[key] = obj[key];
       }
 

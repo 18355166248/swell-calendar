@@ -1,3 +1,8 @@
+import { findLastIndex, isNil, range } from 'lodash-es';
+
+import { DEFAULT_VISIBLE_WEEKS } from '@/constants/grid.const';
+import { findByDateRange as findByDateRangeForWeek } from '@/controller/week.controller';
+import { EventUIModel } from '@/model/eventUIModel';
 import {
   Day,
   getDateDifference,
@@ -11,16 +16,12 @@ import {
 import DayjsTZDate from '@/time/dayjs-tzdate';
 import { CalendarData } from '@/types/calendar.type';
 import { FormattedTimeString } from '@/types/datetime.type';
+import { DayGridEventMatrix, EventModelMap, TimeGridEventMatrix } from '@/types/events.type';
 import { CommonGridColumn, GridPositionFinder, TimeGridData } from '@/types/grid.type';
 import { ClientMousePosition } from '@/types/mouse.type';
 import { HourDivision, MonthOptions, ResourceInfo, WeekOptions } from '@/types/options.type';
 import { Panel } from '@/types/panel.type';
 import { limit, ratio } from '@/utils/math';
-import { findLastIndex, isNil, range } from 'lodash-es';
-import { findByDateRange as findByDateRangeForWeek } from '@/controller/week.controller';
-import { DayGridEventMatrix, EventModelMap, TimeGridEventMatrix } from '@/types/events.type';
-import { EventUIModel } from '@/model/eventUIModel';
-import { DEFAULT_VISIBLE_WEEKS } from '@/constants/grid.const';
 
 /**
  * 创建时间网格数据，用于日历组件的时间轴显示
@@ -436,7 +437,6 @@ export function getWeekViewEvents(
   days: DayjsTZDate[],
   calendar: CalendarData,
   {
-    narrowWeekend,
     hourStart,
     hourEnd,
     weekStartDate,

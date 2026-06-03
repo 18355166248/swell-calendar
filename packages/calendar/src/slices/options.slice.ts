@@ -1,17 +1,18 @@
+import { produce } from 'immer';
+
+import { DEFAULT_DAY_NAMES } from '@/helpers/dayName';
 import { Day } from '@/time/datetime';
 import {
   EnabledViews,
-  MonthOptions,
   InvalidRange,
+  MonthOptions,
   Options,
   OptionsSlice,
   SchedulerOptions,
   TimelineOptions,
 } from '@/types/options.type';
 import { CalendarWeekOptions } from '@/types/store.type';
-import { produce } from 'immer';
 import { CalendarStore } from '@/types/store.type';
-import { DEFAULT_DAY_NAMES } from '@/helpers/dayName';
 
 type SetState = (fn: (state: CalendarStore) => Partial<CalendarStore>) => void;
 

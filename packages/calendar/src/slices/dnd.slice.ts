@@ -1,6 +1,7 @@
-import { DndState, DndSlice, DraggingState } from '@/types/dnd.type';
-import { CalendarStore } from '@/types/store.type';
 import { produce } from 'immer';
+
+import { DndSlice, DndState, DraggingState } from '@/types/dnd.type';
+import { CalendarStore } from '@/types/store.type';
 
 function initializeDndOptions(): Omit<
   DndState,
