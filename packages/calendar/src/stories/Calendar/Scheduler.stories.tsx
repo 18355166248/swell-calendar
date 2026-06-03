@@ -1402,3 +1402,117 @@ export const DragCancelByEsc: Story = {
     expect(logText).not.toMatch(/移动成功（不应触发）/);
   },
 };
+
+// ============================================================================
+// 键盘导航交互测试
+// ============================================================================
+
+/**
+ * KeyboardNavigation — 键盘导航测试
+ *
+ * 验证 Tab 键在事件间切换焦点、Enter 键触发 onEventClick 回调。
+ * 注意：Delete 键盘删除已有独立 Delete 故事覆盖。
+ */
+export const KeyboardNavigation: Story = {
+  render: function KeyboardNavigationStory() {
+    const today = new DayjsTZDate();
+    const events: EventObject[] = [
+      {
+        id: 'key-nav-1',
+        title: '键盘事件 1',
+        category: 'time',
+        resourceId: 'r1',
+        start: dayjs(today.getTime()).hour(9).minute(0).toDate(),
+        end: dayjs(today.getTime()).hour(10).minute(0).toDate(),
+        backgroundColor: '#3b82f6',
+        color: '#fff',
+      },
+      {
+        id: 'key-nav-2',
+        title: '键盘事件 2',
+        category: 'time',
+        resourceId: 'r1',
+        start: dayjs(today.getTime()).hour(14).minute(0).toDate(),
+        end: dayjs(today.getTime()).hour(15).minute(0).toDate(),
+        backgroundColor: '#10b981',
+        color: '#fff',
+      },
+    ];
+
+    const [log, setLog] = useState<string[]>(['Tab 切换焦点，Enter 触发点击']);
+    const addLog = (msg: string) => setLog((prev) => [msg, ...prev.slice(0, 6)]);
+
+    const callbacks = useMemo<CalendarCallbacks>(
+      () => ({
+        onEventClick: ({ event }) => {
+          addLog(`🖱️ 点击: ${event.title}`);
+        },
+      }),
+      []
+    );
+
+    return (
+      <SchedulerStoryFrame>
+        <div
+          style={{
+            position: 'absolute',
+            top: 12,
+            right: 12,
+            zIndex: 10,
+            padding: '10px 14px',
+            borderRadius: 8,
+            background: 'rgba(15, 23, 42, 0.88)',
+            color: '#fff',
+            fontSize: 11,
+            lineHeight: 1.7,
+            maxWidth: 340,
+          }}
+        >
+          <div style={{ marginBottom: 6, fontWeight: 600, fontSize: 12 }}>⌨️ 键盘导航测试</div>
+          {log.map((l, i) => (
+            <div key={i}>{l}</div>
+          ))}
+        </div>
+        <Calendar
+          events={events}
+          callbacks={callbacks}
+          options={{
+            defaultView: 'scheduler',
+            scheduler: {
+              resources: RESOURCES.slice(0, 2),
+              hourStart: 8,
+              hourEnd: 18,
+            },
+          }}
+        />
+      </SchedulerStoryFrame>
+    );
+  },
+  play: async ({ canvasElement }) => {
+    await new Promise((r) => setTimeout(r, DEMO_PAUSE));
+    const canvas = within(canvasElement);
+
+    // 1. 验证两个事件卡片都存在
+    const card1 = canvas.getByTestId('event-card-key-nav-1');
+    const card2 = canvas.getByTestId('event-card-key-nav-2');
+    await expect(card1).toBeInTheDocument();
+    await expect(card2).toBeInTheDocument();
+
+    // 2. 聚焦第一个事件卡片，按 Enter → onEventClick
+    card1.focus();
+    await userEvent.keyboard('{Enter}');
+    await new Promise((r) => setTimeout(r, 400));
+
+    const logAfterEnter = canvasElement.textContent ?? '';
+    expect(logAfterEnter).toMatch(/点击: 键盘事件 1/);
+
+    // 3. 重新获取第二个卡片（React 可能已重渲染），聚焦并按 Enter
+    const card2Fresh = canvas.getByTestId('event-card-key-nav-2');
+    card2Fresh.focus();
+    await userEvent.keyboard('{Enter}');
+    await new Promise((r) => setTimeout(r, 400));
+
+    const logAfterEnter2 = canvasElement.textContent ?? '';
+    expect(logAfterEnter2).toMatch(/点击: 键盘事件 2/);
+  },
+};

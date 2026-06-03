@@ -12,6 +12,8 @@ interface MonthGridProps {
   eventRows: MonthWeekEventData[];
   renderDate: DayjsTZDate;
   visibleEventCount: number;
+  /** 每周的列数，默认为 7（周日—周六） */
+  totalCols?: number;
 }
 
 function isSameDay(a: DayjsTZDate, b: DayjsTZDate) {
@@ -32,7 +34,13 @@ function isCurrentMonth(date: DayjsTZDate, renderDate: DayjsTZDate) {
   );
 }
 
-export function MonthGrid({ weeks, eventRows, renderDate, visibleEventCount }: MonthGridProps) {
+export function MonthGrid({
+  weeks,
+  eventRows,
+  renderDate,
+  visibleEventCount,
+  totalCols = 7,
+}: MonthGridProps) {
   const weekCount = weeks.length;
   const rowHeightPercent = 100 / weekCount;
 
@@ -87,7 +95,7 @@ export function MonthGrid({ weeks, eventRows, renderDate, visibleEventCount }: M
                   slotIndex={slotIndex}
                   cellEventHeight={CELL_EVENT_HEIGHT}
                   cellHeaderHeight={CELL_HEADER_HEIGHT}
-                  totalCols={7}
+                  totalCols={totalCols}
                 />
               ))}
             </div>

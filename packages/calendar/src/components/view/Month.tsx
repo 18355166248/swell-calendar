@@ -1,13 +1,17 @@
 import { useMemo } from 'react';
 
 import { useCalendarStore } from '@/contexts/calendarStore';
-import { createDateMatrixOfMonth } from '@/helpers/grid';
+import { getMonthEventRows, getMonthWeeks } from '@/controller/month.controller';
 import { getRowStyleInfo, isWeekend } from '@/time/datetime';
 import { MonthOptions, Options } from '@/types/options.type';
 
 import GridHeader from '../dayGridCommon/GridHeader';
-import DayGridMonth from '../dayGridMonth/DayGridMonth';
 import Layout from '../Layout';
+import { MonthGrid } from '../month/MonthGrid';
+import Panel from '../Panel';
+
+const MONTH_DAY_NAME_HEIGHT = 31;
+const VISIBLE_EVENT_COUNT = 4;
 
 function useMonthViewState() {
   const { options, view } = useCalendarStore();
@@ -34,43 +38,46 @@ function getMonthDayNames(options: Options) {
 
 export function Month() {
   const { options, renderDate } = useMonthViewState();
+  const calendar = useCalendarStore((state) => state.calendar);
   const dayNames = getMonthDayNames(options);
   const monthOptions = options.month as Required<MonthOptions>;
   const { narrowWeekend, startDayOfWeek, workweek } = monthOptions;
 
   /**
-   * 创建月视图的日期矩阵
-   * 使用 useMemo 优化性能，只有当月份选项或渲染日期变化时才重新计算
+   * 计算月视图的周布局
+   * 使用 getMonthWeeks 生成完整的 7 天周矩阵
    */
-  const dateMatrix = useMemo(
-    () => createDateMatrixOfMonth(renderDate, monthOptions),
-    [monthOptions, renderDate]
+  const weeks = useMemo(() => getMonthWeeks(renderDate, monthOptions), [monthOptions, renderDate]);
+
+  /**
+   * 计算事件布局（每个事件的列位置、跨度和行索引）
+   * 使用 getMonthEventRows 处理碰撞检测和溢出计算
+   */
+  const eventRows = useMemo(
+    () => getMonthEventRows(calendar, weeks, VISIBLE_EVENT_COUNT),
+    [calendar, weeks]
   );
 
   /**
    * 计算行样式信息和单元格宽度映射
-   * 使用 useMemo 优化性能，只有当相关配置变化时才重新计算
    */
-  const { rowStyleInfo, cellWidthMap } = useMemo(() => {
+  const { rowStyleInfo } = useMemo(() => {
     return getRowStyleInfo(dayNames.length, narrowWeekend, startDayOfWeek, workweek);
   }, [dayNames.length, narrowWeekend, startDayOfWeek, workweek]);
 
-  /**
-   * 创建行信息数组，将样式信息与对应的日期结合
-   * 每行包含样式信息和该行对应的日期信息
-   */
-  const rowInfo = useMemo(() => {
-    return rowStyleInfo.map((row, index) => ({
-      ...row,
-      date: dateMatrix[0][index],
-    }));
-  }, [dateMatrix, rowStyleInfo]);
-
   return (
-    <Layout className="month">
-      <GridHeader dayNames={dayNames} type="month" rowStyleInfo={rowStyleInfo} />
-      {/* 渲染日期网格 */}
-      <DayGridMonth dateMatrix={dateMatrix} rowInfo={rowInfo} cellWidthMap={cellWidthMap} />
+    <Layout className="month-view">
+      <Panel name="month-day-names" initialHeight={MONTH_DAY_NAME_HEIGHT}>
+        <GridHeader dayNames={dayNames} type="month" rowStyleInfo={rowStyleInfo} />
+      </Panel>
+      <Panel name="month-grid">
+        <MonthGrid
+          weeks={weeks}
+          eventRows={eventRows}
+          renderDate={renderDate}
+          visibleEventCount={VISIBLE_EVENT_COUNT}
+        />
+      </Panel>
     </Layout>
   );
 }

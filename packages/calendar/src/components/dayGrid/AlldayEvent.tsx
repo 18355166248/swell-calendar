@@ -1,5 +1,6 @@
-import type { CSSProperties } from 'react';
+import type { CSSProperties, KeyboardEvent } from 'react';
 
+import { KEY } from '@/constants/keyboard';
 import { useCalendarCallbacks } from '@/contexts/calendarCallbacks';
 import { cls } from '@/helpers/css';
 import { EventUIModel } from '@/model/eventUIModel';
@@ -32,13 +33,27 @@ export function AlldayEvent({ uiModel, height }: AlldayEventProps) {
     boxSizing: 'border-box',
   };
 
+  const handleClick = () => {
+    callbacks?.onEventClick?.({ event: model.toEventObject() });
+  };
+
+  const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === KEY.ENTER || e.key === KEY.SPACE) {
+      e.preventDefault();
+      handleClick();
+    }
+  };
+
   return (
     <div
       className={cls('allday-event')}
       style={style}
       data-testid={`event-card-${model.id}`}
       title={model.title}
-      onClick={() => callbacks?.onEventClick?.({ event: model.toEventObject() })}
+      tabIndex={0}
+      role="button"
+      onClick={handleClick}
+      onKeyDown={handleKeyDown}
     >
       {exceedLeft && <span style={{ marginRight: 2 }}>&#8249;</span>}
       {model.title}

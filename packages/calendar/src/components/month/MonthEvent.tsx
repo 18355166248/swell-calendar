@@ -1,5 +1,6 @@
-import type { CSSProperties } from 'react';
+import type { CSSProperties, KeyboardEvent } from 'react';
 
+import { KEY } from '@/constants/keyboard';
 import { useCalendarCallbacks } from '@/contexts/calendarCallbacks';
 import { cls } from '@/helpers/css';
 import { EventUIModel } from '@/model/eventUIModel';
@@ -48,12 +49,27 @@ export function MonthEvent({
     boxSizing: 'border-box',
   };
 
+  const handleClick = () => {
+    callbacks?.onEventClick?.({ event: model.toEventObject() });
+  };
+
+  const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === KEY.ENTER || e.key === KEY.SPACE) {
+      e.preventDefault();
+      handleClick();
+    }
+  };
+
   return (
     <div
       className={cls('month-event')}
       style={style}
       title={model.title}
-      onClick={() => callbacks?.onEventClick?.({ event: model.toEventObject() })}
+      tabIndex={0}
+      role="button"
+      onClick={handleClick}
+      onKeyDown={handleKeyDown}
+      data-testid={`month-event-${model.id}`}
     >
       {model.title}
     </div>

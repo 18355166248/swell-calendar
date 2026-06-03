@@ -1,6 +1,7 @@
 import { isNil, isString } from 'lodash-es';
 import { KeyboardEvent, MouseEvent, useState } from 'react';
 
+import { KEY } from '@/constants/keyboard';
 import { TIME_EVENT_CONTAINER_MARGIN_LEFT } from '@/constants/style.const';
 import { useCalendarCallbacks } from '@/contexts/calendarCallbacks';
 import { useCalendarStore } from '@/contexts/calendarStore';
@@ -316,10 +317,6 @@ export function TimeEvent({
   };
 
   const handleMouseEnter = () => {
-    if (currentView !== 'scheduler') {
-      return;
-    }
-
     callbacks?.onEventHover?.({
       event: model.toEventObject(),
       hovering: true,
@@ -327,10 +324,6 @@ export function TimeEvent({
   };
 
   const handleMouseLeave = () => {
-    if (currentView !== 'scheduler') {
-      return;
-    }
-
     callbacks?.onEventHover?.({
       event: model.toEventObject(),
       hovering: false,
@@ -338,25 +331,27 @@ export function TimeEvent({
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
-    if (currentView !== 'scheduler') {
+    // 删除操作：仅 Scheduler 视图支持
+    if (currentView === 'scheduler' && (e.key === KEY.DELETE || e.key === KEY.BACKSPACE)) {
+      const eventObject = model.toEventObject();
+
+      if (
+        shouldAcceptEventChange(options, callbacks, {
+          action: 'delete',
+          view: currentView,
+          event: eventObject,
+          previousEvent: eventObject,
+        })
+      ) {
+        callbacks?.onEventDelete?.({ event: eventObject });
+      }
       return;
     }
 
-    if (e.key !== 'Delete' && e.key !== 'Backspace') {
-      return;
-    }
-
-    const eventObject = model.toEventObject();
-
-    if (
-      shouldAcceptEventChange(options, callbacks, {
-        action: 'delete',
-        view: currentView,
-        event: eventObject,
-        previousEvent: eventObject,
-      })
-    ) {
-      callbacks?.onEventDelete?.({ event: eventObject });
+    // Enter / Space：触发事件点击回调（所有视图通用）
+    if (e.key === KEY.ENTER || e.key === KEY.SPACE) {
+      e.preventDefault();
+      callbacks?.onEventClick?.({ event: model.toEventObject() });
     }
   };
 
@@ -367,7 +362,8 @@ export function TimeEvent({
       className={classNames.time}
       style={containerStyle}
       data-testid={`event-card-${model.id}`}
-      tabIndex={currentView === 'scheduler' ? 0 : undefined}
+      tabIndex={0}
+      role="button"
       onMouseDown={handleMoveStart}
       onKeyDown={handleKeyDown}
       onPointerEnter={handleMouseEnter}
