@@ -32,13 +32,13 @@ swell-calendar 是一个**可嵌入的 React 日历组件库**，面向需要在
 
 ### 视图
 
-| 视图                | 状态        | 描述                                                       |
-| ------------------- | ----------- | ---------------------------------------------------------- |
-| 日视图（Day）       | ✅ 完成     | 单日时间网格，24 小时展示                                  |
-| 周视图（Week）      | ✅ 完成     | 7 天时间网格，支持 workweek 模式                           |
-| 月视图（Month）     | 🟡 事件可用 | 月历格子 + 事件卡片，布局已接入 MonthGrid，workweek 待完善 |
-| 时间线（Timeline）  | 🟡 基础版   | 资源行 + 横向时间轴，已有 3 个故事覆盖，本轮只保证不退化   |
-| 调度器（Scheduler） | 🟡 进行中   | 垂直时间轴 + 资源列的 time-grid 视图，是当前近期核心       |
+| 视图                | 状态        | 描述                                                                        |
+| ------------------- | ----------- | --------------------------------------------------------------------------- |
+| 日视图（Day）       | ✅ 完成     | 单日时间网格，24 小时展示                                                   |
+| 周视图（Week）      | ✅ 完成     | 7 天时间网格，支持 workweek 模式                                            |
+| 月视图（Month）     | 🟡 事件可用 | 月历格子 + 事件卡片，布局已接入 MonthGrid，workweek 待完善                  |
+| 时间线（Timeline）  | 🟡 事件可用 | 资源行 + 横向时间轴，事件布局已修复，支持 colors/invalid 区段，Toolbar 可见 |
+| 调度器（Scheduler） | 🟡 进行中   | 垂直时间轴 + 资源列的 time-grid 视图，是当前近期核心                        |
 
 ### 事件功能
 
@@ -281,7 +281,7 @@ interface CalendarInstance {
 | Scheduler | ✅ DragVertical     | ✅ DragResize     | ✅       | ✅ OverlapPolicy    | ✅ KeyboardNavigation |
 | Day       | ✅ DayDragVertical  | ✅ DayDragResize  | ✅       | —                   | ✅ Enter/Space        |
 | Week      | ✅ WeekDragVertical | ✅ WeekDragResize | ✅       | ✅ WeekDragCrossDay | ✅ Enter/Space        |
-| Timeline  | —                   | —                 | —        | —                   | —                     |
+| Timeline  | —                   | —                 | —        | —                   | ✅ Enter/Space        |
 
 测试文件位于 `src/slices/dnd.slice.spec.ts`（DnD 状态机）和 `src/stories/Calendar/`（各个视图的故事文件，含 Timeline）。
 
@@ -297,12 +297,12 @@ interface CalendarInstance {
 
 ## 待开发功能（Backlog）
 
-- [ ] 完整资源 time-grid scheduler
+- [ ] Timeline 拖拽交互（移动/调整）
 - [ ] agenda 视图
 - [ ] recurrence 实例展开与编辑协议
-- [ ] 月视图事件渲染
-- [ ] 全天事件栏（time grid 顶部）
-- [ ] 键盘导航（无障碍访问）
+- [ ] 月视图 workweek 支持
+- [ ] 顶边 resize（Scheduler 事件顶边调整开始时间）
+- [ ] 资源层级渲染（利用 `parentId` 字段）
 - [ ] 虚拟化（超长事件列表性能优化）
 
 ## 当前阶段说明

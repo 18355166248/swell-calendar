@@ -1,3 +1,6 @@
+import type { KeyboardEvent } from 'react';
+
+import { KEY } from '@/constants/keyboard';
 import { useCalendarCallbacks } from '@/contexts/calendarCallbacks';
 import { cls } from '@/helpers/css';
 import { EventUIModel } from '@/model/eventUIModel';
@@ -37,12 +40,43 @@ export function TimelineEvent({ uiModel, totalWidth }: TimelineEventProps) {
     zIndex: 1,
   };
 
+  const handleClick = () => {
+    callbacks?.onEventClick?.({ event: model.toEventObject() });
+  };
+
+  const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === KEY.ENTER || e.key === KEY.SPACE) {
+      e.preventDefault();
+      handleClick();
+    }
+  };
+
+  const handleMouseEnter = () => {
+    callbacks?.onEventHover?.({
+      event: model.toEventObject(),
+      hovering: true,
+    });
+  };
+
+  const handleMouseLeave = () => {
+    callbacks?.onEventHover?.({
+      event: model.toEventObject(),
+      hovering: false,
+    });
+  };
+
   return (
     <div
       className={cls('timeline-event')}
       style={style}
       title={title}
-      onClick={() => callbacks?.onEventClick?.({ event: model.toEventObject() })}
+      tabIndex={0}
+      role="button"
+      data-testid={`timeline-event-${model.id}`}
+      onClick={handleClick}
+      onKeyDown={handleKeyDown}
+      onPointerEnter={handleMouseEnter}
+      onPointerLeave={handleMouseLeave}
     >
       {uiModel.exceedLeft && <span style={{ marginRight: 2 }}>‹</span>}
       {title}

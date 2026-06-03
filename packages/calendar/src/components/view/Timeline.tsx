@@ -26,6 +26,9 @@ export function Timeline() {
   const rowHeight = timelineOptions?.rowHeight ?? 56;
   const cellWidth = timelineOptions?.cellWidth ?? 80;
 
+  const colors = timelineOptions?.colors ?? [];
+  const invalid = timelineOptions?.invalid ?? timelineOptions?.blockedTimes ?? [];
+
   const weekDates = useMemo(
     () => getWeekDates(renderDate, weekOptions ?? {}),
     [renderDate, weekOptions]
@@ -76,6 +79,8 @@ export function Timeline() {
               hourEnd={hourEnd}
               rowHeight={rowHeight}
               cellWidth={cellWidth}
+              colors={colors}
+              invalid={invalid}
             />
           </div>
         </div>

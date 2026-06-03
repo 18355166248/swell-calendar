@@ -70,7 +70,7 @@ function initializeEnabledViews(options: Options = {}): EnabledViews {
     week: options.views?.week !== false,
     month: options.views?.month !== false,
     scheduler: options.views?.scheduler !== false,
-    timeline: options.views?.timeline === true,
+    timeline: options.views?.timeline !== false,
   };
 }
 
