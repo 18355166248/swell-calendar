@@ -18,8 +18,9 @@ export function Timeline() {
   const weekOptions = options.week;
 
   const resources = useMemo(
-    () => getVisibleResources(timelineOptions?.resources ?? []),
-    [timelineOptions?.resources]
+    () =>
+      getVisibleResources(timelineOptions?.resources ?? [], timelineOptions?.visibleResourceIds),
+    [timelineOptions?.resources, timelineOptions?.visibleResourceIds]
   );
   const hourStart = timelineOptions?.hourStart ?? weekOptions?.hourStart ?? 0;
   const hourEnd = timelineOptions?.hourEnd ?? weekOptions?.hourEnd ?? 24;

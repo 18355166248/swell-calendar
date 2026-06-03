@@ -4,12 +4,14 @@ import { WEEK_DAY_NAME_BORDER, WEEK_DAY_NAME_HEIGHT } from '@/constants/style.co
 import { useCalendarStore } from '@/contexts/calendarStore';
 import { useThemeStore } from '@/contexts/themeStore';
 import { getSchedulerViewEvents } from '@/controller/scheduler-layout';
+import { getFlattenedVisibleResources, normalizeResources } from '@/controller/scheduler-resources';
 import { cls } from '@/helpers/css';
-import { createSchedulerTimeGridData, getVisibleResources, getWeekDates } from '@/helpers/grid';
+import { createSchedulerTimeGridData, getWeekDates } from '@/helpers/grid';
 import { toEndOfDay, toStartOfDay } from '@/time/datetime';
 
 import Layout from '../Layout';
 import Panel from '../Panel';
+import { ResourceSidebar } from '../scheduler/ResourceSidebar';
 import {
   SCHEDULER_ALLDAY_EVENT_HEIGHT,
   SchedulerAllDayLane,
@@ -18,6 +20,7 @@ import { SchedulerHeader } from '../scheduler/SchedulerHeader';
 import { TimeGrid } from '../timeGrid/TimeGridView';
 
 const SCHEDULER_HEADER_HEIGHT = WEEK_DAY_NAME_HEIGHT + 32 + WEEK_DAY_NAME_BORDER;
+const RESOURCE_SIDEBAR_WIDTH = 120;
 
 export function Scheduler() {
   const { options, calendar, view } = useCalendarStore();
@@ -29,6 +32,18 @@ export function Scheduler() {
   const [timePanelEl, setTimePanelEl] = useState<HTMLDivElement | null>(null);
   const [scrollbarWidth, setScrollbarWidth] = useState(0);
 
+  // 资源折叠状态
+  const collapsedResourceIds = useCalendarStore((state) => state.collapsedResourceIds);
+  const toggleCollapse = useCalendarStore((state) => state.toggleCollapse);
+  const initCollapsedFromResources = useCalendarStore((state) => state.initCollapsedFromResources);
+
+  // 初始化折叠状态
+  useEffect(() => {
+    if (schedulerOptions?.resources) {
+      initCollapsedFromResources(schedulerOptions.resources);
+    }
+  }, [schedulerOptions?.resources, initCollapsedFromResources]);
+
   useEffect(() => {
     if (!timePanelEl) return;
     const measure = () => setScrollbarWidth(timePanelEl.offsetWidth - timePanelEl.clientWidth);
@@ -38,10 +53,31 @@ export function Scheduler() {
     return () => ro.disconnect();
   }, [timePanelEl]);
 
-  const resources = useMemo(
-    () => getVisibleResources(schedulerOptions?.resources ?? []),
+  // 归一化资源并处理展开/折叠
+  const allResources = useMemo(
+    () => normalizeResources(schedulerOptions?.resources ?? []),
     [schedulerOptions?.resources]
   );
+
+  const collapsedSet = useMemo(() => new Set(collapsedResourceIds), [collapsedResourceIds]);
+
+  const resources = useMemo(
+    () =>
+      getFlattenedVisibleResources(
+        schedulerOptions?.resources ?? [],
+        schedulerOptions?.visibleResourceIds,
+        collapsedSet
+      ).filter((r) => !r.hidden),
+    [schedulerOptions?.resources, schedulerOptions?.visibleResourceIds, collapsedSet]
+  );
+
+  const hasHierarchy = useMemo(
+    () => allResources.some((r) => r.children && r.children.length > 0),
+    [allResources]
+  );
+
+  const sidebarWidth = hasHierarchy ? RESOURCE_SIDEBAR_WIDTH : 0;
+
   const hourStart = schedulerOptions?.hourStart ?? weekOptions?.hourStart ?? 0;
   const hourEnd = schedulerOptions?.hourEnd ?? weekOptions?.hourEnd ?? 24;
   const hourDivision = weekOptions?.hourDivision ?? 2;
@@ -99,24 +135,55 @@ export function Scheduler() {
   return (
     <Layout className={cls('scheduler-view')}>
       <Panel name="scheduler-header" initialHeight={SCHEDULER_HEADER_HEIGHT}>
-        <SchedulerHeader
-          weekDates={weekDates}
-          resources={resources}
-          timeGridLeftWidth={timeGridLeft.width}
-          scrollbarWidth={scrollbarWidth}
-        />
+        <div style={{ display: 'flex', flexDirection: 'row', height: '100%' }}>
+          {hasHierarchy ? (
+            <ResourceSidebar
+              resources={allResources}
+              collapsedIds={collapsedResourceIds}
+              onToggleCollapse={toggleCollapse}
+              width={sidebarWidth}
+            />
+          ) : null}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <SchedulerHeader
+              weekDates={weekDates}
+              resources={resources}
+              timeGridLeftWidth={timeGridLeft.width}
+              scrollbarWidth={scrollbarWidth}
+            />
+          </div>
+        </div>
       </Panel>
       {alldayEvents.length > 0 ? (
         <Panel name="allday" initialHeight={alldayPanelHeight}>
-          <SchedulerAllDayLane
-            uiModels={alldayEvents}
-            timeGridLeftWidth={timeGridLeft.width}
-            scrollbarWidth={scrollbarWidth}
-          />
+          <div style={{ display: 'flex', flexDirection: 'row', height: '100%' }}>
+            {hasHierarchy ? <div style={{ width: sidebarWidth, flexShrink: 0 }} /> : null}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <SchedulerAllDayLane
+                uiModels={alldayEvents}
+                timeGridLeftWidth={timeGridLeft.width}
+                scrollbarWidth={scrollbarWidth}
+              />
+            </div>
+          </div>
         </Panel>
       ) : null}
       <Panel name="time" ref={setTimePanelEl}>
-        <TimeGrid timeGridData={timeGridData} events={timeEvents} />
+        <div style={{ display: 'flex', flexDirection: 'row', height: '100%' }}>
+          {hasHierarchy ? (
+            <div
+              style={{
+                width: sidebarWidth,
+                minWidth: sidebarWidth,
+                flexShrink: 0,
+                borderRight: '1px solid #e8e8e8',
+              }}
+            />
+          ) : null}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <TimeGrid timeGridData={timeGridData} events={timeEvents} />
+          </div>
+        </div>
       </Panel>
     </Layout>
   );

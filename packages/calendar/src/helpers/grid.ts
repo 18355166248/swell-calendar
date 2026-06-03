@@ -161,7 +161,17 @@ export function getColumnsData(
   );
 }
 
-export function getVisibleResources(resources: ResourceInfo[] = []) {
+export function getVisibleResources(
+  resources: ResourceInfo[] = [],
+  visibleResourceIds?: string[]
+): ResourceInfo[] {
+  if (visibleResourceIds && visibleResourceIds.length > 0) {
+    const idSet = new Set(visibleResourceIds);
+    return [...resources]
+      .filter((resource) => idSet.has(resource.id))
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  }
+
   return [...resources]
     .filter((resource) => !resource.hidden)
     .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));

@@ -3,6 +3,7 @@ import { DndSlice } from './dnd.type';
 import { GridSelectionSlice } from './gridSelection.type';
 import { OptionsSlice as LayoutSlice } from './layout.type';
 import type { OptionsSlice, WeekOptions } from './options.type';
+import { ResourceSlice } from './resource.type';
 import { TemplateSlice } from './template.type';
 import { ViewSlice } from './view.type';
 
@@ -14,6 +15,7 @@ export type CalendarState = OptionsSlice &
   LayoutSlice &
   DndSlice &
   GridSelectionSlice &
-  CalendarSlice;
+  CalendarSlice &
+  ResourceSlice;
 
 export type CalendarStore = CalendarState;

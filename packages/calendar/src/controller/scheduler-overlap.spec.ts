@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import DayjsTZDate from '@/time/dayjs-tzdate';
 
 import { createPreviousEvent } from './__test-helpers__/createPreviousEvent';
-import { shouldAcceptEventChange } from './scheduler.controller';
+import { shouldAcceptEventChange } from './scheduler-validation';
 
 describe('scheduler overlap validation', () => {
   it('应该在 scheduler eventOverlap 关闭时拒绝创建重叠事件', () => {

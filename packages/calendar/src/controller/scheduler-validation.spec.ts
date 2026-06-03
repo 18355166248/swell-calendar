@@ -4,7 +4,7 @@ import DayjsTZDate from '@/time/dayjs-tzdate';
 import { Options } from '@/types/options.type';
 
 import { createPreviousEvent } from './__test-helpers__/createPreviousEvent';
-import { shouldAcceptEventChange } from './scheduler.controller';
+import { shouldAcceptEventChange } from './scheduler-validation';
 
 describe('scheduler validation', () => {
   it('应该在 scheduler dragToCreate 关闭时拒绝创建事件', () => {

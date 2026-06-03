@@ -6,7 +6,7 @@ import { TIME_EVENT_CONTAINER_MARGIN_LEFT } from '@/constants/style.const';
 import { useCalendarCallbacks } from '@/contexts/calendarCallbacks';
 import { useCalendarStore } from '@/contexts/calendarStore';
 import { useLayoutContainer } from '@/contexts/layoutContainer';
-import { shouldAcceptEventChange } from '@/controller/scheduler.controller';
+import { shouldAcceptEventChange } from '@/controller/scheduler-validation';
 import { cls, extractPercentPx, getEventColors, toPercent } from '@/helpers/css';
 import { DRAGGING_TYPE_CREATE } from '@/helpers/drag';
 import { useCalendarColor } from '@/hooks/calendar/useCalendarColor';

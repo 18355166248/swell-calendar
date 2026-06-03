@@ -6,6 +6,7 @@ import { createDndSlice } from '@/slices/dnd.slice';
 import { createGridSelectionSlice } from '@/slices/gridSelection.slice';
 import { createLayoutSlice } from '@/slices/layout.slice';
 import { createOptionsSlice } from '@/slices/options.slice';
+import { createResourceSlice } from '@/slices/resource.slice';
 import { createTemplateSlice } from '@/slices/template.slice';
 import { createViewSlice } from '@/slices/view.slice';
 import { createStoreContext } from '@/store';
@@ -37,6 +38,8 @@ const storeCreator = (options: Options) => (set: SetState) => ({
   ...createDndSlice()(set),
   // 创建网格选择切片 - 处理网格选择功能，需要 set 方法进行状态更新
   ...createGridSelectionSlice()(set),
+  // 创建资源切片 - 处理资源折叠/展开状态
+  ...createResourceSlice()(set),
 });
 
 export type CalendarStoreContext = ReturnType<typeof createCalendarStore>;

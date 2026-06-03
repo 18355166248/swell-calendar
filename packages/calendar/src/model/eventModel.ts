@@ -31,6 +31,7 @@ export class EventModel implements EventObject {
   draggable = true;
   resizable = true;
   order?: number;
+  dragBetweenResources?: boolean;
   // 是否包含多个日期
   hasMultiDates = false;
   /** 前往事件地点的行程时间（分钟） */
@@ -78,6 +79,7 @@ export class EventModel implements EventObject {
     draggable = true,
     resizable = true,
     order,
+    dragBetweenResources,
     resourceId,
     resourceIds,
     timezone,
@@ -101,6 +103,7 @@ export class EventModel implements EventObject {
     this.draggable = draggable;
     this.resizable = resizable;
     this.order = order;
+    this.dragBetweenResources = dragBetweenResources;
     this.resourceId = resourceId;
     this.resourceIds = resourceIds;
     this.timezone = timezone;
@@ -278,6 +281,7 @@ export class EventModel implements EventObject {
       draggable: this.draggable,
       resizable: this.resizable,
       order: this.order,
+      dragBetweenResources: this.dragBetweenResources,
       raw: this.raw,
       resourceId: this.resourceId,
       resourceIds: this.resourceIds,

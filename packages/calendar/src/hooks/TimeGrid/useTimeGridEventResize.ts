@@ -4,10 +4,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ResizingEventShadowProps } from '@/components/timeGrid/ResizingEventShadow';
 import { useCalendarCallbacks } from '@/contexts/calendarCallbacks';
 import { useCalendarStore } from '@/contexts/calendarStore';
-import {
-  createUpdatedTimeGridEvent,
-  shouldAcceptEventChange,
-} from '@/controller/scheduler.controller';
+import { createUpdatedTimeGridEvent } from '@/controller/scheduler.controller';
+import { shouldAcceptEventChange } from '@/controller/scheduler-validation';
 import { EventUIModel } from '@/model/eventUIModel';
 import { addMinutes, setTimeStrToDate } from '@/time/datetime';
 import DayjsTZDate from '@/time/dayjs-tzdate';
@@ -213,6 +211,7 @@ export function useTimeGridEventResize({
           event: updatedEvent,
           previousEvent: resizingStartUIModel.model.toEventObject(),
           existingEvents: totalUIModels.flat().map((uiModel) => uiModel.model.toEventObject()),
+          targetColumn: timeGridData.columns[currentGridPos.columnIndex],
         })
       ) {
         callbacks?.onEventUpdate?.({

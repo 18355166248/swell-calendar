@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import DayjsTZDate from '@/time/dayjs-tzdate';
 
-import { shouldAcceptEventChange } from './scheduler.controller';
+import { shouldAcceptEventChange } from './scheduler-validation';
 
 describe('scheduler buffer validation', () => {
   it('bufferAfter 应扩展冲突检测范围（在 buffer 内应被拒绝）', () => {

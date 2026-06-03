@@ -7,16 +7,16 @@
 
 ## 当前状态
 
-- 总状态：`[ ] 未开始`
+- 总状态：`[x] 已完成`
 
 ## 步骤清单
 
-- [ ] Step 24：接入 `visibleResourceIds`
-- [ ] Step 25：做 `children` / `parentId` 树归一化
-- [ ] Step 26：接入 group / collapse UI
-- [ ] Step 27：接入 shared events
-- [ ] Step 28：接入资源级交互限制
-- [ ] Step 29：接入 `dragBetweenResources`
+- [x] Step 24：接入 `visibleResourceIds`
+- [x] Step 25：做 `children` / `parentId` 树归一化
+- [x] Step 26：接入 group / collapse UI
+- [x] Step 27：接入 shared events
+- [x] Step 28：接入资源级交互限制
+- [x] Step 29：接入 `dragBetweenResources`
 
 ## 目标
 
@@ -140,10 +140,21 @@
 
 ## 退出条件
 
-- 资源显隐、分组、折叠、shared events、资源级限制、跨资源拖动全部闭环
+- [x] 资源显隐、分组、折叠、shared events、资源级限制、跨资源拖动全部闭环
 
 ## 完成后更新
 
-- 将本文档“总状态”改为 `[-] 进行中` 或 `[x] 已完成`
-- 勾选已完成步骤
-- 回到 [implementation-steps.md](./implementation-steps.md) 更新对应阶段状态
+- [x] 将本文档”总状态”改为 `[x] 已完成`
+- [x] 勾选已完成步骤
+- [x] 回到 [implementation-steps.md](./implementation-steps.md) 更新对应阶段状态
+
+## 当前落地说明
+
+- `SchedulerOptions` 已接入 `visibleResourceIds`，优先级高于 `hidden`；`getVisibleResources` 在提供 `visibleResourceIds` 时优先使用它过滤
+- `ResourceInfo` 已增加 `children`（树形结构）和 `collapsed`（初始折叠状态），新建 `controller/scheduler-resources.ts` 提供 `flattenResourceTree` / `buildTreeFromFlatList` / `normalizeResources` / `findResource` 等归一化工具
+- 新建 `slices/resource.slice.ts` 管理 `collapsedResourceIds` 状态，新建 `components/scheduler/ResourceSidebar.tsx` 渲染资源层级面板；`Scheduler.tsx` 已集成 sidebar 和折叠过滤逻辑
+- `TimeGridView.tsx` 的 `isSameResourceColumn` 已支持 `resourceIds` 数组匹配，共享事件在各资源列独立渲染
+- `createUpdatedTimeGridEvent` 对共享事件（`resourceIds.length > 1`）在已有资源集内移动时保留 `resourceIds` 数组，只在拖到新资源列时覆盖
+- `ResourceInfo` 已增加 `eventDragInTime` / `eventDragBetweenResources` / `eventResize` / `eventOverlap` 资源级交互限制，在 `shouldAcceptEventChange` 中插入资源级策略检查（Step 3），优先级为 event > resource > global
+- `SchedulerOptions` 增加 `dragBetweenResources`（全局），`EventObject` 增加 `dragBetweenResources`（per-event），配合资源级 `eventDragBetweenResources` 形成三级跨资源拖动门禁
+- 新增 Storybook: `VisibleResourceIds`、`ResourceVisibilityAndGrouping`、`SharedEvents`

@@ -10,12 +10,12 @@ import {
   createEventFromTimeGridSelection,
   createRangeSelectionInfo,
   getBlockedTimeLayoutsForColumn,
-  shouldAcceptEventChange,
 } from '@/controller/scheduler.controller';
 import {
   compareSchedulerEventsByOrder,
   getColoredLayoutsForColumn,
 } from '@/controller/scheduler-layout';
+import { shouldAcceptEventChange } from '@/controller/scheduler-validation';
 import { getTopPercentByTime } from '@/controller/time.controller';
 import { cls, toPercent } from '@/helpers/css';
 import { createGridPositionFinder } from '@/helpers/grid';

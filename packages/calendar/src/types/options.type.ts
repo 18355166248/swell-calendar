@@ -108,6 +108,8 @@ export interface SchedulerOptions {
   dragToResize?: boolean;
   dragInTime?: boolean;
   eventOverlap?: boolean;
+  visibleResourceIds?: string[];
+  dragBetweenResources?: boolean;
 }
 
 export interface TimelineOptions extends SchedulerOptions {
@@ -119,12 +121,18 @@ export interface ResourceInfo {
   id: string;
   name: string;
   parentId?: string;
+  children?: ResourceInfo[];
+  collapsed?: boolean;
   color?: string;
   backgroundColor?: string;
   hidden?: boolean;
   order?: number;
   width?: number | string;
   meta?: Record<string, unknown>;
+  eventDragInTime?: boolean;
+  eventDragBetweenResources?: boolean;
+  eventResize?: boolean;
+  eventOverlap?: boolean;
 }
 
 export interface NormalizedOptions {

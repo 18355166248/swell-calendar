@@ -1516,3 +1516,255 @@ export const KeyboardNavigation: Story = {
     expect(logAfterEnter2).toMatch(/点击: 键盘事件 2/);
   },
 };
+
+// ============================================================================
+// 资源显隐与分组测试
+// ============================================================================
+
+/**
+ * VisibleResourceIds — 资源显隐切换测试
+ *
+ * 验证 visibleResourceIds 可以控制显示哪些资源列，
+ * visibleResourceIds 优先级高于 hidden。
+ */
+export const VisibleResourceIds: Story = {
+  render: function VisibleResourceIdsStory() {
+    const [visibleIds, setVisibleIds] = useState<string[]>(['r1', 'r3']);
+    const events = useMemo(() => createSchedulerEvents(RESOURCES, 3), []);
+
+    const toggleResource = (id: string) => {
+      setVisibleIds((prev) => (prev.includes(id) ? prev.filter((v) => v !== id) : [...prev, id]));
+    };
+
+    return (
+      <SchedulerStoryFrame>
+        <div
+          style={{
+            position: 'absolute',
+            top: 12,
+            right: 12,
+            zIndex: 10,
+            padding: '10px 14px',
+            borderRadius: 8,
+            background: 'rgba(15, 23, 42, 0.88)',
+            color: '#fff',
+            fontSize: 11,
+            lineHeight: 1.8,
+            maxWidth: 280,
+          }}
+        >
+          <div style={{ marginBottom: 8, fontWeight: 600, fontSize: 12 }}>visibleResourceIds</div>
+          {RESOURCES.map((r) => (
+            <label
+              key={r.id}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}
+            >
+              <input
+                type="checkbox"
+                checked={visibleIds.includes(r.id)}
+                onChange={() => toggleResource(r.id)}
+                style={{ cursor: 'pointer' }}
+              />
+              <span
+                style={{
+                  display: 'inline-block',
+                  width: 10,
+                  height: 10,
+                  borderRadius: '50%',
+                  background: r.backgroundColor,
+                  marginRight: 2,
+                }}
+              />
+              {r.name}
+            </label>
+          ))}
+          <div style={{ marginTop: 6, fontSize: 10, opacity: 0.7 }}>
+            当前可见: {visibleIds.join(', ')}
+          </div>
+        </div>
+        <Calendar
+          events={events}
+          options={{
+            defaultView: 'scheduler',
+            scheduler: {
+              resources: RESOURCES,
+              hourStart: 8,
+              hourEnd: 20,
+              visibleResourceIds: visibleIds,
+            },
+          }}
+        />
+      </SchedulerStoryFrame>
+    );
+  },
+  play: async ({ canvasElement }) => {
+    await new Promise((r) => setTimeout(r, DEMO_PAUSE));
+    const canvas = within(canvasElement);
+
+    // 验证初始状态：只显示 r1 和 r3
+    await expect(canvas.getByText('会议室 A')).toBeInTheDocument();
+    await expect(canvas.getByText('张三')).toBeInTheDocument();
+
+    // 验证 r2 和 r4 不在 DOM 中（visibleResourceIds 不包括它们）
+    expect(canvas.queryByText('会议室 B')).toBeNull();
+    expect(canvas.queryByText('李四')).toBeNull();
+
+    // 验证事件卡片渲染
+    const cards = canvas.getAllByTestId(/^event-card-sched-/);
+    expect(cards.length).toBeGreaterThanOrEqual(4);
+  },
+};
+
+const GROUPED_RESOURCES = [
+  {
+    id: 'g1',
+    name: '一楼',
+    backgroundColor: '#6366f1',
+    color: '#fff',
+    children: [
+      { id: 'r1', name: '会议室 A', backgroundColor: '#3b82f6', color: '#fff' },
+      { id: 'r2', name: '会议室 B', backgroundColor: '#10b981', color: '#fff' },
+    ],
+  },
+  {
+    id: 'g2',
+    name: '二楼',
+    backgroundColor: '#ec4899',
+    color: '#fff',
+    children: [
+      { id: 'r3', name: '张三', backgroundColor: '#f59e0b', color: '#fff' },
+      { id: 'r4', name: '李四', backgroundColor: '#ef4444', color: '#fff' },
+    ],
+  },
+];
+
+/**
+ * ResourceVisibilityAndGrouping — 资源分组与折叠测试
+ *
+ * 验证树形资源的层级展示、折叠/展开功能。
+ */
+export const ResourceVisibilityAndGrouping: Story = {
+  render: function ResourceVisibilityAndGroupingStory() {
+    const events = useMemo(
+      () =>
+        createSchedulerEvents(
+          GROUPED_RESOURCES.flatMap((g) => g.children ?? []),
+          3
+        ),
+      []
+    );
+
+    return (
+      <SchedulerStoryFrame>
+        <Calendar
+          events={events}
+          options={{
+            defaultView: 'scheduler',
+            scheduler: {
+              resources: GROUPED_RESOURCES,
+              hourStart: 8,
+              hourEnd: 20,
+            },
+          }}
+        />
+      </SchedulerStoryFrame>
+    );
+  },
+  play: async ({ canvasElement }) => {
+    await new Promise((r) => setTimeout(r, DEMO_PAUSE));
+    const canvas = within(canvasElement);
+
+    // 验证分组头显示
+    await expect(canvas.getByText('一楼')).toBeInTheDocument();
+    await expect(canvas.getByText('二楼')).toBeInTheDocument();
+
+    // 验证子资源显示
+    await expect(canvas.getByText('会议室 A')).toBeInTheDocument();
+    await expect(canvas.getByText('会议室 B')).toBeInTheDocument();
+    await expect(canvas.getByText('张三')).toBeInTheDocument();
+    await expect(canvas.getByText('李四')).toBeInTheDocument();
+
+    // 验证事件卡片渲染
+    const cards = canvas.getAllByTestId(/^event-card-sched-/);
+    expect(cards.length).toBeGreaterThanOrEqual(8);
+  },
+};
+
+/**
+ * SharedEvents — 共享事件测试
+ *
+ * 验证一个事件通过 resourceIds 绑定到多个资源列时，
+ * 在每列都能正确渲染。
+ */
+export const SharedEvents: Story = {
+  render: function SharedEventsStory() {
+    const today = new DayjsTZDate();
+    const events: EventObject[] = [
+      {
+        id: 'shared-1',
+        title: '共享会议（r1 + r3）',
+        category: 'time',
+        start: dayjs(today.getTime()).hour(10).minute(0).toDate(),
+        end: dayjs(today.getTime()).hour(12).minute(0).toDate(),
+        resourceId: 'r1',
+        resourceIds: ['r1', 'r3'],
+        backgroundColor: '#7c3aed',
+        color: '#fff',
+      },
+      {
+        id: 'shared-2',
+        title: '独享事件（仅 r2）',
+        category: 'time',
+        start: dayjs(today.getTime()).hour(9).minute(0).toDate(),
+        end: dayjs(today.getTime()).hour(10).minute(30).toDate(),
+        resourceId: 'r2',
+        backgroundColor: '#3b82f6',
+        color: '#fff',
+      },
+      {
+        id: 'shared-3',
+        title: '三资源事件（r2+r4+r5）',
+        category: 'time',
+        start: dayjs(today.getTime()).hour(14).minute(0).toDate(),
+        end: dayjs(today.getTime()).hour(15).minute(0).toDate(),
+        resourceId: 'r2',
+        resourceIds: ['r2', 'r4', 'r5'],
+        backgroundColor: '#f59e0b',
+        color: '#fff',
+      },
+    ];
+
+    return (
+      <SchedulerStoryFrame>
+        <Calendar
+          events={events}
+          options={{
+            defaultView: 'scheduler',
+            scheduler: {
+              resources: RESOURCES,
+              hourStart: 8,
+              hourEnd: 18,
+            },
+          }}
+        />
+      </SchedulerStoryFrame>
+    );
+  },
+  play: async ({ canvasElement }) => {
+    await new Promise((r) => setTimeout(r, DEMO_PAUSE));
+    const canvas = within(canvasElement);
+
+    // 验证共享事件标题在多列可见
+    const sharedTitles = canvas.getAllByText('共享会议（r1 + r3）');
+    // 应在 r1 和 r3 两列中分别渲染
+    expect(sharedTitles.length).toBeGreaterThanOrEqual(2);
+
+    // 验证三资源事件
+    const tripleTitles = canvas.getAllByText('三资源事件（r2+r4+r5）');
+    expect(tripleTitles.length).toBeGreaterThanOrEqual(2);
+
+    // 验证独享事件只在一列
+    const singleTitles = canvas.getAllByText('独享事件（仅 r2）');
+    expect(singleTitles.length).toBe(1);
+  },
+};

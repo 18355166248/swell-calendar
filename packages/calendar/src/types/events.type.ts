@@ -96,6 +96,7 @@ export interface EventObject {
   bufferBefore?: number;
   bufferAfter?: number;
   order?: number;
+  dragBetweenResources?: boolean;
   cssClass?: string;
   meta?: Record<string, unknown>;
   goingDuration?: number;
@@ -115,6 +116,7 @@ export type EventObjectWithDefaultValues = MarkOptional<
   | 'timezone'
   | 'recurrence'
   | 'order'
+  | 'dragBetweenResources'
   | 'cssClass'
   | 'meta'
   | 'allDay'

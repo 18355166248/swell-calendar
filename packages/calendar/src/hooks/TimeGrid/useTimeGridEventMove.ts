@@ -6,10 +6,8 @@ import { useCallback, useEffect, useMemo, useRef } from 'react';
 
 import { useCalendarCallbacks } from '@/contexts/calendarCallbacks';
 import { useCalendarStore } from '@/contexts/calendarStore';
-import {
-  createUpdatedTimeGridEvent,
-  shouldAcceptEventChange,
-} from '@/controller/scheduler.controller';
+import { createUpdatedTimeGridEvent } from '@/controller/scheduler.controller';
+import { shouldAcceptEventChange } from '@/controller/scheduler-validation';
 // 导入网格位置相关类型定义
 import { getTopHeightByTime } from '@/controller/time.controller';
 // 导入事件UI模型类
@@ -261,6 +259,7 @@ export function useTimeGridEventMove({
           event: updatedEvent,
           previousEvent: draggingEvent.model.toEventObject(),
           existingEvents: existingEvents.map((uiModel) => uiModel.model.toEventObject()),
+          targetColumn: timeGridData.columns[currentGridPos.columnIndex],
         })
       ) {
         callbacks?.onEventUpdate?.({

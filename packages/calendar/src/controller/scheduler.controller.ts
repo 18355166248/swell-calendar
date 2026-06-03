@@ -2,18 +2,12 @@ import { uniq } from 'lodash-es';
 
 import { setTimeStrToDate } from '@/time/datetime';
 import DayjsTZDate from '@/time/dayjs-tzdate';
-import {
-  CalendarCallbacks,
-  CalendarEventChangeAction,
-  CalendarEventChangeFailedInfo,
-  CalendarPolicySource,
-} from '@/types/callbacks.type';
 import { EventObject, EventObjectWithDefaultValues } from '@/types/events.type';
 import { CommonGridColumn, TimeGridData } from '@/types/grid.type';
 import { GridSelectionData } from '@/types/gridSelection.type';
 import { BlockedTimeRange, Options, ViewType } from '@/types/options.type';
 
-function getTimeValue(value: EventObject['start']) {
+export function getTimeValue(value: EventObject['start']) {
   if (!value) {
     return 0;
   }
@@ -25,54 +19,10 @@ function getTimeValue(value: EventObject['start']) {
   return value.getTime();
 }
 
-function hasTimeValue(event: EventObject) {
-  return Boolean(event.start && event.end);
-}
-
-function getResourceIds(event: EventObject) {
+export function getResourceIds(event: EventObject) {
   return [event.resourceId, ...(event.resourceIds ?? [])].filter(
     (resourceId): resourceId is string => Boolean(resourceId)
   );
-}
-
-function isSameEvent(event: EventObject, previousEvent?: EventObjectWithDefaultValues) {
-  if (!previousEvent) {
-    return false;
-  }
-
-  const eventCid = (event as EventObjectWithDefaultValues).__cid;
-
-  if (eventCid && eventCid === previousEvent.__cid) {
-    return true;
-  }
-
-  return Boolean(event.id && event.id === previousEvent.id);
-}
-
-function isSameResourceScope(event: EventObject, targetEvent: EventObject) {
-  const resourceIds = getResourceIds(event);
-  const targetResourceIds = getResourceIds(targetEvent);
-
-  if (resourceIds.length === 0 || targetResourceIds.length === 0) {
-    return true;
-  }
-
-  return resourceIds.some((resourceId) => targetResourceIds.includes(resourceId));
-}
-
-const MINUTE_MS = 60_000;
-
-function overlapsTime(event: EventObject, targetEvent: EventObject) {
-  if (!hasTimeValue(event) || !hasTimeValue(targetEvent)) {
-    return false;
-  }
-
-  const eventStart = getTimeValue(event.start) - (event.bufferBefore ?? 0) * MINUTE_MS;
-  const eventEnd = getTimeValue(event.end) + (event.bufferAfter ?? 0) * MINUTE_MS;
-  const targetStart = getTimeValue(targetEvent.start) - (targetEvent.bufferBefore ?? 0) * MINUTE_MS;
-  const targetEnd = getTimeValue(targetEvent.end) + (targetEvent.bufferAfter ?? 0) * MINUTE_MS;
-
-  return eventStart < targetEnd && eventEnd > targetStart;
 }
 
 function getBlockedTimesByView(options: Options, view: ViewType): BlockedTimeRange[] {
@@ -249,192 +199,17 @@ export function createUpdatedTimeGridEvent(
   };
 
   if (targetColumn?.resourceId) {
-    nextEvent.resourceId = targetColumn.resourceId;
-    nextEvent.resourceIds = [targetColumn.resourceId];
+    const existingResourceIds =
+      previousEvent.resourceIds ?? (previousEvent.resourceId ? [previousEvent.resourceId] : []);
+
+    if (existingResourceIds.length > 1 && existingResourceIds.includes(targetColumn.resourceId)) {
+      nextEvent.resourceId = targetColumn.resourceId;
+      nextEvent.resourceIds = existingResourceIds;
+    } else {
+      nextEvent.resourceId = targetColumn.resourceId;
+      nextEvent.resourceIds = [targetColumn.resourceId];
+    }
   }
 
   return nextEvent;
-}
-
-function hasTimeChanged(event: EventObject, previousEvent?: EventObjectWithDefaultValues) {
-  if (!previousEvent) {
-    return false;
-  }
-
-  return (
-    getTimeValue(event.start) !== getTimeValue(previousEvent.start) ||
-    getTimeValue(event.end) !== getTimeValue(previousEvent.end)
-  );
-}
-
-function getDisabledSchedulerInteractionPolicySource(
-  options: Options,
-  action: CalendarEventChangeAction,
-  event: EventObject,
-  previousEvent?: EventObjectWithDefaultValues
-): CalendarPolicySource | null {
-  const schedulerOptions = options.scheduler;
-
-  if (!schedulerOptions) {
-    return null;
-  }
-
-  if (action === 'create' && schedulerOptions.dragToCreate === false) {
-    return 'view';
-  }
-
-  if (action === 'move' && schedulerOptions.dragToMove === false) {
-    return 'view';
-  }
-
-  if (action === 'resize' && schedulerOptions.dragToResize === false) {
-    return 'view';
-  }
-
-  if (
-    schedulerOptions.dragInTime === false &&
-    (action === 'move' || action === 'resize') &&
-    hasTimeChanged(event, previousEvent)
-  ) {
-    return 'view';
-  }
-
-  return null;
-}
-
-function getDisabledSchedulerEventPolicySource(
-  action: CalendarEventChangeAction,
-  event: EventObject,
-  previousEvent?: EventObjectWithDefaultValues
-): CalendarPolicySource | null {
-  const policyEvent = previousEvent ?? event;
-
-  if (
-    (action === 'move' || action === 'resize' || action === 'delete') &&
-    policyEvent.editable === false
-  ) {
-    return 'event';
-  }
-
-  if (action === 'move' && policyEvent.draggable === false) {
-    return 'event';
-  }
-
-  if (action === 'resize' && policyEvent.resizable === false) {
-    return 'event';
-  }
-
-  return null;
-}
-
-function dispatchEventChangeFailed(
-  callbacks: CalendarCallbacks | null | undefined,
-  info: CalendarEventChangeFailedInfo
-) {
-  if (info.action === 'create') {
-    callbacks?.onEventCreateFailed?.(info);
-    return;
-  }
-
-  callbacks?.onEventUpdateFailed?.(info);
-}
-
-function isPairOverlapDenied(options: Options, event: EventObject, existingEvent: EventObject) {
-  // per-event false on either side → always deny
-  if (event.overlap === false || existingEvent.overlap === false) {
-    return true;
-  }
-
-  // per-event true on either side → override global, allow
-  if (event.overlap === true || existingEvent.overlap === true) {
-    return false;
-  }
-
-  return options.scheduler?.eventOverlap === false;
-}
-
-function isOverlappingSchedulerEventChange(
-  options: Options,
-  event: EventObject,
-  existingEvents: EventObject[] = [],
-  previousEvent?: EventObjectWithDefaultValues
-) {
-  return existingEvents.some((existingEvent) => {
-    return (
-      !isSameEvent(existingEvent, previousEvent) &&
-      isSameResourceScope(event, existingEvent) &&
-      overlapsTime(event, existingEvent) &&
-      isPairOverlapDenied(options, event, existingEvent)
-    );
-  });
-}
-
-export function shouldAcceptEventChange(
-  options: Options,
-  callbacks: CalendarCallbacks | null | undefined,
-  {
-    action,
-    view,
-    event,
-    previousEvent,
-    existingEvents,
-  }: {
-    action: CalendarEventChangeAction;
-    view: ViewType;
-    event: EventObject;
-    previousEvent?: EventObjectWithDefaultValues;
-    existingEvents?: EventObject[];
-  }
-) {
-  if (view === 'scheduler') {
-    const policySource =
-      getDisabledSchedulerInteractionPolicySource(options, action, event, previousEvent) ??
-      getDisabledSchedulerEventPolicySource(action, event, previousEvent);
-
-    if (policySource) {
-      dispatchEventChangeFailed(callbacks, {
-        reason: 'policy',
-        policySource,
-        action,
-        event,
-        previousEvent,
-      });
-      return false;
-    }
-  }
-
-  if (
-    view === 'scheduler' &&
-    isOverlappingSchedulerEventChange(options, event, existingEvents, previousEvent)
-  ) {
-    dispatchEventChangeFailed(callbacks, {
-      reason: 'overlap',
-      action,
-      event,
-      previousEvent,
-    });
-    return false;
-  }
-
-  if (isBlockedEventChange(options, view, event)) {
-    if (view === 'scheduler') {
-      dispatchEventChangeFailed(callbacks, {
-        reason: 'invalid',
-        action,
-        event,
-        previousEvent,
-      });
-    }
-
-    return false;
-  }
-
-  return (
-    callbacks?.onValidateEventChange?.({
-      action,
-      view,
-      event,
-      previousEvent,
-    }) ?? true
-  );
 }
