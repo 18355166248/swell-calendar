@@ -16,11 +16,11 @@ module.exports = {
   // headed 模式下放宽超时（慢动作需要更长时间）
   testTimeout: headed ? 120000 : 30000,
 
-  // 演示模式下只跑带 play 函数的 Scheduler stories，其余故事跳过
+  // 演示模式下只跑带 play 函数的 Calendar stories，其余故事跳过
   ...(headed
     ? {
-        // 只跑 Scheduler stories（精确匹配源文件路径，排除 dist/.d.ts）
-        testMatch: ['**/src/stories/Calendar/Scheduler.stories.*'],
+        // 跑所有 Calendar stories（Scheduler + Day + Week 拖拽测试）
+        testMatch: ['**/src/stories/Calendar/*.stories.*'],
       }
     : {}),
 

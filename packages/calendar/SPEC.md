@@ -276,11 +276,11 @@ interface CalendarInstance {
 
 ### 拖拽测试覆盖
 
-| 视图      | 拖拽移动        | 拖拽调整      | ESC 取消           | 跨资源           |
-| --------- | --------------- | ------------- | ------------------ | ---------------- |
-| Scheduler | ✅ DragVertical | ✅ DragResize | ✅ DragCancelByEsc | ✅ OverlapPolicy |
-| Day       | 🟡 待补齐       | 🟡 待补齐     | 🟡 待补齐          | —                |
-| Week      | 🟡 待补齐       | 🟡 待补齐     | 🟡 待补齐          | —                |
+| 视图      | 拖拽移动            | 拖拽调整          | ESC 取消           | 跨天/跨资源         |
+| --------- | ------------------- | ----------------- | ------------------ | ------------------- |
+| Scheduler | ✅ DragVertical     | ✅ DragResize     | ✅ DragCancelByEsc | ✅ OverlapPolicy    |
+| Day       | ✅ DayDragVertical  | ✅ DayDragResize  | ✅ DayDragCancel   | —                   |
+| Week      | ✅ WeekDragVertical | ✅ WeekDragResize | ✅ WeekDragCancel  | ✅ WeekDragCrossDay |
 
 测试文件位于 `src/slices/dnd.slice.spec.ts`（DnD 状态机）和 `src/stories/Calendar/`（各个视图的故事文件）。
 
