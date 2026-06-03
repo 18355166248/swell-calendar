@@ -2,6 +2,7 @@
 
 const { execSync } = require('child_process');
 const os = require('os');
+const path = require('path');
 
 // 获取参数
 const args = process.argv.slice(2);
@@ -45,11 +46,16 @@ try {
   console.log(`当前Node版本: ${currentVersion ? 'v' + currentVersion : '未知'}`);
   console.log(`目标Node版本: ${nodeVersion}`);
 
+  // 确保 node_modules/.bin 在 PATH 中（pnpm 在子 shell 中可能丢失此路径）
+  const nodeModulesBin = path.resolve(__dirname, '..', 'node_modules', '.bin');
+  const pathWithBin = `${nodeModulesBin}${path.delimiter}${process.env.PATH || ''}`;
+  const execOpts = { stdio: 'inherit', env: { ...process.env, PATH: pathWithBin } };
+
   // 检查版本是否匹配
   if (currentVersion && isVersionMatch(currentVersion, nodeVersion)) {
     console.log('当前Node版本已符合要求，直接执行命令...');
     console.log(`正在执行命令: ${commands}`);
-    execSync(commands, { stdio: 'inherit' });
+    execSync(commands, execOpts);
   } else {
     // 版本不匹配，需要切换
     console.log(`正在切换到Node版本: ${nodeVersion}`);
@@ -72,13 +78,30 @@ try {
         process.exit(1);
       }
     } else {
-      // Mac/Linux下的nvm命令
-      nvmCommand = `
-        export NVM_DIR="$HOME/.nvm"
-        [ -s "$NVM_DIR/nvm.sh" ] && \\. "$NVM_DIR/nvm.sh"
-        nvm use ${nodeVersion} && ${commands}
-      `;
-      execSync(nvmCommand, { stdio: 'inherit', shell: '/bin/bash' });
+      // Mac/Linux：优先使用 fnm，其次 nvm
+      const hasFnm = (() => {
+        try {
+          execSync('which fnm', { stdio: 'pipe' });
+          return true;
+        } catch {
+          return false;
+        }
+      })();
+
+      if (hasFnm) {
+        // fnm (Fast Node Manager)
+        nvmCommand = `export PATH="${nodeModulesBin}:$PATH" && fnm use ${nodeVersion} && ${commands}`;
+        execSync(nvmCommand, { stdio: 'inherit', shell: '/bin/bash' });
+      } else {
+        // nvm (Node Version Manager)
+        nvmCommand = `
+          export NVM_DIR="$HOME/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && \\. "$NVM_DIR/nvm.sh"
+          export PATH="${nodeModulesBin}:$PATH"
+          nvm use ${nodeVersion} && ${commands}
+        `;
+        execSync(nvmCommand, { stdio: 'inherit', shell: '/bin/bash' });
+      }
     }
   }
 } catch (error) {

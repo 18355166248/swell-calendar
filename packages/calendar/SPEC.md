@@ -32,31 +32,31 @@ swell-calendar 是一个**可嵌入的 React 日历组件库**，面向需要在
 
 ### 视图
 
-| 视图 | 状态 | 描述 |
-|------|------|------|
-| 日视图（Day） | ✅ 完成 | 单日时间网格，24 小时展示 |
-| 周视图（Week） | ✅ 完成 | 7 天时间网格，支持 workweek 模式 |
-| 月视图（Month） | 🚧 开发中 | 月历格子，事件简要展示 |
-| 时间线（Timeline） | 🟡 基础版 | 资源行 + 横向时间轴，用于资源时间段展示，本轮只保证不退化 |
-| 调度器（Scheduler） | 🟡 进行中 | 垂直时间轴 + 资源列的 time-grid 视图，是当前近期核心 |
+| 视图                | 状态      | 描述                                                      |
+| ------------------- | --------- | --------------------------------------------------------- |
+| 日视图（Day）       | ✅ 完成   | 单日时间网格，24 小时展示                                 |
+| 周视图（Week）      | ✅ 完成   | 7 天时间网格，支持 workweek 模式                          |
+| 月视图（Month）     | 🚧 开发中 | 月历格子，事件简要展示                                    |
+| 时间线（Timeline）  | 🟡 基础版 | 资源行 + 横向时间轴，用于资源时间段展示，本轮只保证不退化 |
+| 调度器（Scheduler） | 🟡 进行中 | 垂直时间轴 + 资源列的 time-grid 视图，是当前近期核心      |
 
 ### 事件功能
 
-| 功能 | 状态 | 描述 |
-|------|------|------|
-| 事件渲染 | ✅ | 时间范围显示为卡片 |
-| 碰撞布局 | ✅ | 重叠事件自动并排，分配宽度 |
-| 拖拽移动 | ✅ | 鼠标拖动修改事件时间，30min 吸附 |
-| 拖拽调整 | ✅ | 拖动事件底部边缘调整结束时间 |
-| 新建事件 | ✅ | 点击或框选时间段触发创建 |
-| 只读模式 | ✅ | `isReadOnly: true` 禁用所有交互 |
-| 自定义颜色 | ✅ | 按日历 ID 配置事件颜色 |
-| `invalid` / `blockedTimes` | 🟡 | `invalid` 为主名，运行时兼容 `blockedTimes` |
-| `colors` 背景区段（scheduler） | ✅ | scheduler/timeline time-grid 背景时段，`invalid` 视觉层级在上 |
-| all-day lane（scheduler） | ✅ | scheduler 顶部全天事件栏 |
-| 多日事件分段（scheduler） | ✅ | scheduler time 事件按日期切分到资源列 |
-| overlap policy | ✅ | scheduler 全局 `eventOverlap` 与 per-event `overlap` 均已接入 |
-| recurrence / timezone | 🟡 | 字段已有，行为尚未接入 |
+| 功能                           | 状态 | 描述                                                          |
+| ------------------------------ | ---- | ------------------------------------------------------------- |
+| 事件渲染                       | ✅   | 时间范围显示为卡片                                            |
+| 碰撞布局                       | ✅   | 重叠事件自动并排，分配宽度                                    |
+| 拖拽移动                       | ✅   | 鼠标拖动修改事件时间，30min 吸附                              |
+| 拖拽调整                       | ✅   | 拖动事件底部边缘调整结束时间                                  |
+| 新建事件                       | ✅   | 点击或框选时间段触发创建                                      |
+| 只读模式                       | ✅   | `isReadOnly: true` 禁用所有交互                               |
+| 自定义颜色                     | ✅   | 按日历 ID 配置事件颜色                                        |
+| `invalid` / `blockedTimes`     | 🟡   | `invalid` 为主名，运行时兼容 `blockedTimes`                   |
+| `colors` 背景区段（scheduler） | ✅   | scheduler/timeline time-grid 背景时段，`invalid` 视觉层级在上 |
+| all-day lane（scheduler）      | ✅   | scheduler 顶部全天事件栏                                      |
+| 多日事件分段（scheduler）      | ✅   | scheduler time 事件按日期切分到资源列                         |
+| overlap policy                 | ✅   | scheduler 全局 `eventOverlap` 与 per-event `overlap` 均已接入 |
+| recurrence / timezone          | 🟡   | 字段已有，行为尚未接入                                        |
 
 ### 配置选项（`CalendarOptions`）
 
@@ -119,7 +119,7 @@ interface EventObject {
   id: string;
   calendarId: string;
   title: string;
-  start: Date | string;  // ISO 8601
+  start: Date | string; // ISO 8601
   end: Date | string;
   isAllDay?: boolean;
   resourceId?: string;
@@ -178,19 +178,19 @@ interface ColoredRange {
 
 10 个可定制渲染点：
 
-| 函数名 | 渲染位置 |
-|--------|---------|
-| `timeGridDisplayPrimaryTime` | 时间轴上的主时间标签 |
-| `timeGridDisplayTime` | 时间轴其他时间格 |
-| `weekDayName` | 周视图顶部星期名称 |
-| `time` | 时间事件卡片内容 |
-| `schedulerTime` | scheduler 时间事件卡片内容 |
-| `timeMove` | 拖拽中的事件卡片内容 |
-| `timeMoveGuide` | 拖拽时间提示 |
-| `timeGridNowIndicatorLabel` | 当前时间指示器标签 |
-| `monthGridHeader` | 月视图日期格头部 |
-| `schedulerDayHeader` | scheduler 顶部日期头 |
-| `schedulerResourceHeader` | scheduler 资源列头 |
+| 函数名                       | 渲染位置                   |
+| ---------------------------- | -------------------------- |
+| `timeGridDisplayPrimaryTime` | 时间轴上的主时间标签       |
+| `timeGridDisplayTime`        | 时间轴其他时间格           |
+| `weekDayName`                | 周视图顶部星期名称         |
+| `time`                       | 时间事件卡片内容           |
+| `schedulerTime`              | scheduler 时间事件卡片内容 |
+| `timeMove`                   | 拖拽中的事件卡片内容       |
+| `timeMoveGuide`              | 拖拽时间提示               |
+| `timeGridNowIndicatorLabel`  | 当前时间指示器标签         |
+| `monthGridHeader`            | 月视图日期格头部           |
+| `schedulerDayHeader`         | scheduler 顶部日期头       |
+| `schedulerResourceHeader`    | scheduler 资源列头         |
 
 ## API 接口
 
@@ -198,10 +198,10 @@ interface ColoredRange {
 
 ```ts
 interface CalendarProps {
-  calendars?: CalendarInfo[];    // 日历列表（定义颜色）
-  events?: EventObject[];        // 事件数据
-  options?: CalendarOptions;     // 配置选项
-  theme?: Partial<ThemeState>;   // 主题配置
+  calendars?: CalendarInfo[]; // 日历列表（定义颜色）
+  events?: EventObject[]; // 事件数据
+  options?: CalendarOptions; // 配置选项
+  theme?: Partial<ThemeState>; // 主题配置
   callbacks?: {
     onEventClick?: (info: { event: EventObjectWithDefaultValues }) => void;
     onCellClick?: (info: {
@@ -212,10 +212,7 @@ interface CalendarProps {
       resourceIds?: string[];
       resourceNames?: string[];
     }) => void;
-    onEventHover?: (info: {
-      event: EventObjectWithDefaultValues;
-      hovering: boolean;
-    }) => void;
+    onEventHover?: (info: { event: EventObjectWithDefaultValues; hovering: boolean }) => void;
     onPageChange?: (info: { view: ViewType; date: DayjsTZDate }) => void;
     onRangeSelect?: (info: {
       view: ViewType;
@@ -268,6 +265,24 @@ interface CalendarInstance {
   getEvents(): EventObjectWithDefaultValues[];
 }
 ```
+
+## 测试体系
+
+| 层级       | 工具                               | 运行命令                                 |
+| ---------- | ---------------------------------- | ---------------------------------------- |
+| 单元测试   | Vitest (jsdom)                     | `pnpm test`                              |
+| 交互测试   | Storybook test-runner (Playwright) | `pnpm test:storybook`                    |
+| 可视化交互 | headed 模式（Chromium 可见）       | `SLOWMO=5000 pnpm test:storybook:headed` |
+
+### 拖拽测试覆盖
+
+| 视图      | 拖拽移动        | 拖拽调整      | ESC 取消           | 跨资源           |
+| --------- | --------------- | ------------- | ------------------ | ---------------- |
+| Scheduler | ✅ DragVertical | ✅ DragResize | ✅ DragCancelByEsc | ✅ OverlapPolicy |
+| Day       | 🟡 待补齐       | 🟡 待补齐     | 🟡 待补齐          | —                |
+| Week      | 🟡 待补齐       | 🟡 待补齐     | 🟡 待补齐          | —                |
+
+测试文件位于 `src/slices/dnd.slice.spec.ts`（DnD 状态机）和 `src/stories/Calendar/`（各个视图的故事文件）。
 
 ## 不变式（Invariants）
 
