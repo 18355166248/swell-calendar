@@ -14,7 +14,7 @@
 ## 步骤清单
 
 - [x] Step 30：补 recurrence 相关类型
-- [ ] Step 31：实现 recurrence 视口内展开
+- [x] Step 31：实现 recurrence 视口内展开
 - [ ] Step 32：接入 recurring exceptions
 - [ ] Step 33：接入 timezone
 - [ ] Step 34：接入 external DnD
@@ -60,15 +60,26 @@
 内容：
 
 - 只在当前可视窗口内展开
-- 先覆盖 daily / weekly / monthly 基础规则
+- 覆盖 daily / weekly / monthly / yearly + interval / count / until / byWeekDays / byMonthDays
+- exceptions 排除在 `expandRecurrence` 入口统一处理
+- interval ≤ 0 与 count=0 防御性返回空数组
+
+落点：
+
+- `time/recurrence.ts` — 纯时间计算，不依赖 React 或 scheduler 视图
 
 最小验证：
 
-- 单测覆盖三类基础 recurrence
+- `pnpm --filter swell-calendar test -- recurrence`
 
 通过标准：
 
 - 不会把整个历史/未来无限展开
+- 所有现有 Storybook 仍绿
+
+实施记录：
+
+- 2026-06-04：20 个单测全部通过，覆盖 4 种频率 + interval/count/until/exceptions/边界场景
 
 ## Step 32：接入 recurring exceptions
 
