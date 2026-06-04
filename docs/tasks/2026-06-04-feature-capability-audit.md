@@ -294,8 +294,23 @@
 
 ## 验证计划
 
-- [ ] `node scripts/check-docs.mjs`
+- [x] `node scripts/check-docs.mjs`
 
 ## 实施结果
 
-- 待执行
+- 实际改动：
+  - 审计报告本身为文档任务，无代码改动
+  - 审计驱动了下游收敛任务：
+    - `2026-06-04-shared-event-policy-closure.md`：补 shared events 资源级策略闭环（P0）
+    - `2026-06-04-month-boundary-and-workweek-closure.md`：校正 month 状态与 `workweek` 闭环（P1）
+    - `2026-06-04-scheduler-scope-freeze.md`：规格 / 路线图 / 迁移文档对齐（P0/P1）
+  - 审计中标记的 4 项建议全部闭环：
+    1. ✅ P0 — shared events 策略闭环
+    2. ✅ P1 — month 状态重定义
+    3. ✅ P1 — timeline 作为回归锚点，未新增 parity 目标
+    4. ✅ P0 — Phase 3 暂缓，未启动 recurrence / timezone / external DnD
+- 验证结果：
+  - `node scripts/check-docs.mjs` 通过
+- 剩余问题：
+  - month 的 story / 测试密度仍低于 scheduler，后续若继续扩 month 应先补更完整的回归面
+  - timeline 的 story 覆盖偏静态，交互验证明显少于 scheduler
