@@ -2,6 +2,7 @@ import { isNil } from 'lodash-es';
 import { createContext, createElement, useContext, useMemo } from 'react';
 import { StoreApi, useStore as useZustandStore } from 'zustand';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Zustand 泛型需要 Record<string, any> 约束
 export function createStoreContext<State extends Record<string, any>>() {
   const StoreContext = createContext<StoreApi<State> | null>(null);
 
@@ -20,6 +21,7 @@ export function createStoreContext<State extends Record<string, any>>() {
     if (isNil(store)) {
       throw new Error('StoreProvider is not found');
     }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Zustand's useStore typing edge case requires a cast
     return useZustandStore(store, selector as any) as T;
   }
 

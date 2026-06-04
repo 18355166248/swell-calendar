@@ -6,6 +6,7 @@ export type ItemID = string | number;
 // 项目基础类型，包含可选的_id字段
 export type Item = {
   _id?: ItemID;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- 通用集合基类需任意索引签名以支持下游泛型
   [k: string | number]: any;
 };
 
@@ -188,7 +189,7 @@ export default class Collection<ItemType extends Item> {
   filter(filterFn: Filter<ItemType>): Collection<ItemType> {
     const result = new Collection<ItemType>();
 
-    if (this.hasOwnProperty('getItemID')) {
+    if (Object.prototype.hasOwnProperty.call(this, 'getItemID')) {
       result.getItemID = this.getItemID;
     }
 

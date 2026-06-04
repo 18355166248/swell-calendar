@@ -232,14 +232,16 @@ describe('DayjsTZDate', () => {
     it('tz() 应该能够设置为本地时区', () => {
       const localDate = date.tz('Local');
       expect(localDate).not.toBe(date);
-      expect(localDate.getTimezoneOffset()).toBeNull;
+      // tz('Local') 行为取决于运行环境，只验证不抛异常且返回新实例
+      expect(typeof localDate.getTimezoneOffset()).toBe('number');
     });
 
     it('local() 应该返回本地时区的新实例', () => {
       const tzDate = date.tz(-480);
       const localDate = tzDate.local();
       expect(localDate).not.toBe(tzDate);
-      expect(localDate.getTimezoneOffset()).toBeNull;
+      // local() 行为取决于运行环境，只验证不抛异常且返回新实例
+      expect(typeof localDate.getTimezoneOffset()).toBe('number');
     });
   });
 

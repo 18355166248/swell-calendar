@@ -23,7 +23,7 @@ function compareBooleansASC(a: boolean, b: boolean) {
  * @param b 第二个数字
  * @returns 返回 a - b 的结果，用于升序排序
  */
-function compareNumbersASC(a: any, b: any) {
+function compareNumbersASC(a: unknown, b: unknown) {
   return Number(a) - Number(b);
 }
 
@@ -33,7 +33,7 @@ function compareNumbersASC(a: any, b: any) {
  * @param _b 第二个值（会被转换为字符串）
  * @returns 如果 a > b 返回 1，如果 a < b 返回 -1，如果相等返回 0
  */
-function compareStringsASC(_a: any, _b: any) {
+function compareStringsASC(_a: unknown, _b: unknown) {
   const a = String(_a);
   const b = String(_b);
 
@@ -104,10 +104,10 @@ function compareEventsASC(a: EventModel | EventUIModel, b: EventModel | EventUIM
  * @returns 如果找到元素，返回其索引；如果未找到，返回插入位置的负值（使用 ~ 操作符可得到正确的插入位置）
  */
 export function bsearch(
-  arr: any[],
-  search: any,
-  fn?: (item: any) => any,
-  compareFn?: (item: any, searchArg: any) => number
+  arr: unknown[],
+  search: unknown,
+  fn?: (item: unknown) => unknown,
+  compareFn?: (item: unknown, searchArg: unknown) => number
 ) {
   let minIndex = 0;
   let maxIndex = arr.length - 1;

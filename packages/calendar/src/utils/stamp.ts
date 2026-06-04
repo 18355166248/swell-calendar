@@ -1,5 +1,6 @@
 import { isNil } from 'lodash-es';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- stamp 需接受任意扩展属性的对象
 interface StampObj extends Record<string, any> {
   __swell_id?: number;
 }

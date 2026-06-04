@@ -2,7 +2,7 @@
 
 ## 背景
 
-当前 `swell-calendar` 已经积累了较多 `scheduler` 能力，但仓库内对“哪些能力已正式支持、哪些仅为字段暴露、哪些仍属后置范围”的表述开始出现偏差：
+当前 `swell-calendar` 已经积累了较多 `scheduler` 能力，但仓库内对"哪些能力已正式支持、哪些仅为字段暴露、哪些仍属后置范围"的表述开始出现偏差：
 
 - `SPEC`、`AGENTS`、路线图和迁移文档存在不一致
 - phase 状态与实现状态没有同步更新
@@ -43,24 +43,24 @@
 
 1. 以当前代码为准回填 `SPEC`，补齐 scheduler/timeline 当前公开能力与后置能力。
 2. 修正 `Template`、`ResourceInfo`、`SchedulerOptions` 等接口描述与真实类型的不一致。
-3. 更新路线图状态，明确当前属于“Phase 1A/1B/2 基线已进入实现，Phase 3 未完成”的状态。
-4. 更新迁移文档，避免把已经进入实现期的资源能力继续写成“尚未进入当前阶段”。
+3. 更新路线图状态，明确当前属于"Phase 1A/1B/2 基线已进入实现，Phase 3 未完成"的状态。
+4. 更新迁移文档，避免把已经进入实现期的资源能力继续写成"尚未进入当前阶段"。
 5. 更新 `packages/calendar/AGENTS.md`，让维护者通过导航文档就能读到准确的能力面。
 
 ## 文档变更
 
 - [x] 更新 `packages/calendar/SPEC.md`
-- [ ] 更新 `docs/ARCHITECTURE.md`
-- [ ] 新增或更新 ADR
-- [ ] 无规格变更，仅补任务记录
+- [x] `docs/agent-plan/*` 各 phase 子文档已同步状态（01-04 已完成, 05 未开始）
+- [ ] 更新 `docs/ARCHITECTURE.md`（本轮无新增结构约束，跳过）
+- [ ] 新增或更新 ADR（无新增决策，跳过）
 
 ## 验证计划
 
 - [x] `node scripts/check-docs.mjs`
-- [x] `node scripts/check-arch.mjs`
-- [ ] `pnpm lint`
-- [ ] `pnpm -r exec tsc --noEmit`
-- [x] `pnpm --filter swell-calendar test`
+- [x] `node scripts/check-arch.mjs`（151 个文件，无分层违规）
+- [x] `pnpm --filter swell-calendar exec tsc --noEmit`（通过，无类型错误）
+- [x] `pnpm lint`（69 个存量 warnings，均为历史遗留 `no-explicit-any` / `no-console` / `no-prototype-builtins`，非本轮改动引入）
+- [x] `pnpm --filter swell-calendar test`（12 files / 154 tests passed）
 
 ## 风险与回滚
 
@@ -72,14 +72,16 @@
 - 实际改动：
   - 收紧 `SPEC` 中 scheduler 当前基线描述，补齐资源显隐、分组、shared events、failed callbacks、delete、跨资源拖动 gate 等已实现能力
   - 修正 `Template`、`EventObject`、`ResourceInfo`、`SchedulerOptions` 的公开规格与真实类型不一致问题
-  - 更新路线图状态，避免继续把当前实现描述成“仅代码开始”
+  - 更新路线图状态，避免继续把当前实现描述成"仅代码开始"
   - 更新 `MIGRATION` 与 `packages/calendar/AGENTS.md`，同步资源能力与模板插槽数量
 - 与原计划的偏差：
   - 未修改 `docs/ARCHITECTURE.md`，因为本轮没有新增结构约束，只做能力边界与状态收敛
 - 验证结果：
   - `node scripts/check-docs.mjs` 通过
-  - `node scripts/check-arch.mjs` 通过
-  - `pnpm --filter swell-calendar test` 此前已通过，当前未再次触发
+  - `node scripts/check-arch.mjs` 通过（151 个文件，无分层违规）
+  - `pnpm --filter swell-calendar exec tsc --noEmit` 通过，无类型错误
+  - `pnpm lint`：69 个存量 warnings（`no-explicit-any` / `no-console` / `no-prototype-builtins`），均为历史遗留，非本轮改动引入
+  - `pnpm --filter swell-calendar test`：12 files / 154 tests passed
 - 剩余问题：
-  - `recurrence` / `timezone` 仍处于“字段已暴露、行为未接入”的状态
-  - `docs/agent-plan/*` 各 phase 子文档尚未逐篇同步“已进入实现 / 未完成”的状态
+  - `recurrence` / `timezone` 仍处于"字段已暴露、行为未接入"的状态，Phase 3 暂缓启动，见 `docs/tasks/2026-06-04-feature-capability-audit.md` 审计结论
+- 任务状态：`[x] 已完成`

@@ -1,3 +1,5 @@
+/* eslint-disable no-console -- 本文件是 DayjsTZDate 的使用示例，console 语句为教学演示用途 */
+
 import DayjsTZDate from './dayjs-tzdate';
 
 /**
@@ -93,7 +95,7 @@ console.log('时区偏移:', beijingTime.getTimezoneOffset(), '分钟');
 try {
   const nyTime = utcDate.tz('America/New_York');
   console.log('纽约时间:', nyTime.toString());
-} catch (error) {
+} catch {
   console.log('IANA 时区可能需要额外配置');
 }
 
