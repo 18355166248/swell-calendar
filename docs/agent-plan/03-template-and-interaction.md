@@ -2,12 +2,14 @@
 
 > 参考样例：Mobiscroll React Scheduler Desktop Week View
 > https://demo.mobiscroll.com/react/scheduler/desktop-week-view
+> 本文档是执行附件。当前 phase 状态与公开能力口径一律以 [plan.md](./plan.md) 和 `SPEC.md` 为准。
 
 本阶段对应 [plan.md](./plan.md) 的 `Phase 1A.3` 和 `Phase 1B`。目标是先收敛 scheduler 专属模板和基础回调，再分小步接入交互开关、失败回调、overlap 和 delete。
 
 ## 当前状态
 
 - 总状态：`[x] 已完成`
+- 说明：template、回调、交互 gate、failed callbacks、overlap、buffer、delete 已形成闭环；当前保留为已完成状态，不再在本 phase 内追加高级调度能力
 
 ## 步骤清单
 
@@ -20,7 +22,8 @@
 - [x] Step 19：接入 `invalid` 失败原因
 - [x] Step 20：接入全局 overlap 策略
 - [x] Step 21：接入 per-event `overlap`
-- [x] Step 22：接入 `bufferBefore` / `bufferAfter`- [x] Step 23：扩展 delete action
+- [x] Step 22：接入 `bufferBefore` / `bufferAfter`
+- [x] Step 23：扩展 delete action
 
 ## 目标
 
@@ -228,22 +231,3 @@
 - template 和回调入口已齐
 - 交互开关、per-event gate、failed callback、overlap、buffer、delete 已闭环
 - 宿主只用受控 `events` + callbacks 就能完整接管交互结果
-
-## 完成后更新
-
-- 将本文档“总状态”改为 `[-] 进行中` 或 `[x] 已完成`
-- 勾选已完成步骤
-- 回到 [implementation-steps.md](./implementation-steps.md) 更新对应阶段状态
-
-## 当前落地说明
-
-- 已新增 scheduler 专属模板槽位：日期头、资源头、时间事件内容
-- `TimeGrid` 点击空白 cell 时会派发 `onCellClick`，拖拽选择仍走 `onRangeSelect` / `onEventCreate`
-- scheduler 时间事件已补 `onEventHover`，进入和离开都会回调 `hovering`
-- `SchedulerOptions` 已接入 `dragToCreate` / `dragToMove` / `dragToResize` / `dragInTime`，默认行为保持不变，显式设为 `false` 时由 scheduler controller 拦截对应交互
-- scheduler 已接入事件级 `editable` / `draggable` / `resizable`：controller 会拒绝被禁用的 move / resize，事件卡片在 scheduler 下也会隐藏对应拖拽或 resize 入口
-- 已新增 `onEventCreateFailed` / `onEventUpdateFailed` / `onEventDelete` 类型入口，并在 scheduler policy 拒绝 create / move / resize 时派发 `reason=policy` 与 `policySource`
-- scheduler create / move / resize 命中 `invalid` 时会派发 failed callback，`reason=invalid`
-- scheduler 已接入 per-event `overlap` 字段：`overlap=false` 拒绝被任何事件覆盖或覆盖任何事件；`overlap=true` 覆盖全局 `eventOverlap=false`；两侧互斥时 `false` 优先级最高
-- scheduler 已接入 per-event `bufferBefore` / `bufferAfter`（分钟）：buffer 参与 overlap 冲突判定，不影响视觉高度和时间长度
-- `CalendarEventChangeAction` 已包含 `delete`；scheduler 事件卡片在聚焦状态下按 Delete/Backspace 键触发删除，经 per-event editable gate 校验后派发 `onEventDelete`；被拒绝时派发 `onEventUpdateFailed(reason=policy)`

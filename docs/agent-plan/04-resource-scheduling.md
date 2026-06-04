@@ -2,12 +2,14 @@
 
 > 参考样例：Mobiscroll React Scheduler Desktop Week View
 > https://demo.mobiscroll.com/react/scheduler/desktop-week-view
+> 本文档是执行附件。当前 phase 状态与公开能力口径一律以 [plan.md](./plan.md) 和 `SPEC.md` 为准。
 
 本阶段对应 [plan.md](./plan.md) 的 `Phase 2`。目标是把资源模型从“平铺资源列”扩展为可显隐、可分组、可折叠、可共享事件、可资源级控制交互的完整调度能力。
 
 ## 当前状态
 
 - 总状态：`[x] 已完成`
+- 说明：资源显隐、树归一化、折叠分组、shared events、资源级 gate 与跨资源拖动已接入；后续只做规格收敛与高级能力边界控制
 
 ## 步骤清单
 
@@ -141,20 +143,3 @@
 ## 退出条件
 
 - [x] 资源显隐、分组、折叠、shared events、资源级限制、跨资源拖动全部闭环
-
-## 完成后更新
-
-- [x] 将本文档”总状态”改为 `[x] 已完成`
-- [x] 勾选已完成步骤
-- [x] 回到 [implementation-steps.md](./implementation-steps.md) 更新对应阶段状态
-
-## 当前落地说明
-
-- `SchedulerOptions` 已接入 `visibleResourceIds`，优先级高于 `hidden`；`getVisibleResources` 在提供 `visibleResourceIds` 时优先使用它过滤
-- `ResourceInfo` 已增加 `children`（树形结构）和 `collapsed`（初始折叠状态），新建 `controller/scheduler-resources.ts` 提供 `flattenResourceTree` / `buildTreeFromFlatList` / `normalizeResources` / `findResource` 等归一化工具
-- 新建 `slices/resource.slice.ts` 管理 `collapsedResourceIds` 状态，新建 `components/scheduler/ResourceSidebar.tsx` 渲染资源层级面板；`Scheduler.tsx` 已集成 sidebar 和折叠过滤逻辑
-- `TimeGridView.tsx` 的 `isSameResourceColumn` 已支持 `resourceIds` 数组匹配，共享事件在各资源列独立渲染
-- `createUpdatedTimeGridEvent` 对共享事件（`resourceIds.length > 1`）在已有资源集内移动时保留 `resourceIds` 数组，只在拖到新资源列时覆盖
-- `ResourceInfo` 已增加 `eventDragInTime` / `eventDragBetweenResources` / `eventResize` / `eventOverlap` 资源级交互限制，在 `shouldAcceptEventChange` 中插入资源级策略检查（Step 3），优先级为 event > resource > global
-- `SchedulerOptions` 增加 `dragBetweenResources`（全局），`EventObject` 增加 `dragBetweenResources`（per-event），配合资源级 `eventDragBetweenResources` 形成三级跨资源拖动门禁
-- 新增 Storybook: `VisibleResourceIds`、`ResourceVisibilityAndGrouping`、`SharedEvents`

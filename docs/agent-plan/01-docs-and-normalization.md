@@ -2,12 +2,14 @@
 
 > 参考样例：Mobiscroll React Scheduler Desktop Week View
 > https://demo.mobiscroll.com/react/scheduler/desktop-week-view
+> 本文档是执行附件。当前 phase 状态与公开能力口径一律以 [plan.md](./plan.md) 和 `SPEC.md` 为准。
 
 本阶段对应 [plan.md](./plan.md) 的 `Phase 0` 和 `Phase 1A.1`。目标是先把文档、命名和共享判定入口收敛好，不碰 scheduler 布局。
 
 ## 当前状态
 
 - 总状态：`[x] 已完成`
+- 说明：本文档对应的命名收敛与兼容窗口已经落地，后续只在 `SPEC` / `MIGRATION` 中做事实同步，不再回到本 phase 扩功能
 
 ## 步骤清单
 
@@ -137,9 +139,3 @@
 - `blockedTimes` 和 `isAllday` 仍兼容
 - 全天事件判定入口只剩一处
 - 布局和交互行为尚未变化
-
-## 完成后更新
-
-- 将本文档“总状态”改为 `[-] 进行中` 或 `[x] 已完成`
-- 勾选已完成步骤
-- 回到 [implementation-steps.md](./implementation-steps.md) 更新对应阶段状态

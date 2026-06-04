@@ -2,12 +2,14 @@
 
 > 参考样例：Mobiscroll React Scheduler Desktop Week View
 > https://demo.mobiscroll.com/react/scheduler/desktop-week-view
+> 本文档是执行附件。当前 phase 状态与公开能力口径一律以 [plan.md](./plan.md) 和 `SPEC.md` 为准。
 
 本阶段对应 [plan.md](./plan.md) 的 `Phase 1A.2`。目标是把 scheduler 从 week 的最终事件输出中拆出来，建立独立 layout pipeline，再逐步接入 all-day lane、多日分段、`colors`、tooltip 和排序。
 
 ## 当前状态
 
 - 总状态：`[x] 已完成`
+- 说明：独立 layout pipeline、all-day lane、多日分段、`colors`、tooltip 与排序基线均已落地；当前重点是规格与状态同步，而非回退到本 phase 重做布局
 
 ## 步骤清单
 
@@ -165,9 +167,3 @@
 - scheduler 已有独立 layout pipeline
 - all-day lane、多日分段、`colors`、tooltip、`order` 全部落地
 - 与 Mobiscroll 主参考样例的桌面 week scheduler 布局接近
-
-## 完成后更新
-
-- 将本文档“总状态”改为 `[-] 进行中` 或 `[x] 已完成`
-- 勾选已完成步骤
-- 回到 [implementation-steps.md](./implementation-steps.md) 更新对应阶段状态

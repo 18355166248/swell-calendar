@@ -2,6 +2,7 @@
 
 > 参考样例：Mobiscroll React Scheduler Desktop Week View
 > https://demo.mobiscroll.com/react/scheduler/desktop-week-view
+> 本文档是执行附件。当前 scope、能力承诺和 phase 边界一律以 [plan.md](./plan.md) 为准。
 
 本文档把 [plan.md](./plan.md) 的 phase 路线图拆成更细的开发步骤，目标是让每一步都可以独立验证、独立回退，尽量降低共享逻辑改动带来的回归风险。
 
@@ -17,9 +18,15 @@
 |------|------|------|
 | `01-docs-and-normalization.md` | 文档落地、`invalid`、`allDay` | `[x]` |
 | `02-scheduler-pipeline-and-layout.md` | scheduler pipeline、all-day、多日分段、`colors` | `[x]` |
-| `03-template-and-interaction.md` | template、回调、交互闭环 | `[-]` |
+| `03-template-and-interaction.md` | template、回调、交互闭环 | `[x]` |
 | `04-resource-scheduling.md` | 资源显隐、分组、shared events | `[x]` |
 | `05-advanced-scheduling.md` | recurrence、timezone、DnD | `[ ]` |
+
+说明：
+
+- 截至 `2026-06-04`，Phase 01-04 对应的实现基线均已进入仓库并保持已完成状态
+- 当前主任务是规格收敛与状态同步，不是继续把高级调度能力提前并入 Phase 01-04
+- Phase 05 仍保持未开始，避免把字段暴露或预留类型误判为高级能力已支持
 
 ## 使用方式
 

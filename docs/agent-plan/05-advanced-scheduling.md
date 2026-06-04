@@ -2,12 +2,14 @@
 
 > 参考样例：Mobiscroll React Scheduler Desktop Week View
 > https://demo.mobiscroll.com/react/scheduler/desktop-week-view
+> 本文档是执行附件。当前 phase 状态与公开能力口径一律以 [plan.md](./plan.md) 和 `SPEC.md` 为准。
 
 本阶段对应 [plan.md](./plan.md) 的 `Phase 3`。目标是把 recurrence、exceptions、timezone、external DnD、跨实例拖动拆成可独立验证的能力，而不是一次性并包。
 
 ## 当前状态
 
 - 总状态：`[ ] 未开始`
+- 说明：`recurrence` / `timezone` / external DnD / 跨实例拖动仍属于明确后置范围，当前仓库没有把字段暴露视为本 phase 已开始
 
 ## 步骤清单
 
@@ -132,9 +134,3 @@
 - recurrence、exceptions、timezone、external DnD、跨实例拖动全部完成
 - 不要求内建弹窗编辑器
 - 不引入 agenda、移动端或远期 backlog 能力
-
-## 完成后更新
-
-- 将本文档“总状态”改为 `[-] 进行中` 或 `[x] 已完成`
-- 勾选已完成步骤
-- 回到 [implementation-steps.md](./implementation-steps.md) 更新对应阶段状态

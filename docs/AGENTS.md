@@ -11,10 +11,13 @@
 
 ## 子目录用途
 
-- `tasks/`：单次开发任务文档
+- `tasks/`：当前活跃任务文档
+- `archive/tasks/`：已沉淀的历史任务归档
 - `adrs/`：长期保留的架构决策
+- `agent-plan/`：路线图主计划 + 执行附件
 
 ## 规则
 
 - 开发前先补/改文档，再写代码
 - 改实现但不改 docs，会被 `scripts/check-docs.mjs` 拦截
+- 读路线图时，优先 `agent-plan/plan.md`；phase 子文档只作为执行附件

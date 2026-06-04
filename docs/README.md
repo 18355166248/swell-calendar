@@ -20,36 +20,57 @@
 3. 文档提交后再改代码。
 4. 提交前运行 `pnpm check`，并确保 `node scripts/check-docs.mjs` 通过。
 
-## 文档地图
+## 一级真源
 
 | 文档 | 作用 |
 |------|------|
-| [WORKFLOW.md](./WORKFLOW.md) | 定义 docs-first 开发流程和每一步的产出 |
-| [ARCHITECTURE.md](./ARCHITECTURE.md) | 定义仓库边界、模块职责、变更落点 |
-| [../packages/calendar/SPEC.md](../packages/calendar/SPEC.md) | 组件库产品规范、能力边界、API 契约 |
-| [DEFINITION-OF-DONE.md](./DEFINITION-OF-DONE.md) | 任务完成标准 |
-| [tasks/2026-05-07-scheduler-mobiscroll-parity-roadmap.md](./tasks/2026-05-07-scheduler-mobiscroll-parity-roadmap.md) | scheduler 对齐路线图任务文档 |
-| [MIGRATION.md](./MIGRATION.md) | 命名收敛与兼容期迁移说明 |
+| [WORKFLOW.md](./WORKFLOW.md) | 唯一开发流程真源 |
+| [ARCHITECTURE.md](./ARCHITECTURE.md) | 唯一结构与分层真源 |
+| [../packages/calendar/SPEC.md](../packages/calendar/SPEC.md) | 唯一产品能力与公开 API 真源 |
+| [MIGRATION.md](./MIGRATION.md) | 唯一兼容迁移真源 |
+| [agent-plan/plan.md](./agent-plan/plan.md) | 唯一 scheduler 路线图与 scope matrix 真源 |
+| [DEFINITION-OF-DONE.md](./DEFINITION-OF-DONE.md) | 完成标准 |
+
+## 当前活跃工件
+
+| 文档 | 作用 |
+|------|------|
+| [tasks/2026-05-07-scheduler-mobiscroll-parity-roadmap.md](./tasks/2026-05-07-scheduler-mobiscroll-parity-roadmap.md) | scheduler 对齐主任务 |
+| [tasks/2026-06-04-scheduler-scope-freeze.md](./tasks/2026-06-04-scheduler-scope-freeze.md) | scheduler 能力边界收敛 |
+| [tasks/2026-06-04-docs-information-architecture-cleanup.md](./tasks/2026-06-04-docs-information-architecture-cleanup.md) | 文档信息架构清理 |
 | [adrs/ADR-2026-05-scheduler-parity-scope.md](./adrs/ADR-2026-05-scheduler-parity-scope.md) | scheduler 范围与设计原则 ADR |
+
+## 模板与归档
+
+| 文档 | 作用 |
+|------|------|
 | [tasks/TEMPLATE.md](./tasks/TEMPLATE.md) | 单次开发任务模板 |
 | [adrs/ADR-TEMPLATE.md](./adrs/ADR-TEMPLATE.md) | 架构决策记录模板 |
+| [archive/README.md](./archive/README.md) | 归档说明 |
 
 ## Scheduler 路线图
 
 - 参考样例：Mobiscroll React Scheduler Desktop Week View
 - https://demo.mobiscroll.com/react/scheduler/desktop-week-view
 - 主计划：[agent-plan/plan.md](./agent-plan/plan.md)
-- 实施步骤：[agent-plan/implementation-steps.md](./agent-plan/implementation-steps.md)
+- 实施索引（执行附件）：[agent-plan/implementation-steps.md](./agent-plan/implementation-steps.md)
 - 任务文档：[tasks/2026-05-07-scheduler-mobiscroll-parity-roadmap.md](./tasks/2026-05-07-scheduler-mobiscroll-parity-roadmap.md)
 
-## 文档分类规则
+## 文档分层
 
-- `docs/tasks/`
-  记录一次开发任务的目标、范围、方案、验证与回滚点。偏短期，任务完成后保留，作为后续维护上下文。
-- `docs/adrs/`
-  记录需要长期保留的技术决策。偏长期，用于解释“为什么仓库现在是这样”。
-- `packages/calendar/SPEC.md`
-  是产品约束，不写实现细节；如果功能契约变化，这里必须先变。
+- 一级真源：
+  - `SPEC` / `ARCHITECTURE` / `WORKFLOW` / `MIGRATION` / `agent-plan/plan.md`
+  - 这些文档负责回答“现在仓库的正式规则是什么”
+- 执行附件：
+  - `docs/agent-plan/01-05-*.md`
+  - `docs/agent-plan/implementation-steps.md`
+  - 这些文档只负责回答“这个路线图具体怎么分步执行”
+- 活跃任务：
+  - `docs/tasks/`
+  - 只保留当前仍需要维护上下文的任务单
+- 历史归档：
+  - `docs/archive/tasks/`
+  - 结论已沉淀进一级真源，只保留追溯价值
 
 ## 强制规则
 

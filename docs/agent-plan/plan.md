@@ -61,41 +61,53 @@ PLAN4 相对 PLAN3 的主要修订：
 
 ---
 
-## 3. 能力矩阵（Mobiscroll × 本库 × Phase）
+## 3. 能力矩阵（Mobiscroll × 本库 × Scope）
 
-> "现状描述"列基于 `main` 分支实际代码，引用具体 file_path:line；"目标 Phase"列按 PLAN4 §8 Phase Plan 取。
+> 本表用于控 scope。凡是标记为“公开承诺”的能力，后续改动必须同步 `SPEC`、测试与迁移文档；标记为“内部已有，未承诺”的能力，不得仅凭字段暴露或 story 存在就对外宣称已支持。
 
-| 能力 | Mobiscroll | 本库现状 | 现状描述 | 目标 Phase |
-|------|------------|----------|---------|-----------|
-| 时间网格基础 | ✅ | 🟡 基线已具备 | `Scheduler.tsx` 仅复用 `TimeGrid` + `SchedulerHeader.tsx`，无独立布局 | 1A.2 改造 |
-| 资源列（多列） | ✅ | ✅ | `resources[]` 已在 `options.type.ts:86` | 已落地 |
-| 事件渲染 + 碰撞布局 | ✅ | ✅ | 现有 `controller/column.controller.ts` 可复用 | 已落地 |
-| 拖拽创建 / 移动 / resize | ✅ | 🟡 行为已有，无 scheduler 配置开关 | `hooks/TimeGrid/*` 不读取任何 `dragTo*` 配置 | 1B |
-| `invalid` 禁用区间 + 遮罩 | ✅ | 🟡 现为 `blockedTimes` | `controller/scheduler.controller.ts:25-87` + `Column.tsx:104,165` | 1A.1 重命名 |
-| `colors` 背景有效时段 | ✅ | ❌ | 无实现 | 1A.1 |
-| all-day lane（scheduler 内） | ✅ | ❌ | `Scheduler.tsx` 仅含 scheduler-header + time 两个 Panel；week 视图已有 `AlldayRow` 可参考 | 1A.2 |
-| 多日事件在 scheduler 分段 | ✅ | ❌ | `helpers/grid.ts:435-509` 任何视图均未做跨日分段，需底层补算法¹ | 1A.2 |
-| header / event template 收敛 | ✅ | 🟡 部分 | 需收敛到 `template.*` | 1A.3 |
-| 拖拽时间 tooltip | ✅ | ❌ | 全 src 无 tooltip 命中 | 1A.2 |
-| per-event 编辑性 | ✅ | 🟡 字段已有，未串入 scheduler 校验 | `events.type.ts:91,93` 已有 `editable / draggable / resizable` | 1B 行为接入 |
-| overlap policy | ✅ | ❌ | 无 | 1B |
-| `bufferBefore` / `bufferAfter` | ✅ | ❌ | 无 | 1B |
-| failed callbacks | ✅ | ❌ | `callbacks.type.ts` 仅 `onValidateEventChange`，无失败回调 | 1B |
-| 资源显隐 | ✅ | 🟡 `hidden` 字段已有 | `options.type.ts:103` 有 `hidden: boolean`，无 `visibleResourceIds` | 2 收敛 |
-| 资源分组 / 折叠 | ✅ | 🟡 `parentId` 已有，无树 | `options.type.ts:100` 有 `parentId`，无 `children / collapsed` | 2 收敛 |
-| shared events | ✅ | 🟡 字段已有，行为未实现 | `events.type.ts:99` 有 `resourceIds: string[]`，未进入 scheduler 布局 | 2 行为接入 |
-| 资源级交互限制 | ✅ | ❌ | 无 | 2 |
-| recurrence 展开 | ✅ | 🟡 字段已有，无引擎 | `events.type.ts:66` 有 `recurrence` 字段 | 3 行为接入 |
-| recurring exception | ✅ | ❌ | 无 | 3 |
-| 编辑作用域 | ✅ | ❌ | 无 | 3 |
-| timezone | ✅ | 🟡 字段已有，未参与渲染 | `events.type.ts:65` 有 `timezone` 字段 | 3 行为接入 |
-| external drag & drop | ✅ | ❌ | 无 | 3 |
-| 跨实例拖拽 | ✅ | ❌ | 无 | 3 |
-| agenda / 移动端 / connections / eventList / 虚拟化 / 打印 / a11y | ✅ | ❌ | 无 | 远期 backlog，不在本轮 |
+| 能力 | Mobiscroll | 本库现状 | 公开状态 | 现状描述 | Phase |
+|------|------------|----------|----------|---------|-------|
+| 时间网格基础 | ✅ | ✅ | 公开承诺 | `Scheduler.tsx` 已基于独立 scheduler pipeline + `TimeGrid` 渲染 | 1A.2 已落地 |
+| 资源列（多列） | ✅ | ✅ | 公开承诺 | `resources[]` 已进入 `SchedulerOptions` | 已落地 |
+| 事件渲染 + 碰撞布局 | ✅ | ✅ | 公开承诺 | scheduler 已复用稳定碰撞布局并支持同槽位排序 | 已落地 |
+| 拖拽创建 / 移动 / resize | ✅ | ✅ | 公开承诺 | 全局 gate 与受控回调已接入 | 1B 已落地 |
+| `invalid` 禁用区间 + 遮罩 | ✅ | ✅ | 公开承诺 | `invalid` 为主名，运行时兼容 `blockedTimes` | 1A.1 已落地 |
+| `colors` 背景有效时段 | ✅ | ✅ | 公开承诺 | scheduler / timeline 已支持背景区段与 `invalid` 分层 | 1A.2 已落地 |
+| all-day lane（scheduler 内） | ✅ | ✅ | 公开承诺 | scheduler 顶部全天事件栏已接入 | 1A.2 已落地 |
+| 多日事件在 scheduler 分段 | ✅ | ✅ | 公开承诺 | 多日 time 事件按资源与日期切分后渲染 | 1A.2 已落地 |
+| header / event template 收敛 | ✅ | ✅ | 公开承诺 | scheduler 模板插槽已纳入公开类型 | 1A.3 已落地 |
+| 拖拽时间 tooltip | ✅ | ✅ | 公开承诺 | move / resize 过程中已有时间提示 | 1A.2 已落地 |
+| per-event 编辑性 | ✅ | ✅ | 公开承诺 | `editable / draggable / resizable` 已进入 scheduler 校验链 | 1B 已落地 |
+| overlap policy | ✅ | ✅ | 公开承诺 | 全局 `eventOverlap` + per-event `overlap` 已接入 | 1B 已落地 |
+| `bufferBefore` / `bufferAfter` | ✅ | ✅ | 公开承诺 | buffer 已参与 overlap 判定，不影响视觉长度 | 1B 已落地 |
+| failed callbacks | ✅ | ✅ | 公开承诺 | `onEventCreateFailed` / `onEventUpdateFailed` 已接入 | 1B 已落地 |
+| delete | ✅ | ✅ | 公开承诺 | 聚焦事件后支持 `Delete/Backspace` 删除 | 1B 已落地 |
+| 资源显隐 | ✅ | ✅ | 公开承诺 | `visibleResourceIds` 已作为显隐主入口 | 2 已落地 |
+| 资源分组 / 折叠 | ✅ | ✅ | 公开承诺 | `children` / `collapsed` + sidebar 已接入 | 2 已落地 |
+| shared events | ✅ | ✅ | 公开承诺 | `resourceIds` 已进入 scheduler 布局链 | 2 已落地 |
+| 资源级交互限制 | ✅ | ✅ | 公开承诺 | `eventDragInTime` / `eventResize` / `eventOverlap` 已接入 | 2 已落地 |
+| 跨资源拖动 gate | ✅ | ✅ | 公开承诺 | 全局 / 资源级 / per-event `dragBetweenResources` 已接入 | 2 已落地 |
+| recurrence 展开 | ✅ | 🟡 | 内部已有，未承诺 | 字段已暴露，但未进入视口展开与编辑链 | 3 后置 |
+| recurring exception | ✅ | ❌ | 未承诺 | 无运行时能力 | 3 后置 |
+| 编辑作用域 | ✅ | ❌ | 未承诺 | 无运行时能力 | 3 后置 |
+| timezone | ✅ | 🟡 | 内部已有，未承诺 | 字段已暴露，但未驱动渲染与编辑语义 | 3 后置 |
+| external drag & drop | ✅ | ❌ | 未承诺 | 无运行时能力 | 3 后置 |
+| 跨实例拖拽 | ✅ | ❌ | 未承诺 | 无运行时能力 | 3 后置 |
+| agenda / 移动端 / connections / eventList / 虚拟化 / 打印 / a11y | ✅ | ❌ | 未承诺 | 远期 backlog，不在当前对齐范围 | 远期 backlog |
 
-图例：✅ 完成 / 🟡 部分 / ❌ 未做
+### 3.1 Scope 控制规则
 
-¹ **多日分段脚注**：当前 `getWeekViewEvents`（`helpers/grid.ts:435-509`）仅把事件按 `daygrid / timegrid` 两类分发到 `getDayGridEventModels / getTimeGridEventModels`，未见 `isMultipleDays / spans` 等跨日分段能力。这意味着 Phase 1A.2 需要先在 `controller/scheduler-layout` 补跨日分段算法，不是 scheduler 视图层的一次简单包装。
+- `公开承诺`：
+  - 必须在 `SPEC` 中出现
+  - 必须至少有单测或 Storybook 场景覆盖
+  - 破坏性修改必须走 docs-first
+- `内部已有，未承诺`：
+  - 允许保留字段、预留类型或局部实验实现
+  - 不得在 README、SPEC、对外说明中写成“已支持”
+  - 若要升级为公开能力，必须先更新 `SPEC` 和本矩阵
+- `未承诺`：
+  - 不允许通过“近似能力”对外替代宣称
+  - 不纳入当前 phase 完成标准
 
 ---
 
@@ -155,40 +167,32 @@ PLAN4 相对 PLAN3 的主要修订：
 
 ### 5.1 `CalendarOptions.scheduler`
 
-#### 当前基线
-
-`options.type.ts:85-90` 当前 `SchedulerOptions` 只包含：
+#### 当前公开基线（已进入 `SPEC`）
 
 - `resources?: ResourceInfo[]`
 - `hourStart?: number`
 - `hourEnd?: number`
-- `blockedTimes?: BlockedTimeRange[]`（Phase 1A.1 迁移为 `invalid`）
-
-#### Phase 1A.1 新增
-
-- `invalid?: InvalidRange[]`（取代 `blockedTimes`，运行时双名期）
+- `invalid?: InvalidRange[]`
+- `blockedTimes?: BlockedTimeRange[]`（兼容别名）
 - `colors?: ColoredRange[]`
-- `showAllDay?: boolean`
-- `hourDivision?: 2 | 4`
-- `cellWidth?: number | 'auto'`
-- `range?: SchedulerRangeOption`
-
-#### Phase 1B 新增
-
-- `eventOverlap?: boolean`
 - `dragToCreate?: boolean`
 - `dragToMove?: boolean`
 - `dragToResize?: boolean`
 - `dragInTime?: boolean`
-
-#### Phase 2 新增
-
-- `dragBetweenResources?: boolean`
+- `eventOverlap?: boolean`
 - `visibleResourceIds?: string[]`
-- `resourceGrouping?: ResourceGroupingOption`
+- `dragBetweenResources?: boolean`
 
-#### 不进入本轮
+#### 内部已有，未公开承诺
 
+- 无。当前 `SchedulerOptions` 已落入实现的字段均已同步进 `SPEC`。
+
+#### 继续后置
+
+- `showAllDay`
+- `cellWidth`
+- `range`
+- `resourceGrouping`
 - `connections` / `eventList` / `maxEventStack` / 打印 / 虚拟化 / 按滚动加载
 
 ### 5.2 `EventObject`
@@ -275,18 +279,19 @@ PLAN4 相对 PLAN3 的主要修订：
 
 - `onEventClick` / `onPageChange` / `onRangeSelect` / `onEventCreate` / `onEventUpdate` / `onValidateEventChange`
 
-#### Phase 1A.3 新增
+#### 当前公开基线
 
 - `onCellClick`
 - `onEventHover`
-
-#### Phase 1B 新增
-
 - `onEventCreateFailed`
 - `onEventUpdateFailed`
 - `onEventDelete`
 
-#### Phase 2 新增
+#### 内部已有，未公开承诺
+
+- 无。当前 callbacks 暴露项与 `SPEC` 已对齐。
+
+#### 继续后置
 
 - `onResourceVisibilityChange`
 
