@@ -14,6 +14,7 @@
 
 ## 入口文档
 
+- [AGENTS.md](./AGENTS.md) — 智能体与维护者统一入口
 - [docs/README.md](./docs/README.md) — 开发文档总索引
 - [docs/WORKFLOW.md](./docs/WORKFLOW.md) — 标准开发流程
 - [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) — 架构与模块边界

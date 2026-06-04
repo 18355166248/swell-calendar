@@ -14,6 +14,7 @@
 - 将已沉淀的旧任务文档迁入归档目录
 - 让 `docs/README.md`、`docs/AGENTS.md` 明确文档分层与阅读顺序
 - 将 `agent-plan` 子文档降级为执行附件，不再与 `SPEC/plan` 并列争夺事实源
+- 统一智能体入口，让 `AGENTS.md` 成为唯一维护入口，`CLAUDE.md` / `CLAUD.md` 只做转发
 
 ## 非目标
 
@@ -69,6 +70,7 @@
   - 更新 `docs/README.md`，按“一级真源 / 当前活跃工件 / 模板与归档”重组入口
   - 更新 `docs/AGENTS.md`、`docs/WORKFLOW.md`，明确活跃任务与归档任务边界
   - 为 `docs/agent-plan/*.md` 补充“执行附件”定位，避免与 `plan.md` / `SPEC.md` 并列争夺事实源
+  - 重写根 `AGENTS.md` 为唯一维护入口，新增 `CLAUDE.md` 与 `CLAUD.md` 轻量转发说明
 - 与原计划的偏差：
   - 未修改 `check-docs` 规则；本轮只调整信息架构，不改门禁机制
 - 验证结果：

@@ -1,113 +1,108 @@
-# swell-calendar — 智能体导航入口
+# swell-calendar — Canonical Agent Entry
 
-> React 日历组件库，支持日/周/月视图，提供拖拽、时间选择、主题等功能。
+> 本文件是 Codex / Claude 进入仓库时的唯一维护入口。其他入口文件只做转发，不再维护独立规则。
 
-## 仓库结构
+## 先读什么
 
-| 目录 | 内容 |
-|------|------|
-| `docs/` | 开发约束、任务文档、ADR、完成标准 |
-| `packages/calendar/` | 核心组件库（主体） |
-| `packages/eslint-config/` | 共享 ESLint 配置 |
-| `packages/typescript-config/` | 共享 tsconfig |
-| `apps/docs/` | Storybook 文档（存放于 packages/calendar/src/stories/） |
-| `scripts/` | 工程脚本（架构检查、node 版本切换） |
-| `.githooks/` | 本地 Git hooks |
-| `.github/workflows/` | CI 流水线 |
+1. 本文件
+2. [docs/README.md](./docs/README.md)
+3. 按任务类型展开一级真源：
+   - 功能 / API / 能力边界： [packages/calendar/SPEC.md](./packages/calendar/SPEC.md)
+   - 架构 / 分层 / 落点： [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md)
+   - 开发流程 / 文档门禁： [docs/WORKFLOW.md](./docs/WORKFLOW.md)
+   - 迁移兼容： [docs/MIGRATION.md](./docs/MIGRATION.md)
+   - scheduler 路线图与 scope： [docs/agent-plan/plan.md](./docs/agent-plan/plan.md)
 
-## 分层架构（依赖单向向前）
+## 一级真源
 
-```
-[0] types/          类型定义（最基础，不导入其他层）
-[1] constants/      常量（可导入 types）
-[2] utils/          通用工具（可导入 0-1 层）
-[3] time/           时间处理（可导入 0-2 层）
-[4] model/          数据模型（可导入 0-3 层）
-[5] store/ slices/ contexts/   状态管理（可导入 0-4 层）
-[6] controller/     业务控制（可导入 0-5 层）
-[7] helpers/        视图辅助（可导入 0-6 层）
-[8] hooks/          React Hooks（可导入 0-7 层）
-[9] Template/       模板渲染（可导入 0-8 层）
-[10] components/    UI 组件（可导入所有层）
-```
+- `packages/calendar/SPEC.md`
+  - 唯一产品能力与公开 API 真源
+- `docs/ARCHITECTURE.md`
+  - 唯一结构与分层真源
+- `docs/WORKFLOW.md`
+  - 唯一 docs-first 流程真源
+- `docs/MIGRATION.md`
+  - 唯一兼容迁移真源
+- `docs/agent-plan/plan.md`
+  - 唯一 scheduler 路线图与 scope matrix 真源
 
-**违反分层方向 = lint 错误，CI 阻止合并。**
-详见 `scripts/check-arch.mjs` 和 `packages/calendar/AGENTS.md`。
+规则：
 
-## 核心入口
+- 如果执行附件、任务单、stories 或聊天上下文与一级真源冲突，以一级真源为准
+- 需要修改事实边界时，先改一级真源，再改执行附件
 
-- docs 入口：`docs/README.md`
-- 开发流程：`docs/WORKFLOW.md`
-- 架构规则：`docs/ARCHITECTURE.md`
-- 根 API：`packages/calendar/src/components/Calendar.tsx`
-- 日视图：`packages/calendar/src/components/view/Day.tsx`
-- 周视图：`packages/calendar/src/components/view/Week.tsx`
-- 月视图：`packages/calendar/src/components/view/Month.tsx`（开发中）
+## 执行附件与归档
 
-## 开发准入规则
+- `docs/agent-plan/01-05-*.md`
+- `docs/agent-plan/implementation-steps.md`
+  - 只回答“如何分步执行”，不再承担事实源职责
+- `docs/tasks/`
+  - 当前活跃任务
+- `docs/archive/tasks/`
+  - 已沉淀历史任务，仅供追溯
+
+## 开发准入
 
 **先文档，后代码。**
 
 - 新功能 / 重构 / API 变更前，先在 `docs/tasks/` 建任务文档
 - 规格变化先改 `packages/calendar/SPEC.md`
 - 架构变化先改 `docs/ARCHITECTURE.md`
+- 路线图 / scope 变化先改 `docs/agent-plan/plan.md`
 - 没有 docs 变更的实现提交，会被 `scripts/check-docs.mjs` 和 pre-commit 拦截
+
+## 分层架构
+
+```text
+[0] types
+[1] constants
+[2] utils
+[3] time
+[4] model
+[5] store / slices / contexts
+[6] controller
+[7] helpers
+[8] hooks
+[9] Template
+[10] components
+```
+
+硬规则：
+
+- 依赖只能单向向前
+- 不在 `components/` 写业务逻辑，放 `controller/`
+- 不在 `types/constants/utils/time/model` 导入 React
+- 不用 `console.log`
+
+详见 [packages/calendar/AGENTS.md](./packages/calendar/AGENTS.md) 和 `scripts/check-arch.mjs`。
+
+## 常用入口
+
+- 根组件 API： [packages/calendar/src/components/Calendar.tsx](./packages/calendar/src/components/Calendar.tsx)
+- 日视图： [packages/calendar/src/components/view/Day.tsx](./packages/calendar/src/components/view/Day.tsx)
+- 周视图： [packages/calendar/src/components/view/Week.tsx](./packages/calendar/src/components/view/Week.tsx)
+- 月视图： [packages/calendar/src/components/view/Month.tsx](./packages/calendar/src/components/view/Month.tsx)
+- scheduler： [packages/calendar/src/components/view/Scheduler.tsx](./packages/calendar/src/components/view/Scheduler.tsx)
+- timeline： [packages/calendar/src/components/view/Timeline.tsx](./packages/calendar/src/components/view/Timeline.tsx)
 
 ## 机械化检查
 
 ```bash
-# docs-first 检查
 node scripts/check-docs.mjs
-
-# 架构分层约束
 node scripts/check-arch.mjs
-
-# Lint（含架构约束规则）
-pnpm lint
-
-# 类型检查
 pnpm --filter swell-calendar exec tsc --noEmit
-
-# Calendar 测试
 pnpm --filter swell-calendar test
-
-# 所有检查（pre-commit 跑这个）
 pnpm check
 ```
 
-启用本地 hook：`git config core.hooksPath .githooks`
+说明：
 
-安装依赖后，根 `prepare` 脚本会自动执行一次上述配置。
+- `pnpm lint` 全量仍可能受历史 warnings 影响
+- 提交门禁优先保证新增改动干净
+- `prepare` 会自动配置 `.githooks`
 
-当前 pre-commit 会在每次 `git commit` 时执行：
+## 对智能体的要求
 
-- `node scripts/check-docs.mjs --staged`
-- `node scripts/check-arch.mjs`
-- 对 staged 的 `packages/calendar` 代码文件执行 `eslint --max-warnings 0`
-- 对 staged 的可格式化文件执行 `prettier --check`
-- `pnpm --filter swell-calendar exec tsc --noEmit`
-- 执行 `pnpm --filter swell-calendar test`
-
-当前 pre-push 会在每次 `git push` 时执行：
-
-- `pnpm --filter swell-calendar exec tsc --noEmit`
-- `pnpm --filter swell-calendar test`
-
-说明：全量 `pnpm lint` 仍会受到仓库历史 warnings 影响，因此提交门禁先采用 staged-file lint，优先保证新增改动干净。
-
-CI 兜底：`.github/workflows/ci.yml` 在每次 push/PR 时跑全量检查。
-
-## 不要做的事
-
-- 不要绕过分层约束（反向导入）
-- 不要在组件里写业务逻辑（放 controller/）
-- 不要用 `console.log`（lint 报错）
-- 不要在底层（types/constants/utils）导入 React
-
-## 下一步
-
-- 了解开发流程：`docs/WORKFLOW.md`
-- 了解完成标准：`docs/DEFINITION-OF-DONE.md`
-- 了解组件库设计：`packages/calendar/SPEC.md`
-- 了解详细架构：`packages/calendar/AGENTS.md`
-- 了解状态管理：`packages/calendar/src/contexts/`
+- 不要在多个入口文件里重复维护规则
+- 修改协作规则时，优先更新本文件，再按需更新引用它的入口
+- 如果为 Claude / Codex / 其他助手新增入口文件，只写“先读 AGENTS.md”的转发说明，不复制规则正文
