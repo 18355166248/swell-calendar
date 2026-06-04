@@ -46,6 +46,7 @@
 - [x] 更新 `docs/WORKFLOW.md`
 - [x] 更新 `docs/AGENTS.md`
 - [x] 更新 `docs/agent-plan/*.md`
+- [x] 统一 `AGENTS.md` / `DEFINITION-OF-DONE.md` / `WORKFLOW.md` 的入口职责
 
 ## 验证计划
 
@@ -77,3 +78,4 @@
   - `node scripts/check-docs.mjs` 通过
 - 剩余问题：
   - `docs/agent-plan/plan.md` 仍保留对 `2026-05-06-scheduler-v2-foundation` 的历史衔接说明，但这属于历史上下文，不再作为活跃任务入口
+  - `docs/DEFINITION-OF-DONE.md` 与 `docs/WORKFLOW.md` 已降为详细版附件，日常入口收敛到根 `AGENTS.md`

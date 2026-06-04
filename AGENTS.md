@@ -51,6 +51,46 @@
 - 路线图 / scope 变化先改 `docs/agent-plan/plan.md`
 - 没有 docs 变更的实现提交，会被 `scripts/check-docs.mjs` 和 pre-commit 拦截
 
+## 最小执行流程
+
+日常协作默认按下面顺序推进：
+
+1. 在 `docs/tasks/` 建或更新当前任务文档，写清目标、范围、验证与风险
+2. 按变更类型更新一级真源：
+   - 能力 / API / 行为边界：`packages/calendar/SPEC.md`
+   - 架构 / 分层 / 职责：`docs/ARCHITECTURE.md`
+   - 流程 / 门禁 / 工程规则：`docs/WORKFLOW.md`
+   - 路线图 / scope：`docs/agent-plan/plan.md`
+3. 再落实现，保持分层单向依赖
+4. 完成后回写任务文档，记录最终方案、验证结果和剩余风险
+
+复杂能力演进额外要求：
+
+- 如果任务涉及多阶段能力对齐、公开 API 收敛或较大产品范围控制，先补 feature matrix 或等价能力矩阵，再进入实现
+
+详版流程见 [docs/WORKFLOW.md](./docs/WORKFLOW.md)。
+
+## 最小完成标准
+
+一个任务只有在下面几类条件同时满足时，才算完成：
+
+- 文档：
+  - 存在对应 `docs/tasks/*.md`
+  - 任务文档已写清目标、范围、方案、验证、风险
+  - API / 行为变化已同步 `packages/calendar/SPEC.md`
+  - 架构 / 流程变化已同步 `docs/ARCHITECTURE.md` 或 `docs/WORKFLOW.md`
+- 实现：
+  - 符合分层约束
+  - 业务逻辑没有泄漏到组件层
+  - 没有新增 `console.log`
+- 验证：
+  - 至少通过 `check-docs` 与 `check-arch`
+  - 受影响范围需要时，通过 type-check 与 tests
+- 可交接：
+  - 后续维护者只读仓库内文档，就能理解目标、边界与剩余风险
+
+详版完成标准见 [docs/DEFINITION-OF-DONE.md](./docs/DEFINITION-OF-DONE.md)。
+
 ## 分层架构
 
 ```text
