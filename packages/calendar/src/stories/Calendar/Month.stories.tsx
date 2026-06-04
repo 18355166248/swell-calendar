@@ -59,7 +59,7 @@ export const Basic: Story = {
       events={args.events}
       options={{
         month: {
-          startDayOfWeek: Day.SUN, // 设置周开始日为周一
+          startDayOfWeek: Day.SUN, // 设置周开始日为周日
           workweek: false, // 显示完整周（包括周末）
         },
       }}
@@ -69,5 +69,30 @@ export const Basic: Story = {
   ),
   args: {
     events: createTimeGridEvents(), // 使用生成的随机事件数据
+  },
+};
+
+/**
+ * Workweek — 工作日月视图
+ *
+ * 验证 month 在 `workweek=true` 时只显示周一到周五列，
+ * 且表头顺序与 `startDayOfWeek` 保持一致。
+ */
+export const Workweek: Story = {
+  render: (args) => (
+    <Wrapper
+      events={args.events}
+      options={{
+        month: {
+          startDayOfWeek: Day.MON,
+          workweek: true,
+        },
+      }}
+    >
+      <Month />
+    </Wrapper>
+  ),
+  args: {
+    events: createTimeGridEvents(),
   },
 };

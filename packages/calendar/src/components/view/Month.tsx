@@ -1,9 +1,9 @@
 import { useMemo } from 'react';
 
 import { useCalendarStore } from '@/contexts/calendarStore';
-import { getMonthEventRows, getMonthWeeks } from '@/controller/month.controller';
-import { getRowStyleInfo, isWeekend } from '@/time/datetime';
-import { MonthOptions, Options } from '@/types/options.type';
+import { getMonthDayNames, getMonthEventRows, getMonthWeeks } from '@/controller/month.controller';
+import { getRowStyleInfo } from '@/time/datetime';
+import { MonthOptions } from '@/types/options.type';
 
 import GridHeader from '../dayGridCommon/GridHeader';
 import Layout from '../Layout';
@@ -24,16 +24,6 @@ function useMonthViewState() {
     }),
     [options, renderDate]
   );
-}
-
-function getMonthDayNames(options: Options) {
-  const { dayNames, startDayOfWeek, workweek } = options.month as Required<MonthOptions>;
-  const dayIndices = [...Array(7)].map((_, i) => (startDayOfWeek + i) % 7);
-  const monthDayNames = dayIndices.map((name, index) => ({
-    day: index,
-    label: dayNames[index],
-  }));
-  return monthDayNames.filter((v) => (workweek ? !isWeekend(v.day) : true));
 }
 
 export function Month() {
@@ -76,6 +66,7 @@ export function Month() {
           eventRows={eventRows}
           renderDate={renderDate}
           visibleEventCount={VISIBLE_EVENT_COUNT}
+          totalCols={dayNames.length}
         />
       </Panel>
     </Layout>

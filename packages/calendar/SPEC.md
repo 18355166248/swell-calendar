@@ -36,7 +36,7 @@ swell-calendar 是一个**可嵌入的 React 日历组件库**，面向需要在
 | ------------------- | ----------- | --------------------------------------------------------------------------- |
 | 日视图（Day）       | ✅ 完成     | 单日时间网格，24 小时展示                                                   |
 | 周视图（Week）      | ✅ 完成     | 7 天时间网格，支持 workweek 模式                                            |
-| 月视图（Month）     | 🟡 事件可用 | 月历格子 + 事件卡片，布局已接入 MonthGrid，workweek 待完善                  |
+| 月视图（Month）     | 🟡 事件可用 | 月历格子 + 事件卡片，支持 `startDayOfWeek` 与 `workweek`，交互能力仍未扩展 |
 | 时间线（Timeline）  | 🟡 事件可用 | 资源行 + 横向时间轴，事件布局已修复，支持 colors/invalid 区段，Toolbar 可见 |
 | 调度器（Scheduler） | 🟡 核心基线可用 | 垂直时间轴 + 资源列的 time-grid 视图，已具备桌面端基础闭环，Phase 3 高级能力未完成 |
 
@@ -60,7 +60,7 @@ swell-calendar 是一个**可嵌入的 React 日历组件库**，面向需要在
 | failed callbacks               | ✅   | `onEventCreateFailed` / `onEventUpdateFailed` 已接入          |
 | 资源显隐                       | ✅   | `visibleResourceIds` 可控制 scheduler/timeline 可见资源       |
 | 资源分组 / 折叠                | ✅   | `children` / `collapsed` 支持树形资源与折叠显示               |
-| shared events                  | ✅   | `resourceIds` 可让事件出现在多个资源列                        |
+| shared events                  | ✅   | `resourceIds` 可让事件出现在多个资源列，资源级策略按命中的所有资源共同判定 |
 | 资源级交互限制                 | ✅   | `eventDragInTime` / `eventResize` / `eventOverlap` 已接入     |
 | 跨资源拖动 gate                | ✅   | scheduler 全局 / 资源级 / per-event `dragBetweenResources` 已接入 |
 | recurrence / timezone          | 🟡   | 字段已有，行为尚未接入                                        |
@@ -94,6 +94,15 @@ swell-calendar 是一个**可嵌入的 React 日历组件库**，面向需要在
 - `connections`
 - `eventList`
 - 虚拟化、打印、a11y 强化
+
+shared events 的资源策略固定为：
+
+- 一个事件通过 `resourceIds` 命中多个资源列时，这些资源都参与资源级策略判定
+- `eventDragInTime` / `eventResize` / `eventOverlap` / `eventDragBetweenResources` 采用保守语义：
+  - 任一命中资源显式 `false`：拒绝
+  - 否则任一命中资源显式 `true`：允许
+  - 否则回退到全局策略或现有默认语义
+- `dragBetweenResources` 同时检查 source 资源集合与 target 资源
 
 ### 配置选项（`CalendarOptions`）
 

@@ -66,6 +66,34 @@ function hasTimeChanged(event: EventObject, previousEvent?: EventObjectWithDefau
   );
 }
 
+function getMatchedResources(options: Options, event: EventObject) {
+  if (!options.scheduler?.resources) {
+    return [];
+  }
+
+  return getResourceIds(event)
+    .map((resourceId) => findResource(options.scheduler!.resources!, resourceId))
+    .filter((resource): resource is NonNullable<typeof resource> => Boolean(resource));
+}
+
+function resolveBooleanPolicy(values: Array<boolean | undefined>): boolean | undefined {
+  /**
+   * shared events 命中多个资源时，资源策略必须按最严语义收口：
+   * - 任一资源显式 false 立即拒绝
+   * - 没有 false 时，只要存在 true 就允许
+   * - 都未声明时，回退到上层全局策略
+   */
+  if (values.some((value) => value === false)) {
+    return false;
+  }
+
+  if (values.some((value) => value === true)) {
+    return true;
+  }
+
+  return undefined;
+}
+
 function getDisabledSchedulerInteractionPolicySource(
   options: Options,
   action: CalendarEventChangeAction,
@@ -132,30 +160,20 @@ function getDisabledSchedulerResourcePolicySource(
   event: EventObject,
   previousEvent?: EventObjectWithDefaultValues
 ): CalendarPolicySource | null {
-  const resources = options.scheduler?.resources;
-  if (!resources || resources.length === 0) {
-    return null;
-  }
-
-  const resourceId = event.resourceId ?? event.resourceIds?.[0];
-  if (!resourceId) {
-    return null;
-  }
-
-  const resource = findResource(resources, resourceId);
-  if (!resource) {
+  const resources = getMatchedResources(options, event);
+  if (resources.length === 0) {
     return null;
   }
 
   if (
-    resource.eventDragInTime === false &&
+    resources.some((resource) => resource.eventDragInTime === false) &&
     (action === 'move' || action === 'resize') &&
     hasTimeChanged(event, previousEvent)
   ) {
     return 'resource';
   }
 
-  if (action === 'resize' && resource.eventResize === false) {
+  if (action === 'resize' && resources.some((resource) => resource.eventResize === false)) {
     return 'resource';
   }
 
@@ -197,17 +215,24 @@ function getDisabledDragBetweenResourcesPolicySource(
     return 'event';
   }
 
-  const resourceId = policyEvent.resourceId ?? policyEvent.resourceIds?.[0];
-  if (resourceId && options.scheduler?.resources) {
-    const resource = findResource(options.scheduler.resources, resourceId);
+  const resources = getMatchedResources(options, policyEvent);
+  const targetResource =
+    targetColumn?.resourceId && options.scheduler?.resources
+      ? findResource(options.scheduler.resources, targetColumn.resourceId)
+      : null;
+  const resourcePolicies = [
+    ...resources.map((resource) => resource.eventDragBetweenResources),
+    targetResource?.eventDragBetweenResources,
+  ];
 
-    if (resource?.eventDragBetweenResources === true) {
-      return null;
-    }
+  const resourcePolicy = resolveBooleanPolicy(resourcePolicies);
 
-    if (resource?.eventDragBetweenResources === false) {
-      return 'resource';
-    }
+  if (resourcePolicy === false) {
+    return 'resource';
+  }
+
+  if (resourcePolicy === true) {
+    return null;
   }
 
   if (options.scheduler?.dragBetweenResources === true) {
@@ -234,13 +259,8 @@ function dispatchEventChangeFailed(
 }
 
 function getResourceEventOverlap(options: Options, event: EventObject): boolean | undefined {
-  const resourceId = event.resourceId ?? event.resourceIds?.[0];
-  if (!resourceId || !options.scheduler?.resources) {
-    return undefined;
-  }
-
-  const resource = findResource(options.scheduler.resources, resourceId);
-  return resource?.eventOverlap;
+  const resources = getMatchedResources(options, event);
+  return resolveBooleanPolicy(resources.map((resource) => resource.eventOverlap));
 }
 
 function isPairOverlapDenied(options: Options, event: EventObject, existingEvent: EventObject) {

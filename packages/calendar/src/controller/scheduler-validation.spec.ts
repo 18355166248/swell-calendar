@@ -331,4 +331,75 @@ describe('scheduler validation', () => {
 
     expect(accepted).toBe(true);
   });
+
+  it('shared event 命中任一资源 eventDragInTime=false 时应拒绝时间变化', () => {
+    const previousEvent = createPreviousEvent({
+      resourceId: 'room-a',
+      resourceIds: ['room-a', 'room-b'],
+    });
+
+    const accepted = shouldAcceptEventChange(
+      {
+        scheduler: {
+          resources: [
+            { id: 'room-a', name: 'A' },
+            { id: 'room-b', name: 'B', eventDragInTime: false },
+          ],
+        },
+      },
+      null,
+      {
+        action: 'move',
+        view: 'scheduler',
+        event: {
+          ...previousEvent,
+          start: new DayjsTZDate('2026-05-07T11:00:00'),
+          end: new DayjsTZDate('2026-05-07T11:30:00'),
+        },
+        previousEvent,
+      }
+    );
+
+    expect(accepted).toBe(false);
+  });
+
+  it('shared event 跨资源拖动时若任一 source 或 target 资源 eventDragBetweenResources=false 应拒绝', () => {
+    const previousEvent = createPreviousEvent({
+      resourceId: 'room-a',
+      resourceIds: ['room-a', 'room-b'],
+      dragBetweenResources: undefined,
+    });
+
+    const accepted = shouldAcceptEventChange(
+      {
+        scheduler: {
+          resources: [
+            { id: 'room-a', name: 'A' },
+            { id: 'room-b', name: 'B', eventDragBetweenResources: false },
+            { id: 'room-c', name: 'C' },
+          ],
+        },
+      },
+      null,
+      {
+        action: 'move',
+        view: 'scheduler',
+        event: {
+          ...previousEvent,
+          resourceId: 'room-c',
+          resourceIds: ['room-c'],
+        },
+        previousEvent,
+        targetColumn: {
+          date: new DayjsTZDate('2026-05-07T00:00:00'),
+          left: 0,
+          width: 100,
+          resourceId: 'room-c',
+          resourceName: 'C',
+        },
+      }
+    );
+
+    expect(accepted).toBe(false);
+  });
 });

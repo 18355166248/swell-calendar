@@ -218,4 +218,71 @@ describe('scheduler overlap validation', () => {
 
     expect(accepted).toBe(false);
   });
+
+  it('shared event 命中任一资源 eventOverlap=false 时应拒绝重叠', () => {
+    const accepted = shouldAcceptEventChange(
+      {
+        scheduler: {
+          resources: [
+            { id: 'room-a', name: 'A' },
+            { id: 'room-b', name: 'B', eventOverlap: false },
+          ],
+        },
+      },
+      null,
+      {
+        action: 'create',
+        view: 'scheduler',
+        event: {
+          start: new DayjsTZDate('2026-05-07T10:15:00'),
+          end: new DayjsTZDate('2026-05-07T10:45:00'),
+          resourceId: 'room-a',
+          resourceIds: ['room-a', 'room-b'],
+        },
+        existingEvents: [
+          {
+            start: new DayjsTZDate('2026-05-07T10:00:00'),
+            end: new DayjsTZDate('2026-05-07T10:30:00'),
+            resourceId: 'room-a',
+          },
+        ],
+      }
+    );
+
+    expect(accepted).toBe(false);
+  });
+
+  it('shared event 仅在任一资源 eventOverlap=true 且无 false 时可覆盖全局 eventOverlap=false', () => {
+    const accepted = shouldAcceptEventChange(
+      {
+        scheduler: {
+          eventOverlap: false,
+          resources: [
+            { id: 'room-a', name: 'A' },
+            { id: 'room-b', name: 'B', eventOverlap: true },
+          ],
+        },
+      },
+      null,
+      {
+        action: 'create',
+        view: 'scheduler',
+        event: {
+          start: new DayjsTZDate('2026-05-07T10:15:00'),
+          end: new DayjsTZDate('2026-05-07T10:45:00'),
+          resourceId: 'room-a',
+          resourceIds: ['room-a', 'room-b'],
+        },
+        existingEvents: [
+          {
+            start: new DayjsTZDate('2026-05-07T10:00:00'),
+            end: new DayjsTZDate('2026-05-07T10:30:00'),
+            resourceId: 'room-a',
+          },
+        ],
+      }
+    );
+
+    expect(accepted).toBe(true);
+  });
 });

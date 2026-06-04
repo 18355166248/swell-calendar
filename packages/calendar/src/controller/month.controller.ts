@@ -1,8 +1,8 @@
 import { EventUIModel } from '@/model/eventUIModel';
-import { toEndOfDay, toStartOfDay } from '@/time/datetime';
+import { isWeekend, toEndOfDay, toStartOfDay } from '@/time/datetime';
 import DayjsTZDate from '@/time/dayjs-tzdate';
 import { CalendarData } from '@/types/calendar.type';
-import { MonthOptions } from '@/types/options.type';
+import { MonthOptions, Options } from '@/types/options.type';
 
 import { convertToUIModel, getEventInDateRangeFilter } from './core.controller';
 
@@ -18,11 +18,23 @@ export interface MonthWeekEventData {
   overflowByCol: number[];
 }
 
+export function getMonthDayNames(options: Options) {
+  const { dayNames, startDayOfWeek, workweek } = options.month as Required<MonthOptions>;
+  const dayIndices = [...Array(7)].map((_, i) => (startDayOfWeek + i) % 7);
+
+  return dayIndices
+    .map((dayIndex) => ({
+      day: dayIndex,
+      label: dayNames[dayIndex],
+    }))
+    .filter((value) => (workweek ? !isWeekend(value.day) : true));
+}
+
 export function getMonthWeeks(
   renderDate: DayjsTZDate,
   options: Required<MonthOptions>
 ): DayjsTZDate[][] {
-  const { startDayOfWeek, isAlways6Weeks } = options;
+  const { startDayOfWeek, isAlways6Weeks, workweek } = options;
   const monthStart = new DayjsTZDate(renderDate.dayjs.startOf('month').toDate());
   const monthEnd = new DayjsTZDate(renderDate.dayjs.endOf('month').toDate());
 
@@ -36,12 +48,15 @@ export function getMonthWeeks(
   while (true) {
     const week: DayjsTZDate[] = [];
     for (let i = 0; i < 7; i++) {
-      week.push(gridStart.addDate(i));
+      const date = gridStart.addDate(i);
+      if (!workweek || !isWeekend(date.getDay())) {
+        week.push(date);
+      }
     }
     weeks.push(week);
     gridStart = gridStart.addDate(7);
 
-    const weekEnd = week[6];
+    const weekEnd = week[week.length - 1];
     if (weekEnd.getTime() >= monthEnd.getTime()) {
       break;
     }
@@ -49,11 +64,15 @@ export function getMonthWeeks(
 
   if (isAlways6Weeks && weeks.length < 6) {
     while (weeks.length < 6) {
-      const lastWeekEnd = weeks[weeks.length - 1][6];
+      const lastWeek = weeks[weeks.length - 1];
+      const lastWeekEnd = lastWeek[lastWeek.length - 1];
       const nextWeekStart = lastWeekEnd.addDate(1);
       const week: DayjsTZDate[] = [];
       for (let i = 0; i < 7; i++) {
-        week.push(nextWeekStart.addDate(i));
+        const date = nextWeekStart.addDate(i);
+        if (!workweek || !isWeekend(date.getDay())) {
+          week.push(date);
+        }
       }
       weeks.push(week);
     }
@@ -83,7 +102,7 @@ export function getMonthEventRows(
       .sort((a, b) => a.getStarts().getTime() - b.getStarts().getTime());
 
     const slotEndCol: number[] = new Array(visibleEventCount).fill(0);
-    const overflowByCol: number[] = new Array(7).fill(0);
+    const overflowByCol: number[] = new Array(week.length).fill(0);
     const rows: MonthEventRowInfo[] = [];
 
     weekModels.forEach((uiModel) => {
@@ -105,7 +124,7 @@ export function getMonthEventRows(
       );
 
       const sc = startCol === -1 ? 0 : startCol;
-      const ec = endCol === -1 ? 6 : endCol;
+      const ec = endCol === -1 ? week.length - 1 : endCol;
       const colspan = ec - sc + 1;
 
       let slotIndex = -1;
