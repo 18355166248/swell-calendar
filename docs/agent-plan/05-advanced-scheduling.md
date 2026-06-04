@@ -8,12 +8,12 @@
 
 ## 当前状态
 
-- 总状态：`[ ] 未开始`
-- 说明：`recurrence` / `timezone` / external DnD / 跨实例拖动仍属于明确后置范围，当前仓库没有把字段暴露视为本 phase 已开始
+- 总状态：`[-] 进行中`
+- 说明：Step 30 已完成；`RecurringException` 接口与 `recurringExceptions` / `recurringExceptionRule` 字段已进入类型层与 EventModel，纯类型补全，零运行时改动
 
 ## 步骤清单
 
-- [ ] Step 30：补 recurrence 相关类型
+- [x] Step 30：补 recurrence 相关类型
 - [ ] Step 31：实现 recurrence 视口内展开
 - [ ] Step 32：接入 recurring exceptions
 - [ ] Step 33：接入 timezone
@@ -32,16 +32,28 @@
 
 内容：
 
-- `recurringException`
-- `recurringExceptionRule`
+- `RecurringException` 接口（新增）
+- `EventObject.recurringExceptions` 字段（新增）
+- `EventObject.recurringExceptionRule` 字段（新增）
+- `EventModel`、`getColors()`、`toEventObject()` 同步接入
+- `EventObjectWithDefaultValues` MarkOptional 同步
 
 最小验证：
 
-- `pnpm -r exec tsc --noEmit`
+- `pnpm --filter swell-calendar exec tsc --noEmit`
+- `pnpm lint`
+- `pnpm --filter swell-calendar test`
+- `node scripts/check-docs.mjs`
 
 通过标准：
 
 - 旧事件模型不受影响
+- 所有现有 Storybook 仍绿
+- 全部门禁通过
+
+实施记录：
+
+- 2026-06-04：类型层落地，`tsc` / `lint` / 154 tests 全部通过
 
 ## Step 31：实现 recurrence 视口内展开
 

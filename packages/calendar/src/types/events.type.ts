@@ -30,13 +30,35 @@ export type KeyboardEventListener = (e: KeyboardEvent) => void;
 export type DateType = Date | string | number | DayjsTZDate;
 
 export interface RecurrenceRule {
+  // 频率：按天 / 周 / 月 / 年
   frequency: 'daily' | 'weekly' | 'monthly' | 'yearly';
+  // 间隔，默认 1（例如 interval=2 且 frequency='weekly' 表示每 2 周）
   interval?: number;
+  // 重复次数上限（与 until 互斥，引擎优先取更早终止的条件）
   count?: number;
+  // 重复截止日期（与 count 互斥）
   until?: DateType;
+  // 按周几重复，0=周日 6=周六，仅 weekly 时有效
   byWeekDays?: number[];
+  // 按月内日期重复，仅 monthly 时有效
   byMonthDays?: number[];
+  // 跳过（或替换）的实例日期列表
   exceptions?: DateType[];
+}
+
+/**
+ * 重复事件的单次异常覆盖
+ *
+ * 允许宿主对某个特定发生日期替换该实例的事件属性
+ * （如时间、标题、背景色等），或标记为跳过。
+ */
+export interface RecurringException {
+  // 要覆盖/跳过的发生日期
+  date: DateType;
+  // true 表示该次发生被跳过（不渲染）
+  skipped?: boolean;
+  // 替换该次发生的属性（与 skipped 互斥，skipped 时不生效）
+  overrides?: Partial<EventObject>;
 }
 
 /**
@@ -65,6 +87,23 @@ export interface EventObject {
   raw?: any; // 原始数据
   timezone?: string;
   recurrence?: RecurrenceRule;
+  /**
+   * 重复事件异常列表
+   *
+   * 指定需要跳过或覆盖属性（如时间、标题）的具体发生日期。
+   * 仅当 `recurrence` 存在时生效；每个异常按日期匹配，
+   * 日期比较使用日期部分（忽略时间）。
+   */
+  recurringExceptions?: RecurringException[];
+  /**
+   * 重复异常规则
+   *
+   * 提供一个与主 recurrence 同结构的规则来派生跳过/替换模式，
+   * 例如 "每周一的所有发生都跳过"。
+   * 当同时存在 `recurringExceptions` 和 `recurringExceptionRule` 时，
+   * 引擎先展开规则，再叠加逐日期异常（逐日期异常优先级更高）。
+   */
+  recurringExceptionRule?: RecurrenceRule;
   /**
    * 文本颜色
    * 事件元素中文本的颜色值
@@ -115,6 +154,8 @@ export type EventObjectWithDefaultValues = MarkOptional<
   | 'resourceIds'
   | 'timezone'
   | 'recurrence'
+  | 'recurringExceptions'
+  | 'recurringExceptionRule'
   | 'order'
   | 'dragBetweenResources'
   | 'cssClass'

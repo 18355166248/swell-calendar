@@ -53,6 +53,8 @@ export class EventModel implements EventObject {
   resourceIds?: string[];
   timezone?: string;
   recurrence?: EventObject['recurrence'];
+  recurringExceptions?: EventObject['recurringExceptions'];
+  recurringExceptionRule?: EventObject['recurringExceptionRule'];
   cssClass?: string;
   meta?: Record<string, unknown>;
 
@@ -84,6 +86,8 @@ export class EventModel implements EventObject {
     resourceIds,
     timezone,
     recurrence,
+    recurringExceptions,
+    recurringExceptionRule,
     cssClass,
     meta,
   }: EventObject) {
@@ -108,6 +112,8 @@ export class EventModel implements EventObject {
     this.resourceIds = resourceIds;
     this.timezone = timezone;
     this.recurrence = recurrence;
+    this.recurringExceptions = recurringExceptions;
+    this.recurringExceptionRule = recurringExceptionRule;
     this.cssClass = cssClass;
     this.meta = meta;
 
@@ -249,6 +255,8 @@ export class EventModel implements EventObject {
       order: this.order,
       timezone: this.timezone,
       recurrence: this.recurrence,
+      recurringExceptions: this.recurringExceptions,
+      recurringExceptionRule: this.recurringExceptionRule,
       cssClass: this.cssClass,
       meta: this.meta,
     };
@@ -287,6 +295,8 @@ export class EventModel implements EventObject {
       resourceIds: this.resourceIds,
       timezone: this.timezone,
       recurrence: this.recurrence,
+      recurringExceptions: this.recurringExceptions,
+      recurringExceptionRule: this.recurringExceptionRule,
       cssClass: this.cssClass,
       meta: this.meta,
     };

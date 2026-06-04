@@ -85,7 +85,7 @@ swell-calendar 是一个**可嵌入的 React 日历组件库**，面向需要在
 
 当前**仍明确后置**的能力：
 
-- recurrence 行为展开与 recurring exceptions
+- recurrence 行为展开与 recurring exceptions（类型层已就绪：`RecurrenceRule` / `RecurringException` / `recurringExceptions` / `recurringExceptionRule`，运行时引擎待接入）
 - timezone 驱动的渲染和编辑语义
 - external drag & drop
 - 跨实例拖拽
@@ -176,6 +176,8 @@ interface EventObject {
   resourceIds?: string[];
   timezone?: string;
   recurrence?: RecurrenceRule;
+  recurringExceptions?: RecurringException[];
+  recurringExceptionRule?: RecurrenceRule;
   category?: 'time' | 'allday' | 'milestone' | 'task';
   color?: string;
   backgroundColor?: string;
@@ -194,6 +196,31 @@ interface EventObject {
   body?: string;
 }
 ```
+
+### 重复规则（`RecurrenceRule`）与异常（`RecurringException`）
+
+```ts
+// 控制事件重复周期的规则
+interface RecurrenceRule {
+  frequency: 'daily' | 'weekly' | 'monthly' | 'yearly';
+  interval?: number;       // 间隔，默认 1
+  count?: number;          // 重复次数上限（与 until 互斥）
+  until?: DateType;        // 截止日期（与 count 互斥）
+  byWeekDays?: number[];   // 按周几，0=周日，仅 weekly
+  byMonthDays?: number[];  // 按月内日期，仅 monthly
+  exceptions?: DateType[]; // 排除/跳过日期
+}
+
+// 单次发生的覆盖/跳过
+interface RecurringException {
+  date: DateType;                    // 要覆盖/跳过的发生日期
+  skipped?: boolean;                 // true 跳过该次
+  overrides?: Partial<EventObject>;  // 替换该次属性
+}
+```
+
+> 注：`recurrence` / `recurringExceptions` / `recurringExceptionRule` 的类型层已于 2026-06-04 落地，
+> 运行时展开引擎与编辑语义仍属 Phase 3 后置范围。
 
 ### 资源结构（`ResourceInfo`）
 
