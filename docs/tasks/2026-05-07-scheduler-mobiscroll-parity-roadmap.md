@@ -140,8 +140,14 @@ https://demo.mobiscroll.com/react/scheduler/desktop-week-view
 ## 当前状态
 
 - [x] 路线图建立
-- [-] 代码实现开始
-- [ ] Phase 1A 完成
-- [ ] Phase 1B 完成
-- [x] Phase 2 完成
+- [-] 代码与文档进入收敛期
+- [x] Phase 1A 基线能力已进入实现
+- [x] Phase 1B 交互闭环已进入实现
+- [x] Phase 2 资源调度基线已进入实现
 - [ ] Phase 3 完成
+
+说明：
+
+- 当前代码已具备 all-day lane、多日分段、overlap policy、failed callbacks、资源显隐/分组/共享事件等能力
+- 当前主要风险不再是“底座没有做出来”，而是“规格、phase 状态与实现状态需要持续对齐”
+- Phase 3 仍是明确未完成的高级调度范围，不应被 stories 或字段暴露误判为已支持

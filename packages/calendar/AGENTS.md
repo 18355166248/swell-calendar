@@ -60,6 +60,8 @@ EventObject（用户输入）
 - `components/view/Day.tsx` — 日视图（已完成）
 - `components/view/Week.tsx` — 周视图（已完成）
 - `components/view/Month.tsx` — 月视图（开发中）
+- `components/view/Scheduler.tsx` — 资源调度视图（基础闭环已接入）
+- `components/view/Timeline.tsx` — 时间线视图（资源行 + 横向时间轴）
 
 ## 分层约束详情
 
@@ -88,7 +90,7 @@ EventObject（用户输入）
 | `slices/layout.slice.ts` | 面板高度、lastPanel |
 | `slices/dnd.slice.ts` | 拖拽状态机（IDLE/INIT/DRAGGING） |
 | `slices/gridSelection.slice.ts` | 时间范围选择状态 |
-| `slices/template.slice.ts` | 7 个可定制渲染函数 |
+| `slices/template.slice.ts` | 12 个可定制渲染函数 |
 | `slices/theme/` | 主题（common/week/month） |
 
 ## 品味不变式（ESLint 强制）

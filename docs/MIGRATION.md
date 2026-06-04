@@ -110,10 +110,16 @@ const schedulerOptions = {
 
 ## 计划中的后续迁移
 
-以下迁移尚未进入当前实现阶段，只在路线图中定义，不建议提前修改业务代码：
+以下迁移已经进入 scheduler 资源能力实现阶段，但仍建议按阶段推进宿主改造，不要把“字段已存在”误当成“老写法已彻底废弃”：
 
-- `parentId -> children`
-- `hidden -> visibleResourceIds`
+- `parentId + children` 共存：`children` 已可直接驱动树形资源，`parentId` 仍保留兼容与扁平输入建树能力
+- `hidden + visibleResourceIds` 共存：`visibleResourceIds` 用于显式控制可见资源，`hidden` 仍保留兼容入口
+
+建议：
+
+- 新增资源分组时优先直接传树形 `children`
+- 宿主存在“按业务动态切换资源显隐”场景时优先使用 `visibleResourceIds`
+- 老数据若仍以扁平 `parentId` 或 `hidden` 驱动，可保留兼容写法，待业务侧统一后再收敛
 
 ## 原则
 

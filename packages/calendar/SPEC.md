@@ -38,7 +38,7 @@ swell-calendar 是一个**可嵌入的 React 日历组件库**，面向需要在
 | 周视图（Week）      | ✅ 完成     | 7 天时间网格，支持 workweek 模式                                            |
 | 月视图（Month）     | 🟡 事件可用 | 月历格子 + 事件卡片，布局已接入 MonthGrid，workweek 待完善                  |
 | 时间线（Timeline）  | 🟡 事件可用 | 资源行 + 横向时间轴，事件布局已修复，支持 colors/invalid 区段，Toolbar 可见 |
-| 调度器（Scheduler） | 🟡 进行中   | 垂直时间轴 + 资源列的 time-grid 视图，是当前近期核心                        |
+| 调度器（Scheduler） | 🟡 核心基线可用 | 垂直时间轴 + 资源列的 time-grid 视图，已具备桌面端基础闭环，Phase 3 高级能力未完成 |
 
 ### 事件功能
 
@@ -56,7 +56,44 @@ swell-calendar 是一个**可嵌入的 React 日历组件库**，面向需要在
 | all-day lane（scheduler）      | ✅   | scheduler 顶部全天事件栏                                      |
 | 多日事件分段（scheduler）      | ✅   | scheduler time 事件按日期切分到资源列                         |
 | overlap policy                 | ✅   | scheduler 全局 `eventOverlap` 与 per-event `overlap` 均已接入 |
+| 删除事件（scheduler）          | ✅   | 聚焦事件卡片后支持 `Delete/Backspace` 删除                    |
+| failed callbacks               | ✅   | `onEventCreateFailed` / `onEventUpdateFailed` 已接入          |
+| 资源显隐                       | ✅   | `visibleResourceIds` 可控制 scheduler/timeline 可见资源       |
+| 资源分组 / 折叠                | ✅   | `children` / `collapsed` 支持树形资源与折叠显示               |
+| shared events                  | ✅   | `resourceIds` 可让事件出现在多个资源列                        |
+| 资源级交互限制                 | ✅   | `eventDragInTime` / `eventResize` / `eventOverlap` 已接入     |
+| 跨资源拖动 gate                | ✅   | scheduler 全局 / 资源级 / per-event `dragBetweenResources` 已接入 |
 | recurrence / timezone          | 🟡   | 字段已有，行为尚未接入                                        |
+
+### 当前范围基线（2026-06）
+
+当前仓库对标的是 `Mobiscroll React Scheduler Desktop Week View` 的桌面端基础闭环，已经进入“可继续收敛 API 与交互细节”的阶段，不再是纯底座 demo。
+
+当前**已进入基线**的 scheduler 能力：
+
+- 多资源列与资源头
+- all-day lane
+- 多日事件分段
+- `invalid` / `colors`
+- create / move / resize / delete
+- overlap policy / buffer
+- 模板插槽、hover、cell click、failed callbacks
+- `visibleResourceIds`
+- 资源分组 / 折叠
+- shared events
+- 资源级与 per-event 交互限制
+
+当前**仍明确后置**的能力：
+
+- recurrence 行为展开与 recurring exceptions
+- timezone 驱动的渲染和编辑语义
+- external drag & drop
+- 跨实例拖拽
+- `agenda`
+- 移动端适配
+- `connections`
+- `eventList`
+- 虚拟化、打印、a11y 强化
 
 ### 配置选项（`CalendarOptions`）
 
@@ -97,6 +134,8 @@ interface CalendarOptions {
     dragToResize?: boolean;
     dragInTime?: boolean;
     eventOverlap?: boolean;
+    visibleResourceIds?: string[];
+    dragBetweenResources?: boolean;
   };
   timeline?: {
     resources?: ResourceInfo[];
@@ -107,6 +146,7 @@ interface CalendarOptions {
     invalid?: BlockedTimeRange[];
     blockedTimes?: BlockedTimeRange[];
     colors?: ColoredRange[];
+    visibleResourceIds?: string[];
   };
   template?: Partial<Template>;
 }
@@ -121,7 +161,8 @@ interface EventObject {
   title: string;
   start: Date | string; // ISO 8601
   end: Date | string;
-  isAllDay?: boolean;
+  allDay?: boolean;
+  isAllday?: boolean; // 兼容旧字段，迁移期保留
   resourceId?: string;
   resourceIds?: string[];
   timezone?: string;
@@ -136,6 +177,10 @@ interface EventObject {
   editable?: boolean;
   draggable?: boolean;
   resizable?: boolean;
+  overlap?: boolean;
+  dragBetweenResources?: boolean;
+  bufferBefore?: number;
+  bufferAfter?: number;
   meta?: Record<string, unknown>;
   body?: string;
 }
@@ -148,12 +193,18 @@ interface ResourceInfo {
   id: string;
   name: string;
   parentId?: string;
+  children?: ResourceInfo[];
+  collapsed?: boolean;
   color?: string;
   backgroundColor?: string;
   hidden?: boolean;
   order?: number;
   width?: number | string;
   meta?: Record<string, unknown>;
+  eventDragInTime?: boolean;
+  eventDragBetweenResources?: boolean;
+  eventResize?: boolean;
+  eventOverlap?: boolean;
 }
 
 interface BlockedTimeRange {
@@ -176,13 +227,14 @@ interface ColoredRange {
 
 ### 模板接口（`Template`）
 
-10 个可定制渲染点：
+12 个可定制渲染点：
 
 | 函数名                       | 渲染位置                   |
 | ---------------------------- | -------------------------- |
 | `timeGridDisplayPrimaryTime` | 时间轴上的主时间标签       |
 | `timeGridDisplayTime`        | 时间轴其他时间格           |
 | `weekDayName`                | 周视图顶部星期名称         |
+| `monthDayName`               | 月视图顶部星期名称         |
 | `time`                       | 时间事件卡片内容           |
 | `schedulerTime`              | scheduler 时间事件卡片内容 |
 | `timeMove`                   | 拖拽中的事件卡片内容       |
