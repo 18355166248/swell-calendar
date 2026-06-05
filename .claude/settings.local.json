@@ -47,7 +47,12 @@
       "Bash(grep -oP '.{0,200}jest-playwright.{0,200}' /Users/xmly/Swell/code/swell-calendar/node_modules/.pnpm/@storybook+test-runner@0.19.1_@types+node@22.15.33_storybook@9.0.14_@testing-library+dom@10.4.0_prettier@3.2.5_/node_modules/@storybook/test-runner/dist/index.mjs)",
       "Bash(grep *)",
       "Bash(pnpm run *)",
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "Bash(pnpm --filter swell-calendar test -- --run --reporter=verbose)",
+      "Bash(Select-Object -Last 40)",
+      "Bash(pnpm --filter swell-calendar test -- --run src/time/timezone.spec.ts)",
+      "Bash(pnpm *)",
+      "Bash(git add *)"
     ]
   }
 }

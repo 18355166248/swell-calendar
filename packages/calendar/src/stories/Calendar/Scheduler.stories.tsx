@@ -1958,3 +1958,146 @@ export const Recurrence: Story = {
     expect(normalTitles.length).toBeGreaterThanOrEqual(1);
   },
 };
+
+// ============================================================================
+// Timezone — data→display 时区转换
+// ============================================================================
+
+/**
+ * Timezone — 数据时区到显示时区转换测试
+ *
+ * 验证 per-event timezone 到 displayTimezone 的转换效果：
+ * - 东京 9:00 AM 事件在纽约显示 → 前一天 20:00
+ * - 伦敦 14:00 事件在纽约显示 → 9:00
+ * - 无 timezone 事件 → 不动
+ */
+export const Timezone: Story = {
+  render: function TimezoneStory() {
+    const today = new DayjsTZDate();
+    const weekStart = today.addDate(-today.getDay());
+
+    const events: EventObject[] = [
+      // 东京 9:00 AM 事件（会转为纽约前一天 20:00）
+      {
+        id: 'tz-tokyo',
+        title: '东京会议 (JST 9:00)',
+        category: 'time',
+        start: dayjs(weekStart.getTime()).add(3, 'day').hour(9).minute(0).toDate(),
+        end: dayjs(weekStart.getTime()).add(3, 'day').hour(10).minute(0).toDate(),
+        resourceId: 'r1',
+        backgroundColor: '#3b82f6',
+        color: '#fff',
+        timezone: 'Asia/Tokyo',
+      },
+      // 伦敦 14:00 事件（会转为纽约 9:00）
+      {
+        id: 'tz-london',
+        title: '伦敦会议 (BST 14:00)',
+        category: 'time',
+        start: dayjs(weekStart.getTime()).add(3, 'day').hour(14).minute(0).toDate(),
+        end: dayjs(weekStart.getTime()).add(3, 'day').hour(15).minute(0).toDate(),
+        resourceId: 'r2',
+        backgroundColor: '#10b981',
+        color: '#fff',
+        timezone: 'Europe/London',
+      },
+      // 同 timezone 事件（纽约 → 纽约，不转换）
+      {
+        id: 'tz-same',
+        title: '纽约会议 (EDT)',
+        category: 'time',
+        start: dayjs(weekStart.getTime()).add(3, 'day').hour(10).minute(0).toDate(),
+        end: dayjs(weekStart.getTime()).add(3, 'day').hour(11).minute(0).toDate(),
+        resourceId: 'r3',
+        backgroundColor: '#f59e0b',
+        color: '#fff',
+        timezone: 'America/New_York',
+      },
+      // 无 timezone 事件（不转换）
+      {
+        id: 'tz-none',
+        title: '无时区标记事件',
+        category: 'time',
+        start: dayjs(weekStart.getTime()).add(3, 'day').hour(13).minute(0).toDate(),
+        end: dayjs(weekStart.getTime()).add(3, 'day').hour(14).minute(0).toDate(),
+        resourceId: 'r4',
+        backgroundColor: '#ef4444',
+        color: '#fff',
+      },
+    ];
+
+    const [log, setLog] = useState<string[]>(['纽约视角 (displayTimezone: America/New_York)']);
+    const addLog = (msg: string) => setLog((prev) => [msg, ...prev.slice(0, 6)]);
+
+    const callbacks = useMemo<CalendarCallbacks>(
+      () => ({
+        onEventClick: ({ event }) => {
+          const startDate =
+            event.start instanceof DayjsTZDate ? event.start : new DayjsTZDate(event.start);
+          addLog(`点击: ${event.title} [${startDate.format('MM/DD HH:mm')}]`);
+        },
+      }),
+      []
+    );
+
+    return (
+      <SchedulerStoryFrame>
+        <div
+          style={{
+            position: 'absolute',
+            top: 12,
+            right: 12,
+            zIndex: 10,
+            padding: '10px 14px',
+            borderRadius: 8,
+            background: 'rgba(15, 23, 42, 0.88)',
+            color: '#fff',
+            fontSize: 11,
+            lineHeight: 1.7,
+            maxWidth: 340,
+          }}
+        >
+          <div style={{ marginBottom: 6, fontWeight: 600, fontSize: 12 }}>
+            Timezone: display=纽约 / data=各事件
+          </div>
+          {log.map((l, i) => (
+            <div key={i}>{l}</div>
+          ))}
+        </div>
+        <Calendar
+          events={events}
+          callbacks={callbacks}
+          options={{
+            defaultView: 'scheduler',
+            scheduler: {
+              resources: RESOURCES,
+              hourStart: 0,
+              hourEnd: 24,
+              displayTimezone: 'America/New_York',
+            },
+          }}
+        />
+      </SchedulerStoryFrame>
+    );
+  },
+  play: async ({ canvasElement }) => {
+    await new Promise((r) => setTimeout(r, DEMO_PAUSE));
+    const canvas = within(canvasElement);
+
+    // 验证东京事件已渲染（转换后在前一天 20:00）
+    const tokyoTitles = canvas.getAllByText('东京会议 (JST 9:00)');
+    expect(tokyoTitles.length).toBeGreaterThanOrEqual(1);
+
+    // 验证伦敦事件已渲染（转换后在同日 9:00）
+    const londonTitles = canvas.getAllByText('伦敦会议 (BST 14:00)');
+    expect(londonTitles.length).toBeGreaterThanOrEqual(1);
+
+    // 验证纽约事件已渲染（相同时区，不转换）
+    const nyTitles = canvas.getAllByText('纽约会议 (EDT)');
+    expect(nyTitles.length).toBeGreaterThanOrEqual(1);
+
+    // 验证无时区事件已渲染（不转换）
+    const noneTitles = canvas.getAllByText('无时区标记事件');
+    expect(noneTitles.length).toBeGreaterThanOrEqual(1);
+  },
+};

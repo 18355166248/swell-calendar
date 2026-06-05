@@ -3,6 +3,7 @@ import { EventModel } from '@/model/eventModel';
 import { EventUIModel } from '@/model/eventUIModel';
 import { setTimeStrToDate, toEndOfDay, toStartOfDay } from '@/time/datetime';
 import DayjsTZDate from '@/time/dayjs-tzdate';
+import { convertTimezone, needsTimezoneConversion } from '@/time/timezone';
 import { CalendarData } from '@/types/calendar.type';
 import { DayGridEventMatrix, EventModelMap, TimeGridEventMatrix } from '@/types/events.type';
 import { CommonGridColumn, TimeGridData } from '@/types/grid.type';
@@ -57,6 +58,53 @@ function expandSchedulerTimeEvents(
   return result;
 }
 
+/**
+ * 对 scheduler 的 time events 应用 timezone 转换
+ *
+ * 对每个 EventUIModel:
+ * - 如果 model.timezone 存在且 displayTimezone 已配置且不等，转换 start/end
+ * - 无 timezone 的事件原样返回
+ * - 转换后返回新的 EventUIModel（不可变模式）
+ * - 在模型上设 _displayTimezone，toEventObject() 可据此反向转换：
+ *   render start/end → displayTz → sourceTz wall-clock，回填 timezone，
+ *   使得任何管线下游（分段/拖拽/resize）的 model.toEventObject() 都自洽
+ */
+function convertSchedulerEventTimezone(
+  timeEvents: EventUIModel[],
+  displayTimezone?: string
+): EventUIModel[] {
+  if (!displayTimezone) {
+    return timeEvents;
+  }
+
+  return timeEvents.map((uiModel) => {
+    const { model } = uiModel;
+    const sourceTz = model.timezone;
+
+    if (!needsTimezoneConversion(sourceTz, displayTimezone)) {
+      return uiModel;
+    }
+
+    const newStart = convertTimezone(model.getStarts(), sourceTz!, displayTimezone);
+    const newEnd = convertTimezone(model.getEnds(), sourceTz!, displayTimezone);
+
+    const convertedModel = new EventModel({
+      ...model.toEventObject(),
+      start: newStart,
+      end: newEnd,
+    });
+    // 标记 displayTimezone，使 toEventObject() 可反向转换到数据时区。
+    // 必须在 toEventObject() 展开之后再设，因为 init() 不解这个字段。
+    convertedModel._displayTimezone = displayTimezone;
+
+    const convertedUIModel = new EventUIModel(convertedModel);
+    convertedUIModel.croppedStart = uiModel.croppedStart;
+    convertedUIModel.croppedEnd = uiModel.croppedEnd;
+
+    return convertedUIModel;
+  });
+}
+
 function flattenSchedulerMatrix3d(eventMatrix: TimeGridEventMatrix[keyof TimeGridEventMatrix]) {
   return eventMatrix.flatMap((matrix) => matrix.flatMap((row) => row.filter(Boolean)));
 }
@@ -108,6 +156,11 @@ export function splitMultiDayTimeEvents(
         start: segStart,
         end: segEnd,
       });
+      // 跨日分段后的 SegmentModel 也要继承 _displayTimezone，
+      // 使 toEventObject() 输出时区自洽的 start/end timezone 组合
+      if (model._displayTimezone) {
+        segmentModel._displayTimezone = model._displayTimezone;
+      }
 
       const segmentUIModel = new EventUIModel(segmentModel);
       segmentUIModel.croppedStart = eventStart < dayStart;
@@ -143,11 +196,13 @@ export function getSchedulerViewEvents(
     end,
     hourStart,
     hourEnd,
+    displayTimezone,
   }: {
     start: DayjsTZDate;
     end: DayjsTZDate;
     hourStart: number;
     hourEnd: number;
+    displayTimezone?: string;
   }
 ): Pick<EventModelMap, 'allday' | 'time'> {
   const panels: Panel[] = [
@@ -163,9 +218,14 @@ export function getSchedulerViewEvents(
     },
   ];
 
+  // 有 displayTimezone 时向外扩 ±1 天取数，保证跨午夜/跨周事件不被提前滤掉
+  // 极端时区差 ≤ ±14 小时，±1 天已足够覆盖
+  const fetchStart = displayTimezone ? start.addDate(-1) : start;
+  const fetchEnd = displayTimezone ? end.addDate(1) : end;
+
   const eventGroups = findByDateRangeForWeek(calendar, {
-    start,
-    end,
+    start: fetchStart,
+    end: fetchEnd,
     panels,
     options: {
       hourStart,
@@ -175,12 +235,39 @@ export function getSchedulerViewEvents(
 
   const rawTimeEvents = flattenSchedulerTimeEventMatrix(eventGroups.time as TimeGridEventMatrix);
 
-  // 展开 recurrence 事件为视口内的多个实例
-  const expandedTimeEvents = expandSchedulerTimeEvents(rawTimeEvents, start, end);
+  // recurrence 展开使用 fetch 范围的 start/end，避免源时区落在视口外、
+  // 转换后应落进视口内的 occurrence 被提前截断
+  const expandedTimeEvents = expandSchedulerTimeEvents(rawTimeEvents, fetchStart, fetchEnd);
+
+  // 应用 timezone 转换（数据时区 → 显示时区）
+  const timezoneConvertedTimeEvents = convertSchedulerEventTimezone(
+    expandedTimeEvents,
+    displayTimezone
+  );
+
+  // 转换后丢弃完全落在原始视口外的事件
+  const viewFilteredTimeEvents = displayTimezone
+    ? timezoneConvertedTimeEvents.filter((uiModel) => {
+        const eventEnd = uiModel.model.getEnds();
+        const eventStart = uiModel.model.getStarts();
+        return eventStart <= end && eventEnd >= start;
+      })
+    : timezoneConvertedTimeEvents;
+
+  const rawAlldayEvents = flattenSchedulerDayGridMatrix(eventGroups.allday as DayGridEventMatrix);
+
+  // allday 也受 fetch 扩展影响：丢弃落在原始视口外的全天事件
+  const viewFilteredAlldayEvents = displayTimezone
+    ? rawAlldayEvents.filter((uiModel) => {
+        const eventEnd = uiModel.model.getEnds();
+        const eventStart = uiModel.model.getStarts();
+        return eventStart <= end && eventEnd >= start;
+      })
+    : rawAlldayEvents;
 
   return {
-    allday: flattenSchedulerDayGridMatrix(eventGroups.allday as DayGridEventMatrix),
-    time: sortSchedulerEventsByOrder(splitMultiDayTimeEvents(expandedTimeEvents, start, end)),
+    allday: viewFilteredAlldayEvents,
+    time: sortSchedulerEventsByOrder(splitMultiDayTimeEvents(viewFilteredTimeEvents, start, end)),
   };
 }
 

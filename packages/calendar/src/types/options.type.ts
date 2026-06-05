@@ -110,6 +110,7 @@ export interface SchedulerOptions {
   eventOverlap?: boolean;
   visibleResourceIds?: string[];
   dragBetweenResources?: boolean;
+  displayTimezone?: string;
 }
 
 export interface TimelineOptions extends SchedulerOptions {

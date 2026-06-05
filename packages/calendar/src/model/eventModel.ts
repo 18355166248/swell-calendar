@@ -3,6 +3,7 @@ import { isString } from 'lodash-es';
 import { collidesWith } from '@/helpers/event';
 import { MS_PER_DAY, parseDateTime, toEndOfDay, toStartOfDay } from '@/time/datetime';
 import DayjsTZDate from '@/time/dayjs-tzdate';
+import { convertTimezone, needsTimezoneConversion } from '@/time/timezone';
 import {
   DateType,
   EventCategory,
@@ -52,6 +53,14 @@ export class EventModel implements EventObject {
   resourceId?: string;
   resourceIds?: string[];
   timezone?: string;
+  /**
+   * 显示时区名（仅在调度器 timezone 转换后设置）。
+   *
+   * toEventObject() 里如果检测到 timezone 和 _displayTimezone 都存在且不同，
+   * 会把渲染用的 display-timezone 墙钟时间反向转换回数据 timezone，
+   * 保证所有回调 payload 永远输出数据时区下的自洽值。
+   */
+  _displayTimezone?: string;
   recurrence?: EventObject['recurrence'];
   recurringExceptions?: EventObject['recurringExceptions'];
   recurringExceptionRule?: EventObject['recurringExceptionRule'];
@@ -267,7 +276,16 @@ export class EventModel implements EventObject {
    * @returns {EventObjectWithDefaultValues} 事件对象
    */
   toEventObject(): EventObjectWithDefaultValues {
-    return {
+    const start =
+      this._displayTimezone && needsTimezoneConversion(this.timezone, this._displayTimezone)
+        ? convertTimezone(this.start, this._displayTimezone, this.timezone!)
+        : this.start;
+    const end =
+      this._displayTimezone && needsTimezoneConversion(this.timezone, this._displayTimezone)
+        ? convertTimezone(this.end, this._displayTimezone, this.timezone!)
+        : this.end;
+
+    const result: EventObjectWithDefaultValues = {
       id: this.id,
       calendarId: this.calendarId,
       __cid: this.cid(),
@@ -275,8 +293,8 @@ export class EventModel implements EventObject {
       isAllday: this.allDay,
       allDay: this.allDay,
       isReadOnly: this.isReadOnly,
-      start: this.start,
-      end: this.end,
+      start,
+      end,
       goingDuration: this.goingDuration,
       comingDuration: this.comingDuration,
       category: this.category,
@@ -300,6 +318,11 @@ export class EventModel implements EventObject {
       cssClass: this.cssClass,
       meta: this.meta,
     };
+    // 携带 _displayTimezone 穿过 toEventObject → new EventModel 往返，
+    // 使 splitMultiDayTimeEvents / createUpdatedTimeGridEvent 等下游
+    // 仍然知道需要反向转换
+    (result as Record<string, unknown>)._displayTimezone = this._displayTimezone;
+    return result;
   }
 }
 

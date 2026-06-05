@@ -9,14 +9,14 @@
 ## 当前状态
 
 - 总状态：`[-] 进行中`
-- 说明：Step 30-32 已完成；recurrence 视口内展开和 recurring exceptions 跳过/替换已接入 scheduler 渲染链
+- 说明：Step 30-33 已完成；recurrence 视口内展开和 recurring exceptions 跳过/替换已接入 scheduler 渲染链；timezone 数据→显示转换已接入
 
 ## 步骤清单
 
 - [x] Step 30：补 recurrence 相关类型
 - [x] Step 31：实现 recurrence 视口内展开
 - [x] Step 32：接入 recurring exceptions
-- [ ] Step 33：接入 timezone
+- [x] Step 33：接入 timezone
 - [ ] Step 34：接入 external DnD
 - [ ] Step 35：接入跨实例拖动
 
@@ -99,20 +99,27 @@
 
 - recurrence 和 exceptions 可协同工作
 
-## Step 33：接入 timezone
+## Step 33：接入 timezone ✅
+
+2026-06-05 已完成
 
 内容：
 
-- 支持“数据时区 + 显示时区”转换
-- 不改未配置 timezone 的默认行为
+- 新增 `time/timezone.ts`：`convertTimezone` / `needsTimezoneConversion` 纯时区转换
+- 接入 `scheduler-layout.ts` pipeline：recurrence 展开后 → timezone 转换 → 多日分段 → 排序
+- 新增 `SchedulerOptions.displayTimezone` 选项
+- per-event `timezone` 作为数据时区，`displayTimezone` 作为显示时区
+- 无 timezone 事件 / 未配置 displayTimezone 时行为完全不变
 
 最小验证：
 
-- `Scheduler/Timezone`
+- `timezone.spec.ts` 14 个单测：同区/跨区/无效名静默回退/午夜边界
+- `Scheduler/Timezone` Story
 
 通过标准：
 
 - 非 timezone 事件渲染结果不变
+- 200 个测试全部通过
 
 ## Step 34：接入 external DnD
 

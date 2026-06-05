@@ -2,6 +2,7 @@ import { uniq } from 'lodash-es';
 
 import { setTimeStrToDate } from '@/time/datetime';
 import DayjsTZDate from '@/time/dayjs-tzdate';
+import { convertTimezone, needsTimezoneConversion } from '@/time/timezone';
 import { EventObject, EventObjectWithDefaultValues } from '@/types/events.type';
 import { CommonGridColumn, TimeGridData } from '@/types/grid.type';
 import { GridSelectionData } from '@/types/gridSelection.type';
@@ -192,11 +193,32 @@ export function createUpdatedTimeGridEvent(
   nextEnd: DayjsTZDate,
   targetColumn?: CommonGridColumn
 ): EventObject {
+  // 携带 _displayTimezone 穿过 toEventObject → createUpdatedTimeGridEvent 链路
+  const displayTimezone = (previousEvent as Record<string, unknown>)._displayTimezone as
+    | string
+    | undefined;
+
   const nextEvent: EventObject = {
     ...previousEvent,
     start: nextStart,
     end: nextEnd,
   };
+
+  // 若存在 displayTimezone → sourceTz 反向映射，
+  // 把显示时区的 nextStart/nextEnd 反转为数据时区的墙钟值，
+  // 保证回调 payload 永远输出自洽的 start/end + timezone 组合
+  if (displayTimezone && needsTimezoneConversion(previousEvent.timezone, displayTimezone)) {
+    (nextEvent as EventObjectWithDefaultValues).start = convertTimezone(
+      nextStart,
+      displayTimezone,
+      previousEvent.timezone!
+    );
+    (nextEvent as EventObjectWithDefaultValues).end = convertTimezone(
+      nextEnd,
+      displayTimezone,
+      previousEvent.timezone!
+    );
+  }
 
   if (targetColumn?.resourceId) {
     const existingResourceIds =

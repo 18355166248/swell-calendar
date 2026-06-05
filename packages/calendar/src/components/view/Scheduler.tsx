@@ -104,8 +104,9 @@ export function Scheduler() {
         end: weekEnd,
         hourStart,
         hourEnd,
+        displayTimezone: schedulerOptions?.displayTimezone,
       }),
-    [calendar, hourStart, hourEnd, weekStart, weekEnd]
+    [calendar, hourStart, hourEnd, weekStart, weekEnd, schedulerOptions?.displayTimezone]
   );
   const alldayEvents = schedulerEvents.allday;
   const timeEvents = schedulerEvents.time;

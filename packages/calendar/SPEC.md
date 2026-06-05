@@ -63,7 +63,8 @@ swell-calendar 是一个**可嵌入的 React 日历组件库**，面向需要在
 | shared events                  | ✅   | `resourceIds` 可让事件出现在多个资源列，资源级策略按命中的所有资源共同判定 |
 | 资源级交互限制                 | ✅   | `eventDragInTime` / `eventResize` / `eventOverlap` 已接入     |
 | 跨资源拖动 gate                | ✅   | scheduler 全局 / 资源级 / per-event `dragBetweenResources` 已接入 |
-| recurrence 展开 + exceptions     | 🟡   | scheduler 已接入视口内展开，recurringExceptions 跳过/替换已接入渲染链；timezone / 编辑作用域 / external DnD 仍未接入 |
+| recurrence 展开 + exceptions     | 🟡   | scheduler 已接入视口内展开，recurringExceptions 跳过/替换已接入渲染链；编辑作用域 / external DnD 仍未接入 |
+| timezone 转换                     | 🟡   | `displayTimezone` + per-event `timezone` 已接入 scheduler 渲染链（数据时区→显示时区）；多时区列同时展示、全天事件跨时区边界仍未接入 |
 
 ### 当前范围基线（2026-06）
 
@@ -86,7 +87,7 @@ swell-calendar 是一个**可嵌入的 React 日历组件库**，面向需要在
 当前**仍明确后置**的能力：
 
 - recurrence 视口内展开已接入 scheduler 渲染链；recurring exceptions 的跳过/替换已接入；**编辑作用域**（本次/本次及以后/全部）仍未接入
-- timezone 驱动的渲染和编辑语义
+- timezone 多时区列同时展示、全天事件跨时区边界
 - external drag & drop
 - 跨实例拖拽
 - `agenda`
@@ -145,6 +146,7 @@ interface CalendarOptions {
     eventOverlap?: boolean;
     visibleResourceIds?: string[];
     dragBetweenResources?: boolean;
+    displayTimezone?: string;
   };
   timeline?: {
     resources?: ResourceInfo[];
@@ -221,6 +223,7 @@ interface RecurringException {
 
 > 注：`recurrence` / `recurringExceptions` / `recurringExceptionRule` 的类型层已于 2026-06-04 落地，
 > scheduler 渲染链的视口内展开与 exceptions 跳过/替换已于 2026-06-05 接入。
+> `timezone` 的数据→显示时区转换已于 2026-06-05 接入 scheduler 渲染链（`displayTimezone` + per-event `timezone`）。
 > 编辑作用域（本次/本次及以后/全部）仍属 Phase 3 后置范围。
 
 ### 资源结构（`ResourceInfo`）
