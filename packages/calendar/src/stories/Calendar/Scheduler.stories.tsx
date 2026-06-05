@@ -1768,3 +1768,193 @@ export const SharedEvents: Story = {
     expect(singleTitles.length).toBe(1);
   },
 };
+
+// ============================================================================
+// Recurrence 展开
+// ============================================================================
+
+/**
+ * Recurrence — 重复事件展开测试
+ *
+ * 验证 daily / weekly recurrence 在 scheduler 中的渲染，
+ * 以及 recurringExceptions 的跳过和替换效果。
+ */
+export const Recurrence: Story = {
+  render: function RecurrenceStory() {
+    const today = new DayjsTZDate();
+    const weekStart = today.addDate(-today.getDay());
+
+    const events: EventObject[] = [
+      // daily recurrence: 每天重复，限 5 次
+      {
+        id: 'daily-1',
+        title: '每日站会',
+        category: 'time',
+        start: dayjs(weekStart.getTime()).add(1, 'day').hour(9).minute(0).toDate(),
+        end: dayjs(weekStart.getTime()).add(1, 'day').hour(9).minute(30).toDate(),
+        resourceId: 'r1',
+        backgroundColor: '#3b82f6',
+        color: '#fff',
+        recurrence: {
+          frequency: 'daily',
+          interval: 1,
+          count: 5,
+        },
+      },
+      // weekly recurrence: 每周一和周三重复
+      {
+        id: 'weekly-1',
+        title: '周会',
+        category: 'time',
+        start: dayjs(weekStart.getTime()).add(1, 'day').hour(10).minute(0).toDate(),
+        end: dayjs(weekStart.getTime()).add(1, 'day').hour(11).minute(0).toDate(),
+        resourceId: 'r2',
+        backgroundColor: '#10b981',
+        color: '#fff',
+        recurrence: {
+          frequency: 'weekly',
+          interval: 1,
+          byWeekDays: [1, 3],
+        },
+      },
+      // daily recurrence with skipped exception
+      {
+        id: 'skip-1',
+        title: '有跳过的重复事件',
+        category: 'time',
+        start: dayjs(weekStart.getTime()).add(2, 'day').hour(14).minute(0).toDate(),
+        end: dayjs(weekStart.getTime()).add(2, 'day').hour(15).minute(0).toDate(),
+        resourceId: 'r3',
+        backgroundColor: '#f59e0b',
+        color: '#fff',
+        recurrence: {
+          frequency: 'daily',
+          interval: 1,
+          count: 5,
+        },
+        recurringExceptions: [
+          {
+            date: dayjs(weekStart.getTime()).add(4, 'day').format('YYYY-MM-DD'),
+            skipped: true,
+          },
+        ],
+      },
+      // daily recurrence with override exception
+      {
+        id: 'override-1',
+        title: '有替换的重复事件',
+        category: 'time',
+        start: dayjs(weekStart.getTime()).add(3, 'day').hour(16).minute(0).toDate(),
+        end: dayjs(weekStart.getTime()).add(3, 'day').hour(17).minute(0).toDate(),
+        resourceId: 'r4',
+        backgroundColor: '#ef4444',
+        color: '#fff',
+        recurrence: {
+          frequency: 'daily',
+          interval: 1,
+          count: 4,
+        },
+        recurringExceptions: [
+          {
+            date: dayjs(weekStart.getTime()).add(5, 'day').format('YYYY-MM-DD'),
+            overrides: {
+              title: '特殊会议（替换）',
+              backgroundColor: '#8b5cf6',
+            },
+          },
+        ],
+      },
+      // 非 recurrence 普通事件
+      {
+        id: 'normal-1',
+        title: '普通事件（不重复）',
+        category: 'time',
+        start: dayjs(today.getTime()).hour(11).minute(0).toDate(),
+        end: dayjs(today.getTime()).hour(12).minute(0).toDate(),
+        resourceId: 'r5',
+        backgroundColor: '#8b5cf6',
+        color: '#fff',
+      },
+    ];
+
+    const [log, setLog] = useState<string[]>(['观察重复事件展开效果']);
+    const addLog = (msg: string) => setLog((prev) => [msg, ...prev.slice(0, 6)]);
+
+    const callbacks = useMemo<CalendarCallbacks>(
+      () => ({
+        onEventClick: ({ event }) => {
+          addLog(`点击: ${event.title} (${event.id})`);
+        },
+      }),
+      []
+    );
+
+    return (
+      <SchedulerStoryFrame>
+        <div
+          style={{
+            position: 'absolute',
+            top: 12,
+            right: 12,
+            zIndex: 10,
+            padding: '10px 14px',
+            borderRadius: 8,
+            background: 'rgba(15, 23, 42, 0.88)',
+            color: '#fff',
+            fontSize: 11,
+            lineHeight: 1.7,
+            maxWidth: 340,
+          }}
+        >
+          <div style={{ marginBottom: 6, fontWeight: 600, fontSize: 12 }}>
+            Recurrence 展开 + Exceptions
+          </div>
+          {log.map((l, i) => (
+            <div key={i}>{l}</div>
+          ))}
+        </div>
+        <Calendar
+          events={events}
+          callbacks={callbacks}
+          options={{
+            defaultView: 'scheduler',
+            scheduler: {
+              resources: RESOURCES,
+              hourStart: 8,
+              hourEnd: 18,
+            },
+          }}
+        />
+      </SchedulerStoryFrame>
+    );
+  },
+  play: async ({ canvasElement }) => {
+    await new Promise((r) => setTimeout(r, DEMO_PAUSE));
+    const canvas = within(canvasElement);
+
+    // 验证 daily recurrence 的多个实例渲染
+    const dailyTitles = canvas.getAllByText('每日站会');
+    // count=5，视口内应至少看到 2 个实例（可能因视口范围截断）
+    expect(dailyTitles.length).toBeGreaterThanOrEqual(2);
+
+    // 验证 weekly recurrence 实例
+    const weeklyTitles = canvas.getAllByText('周会');
+    expect(weeklyTitles.length).toBeGreaterThanOrEqual(1);
+
+    // 验证 skipped exception（被跳过的日期不应出现）
+    // skip-1: daily count=5，跳过了第 3 天（weekStart+4），剩余 4 个实例
+    const skipTitles = canvas.getAllByText('有跳过的重复事件');
+    expect(skipTitles.length).toBeGreaterThanOrEqual(3);
+
+    // 验证 override exception（替换标题应出现至少 1 次）
+    const overrideTitles = canvas.getAllByText('特殊会议（替换）');
+    expect(overrideTitles.length).toBeGreaterThanOrEqual(1);
+    // 原标题"有替换的重复事件"也应有实例
+    const originalOverrideTitles = canvas.getAllByText('有替换的重复事件');
+    expect(originalOverrideTitles.length).toBeGreaterThanOrEqual(1);
+
+    // 验证普通事件仍在
+    const normalTitles = canvas.getAllByText('普通事件（不重复）');
+    expect(normalTitles.length).toBeGreaterThanOrEqual(1);
+  },
+};

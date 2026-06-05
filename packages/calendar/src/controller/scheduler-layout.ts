@@ -1,3 +1,4 @@
+import { expandSchedulerRecurrenceEvent } from '@/controller/scheduler-recurrence';
 import { EventModel } from '@/model/eventModel';
 import { EventUIModel } from '@/model/eventUIModel';
 import { setTimeStrToDate, toEndOfDay, toStartOfDay } from '@/time/datetime';
@@ -9,6 +10,52 @@ import { ColoredRange, Options, ViewType } from '@/types/options.type';
 import { Panel } from '@/types/panel.type';
 
 import { findByDateRange as findByDateRangeForWeek } from './week.controller';
+
+/**
+ * 将 scheduler 的 time events 展开 recurrence 事件
+ *
+ * 对每个 time event:
+ * - 如果没有 recurrence, 保持原样
+ * - 如果有 recurrence, 调用 expandSchedulerRecurrenceEvent 展开为多个实例
+ * - 展开后的实例转为 EventUIModel 重新进入渲染链
+ */
+function expandSchedulerTimeEvents(
+  timeEvents: EventUIModel[],
+  rangeStart: DayjsTZDate,
+  rangeEnd: DayjsTZDate
+): EventUIModel[] {
+  const result: EventUIModel[] = [];
+
+  for (const uiModel of timeEvents) {
+    const { model } = uiModel;
+    const rule = model.recurrence;
+
+    if (!rule) {
+      // 非 recurrence 事件保持原样
+      result.push(uiModel);
+      continue;
+    }
+
+    // 有 recurrence 的事件展开为多个实例
+    const expandedEvents = expandSchedulerRecurrenceEvent(
+      model.toEventObject(),
+      rangeStart,
+      rangeEnd
+    );
+
+    for (const instanceEvent of expandedEvents) {
+      const instanceModel = new EventModel(instanceEvent);
+      const instanceUIModel = new EventUIModel(instanceModel);
+      // 展开后的实例是独立日期事件，croppedStart/croppedEnd 由后续 splitMultiDayTimeEvents 重新计算
+      // 当前先置为 false，避免原 UIModel 的裁剪信息误传到实例
+      instanceUIModel.croppedStart = false;
+      instanceUIModel.croppedEnd = false;
+      result.push(instanceUIModel);
+    }
+  }
+
+  return result;
+}
 
 function flattenSchedulerMatrix3d(eventMatrix: TimeGridEventMatrix[keyof TimeGridEventMatrix]) {
   return eventMatrix.flatMap((matrix) => matrix.flatMap((row) => row.filter(Boolean)));
@@ -126,11 +173,14 @@ export function getSchedulerViewEvents(
     },
   });
 
-  const timeEvents = flattenSchedulerTimeEventMatrix(eventGroups.time as TimeGridEventMatrix);
+  const rawTimeEvents = flattenSchedulerTimeEventMatrix(eventGroups.time as TimeGridEventMatrix);
+
+  // 展开 recurrence 事件为视口内的多个实例
+  const expandedTimeEvents = expandSchedulerTimeEvents(rawTimeEvents, start, end);
 
   return {
     allday: flattenSchedulerDayGridMatrix(eventGroups.allday as DayGridEventMatrix),
-    time: sortSchedulerEventsByOrder(splitMultiDayTimeEvents(timeEvents, start, end)),
+    time: sortSchedulerEventsByOrder(splitMultiDayTimeEvents(expandedTimeEvents, start, end)),
   };
 }
 

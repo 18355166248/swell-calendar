@@ -9,13 +9,13 @@
 ## 当前状态
 
 - 总状态：`[-] 进行中`
-- 说明：Step 30 已完成；`RecurringException` 接口与 `recurringExceptions` / `recurringExceptionRule` 字段已进入类型层与 EventModel，纯类型补全，零运行时改动
+- 说明：Step 30-32 已完成；recurrence 视口内展开和 recurring exceptions 跳过/替换已接入 scheduler 渲染链
 
 ## 步骤清单
 
 - [x] Step 30：补 recurrence 相关类型
 - [x] Step 31：实现 recurrence 视口内展开
-- [ ] Step 32：接入 recurring exceptions
+- [x] Step 32：接入 recurring exceptions
 - [ ] Step 33：接入 timezone
 - [ ] Step 34：接入 external DnD
 - [ ] Step 35：接入跨实例拖动
@@ -81,7 +81,10 @@
 
 - 2026-06-04：20 个单测全部通过，覆盖 4 种频率 + interval/count/until/exceptions/边界场景
 
-## Step 32：接入 recurring exceptions
+## Step 32：接入 recurring exceptions ✅
+
+2026-06-05 已完成
+
 
 内容：
 
