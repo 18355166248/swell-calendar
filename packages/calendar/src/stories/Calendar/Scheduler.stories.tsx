@@ -2288,3 +2288,163 @@ export const ExternalDnDMock: Story = {
     expect(existingTitles.length).toBeGreaterThanOrEqual(1);
   },
 };
+
+export const CrossInstanceDnD: Story = {
+  render: function CrossInstanceDnDStory() {
+    const today = new DayjsTZDate();
+    const weekStart = today.addDate(-today.getDay());
+
+    const CROSS_RESOURCES_A = [
+      { id: 'team-a1', name: '前端组', backgroundColor: '#3b82f6', color: '#fff' },
+      { id: 'team-a2', name: '后端组', backgroundColor: '#10b981', color: '#fff' },
+    ];
+    const CROSS_RESOURCES_B = [
+      { id: 'team-b1', name: '设计组', backgroundColor: '#f59e0b', color: '#fff' },
+      { id: 'team-b2', name: '产品组', backgroundColor: '#ef4444', color: '#fff' },
+    ];
+
+    const [eventsA, setEventsA] = useState<EventObject[]>(() => [
+      {
+        id: 'cross-1',
+        title: '跨实例演示事件',
+        category: 'time',
+        start: dayjs(weekStart.getTime()).add(1, 'day').hour(10).minute(0).toDate(),
+        end: dayjs(weekStart.getTime()).add(1, 'day').hour(11).minute(30).toDate(),
+        resourceId: 'team-a1',
+        backgroundColor: '#3b82f6',
+        color: '#fff',
+      },
+    ]);
+
+    const [eventsB, setEventsB] = useState<EventObject[]>([]);
+    const [log, setLog] = useState<string[]>(['从上方 Scheduler 拖出事件到下方 Scheduler']);
+    const addLog = (msg: string) => setLog((prev) => [msg, ...prev.slice(0, 6)]);
+
+    const callbacksA = useMemo<CalendarCallbacks>(
+      () => ({
+        onCrossInstanceDragEnd: ({ event }) => {
+          // 源侧：从 A 中移除被拖出的事件
+          setEventsA((prev) => prev.filter((e) => e.id !== event.id));
+          addLog(`A: 拖出 "${event.title}"`);
+        },
+      }),
+      []
+    );
+
+    const callbacksB = useMemo<CalendarCallbacks>(
+      () => ({
+        onCrossInstanceDrop: (info) => {
+          // 目标侧：在 B 中创建新事件
+          const newEvent: EventObject = {
+            ...info.event,
+            start: info.start,
+            end: info.end,
+            resourceId: info.resourceId,
+          };
+          setEventsB((prev) => [...prev, newEvent]);
+          addLog(`B: 接收 "${info.event.title}" → ${info.resourceId ?? '?'}`);
+        },
+      }),
+      []
+    );
+
+    const schedulerStyle = {
+      flex: 1,
+      minWidth: 0,
+      position: 'relative' as const,
+    };
+
+    return (
+      <div style={{ position: 'absolute', inset: 0, overflowY: 'auto', overflowX: 'hidden' }}>
+        <div style={{ minWidth: 900, display: 'flex', flexDirection: 'column', height: '100%' }}>
+          {/* 日志面板 */}
+          <div
+            style={{
+              padding: '8px 12px',
+              background: '#f9fafb',
+              borderBottom: '1px solid #e5e7eb',
+              fontSize: 12,
+            }}
+          >
+            <div style={{ fontWeight: 600, marginBottom: 4 }}>Cross-Instance DnD</div>
+            {log.map((l, i) => (
+              <div key={i}>{l}</div>
+            ))}
+          </div>
+
+          {/* Scheduler A */}
+          <div style={{ ...schedulerStyle, borderBottom: '2px solid #e5e7eb', minHeight: 400 }}>
+            <div
+              style={{
+                position: 'absolute',
+                top: 4,
+                left: 12,
+                zIndex: 10,
+                fontSize: 11,
+                fontWeight: 600,
+                color: '#6b7280',
+              }}
+            >
+              Scheduler A（拖出源）
+            </div>
+            <Calendar
+              events={eventsA}
+              callbacks={callbacksA}
+              options={{
+                defaultView: 'scheduler',
+                scheduler: {
+                  resources: CROSS_RESOURCES_A,
+                  hourStart: 8,
+                  hourEnd: 18,
+                },
+              }}
+            />
+          </div>
+
+          {/* Scheduler B */}
+          <div style={{ ...schedulerStyle, minHeight: 400 }}>
+            <div
+              style={{
+                position: 'absolute',
+                top: 4,
+                left: 12,
+                zIndex: 10,
+                fontSize: 11,
+                fontWeight: 600,
+                color: '#6b7280',
+              }}
+            >
+              Scheduler B（拖入目标）
+            </div>
+            <Calendar
+              events={eventsB}
+              callbacks={callbacksB}
+              options={{
+                defaultView: 'scheduler',
+                scheduler: {
+                  resources: CROSS_RESOURCES_B,
+                  hourStart: 8,
+                  hourEnd: 18,
+                },
+              }}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  },
+  play: async ({ canvasElement }) => {
+    await new Promise((r) => setTimeout(r, DEMO_PAUSE));
+    const canvas = within(canvasElement);
+
+    // 验证 Scheduler A 中的事件已渲染
+    const crossTitles = canvas.getAllByText('跨实例演示事件');
+    expect(crossTitles.length).toBeGreaterThanOrEqual(1);
+
+    // 验证两个 Scheduler 标签已渲染
+    const labelA = canvas.getByText('Scheduler A（拖出源）');
+    expect(labelA).toBeTruthy();
+    const labelB = canvas.getByText('Scheduler B（拖入目标）');
+    expect(labelB).toBeTruthy();
+  },
+};

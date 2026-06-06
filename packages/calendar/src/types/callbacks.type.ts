@@ -91,6 +91,32 @@ export interface CalendarExternalDropFailedInfo {
   resourceId?: string;
 }
 
+export interface CalendarCrossInstanceDragEndInfo {
+  /** 被拖出容器的事件数据 */
+  event: EventObjectWithDefaultValues;
+}
+
+export interface CalendarCrossInstanceDropInfo {
+  /**
+   * 从源实例拖出的事件数据。
+   *
+   * 注意：`event.start` / `event.end` 保留的是源实例中的原始时间值，
+   * 不代表事件在目标实例中的最终位置。
+   * 目标侧应使用本接口的顶层 `start` / `end` 字段作为事件的新时间。
+   */
+  event: EventObject;
+  /** drop 位置对应的日期 */
+  date: DayjsTZDate;
+  /** drop 位置对应的开始时间（目标实例计算值） */
+  start: DayjsTZDate;
+  /** drop 位置对应的结束时间（目标实例计算值） */
+  end: DayjsTZDate;
+  /** drop 位置对应的资源 ID */
+  resourceId?: string;
+  /** drop 位置对应的资源名称 */
+  resourceName?: string;
+}
+
 export interface CalendarCallbacks {
   onEventClick?: (info: CalendarEventClickInfo) => void;
   onCellClick?: (info: CalendarCellClickInfo) => void;
@@ -105,4 +131,6 @@ export interface CalendarCallbacks {
   onValidateEventChange?: (info: CalendarValidateEventChangeInfo) => boolean;
   onExternalDrop?: (info: CalendarExternalDropInfo) => void;
   onExternalDropFailed?: (info: CalendarExternalDropFailedInfo) => void;
+  onCrossInstanceDragEnd?: (info: CalendarCrossInstanceDragEndInfo) => void;
+  onCrossInstanceDrop?: (info: CalendarCrossInstanceDropInfo) => void;
 }

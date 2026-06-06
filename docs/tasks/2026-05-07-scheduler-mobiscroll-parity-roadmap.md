@@ -144,10 +144,10 @@ https://demo.mobiscroll.com/react/scheduler/desktop-week-view
 - [x] Phase 1A 基线能力已进入实现
 - [x] Phase 1B 交互闭环已进入实现
 - [x] Phase 2 资源调度基线已进入实现
-- [ ] Phase 3 进行中（Step 30-34 已完成，剩 Step 35 跨实例拖动）
+- [x] Phase 3 完成（Step 30-35 全部落地）
 
 说明：
 
-- 当前代码已具备 all-day lane、多日分段、overlap policy、failed callbacks、资源显隐/分组/共享事件、recurrence 展开、timezone 转换、external DnD 等能力
+- 当前代码已具备 all-day lane、多日分段、overlap policy、failed callbacks、资源显隐/分组/共享事件、recurrence 展开、timezone 转换、external DnD、跨实例拖动等能力
 - 当前主要风险不再是“底座没有做出来”，而是“规格、phase 状态与实现状态需要持续对齐”
-- Phase 3 跨实例拖动仍是明确未完成的高级调度范围
+- 编辑作用域（本次/本次及以后/全部）仍是明确未完成的高级调度范围

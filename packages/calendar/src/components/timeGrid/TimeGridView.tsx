@@ -23,6 +23,7 @@ import { timeGridSelectionHelper } from '@/helpers/gridSelection';
 import { useDOMNode } from '@/hooks/common/useDOMNode';
 import { useIsMounted } from '@/hooks/common/useIsMounted';
 import { useGridSelection } from '@/hooks/GridSelection/useGridSelection';
+import { useCrossInstanceDnD } from '@/hooks/TimeGrid/useCrossInstanceDnD';
 import { useExternalDrop } from '@/hooks/TimeGrid/useExternalDrop';
 import { EventUIModel } from '@/model/eventUIModel';
 import { isSameDate, setTimeStrToDate, toEndOfDay, toStartOfDay } from '@/time/datetime';
@@ -60,6 +61,8 @@ export function TimeGrid({ timeGridData, events }: TimeGridProps) {
 
   // 获取列容器的 DOM 节点引用
   const [columnsContainer, setColumnsContainer] = useDOMNode();
+  // 获取最外层容器的 DOM 节点引用（用于跨实例拖拽边界检测）
+  const [timeGridContainer, setTimeGridContainer] = useDOMNode();
   // 组件挂载状态检查
   const isMounted = useIsMounted();
 
@@ -227,8 +230,15 @@ export function TimeGrid({ timeGridData, events }: TimeGridProps) {
     options,
   });
 
+  useCrossInstanceDnD({
+    enabled: currentView === 'scheduler' && !isReadOnly,
+    containerEl: timeGridContainer,
+    gridPositionFinder,
+    timeGridData,
+  });
+
   return (
-    <div className={classNames.timeGrid}>
+    <div className={classNames.timeGrid} ref={setTimeGridContainer}>
       <div className={classNames.scrollArea}>
         {/* 左侧时间轴 */}
         <TimeColumn timeGridRows={timeGridData.rows} nowIndicatorState={nowIndicatorState} />

@@ -20,7 +20,7 @@
 | `02-scheduler-pipeline-and-layout.md` | scheduler pipeline、all-day、多日分段、`colors` | `[x]` |
 | `03-template-and-interaction.md` | template、回调、交互闭环 | `[x]` |
 | `04-resource-scheduling.md` | 资源显隐、分组、shared events | `[x]` |
-| `05-advanced-scheduling.md` | recurrence、timezone、DnD | `[-]` |
+| `05-advanced-scheduling.md` | recurrence、timezone、DnD | `[x]` |
 
 说明：
 
@@ -65,7 +65,7 @@
 - [x] 阶段 03 完成：模板与交互闭环完成
 - [x] 测试基建完成：Storybook 交互测试与 test-runner 支持
 - [x] 阶段 04 完成：资源调度能力完成
-- [ ] 阶段 05 完成：高级调度能力完成
+- [x] 阶段 05 完成：高级调度能力完成
 
 ## 每步固定验证
 

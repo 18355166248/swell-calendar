@@ -3,7 +3,7 @@ import { uniq } from 'lodash-es';
 import { setTimeStrToDate } from '@/time/datetime';
 import DayjsTZDate from '@/time/dayjs-tzdate';
 import { convertTimezone, needsTimezoneConversion } from '@/time/timezone';
-import { CalendarExternalDropInfo } from '@/types/callbacks.type';
+import { CalendarCrossInstanceDropInfo, CalendarExternalDropInfo } from '@/types/callbacks.type';
 import { EventObject, EventObjectWithDefaultValues } from '@/types/events.type';
 import { CommonGridColumn, GridPosition, TimeGridData } from '@/types/grid.type';
 import { GridSelectionData } from '@/types/gridSelection.type';
@@ -253,6 +253,31 @@ export function createExternalDropInfo(
 
   return {
     dataTransfer,
+    date: new DayjsTZDate(column.date),
+    start,
+    end,
+    resourceId: column.resourceId,
+    resourceName: column.resourceName,
+  };
+}
+
+/**
+ * 从 grid 位置构造跨实例拖拽 drop intent
+ *
+ * 与 createExternalDropInfo 不同，跨实例场景不携带 DataTransfer，
+ * 事件数据由 bridge 传递而非 HTML5 DnD API。
+ */
+export function createCrossInstanceDropInfo(
+  timeGridData: TimeGridData,
+  position: GridPosition
+): Omit<CalendarCrossInstanceDropInfo, 'event'> {
+  const column = timeGridData.columns[position.columnIndex];
+  const row = timeGridData.rows[position.rowIndex];
+
+  const start = setTimeStrToDate(column.date, row.startTime);
+  const end = setTimeStrToDate(column.date, row.endTime);
+
+  return {
     date: new DayjsTZDate(column.date),
     start,
     end,

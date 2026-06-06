@@ -66,6 +66,7 @@ swell-calendar 是一个**可嵌入的 React 日历组件库**，面向需要在
 | recurrence 展开 + exceptions     | 🟡   | scheduler 已接入视口内展开，recurringExceptions 跳过/替换已接入渲染链；编辑作用域仍未接入 |
 | timezone 转换                     | 🟡   | `displayTimezone` + per-event `timezone` 已接入 scheduler 渲染链（数据时区→显示时区）；多时区列同时展示、全天事件跨时区边界仍未接入 |
 | external DnD                      | 🟡   | `allowExternalDrop` + `onExternalDrop` / `onExternalDropFailed` 已接入 scheduler；实时预览阴影、第三方库封装仍未接入 |
+| 跨实例拖动                         | 🟡   | `onCrossInstanceDragEnd` / `onCrossInstanceDrop` 已接入 scheduler；跨实例预览阴影、跨实例 resize 仍未接入 |
 
 ### 当前范围基线（2026-06）
 
@@ -85,13 +86,14 @@ swell-calendar 是一个**可嵌入的 React 日历组件库**，面向需要在
 - shared events
 - 资源级与 per-event 交互限制
 - external DnD（`onExternalDrop` / `onExternalDropFailed`）
+- 跨实例拖动（`onCrossInstanceDragEnd` / `onCrossInstanceDrop`）
 
 当前**仍明确后置**的能力：
 
 - recurrence 编辑作用域（本次/本次及以后/全部）
 - timezone 多时区列同时展示、全天事件跨时区边界
 - external DnD 实时预览阴影、第三方库封装
-- 跨实例拖拽
+- 跨实例拖动预览阴影、跨实例 resize
 - `agenda`
 - 移动端适配
 - `connections`
@@ -360,6 +362,17 @@ interface CalendarProps {
       start: DayjsTZDate;
       end: DayjsTZDate;
       resourceId?: string;
+    }) => void;
+    onCrossInstanceDragEnd?: (info: {
+      event: EventObjectWithDefaultValues;
+    }) => void;
+    onCrossInstanceDrop?: (info: {
+      event: EventObject;
+      date: DayjsTZDate;
+      start: DayjsTZDate;
+      end: DayjsTZDate;
+      resourceId?: string;
+      resourceName?: string;
     }) => void;
   };
 }

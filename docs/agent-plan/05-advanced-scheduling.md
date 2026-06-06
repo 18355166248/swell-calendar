@@ -8,8 +8,8 @@
 
 ## 当前状态
 
-- 总状态：`[-] 进行中`
-- 说明：Step 30-34 已完成；recurrence 视口内展开和 recurring exceptions 跳过/替换已接入 scheduler 渲染链；timezone 数据→显示转换已接入；external DnD 已接入
+- 总状态：`[x] 已完成`
+- 说明：Step 30-35 全部完成；recurrence 视口内展开和 recurring exceptions 跳过/替换已接入 scheduler 渲染链；timezone 数据→显示转换已接入；external DnD 已接入；跨实例拖动已接入
 
 ## 步骤清单
 
@@ -18,7 +18,7 @@
 - [x] Step 32：接入 recurring exceptions
 - [x] Step 33：接入 timezone
 - [x] Step 34：接入 external DnD
-- [ ] Step 35：接入跨实例拖动
+- [x] Step 35：接入跨实例拖动
 
 ## 目标
 
@@ -143,16 +143,21 @@
 - 宿主可以拿到外部 drop intent
 - 200 个测试全部通过
 
-## Step 35：接入跨实例拖动
+## Step 35：接入跨实例拖动 ✅
+
+2026-06-06 已完成
 
 内容：
 
-- 事件可在多个 calendar 实例间拖动
-- 回调携带完整上下文
+- 新建 `controller/cross-instance-bridge.ts`：模块级 publish/subscribe 单例桥接器
+- 新建 `hooks/TimeGrid/useCrossInstanceDnD.ts`：源侧（检测拖出 + 发布）+ 目标侧（订阅 + 接收）
+- 新增 `onCrossInstanceDragEnd` / `onCrossInstanceDrop` 回调
+- `TimeGridView.tsx` 接入跨实例 hook
+- 新增 `Scheduler/CrossInstanceDnD` Story
 
 最小验证：
 
-- mock 场景验证 source / target / event payload
+- `Scheduler/CrossInstanceDnD` Story
 
 通过标准：
 

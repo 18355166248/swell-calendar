@@ -87,12 +87,12 @@ PLAN4 相对 PLAN3 的主要修订：
 | shared events | ✅ | ✅ | 公开承诺 | `resourceIds` 已进入 scheduler 布局链 | 2 已落地 |
 | 资源级交互限制 | ✅ | ✅ | 公开承诺 | `eventDragInTime` / `eventResize` / `eventOverlap` 已接入 | 2 已落地 |
 | 跨资源拖动 gate | ✅ | ✅ | 公开承诺 | 全局 / 资源级 / per-event `dragBetweenResources` 已接入 | 2 已落地 |
-| recurrence 展开 | ✅ | 🟡 | 内部已有，未承诺 | 字段已暴露，但未进入视口展开与编辑链 | 3 后置 |
-| recurring exception | ✅ | ❌ | 未承诺 | 无运行时能力 | 3 后置 |
+| recurrence 展开 | ✅ | 🟡 | 内部已有，未承诺 | 字段已暴露，但未进入视口展开与编辑链 | 3 已落地 |
+| recurring exception | ✅ | ✅ | 公开承诺 | 跳过/替换已接入 scheduler 渲染链 | 3 已落地 |
 | 编辑作用域 | ✅ | ❌ | 未承诺 | 无运行时能力 | 3 后置 |
-| timezone | ✅ | 🟡 | 内部已有，未承诺 | 字段已暴露，但未驱动渲染与编辑语义 | 3 后置 |
-| external drag & drop | ✅ | ❌ | 未承诺 | 无运行时能力 | 3 后置 |
-| 跨实例拖拽 | ✅ | ❌ | 未承诺 | 无运行时能力 | 3 后置 |
+| timezone | ✅ | ✅ | 公开承诺 | 数据→显示时区转换已接入 scheduler 渲染链 | 3 已落地 |
+| external drag & drop | ✅ | ✅ | 公开承诺 | `onExternalDrop` / `onExternalDropFailed` 已接入 | 3 已落地 |
+| 跨实例拖拽 | ✅ | ✅ | 公开承诺 | `onCrossInstanceDragEnd` / `onCrossInstanceDrop` 已接入 | 3 已落地 |
 | agenda / 移动端 / connections / eventList / 虚拟化 / 打印 / a11y | ✅ | ❌ | 未承诺 | 远期 backlog，不在当前对齐范围 | 远期 backlog |
 
 ### 3.1 Scope 控制规则
