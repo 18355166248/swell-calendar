@@ -29,7 +29,7 @@ const sameDateResourceColumn: CommonGridColumn = {
 };
 
 describe('useTimeGridEventMove', () => {
-  it('keeps the dragged event shape inside the target scheduler column', () => {
+  it('spans the full target scheduler column while dragging (mobiscroll parity)', () => {
     const uiModel = new EventUIModel(
       new EventModel({
         id: 'event-a',
@@ -55,9 +55,11 @@ describe('useTimeGridEventMove', () => {
       targetColumn,
     });
 
+    // 跟手影子铺满整列：忽略原卡片的窄分栏宽度(width:50)/偏移(left:50)，
+    // 直接贴合目标列 left:40 / width:10
     expect(layout).toMatchObject({
-      left: 45,
-      width: 5,
+      left: 40,
+      width: 10,
       top: 0,
       height: 50,
     });

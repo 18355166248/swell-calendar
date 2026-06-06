@@ -76,6 +76,25 @@ export function setTimeStrToDate(d: DayjsTZDate, timeStr: FormattedTimeString) {
   return date;
 }
 
+/**
+ * 推导单个网格行的时长（毫秒）
+ * 用于拖拽/缩放的吸附粒度：吸附步长 = 网格行粒度（由 hourDivision 决定），
+ * 避免硬编码 30 分钟在 hourDivision≠2 时错位
+ * @param row 含 startTime/endTime（"HH:mm"）的网格行
+ * @returns 行时长毫秒数
+ */
+export function getRowSlotMs(row: {
+  startTime: FormattedTimeString;
+  endTime: FormattedTimeString;
+}): number {
+  const toMinutes = (timeStr: FormattedTimeString) => {
+    const [hour, minute] = timeStr.split(':').map(Number);
+    return hour * 60 + minute;
+  };
+
+  return (toMinutes(row.endTime) - toMinutes(row.startTime)) * MS_PER_MINUTES;
+}
+
 export function isSameYear(d1: DayjsTZDate, d2: DayjsTZDate): boolean {
   return d1.getFullYear() === d2.getFullYear();
 }

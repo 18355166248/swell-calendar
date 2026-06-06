@@ -7,6 +7,7 @@ import { getSchedulerViewEvents } from '@/controller/scheduler-layout';
 import { getFlattenedVisibleResources, normalizeResources } from '@/controller/scheduler-resources';
 import { cls } from '@/helpers/css';
 import { createSchedulerTimeGridData, getWeekDates } from '@/helpers/grid';
+import useTimeGridScrollSync from '@/hooks/TimeGrid/useTimeGridScrollSync';
 import { toEndOfDay, toStartOfDay } from '@/time/datetime';
 
 import Layout from '../Layout';
@@ -124,6 +125,9 @@ export function Scheduler() {
       }),
     [weekDates, resources, hourStart, hourEnd, hourDivision]
   );
+
+  // 拖拽/缩放接近时间面板上下边缘时自动滚动（仅垂直，与 Week/Day 同构）
+  useTimeGridScrollSync(timePanelEl, timeGridData.rows.length);
 
   if (resources.length === 0) {
     return (

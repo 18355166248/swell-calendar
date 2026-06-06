@@ -17,8 +17,8 @@ import { EventUIModel } from '@/model/eventUIModel';
 import {
   addMinutes,
   getDateDifference,
+  getRowSlotMs,
   MS_PER_DAY,
-  MS_PER_THIRTY_MINUTES,
   setTimeStrToDate,
 } from '@/time/datetime';
 // 导入时区日期处理类
@@ -60,8 +60,9 @@ export function getMovingEventLayout({
   timeGridDataRows: TimeGridData['rows'];
   targetColumn: CommonGridColumn;
 }) {
-  // 计算时间差（毫秒）：行差*30分钟 + 日期差*1天
-  const millisecondsDiff = rowDiff * MS_PER_THIRTY_MINUTES + dateDiff * MS_PER_DAY;
+  // 计算时间差（毫秒）：行差*单行时长（吸附粒度跟随 hourDivision）+ 日期差*1天
+  const slotMs = getRowSlotMs(timeGridDataRows[0]);
+  const millisecondsDiff = rowDiff * slotMs + dateDiff * MS_PER_DAY;
   // 获取事件的持续时间信息（缓冲时间）
   const { goingDuration = 0, comingDuration = 0 } = draggingEvent.model;
   // 计算包含缓冲时间的开始时间（减去going缓冲时间）
@@ -83,8 +84,10 @@ export function getMovingEventLayout({
 
   // 返回计算出的位置信息
   return {
-    left: targetColumn.left + (targetColumn.width * draggingEvent.left) / 100,
-    width: (targetColumn.width * draggingEvent.width) / 100,
+    // 跟手影子铺满目标列：丢弃原卡片在重叠分栏中的窄宽度与左偏移（draggingEvent.left/width），
+    // 对齐 mobiscroll —— 拖拽过程中影子始终为整列满宽，松手后再按落点重新分栏
+    left: targetColumn.left,
+    width: targetColumn.width,
     top,
     height,
   };
@@ -179,11 +182,12 @@ export function useTimeGridEventMove({
       return null;
     }
 
-    // 根据网格差值计算新的开始时间：行差*30分钟 + 日期差*1天
+    // 根据网格差值计算新的开始时间：行差*单行时长（吸附粒度跟随 hourDivision）+ 日期差*1天
+    const slotMs = getRowSlotMs(timeGridData.rows[0]);
     return startDateTime.addMilliseconds(
-      gridDiff.rowDiff * MS_PER_THIRTY_MINUTES + gridDiff.dateDiff * MS_PER_DAY
+      gridDiff.rowDiff * slotMs + gridDiff.dateDiff * MS_PER_DAY
     );
-  }, [gridDiff, startDateTime]); // 依赖项：网格差值和开始时间
+  }, [gridDiff, startDateTime, timeGridData.rows]); // 依赖项：网格差值、开始时间、行数据
 
   const nextEndTime = useMemo(() => {
     if (isNil(nextStartTime)) {

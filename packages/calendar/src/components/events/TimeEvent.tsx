@@ -233,7 +233,9 @@ export function TimeEvent({
 
   // 创建拖拽类型标识符
   const moveType = DRAGGING_TYPE_CREATE.moveEvent('timeGrid', `${uiModel.cid()}`);
-  const resizeType = DRAGGING_TYPE_CREATE.resizeEvent('timeGrid', `${uiModel.cid()}`);
+  // 顶边改开始时间、底边改结束时间，方向编码进 drag type
+  const resizeTopType = DRAGGING_TYPE_CREATE.resizeEvent('timeGrid', `${uiModel.cid()}`, 'start');
+  const resizeBottomType = DRAGGING_TYPE_CREATE.resizeEvent('timeGrid', `${uiModel.cid()}`, 'end');
 
   const canMove = canInteractWithTimeEvent({
     uiModel,
@@ -298,7 +300,12 @@ export function TimeEvent({
     },
   });
 
-  const onResizeStart = useDrag(resizeType, {
+  const onResizeTopStart = useDrag(resizeTopType, {
+    onDragStart: () => startDragEvent(classNames.resizeEvent),
+    onMouseUp: () => endDragEvent(classNames.resizeEvent),
+  });
+
+  const onResizeBottomStart = useDrag(resizeBottomType, {
     onDragStart: () => startDragEvent(classNames.resizeEvent),
     onMouseUp: () => endDragEvent(classNames.resizeEvent),
   });
@@ -312,9 +319,14 @@ export function TimeEvent({
     onMoveStart(e);
   };
 
-  const handleResizeStart = (e: MouseEvent) => {
+  const handleResizeTopStart = (e: MouseEvent) => {
     e.stopPropagation(); // 阻止事件冒泡
-    onResizeStart(e);
+    onResizeTopStart(e);
+  };
+
+  const handleResizeBottomStart = (e: MouseEvent) => {
+    e.stopPropagation(); // 阻止事件冒泡
+    onResizeBottomStart(e);
   };
 
   const handleMouseEnter = () => {
@@ -384,21 +396,21 @@ export function TimeEvent({
         />
       </div>
 
-      {/* 显示调整大小顶部手柄 */}
+      {/* 显示调整大小顶部手柄（改开始时间） */}
       {canResize && (
         <div
           className={classNames.resizeHandleTop}
           data-testid={`resize-handle-top-${model.id}`}
-          onMouseDown={handleResizeStart}
+          onMouseDown={handleResizeTopStart}
         />
       )}
 
-      {/* 显示调整大小底部手柄 */}
+      {/* 显示调整大小底部手柄（改结束时间） */}
       {canResize && (
         <div
           className={classNames.resizeHandleBottom}
           data-testid={`resize-handle-bottom-${model.id}`}
-          onMouseDown={handleResizeStart}
+          onMouseDown={handleResizeBottomStart}
         />
       )}
     </div>
