@@ -221,5 +221,33 @@ describe('recurrence-edit-scope', () => {
       expect(result[0].recurrence).toEqual(parentEvent.recurrence);
       expect(result[0].recurringExceptions).toEqual(parentEvent.recurringExceptions);
     });
+
+    it('start/end 仅应用日内时间，保留父事件原始日期', () => {
+      // 模拟：用户在周三实例上拖拽，changes.start 是周三的日期+新时间
+      // 期望：父事件（周一）的日期不变，只更新时间
+      const result = applyRecurrenceEditScope({
+        parentEvent,
+        occurrenceDate: d('2026-06-08'),
+        scope: 'all',
+        changes: {
+          start: d('2026-06-08T14:00:00'), // 周三 14:00
+          end: d('2026-06-08T14:30:00'), // 周三 14:30
+        },
+      });
+
+      expect(result).toHaveLength(1);
+      const updated = result[0];
+
+      // 日期应保留父事件的周一 (06-01)，而非周三 (06-08)
+      const updatedStart = new DayjsTZDate(updated.start);
+      expect(updatedStart.getDate()).toBe(1); // 周一
+      expect(updatedStart.getHours()).toBe(14); // 新时间
+      expect(updatedStart.getMinutes()).toBe(0);
+
+      const updatedEnd = new DayjsTZDate(updated.end);
+      expect(updatedEnd.getDate()).toBe(1);
+      expect(updatedEnd.getHours()).toBe(14);
+      expect(updatedEnd.getMinutes()).toBe(30);
+    });
   });
 });

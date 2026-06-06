@@ -177,7 +177,9 @@ function applyFollowingScope(
  * 逻辑：
  * 1. 将 changes 合并到父事件
  * 2. 保留 recurrence / recurringExceptions 等规则字段
- * 3. 返回 [updatedParent]
+ * 3. 对 start / end 仅应用"日内时间"变更，保留父事件的原始日期
+ *    （避免实例日期覆盖父事件锚点导致展开丢失实例）
+ * 4. 返回 [updatedParent]
  */
 function applyAllScope(parentEvent: EventObject, changes: Partial<EventObject>): EventObject[] {
   // 不允许通过 changes 覆盖 recurrence 相关字段
@@ -188,12 +190,41 @@ function applyAllScope(parentEvent: EventObject, changes: Partial<EventObject>):
   delete safeChanges.recurrenceParentId;
   delete safeChanges.recurrenceOccurrenceDate;
 
+  // start / end 仅取日内时间偏移量，应用到父事件的原始日期上
+  // 这样 "all" 语义 = 所有实例的时间同步移动，而非改变 recurrence 锚点日期
+  if (safeChanges.start != null) {
+    safeChanges.start = mergeTimeIntoDate(parentEvent.start, safeChanges.start);
+  }
+  if (safeChanges.end != null) {
+    safeChanges.end = mergeTimeIntoDate(parentEvent.end, safeChanges.end);
+  }
+
   return [
     {
       ...parentEvent,
       ...safeChanges,
     },
   ];
+}
+
+/**
+ * 将 source 的"日内时间"合并到 target 的日期上
+ *
+ * 例如 target = Mon 10:00, source = Wed 11:00 → Mon 11:00
+ */
+function mergeTimeIntoDate(
+  target: EventObject['start'],
+  source: EventObject['start']
+): DayjsTZDate {
+  const targetDate = new DayjsTZDate(target);
+  const sourceDate = new DayjsTZDate(source);
+
+  return targetDate.setHours(
+    sourceDate.getHours(),
+    sourceDate.getMinutes(),
+    sourceDate.getSeconds(),
+    sourceDate.getMilliseconds()
+  );
 }
 
 /**

@@ -86,7 +86,6 @@
 
 2026-06-05 已完成
 
-
 内容：
 
 - 支持跳过实例
@@ -181,6 +180,7 @@
 
 - `controller/recurrence-edit-scope.ts`
 - `controller/recurrence-edit-scope.spec.ts`
+- `controller/scheduler-interactions-integration.spec.ts`（集成测试：move/resize/delete/create 完整链路）
 
 修改文件：
 
@@ -194,6 +194,12 @@
 - `index.ts`
 - `stories/Calendar/Scheduler.stories.tsx`
 
+2026-06-06 后续完善：
+
+- `all` scope `applyRecurrenceEditScope` 日间时间处理：changes.start/end 仅应用日内时分秒，保留父事件原始日期
+- `Scheduler/RecurrenceEditScope` Story 补齐 `onEventCreate` 回调
+- 新增 `scheduler-interactions-integration.spec.ts`：覆盖 recurrence 实例 move/resize/delete/create 四个交互的完整数据流链路（展开 → 回调 → `applyRecurrenceEditScope` → 重新展开）
+
 最小验证：
 
 - `pnpm --filter swell-calendar exec tsc --noEmit`
@@ -204,6 +210,7 @@
 通过标准：
 
 - single / following / all 三种作用域行为正确
+- `all` scope 不会把实例日期写回父事件
 - 不影响非 recurrence 事件的编辑流程
 - 全部门禁通过
 

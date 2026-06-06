@@ -2498,6 +2498,13 @@ export const RecurrenceEditScope: Story = {
 
     const callbacks = useMemo<CalendarCallbacks>(
       () => ({
+        onEventCreate: (info) => {
+          addLog(`[create] ${info.event.resourceId ?? '—'}`);
+          setEvents((prev) => [
+            ...prev,
+            { ...info.event, id: `new-${Date.now()}`, editable: true },
+          ]);
+        },
         onEventUpdate: (info) => {
           if (info.recurrenceInstance) {
             const s = scopeRef.current;
