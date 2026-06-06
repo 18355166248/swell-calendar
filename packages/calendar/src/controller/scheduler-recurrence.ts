@@ -93,10 +93,16 @@ export function expandSchedulerRecurrenceEvent(
   // rule.exceptions 是 DateType[]（仅跳过日期），recurringExceptions 是 RecurringException[]（支持跳过和替换）
   const exceptions = event.recurringExceptions ?? undefined;
 
+  // expandRecurrence 将日期归一化到午夜（00:00）做日期运算，
+  // 需要提取原事件的日内时间偏移量，在构造实例时加回到每个展开日期上
+  const startOfDayMs = new DayjsTZDate(eventStart).setHours(0, 0, 0, 0).getTime();
+  const timeOfDayMs = eventStart.getTime() - startOfDayMs;
+  const durationMs = new DayjsTZDate(event.end).getTime() - eventStart.getTime();
+
   let loopIndex = 0;
 
-  for (const occurrenceDate of result.dates) {
-    const exception = getExceptionForDate(exceptions, occurrenceDate);
+  for (const rawOccurrenceDate of result.dates) {
+    const exception = getExceptionForDate(exceptions, rawOccurrenceDate);
 
     if (exception?.skipped) {
       // 跳过该日期, 不渲染
@@ -104,18 +110,21 @@ export function expandSchedulerRecurrenceEvent(
       continue;
     }
 
-    // end - start 天然为正，不需要 Math.abs
-    const durationMs = new DayjsTZDate(event.end).getTime() - eventStart.getTime();
+    // 将原事件的时分秒偏移量加回到展开日期上
+    const occurrenceDate = new DayjsTZDate(rawOccurrenceDate.getTime() + timeOfDayMs);
     const instanceEnd = new DayjsTZDate(occurrenceDate.getTime() + durationMs);
 
     const instanceEvent: EventObject = {
       ...event,
-      id: generateInstanceId(event.id, event.title, occurrenceDate, loopIndex),
+      id: generateInstanceId(event.id, event.title, rawOccurrenceDate, loopIndex),
       start: occurrenceDate,
       end: instanceEnd,
       recurrence: undefined, // 实例不再携带 recurrence 规则，避免无限递归
       recurringExceptions: undefined,
       recurringExceptionRule: undefined,
+      // 展开实例元数据：宿主在回调中据此识别父事件和原始发生日期
+      recurrenceParentId: event.id ?? '',
+      recurrenceOccurrenceDate: occurrenceDate,
     };
 
     // 合并 exception overrides（如果有）

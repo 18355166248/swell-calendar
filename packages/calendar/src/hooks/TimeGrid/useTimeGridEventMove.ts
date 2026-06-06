@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useRef } from 'react';
 
 import { useCalendarCallbacks } from '@/contexts/calendarCallbacks';
 import { useCalendarStore } from '@/contexts/calendarStore';
+import { buildRecurrenceInstanceInfo } from '@/controller/recurrence-edit-scope';
 import { createUpdatedTimeGridEvent } from '@/controller/scheduler.controller';
 import { shouldAcceptEventChange } from '@/controller/scheduler-validation';
 // 导入网格位置相关类型定义
@@ -265,6 +266,7 @@ export function useTimeGridEventMove({
         callbacks?.onEventUpdate?.({
           event: updatedEvent,
           previousEvent: draggingEvent.model.toEventObject(),
+          recurrenceInstance: buildRecurrenceInstanceInfo(draggingEvent.model.toEventObject()),
         });
       }
 

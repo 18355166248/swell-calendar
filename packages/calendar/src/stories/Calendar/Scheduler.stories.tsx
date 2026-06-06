@@ -1,10 +1,11 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import Chance from 'chance';
 import dayjs from 'dayjs';
-import { ReactNode, useMemo, useState } from 'react';
+import { ReactNode, useMemo, useRef, useState } from 'react';
 import { expect, fireEvent, userEvent, waitFor, within } from 'storybook/test';
 
 import { Calendar } from '@/components/Calendar';
+import { applyRecurrenceEditScope } from '@/controller/recurrence-edit-scope';
 import DayjsTZDate from '@/time/dayjs-tzdate';
 import { CalendarCallbacks } from '@/types/callbacks.type';
 import { EventObject } from '@/types/events.type';
@@ -2446,5 +2447,178 @@ export const CrossInstanceDnD: Story = {
     expect(labelA).toBeTruthy();
     const labelB = canvas.getByText('Scheduler B（拖入目标）');
     expect(labelB).toBeTruthy();
+  },
+};
+
+export const RecurrenceEditScope: Story = {
+  render: function RecurrenceEditScopeStory() {
+    const today = new DayjsTZDate();
+    const weekStart = today.addDate(-today.getDay());
+
+    const initialEvents: EventObject[] = [
+      // weekly recurring: 每周一/三/五 10:00-11:00 on r1
+      {
+        id: 'recurring-standup',
+        title: '每日站会',
+        category: 'time',
+        start: dayjs(weekStart.getTime()).add(1, 'day').hour(10).minute(0).toDate(),
+        end: dayjs(weekStart.getTime()).add(1, 'day').hour(11).minute(0).toDate(),
+        resourceId: 'r1',
+        backgroundColor: '#3b82f6',
+        color: '#fff',
+        editable: true,
+        recurrence: {
+          frequency: 'weekly',
+          byWeekDays: [1, 3, 5],
+        },
+      },
+      // normal event on r2
+      {
+        id: 'normal-1',
+        title: '普通事件（不重复）',
+        category: 'time',
+        start: dayjs(today.getTime()).hour(14).minute(0).toDate(),
+        end: dayjs(today.getTime()).hour(15).minute(0).toDate(),
+        resourceId: 'r2',
+        backgroundColor: '#10b981',
+        color: '#fff',
+        editable: true,
+      },
+    ];
+
+    const [events, setEvents] = useState<EventObject[]>(initialEvents);
+    const [scope, setScope] = useState<'single' | 'following' | 'all'>('single');
+    const [log, setLog] = useState<string[]>(['拖拽/resize/delete 事件卡片，切换作用域观察回调']);
+    const addLog = (msg: string) => setLog((prev) => [msg, ...prev.slice(0, 6)]);
+
+    const scopeRef = useRef(scope);
+    scopeRef.current = scope;
+    const eventsRef = useRef(events);
+    eventsRef.current = events;
+
+    const callbacks = useMemo<CalendarCallbacks>(
+      () => ({
+        onEventUpdate: (info) => {
+          if (info.recurrenceInstance) {
+            const s = scopeRef.current;
+            addLog(`[update] parent=${info.recurrenceInstance.recurrenceParentId} scope=${s}`);
+            const parent = eventsRef.current.find(
+              (e) => e.id === info.recurrenceInstance!.recurrenceParentId
+            );
+            if (parent) {
+              const result = applyRecurrenceEditScope({
+                parentEvent: parent,
+                occurrenceDate: new DayjsTZDate(info.recurrenceInstance.recurrenceOccurrenceDate),
+                scope: s,
+                changes: { start: info.event.start, end: info.event.end },
+              });
+              setEvents((prev) => [...prev.filter((e) => e.id !== parent.id), ...result]);
+            }
+          } else {
+            setEvents((prev) => prev.map((e) => (e.id === info.previousEvent.id ? info.event : e)));
+          }
+        },
+        onEventDelete: (info) => {
+          if (info.recurrenceInstance) {
+            const s = scopeRef.current;
+            addLog(`[delete] parent=${info.recurrenceInstance.recurrenceParentId} scope=${s}`);
+            if (s === 'single') {
+              const parent = eventsRef.current.find(
+                (e) => e.id === info.recurrenceInstance!.recurrenceParentId
+              );
+              if (parent) {
+                const exs = [...(parent.recurringExceptions ?? [])];
+                exs.push({
+                  date: info.recurrenceInstance.recurrenceOccurrenceDate,
+                  skipped: true,
+                });
+                setEvents((prev) =>
+                  prev.map((e) => (e.id === parent.id ? { ...e, recurringExceptions: exs } : e))
+                );
+              }
+            }
+          } else {
+            setEvents((prev) => prev.filter((e) => e.id !== info.event.id));
+          }
+        },
+      }),
+      []
+    );
+
+    return (
+      <SchedulerStoryFrame>
+        {/* 作用域选择器 — 底部左侧小面板，不遮挡日历头部 */}
+        <div
+          style={{
+            position: 'absolute',
+            bottom: 12,
+            left: 12,
+            zIndex: 10,
+            padding: '8px 10px',
+            borderRadius: 6,
+            background: 'rgba(15, 23, 42, 0.88)',
+            color: '#fff',
+            fontSize: 11,
+            lineHeight: 1.6,
+            maxWidth: 360,
+          }}
+        >
+          <div style={{ display: 'flex', gap: 4, marginBottom: 4, alignItems: 'center' }}>
+            <span style={{ fontWeight: 600, marginRight: 4 }}>作用域:</span>
+            {(['single', 'following', 'all'] as const).map((s) => (
+              <button
+                key={s}
+                onClick={() => setScope(s)}
+                style={{
+                  padding: '2px 6px',
+                  borderRadius: 3,
+                  border: scope === s ? '1.5px solid #60a5fa' : '1px solid #475569',
+                  background: scope === s ? '#1e40af' : 'transparent',
+                  color: '#fff',
+                  cursor: 'pointer',
+                  fontSize: 10,
+                  fontWeight: scope === s ? 600 : 400,
+                }}
+              >
+                {s === 'single' ? '本次' : s === 'following' ? '以后' : '全部'}
+              </button>
+            ))}
+          </div>
+          {log.map((l, i) => (
+            <div key={i} style={{ fontFamily: 'monospace', fontSize: 9, opacity: 0.9 }}>
+              {l}
+            </div>
+          ))}
+        </div>
+        <Calendar
+          events={events}
+          callbacks={callbacks}
+          options={{
+            defaultView: 'scheduler',
+            scheduler: {
+              resources: RESOURCES,
+              hourStart: 8,
+              hourEnd: 18,
+            },
+          }}
+        />
+      </SchedulerStoryFrame>
+    );
+  },
+  play: async ({ canvasElement }) => {
+    await new Promise((r) => setTimeout(r, DEMO_PAUSE));
+    const canvas = within(canvasElement);
+
+    // 验证 recurring 事件已展开渲染（周一/三/五 → 至少 2 个实例在视口内）
+    const standupTitles = canvas.getAllByText('每日站会');
+    expect(standupTitles.length).toBeGreaterThanOrEqual(2);
+
+    // 验证普通事件也在
+    const normalTitles = canvas.getAllByText('普通事件（不重复）');
+    expect(normalTitles.length).toBeGreaterThanOrEqual(1);
+
+    // 验证作用域选择按钮已渲染
+    const singleBtn = canvas.getByText('本次');
+    expect(singleBtn).toBeTruthy();
   },
 };

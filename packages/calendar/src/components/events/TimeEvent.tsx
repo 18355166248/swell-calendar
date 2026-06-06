@@ -6,6 +6,7 @@ import { TIME_EVENT_CONTAINER_MARGIN_LEFT } from '@/constants/style.const';
 import { useCalendarCallbacks } from '@/contexts/calendarCallbacks';
 import { useCalendarStore } from '@/contexts/calendarStore';
 import { useLayoutContainer } from '@/contexts/layoutContainer';
+import { buildRecurrenceInstanceInfo } from '@/controller/recurrence-edit-scope';
 import { shouldAcceptEventChange } from '@/controller/scheduler-validation';
 import { cls, extractPercentPx, getEventColors, toPercent } from '@/helpers/css';
 import { DRAGGING_TYPE_CREATE } from '@/helpers/drag';
@@ -343,7 +344,10 @@ export function TimeEvent({
           previousEvent: eventObject,
         })
       ) {
-        callbacks?.onEventDelete?.({ event: eventObject });
+        callbacks?.onEventDelete?.({
+          event: eventObject,
+          recurrenceInstance: buildRecurrenceInstanceInfo(eventObject),
+        });
       }
       return;
     }

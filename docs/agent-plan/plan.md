@@ -89,7 +89,7 @@ PLAN4 相对 PLAN3 的主要修订：
 | 跨资源拖动 gate | ✅ | ✅ | 公开承诺 | 全局 / 资源级 / per-event `dragBetweenResources` 已接入 | 2 已落地 |
 | recurrence 展开 | ✅ | 🟡 | 内部已有，未承诺 | 字段已暴露，但未进入视口展开与编辑链 | 3 已落地 |
 | recurring exception | ✅ | ✅ | 公开承诺 | 跳过/替换已接入 scheduler 渲染链 | 3 已落地 |
-| 编辑作用域 | ✅ | ❌ | 未承诺 | 无运行时能力 | 3 后置 |
+| 编辑作用域 | ✅ | ✅ | 公开承诺 | `recurrenceScope`（本次 / 本次及以后 / 全部）已接入编辑链 | 3 已落地 |
 | timezone | ✅ | ✅ | 公开承诺 | 数据→显示时区转换已接入 scheduler 渲染链 | 3 已落地 |
 | external drag & drop | ✅ | ✅ | 公开承诺 | `onExternalDrop` / `onExternalDropFailed` 已接入 | 3 已落地 |
 | 跨实例拖拽 | ✅ | ✅ | 公开承诺 | `onCrossInstanceDragEnd` / `onCrossInstanceDrop` 已接入 | 3 已落地 |
@@ -650,7 +650,7 @@ https://demo.mobiscroll.com/react/scheduler/desktop-week-view
 
 - recurrence 在视口窗口内展开（行为接入 `recurrence`）
 - recurring exception 能跳过或替换实例
-- 编辑作用域支持本次 / 本次及以后 / 全部
+- 编辑作用域支持本次 / 本次及以后 / 全部（Step 36 已落地）
 - 数据时区和显示时区可分离（行为接入 `timezone`）
 - external DnD 和跨实例 DnD 通过 hooks / callbacks 输出完整 intent
 

@@ -50,6 +50,9 @@ describe('scheduler-recurrence', () => {
       expect(result[0].id).toMatch(/^daily-1-\d{4}-\d{2}-\d{2}$/);
       // 检查实例不再携带 recurrence
       expect(result[0].recurrence).toBeUndefined();
+      // 展开实例应携带父事件 ID 和发生日期
+      expect(result[0].recurrenceParentId).toBe('daily-1');
+      expect(result[0].recurrenceOccurrenceDate).toBeDefined();
     });
 
     it('weekly recurrence 按指定工作日展开', () => {
@@ -345,6 +348,81 @@ describe('scheduler-recurrence', () => {
       const ids2 = result2.map((e) => e.id!);
       const allIds = [...ids1, ...ids2];
       expect(new Set(allIds).size).toBe(allIds.length);
+    });
+
+    it('展开实例携带 recurrenceParentId 和 recurrenceOccurrenceDate', () => {
+      const event: EventObject = {
+        id: 'meta-test',
+        title: '元数据测试',
+        start: '2026-06-01T09:00:00',
+        end: '2026-06-01T10:00:00',
+        recurrence: {
+          frequency: 'daily',
+          count: 3,
+        },
+      };
+      const rangeStart = createDayjsDate('2026-06-01');
+      const rangeEnd = createDayjsDate('2026-06-30');
+
+      const result = expandSchedulerRecurrenceEvent(event, rangeStart, rangeEnd);
+      expect(result.length).toBe(3);
+
+      for (const instance of result) {
+        expect(instance.recurrenceParentId).toBe('meta-test');
+        expect(instance.recurrenceOccurrenceDate).toBeDefined();
+      }
+
+      // occurrenceDate 应为对应的展开日期
+      const dates = result.map((e) =>
+        new DayjsTZDate(e.recurrenceOccurrenceDate!).format('YYYY-MM-DD')
+      );
+      expect(dates).toEqual(['2026-06-01', '2026-06-02', '2026-06-03']);
+    });
+
+    it('展开实例保留原事件的时分秒（不降为午夜）', () => {
+      const event: EventObject = {
+        id: 'tod-1',
+        title: '保留时间',
+        start: '2026-06-01T10:30:00',
+        end: '2026-06-01T11:30:00',
+        resourceId: 'r1',
+        recurrence: {
+          frequency: 'weekly',
+          byWeekDays: [1, 3, 5],
+        },
+      };
+      const rangeStart = createDayjsDate('2026-06-01');
+      const rangeEnd = createDayjsDate('2026-06-07');
+
+      const result = expandSchedulerRecurrenceEvent(event, rangeStart, rangeEnd);
+      expect(result.length).toBe(3);
+
+      for (const instance of result) {
+        const instanceStart = new DayjsTZDate(instance.start);
+        // 每个实例的时分秒应与原事件一致
+        expect(instanceStart.getHours()).toBe(10);
+        expect(instanceStart.getMinutes()).toBe(30);
+        expect(instanceStart.getSeconds()).toBe(0);
+      }
+    });
+
+    it('无 id 的父事件展开后 recurrenceParentId 为空字符串', () => {
+      const event: EventObject = {
+        title: '无ID事件',
+        start: '2026-06-01T09:00:00',
+        end: '2026-06-01T10:00:00',
+        recurrence: {
+          frequency: 'daily',
+          count: 2,
+        },
+      };
+      const rangeStart = createDayjsDate('2026-06-01');
+      const rangeEnd = createDayjsDate('2026-06-30');
+
+      const result = expandSchedulerRecurrenceEvent(event, rangeStart, rangeEnd);
+      for (const instance of result) {
+        expect(instance.recurrenceParentId).toBe('');
+      }
     });
   });
 });

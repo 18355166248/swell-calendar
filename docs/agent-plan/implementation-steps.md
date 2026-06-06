@@ -46,7 +46,7 @@
 4. [04-resource-scheduling.md](./04-resource-scheduling.md)
    - 资源显隐、树结构、折叠、shared events、资源级交互限制、跨资源拖动。
 5. [05-advanced-scheduling.md](./05-advanced-scheduling.md)
-   - recurrence、exceptions、timezone、external DnD、跨实例拖动。
+   - recurrence、exceptions、timezone、external DnD、跨实例拖动、编辑作用域（recurrence edit scope）。
 
 ## 执行顺序
 

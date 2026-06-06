@@ -142,6 +142,20 @@ export interface EventObject {
   comingDuration?: number;
   resourceId?: string;
   resourceIds?: string[];
+  /**
+   * 展开实例专属元数据（组件内部设置，宿主不应手动赋值）。
+   *
+   * 当 recurrence 事件被展开为单次实例时，此字段记录父事件的 ID，
+   * 使宿主在回调中能识别"这是某个重复事件的实例"并回溯父事件。
+   */
+  recurrenceParentId?: string;
+  /**
+   * 展开实例专属元数据（组件内部设置，宿主不应手动赋值）。
+   *
+   * 记录该实例对应的原始发生日期（即 recurrence 展开出的日期），
+   * 用于宿主在编辑作用域逻辑中定位具体是哪一次发生。
+   */
+  recurrenceOccurrenceDate?: DateType;
 }
 
 export type EventObjectWithDefaultValues = MarkOptional<
@@ -164,6 +178,8 @@ export type EventObjectWithDefaultValues = MarkOptional<
   | 'overlap'
   | 'bufferBefore'
   | 'bufferAfter'
+  | 'recurrenceParentId'
+  | 'recurrenceOccurrenceDate'
 > & {
   start: DayjsTZDate;
   end: DayjsTZDate;

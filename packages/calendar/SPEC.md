@@ -64,6 +64,7 @@ swell-calendar 是一个**可嵌入的 React 日历组件库**，面向需要在
 | 资源级交互限制                 | ✅   | `eventDragInTime` / `eventResize` / `eventOverlap` 已接入     |
 | 跨资源拖动 gate                | ✅   | scheduler 全局 / 资源级 / per-event `dragBetweenResources` 已接入 |
 | recurrence 展开 + exceptions     | 🟡   | scheduler 已接入视口内展开，recurringExceptions 跳过/替换已接入渲染链；编辑作用域仍未接入 |
+| recurrence 编辑作用域             | ✅   | 支持 `single` / `following` / `all` 三种作用域，`applyRecurrenceEditScope` 工具函数已落地，`onEventUpdate` / `onEventDelete` 回调已携带 `recurrenceInstance` 信息 |
 | timezone 转换                     | 🟡   | `displayTimezone` + per-event `timezone` 已接入 scheduler 渲染链（数据时区→显示时区）；多时区列同时展示、全天事件跨时区边界仍未接入 |
 | external DnD                      | 🟡   | `allowExternalDrop` + `onExternalDrop` / `onExternalDropFailed` 已接入 scheduler；实时预览阴影、第三方库封装仍未接入 |
 | 跨实例拖动                         | 🟡   | `onCrossInstanceDragEnd` / `onCrossInstanceDrop` 已接入 scheduler；跨实例预览阴影、跨实例 resize 仍未接入 |
@@ -90,7 +91,6 @@ swell-calendar 是一个**可嵌入的 React 日历组件库**，面向需要在
 
 当前**仍明确后置**的能力：
 
-- recurrence 编辑作用域（本次/本次及以后/全部）
 - timezone 多时区列同时展示、全天事件跨时区边界
 - external DnD 实时预览阴影、第三方库封装
 - 跨实例拖动预览阴影、跨实例 resize
@@ -185,6 +185,8 @@ interface EventObject {
   recurrence?: RecurrenceRule;
   recurringExceptions?: RecurringException[];
   recurringExceptionRule?: RecurrenceRule;
+  recurrenceParentId?: string;
+  recurrenceOccurrenceDate?: DayjsTZDate;
   category?: 'time' | 'allday' | 'milestone' | 'task';
   color?: string;
   backgroundColor?: string;
@@ -229,7 +231,50 @@ interface RecurringException {
 > 注：`recurrence` / `recurringExceptions` / `recurringExceptionRule` 的类型层已于 2026-06-04 落地，
 > scheduler 渲染链的视口内展开与 exceptions 跳过/替换已于 2026-06-05 接入。
 > `timezone` 的数据→显示时区转换已于 2026-06-05 接入 scheduler 渲染链（`displayTimezone` + per-event `timezone`）。
-> 编辑作用域（本次/本次及以后/全部）仍属 Phase 3 后置范围。
+> 编辑作用域（`single` / `following` / `all`）已于 2026-06-06 落地，`applyRecurrenceEditScope` 工具函数与回调 `recurrenceInstance` 信息已接入。
+
+### 重复事件编辑作用域 API
+
+```ts
+// 编辑作用域枚举
+type CalendarRecurrenceEditScope = 'single' | 'following' | 'all';
+
+// 重复事件实例信息（携带在 update/delete 回调中）
+interface CalendarRecurrenceInstanceInfo {
+  recurrenceParentId: string;
+  recurrenceOccurrenceDate: DayjsTZDate;
+}
+
+// onEventUpdate 回调的 info 参数
+interface CalendarEventUpdateInfo {
+  event: EventObject;
+  previousEvent: EventObjectWithDefaultValues;
+  recurrenceInstance?: CalendarRecurrenceInstanceInfo;
+}
+
+// onEventDelete 回调的 info 参数
+interface CalendarEventDeleteInfo {
+  event: EventObjectWithDefaultValues;
+  recurrenceInstance?: CalendarRecurrenceInstanceInfo;
+}
+```
+
+工具函数：
+
+```ts
+// 根据作用域对重复事件执行编辑操作
+function applyRecurrenceEditScope(params: {
+  event: EventObject;
+  scope: CalendarRecurrenceEditScope;
+  changes: Partial<EventObject>;
+}): EventObject | EventObject[];
+
+// 判断事件是否为重复事件的某个实例
+function isRecurrenceInstance(event: EventObject): boolean;
+
+// 从展开后的实例事件构建 CalendarRecurrenceInstanceInfo
+function buildRecurrenceInstanceInfo(event: EventObject): CalendarRecurrenceInstanceInfo | null;
+```
 
 ### 资源结构（`ResourceInfo`）
 
@@ -321,10 +366,7 @@ interface CalendarProps {
       resourceNames?: string[];
     }) => void;
     onEventCreate?: (info: { event: EventObject }) => void;
-    onEventUpdate?: (info: {
-      event: EventObject;
-      previousEvent: EventObjectWithDefaultValues;
-    }) => void;
+    onEventUpdate?: (info: CalendarEventUpdateInfo) => void;
     onEventCreateFailed?: (info: {
       reason: 'invalid' | 'overlap' | 'readonly' | 'policy';
       policySource?: 'event' | 'resource' | 'view';
@@ -339,7 +381,7 @@ interface CalendarProps {
       event: EventObject;
       previousEvent?: EventObjectWithDefaultValues;
     }) => void;
-    onEventDelete?: (info: { event: EventObjectWithDefaultValues }) => void;
+    onEventDelete?: (info: CalendarEventDeleteInfo) => void;
     onValidateEventChange?: (info: {
       action: 'create' | 'move' | 'resize' | 'delete';
       view: ViewType;

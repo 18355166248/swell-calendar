@@ -27,9 +27,39 @@ export interface CalendarEventCreateInfo {
   event: EventObject;
 }
 
+/**
+ * 重复事件编辑作用域
+ *
+ * - `'single'`：仅修改本次发生（生成 RecurringException override）
+ * - `'following'`：修改本次及以后所有发生（截断原规则 + 创建新规则）
+ * - `'all'`：修改整个系列（直接修改父事件）
+ */
+export type CalendarRecurrenceEditScope = 'single' | 'following' | 'all';
+
+/**
+ * 重复事件实例标识信息
+ *
+ * 当事件是 recurrence 展开的实例时，回调 payload 中携带此信息，
+ * 使宿主能识别实例身份并选择编辑作用域。
+ */
+export interface CalendarRecurrenceInstanceInfo {
+  /** 父事件 ID（即展开前原始事件的 id） */
+  recurrenceParentId: string;
+  /** 本次发生的原始日期 */
+  recurrenceOccurrenceDate: DayjsTZDate;
+}
+
 export interface CalendarEventUpdateInfo {
   event: EventObject;
   previousEvent: EventObjectWithDefaultValues;
+  /**
+   * 仅当事件为 recurrence 展开实例时存在。
+   *
+   * 携带父事件 ID 和原始发生日期，宿主可据此选择编辑作用域
+   * （本次 / 本次及以后 / 全部），并使用 `applyRecurrenceEditScope()`
+   * 工具函数完成数据变更。
+   */
+  recurrenceInstance?: CalendarRecurrenceInstanceInfo;
 }
 
 export interface CalendarEventHoverInfo {
@@ -60,6 +90,13 @@ export interface CalendarEventChangeFailedInfo {
 
 export interface CalendarEventDeleteInfo {
   event: EventObjectWithDefaultValues;
+  /**
+   * 仅当事件为 recurrence 展开实例时存在。
+   *
+   * 携带父事件 ID 和原始发生日期，宿主可据此选择删除作用域
+   * （本次 / 本次及以后 / 全部）。
+   */
+  recurrenceInstance?: CalendarRecurrenceInstanceInfo;
 }
 
 export interface CalendarExternalDropInfo {

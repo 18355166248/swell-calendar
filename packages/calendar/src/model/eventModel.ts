@@ -64,6 +64,10 @@ export class EventModel implements EventObject {
   recurrence?: EventObject['recurrence'];
   recurringExceptions?: EventObject['recurringExceptions'];
   recurringExceptionRule?: EventObject['recurringExceptionRule'];
+  /** 展开实例专属：父事件 ID */
+  recurrenceParentId?: string;
+  /** 展开实例专属：原始发生日期 */
+  recurrenceOccurrenceDate?: DateType;
   cssClass?: string;
   meta?: Record<string, unknown>;
 
@@ -97,6 +101,8 @@ export class EventModel implements EventObject {
     recurrence,
     recurringExceptions,
     recurringExceptionRule,
+    recurrenceParentId,
+    recurrenceOccurrenceDate,
     cssClass,
     meta,
   }: EventObject) {
@@ -123,6 +129,8 @@ export class EventModel implements EventObject {
     this.recurrence = recurrence;
     this.recurringExceptions = recurringExceptions;
     this.recurringExceptionRule = recurringExceptionRule;
+    this.recurrenceParentId = recurrenceParentId;
+    this.recurrenceOccurrenceDate = recurrenceOccurrenceDate;
     this.cssClass = cssClass;
     this.meta = meta;
 
@@ -315,6 +323,8 @@ export class EventModel implements EventObject {
       recurrence: this.recurrence,
       recurringExceptions: this.recurringExceptions,
       recurringExceptionRule: this.recurringExceptionRule,
+      recurrenceParentId: this.recurrenceParentId,
+      recurrenceOccurrenceDate: this.recurrenceOccurrenceDate,
       cssClass: this.cssClass,
       meta: this.meta,
     };

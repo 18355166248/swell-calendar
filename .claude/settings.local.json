@@ -52,7 +52,8 @@
       "Bash(Select-Object -Last 40)",
       "Bash(pnpm --filter swell-calendar test -- --run src/time/timezone.spec.ts)",
       "Bash(pnpm *)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(npx eslint *)"
     ]
   }
 }

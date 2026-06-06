@@ -9,7 +9,7 @@
 ## 当前状态
 
 - 总状态：`[x] 已完成`
-- 说明：Step 30-35 全部完成；recurrence 视口内展开和 recurring exceptions 跳过/替换已接入 scheduler 渲染链；timezone 数据→显示转换已接入；external DnD 已接入；跨实例拖动已接入
+- 说明：Step 30-36 全部完成；recurrence 视口内展开和 recurring exceptions 跳过/替换已接入 scheduler 渲染链；timezone 数据→显示转换已接入；external DnD 已接入；跨实例拖动已接入；recurrence 编辑作用域已接入
 
 ## 步骤清单
 
@@ -19,6 +19,7 @@
 - [x] Step 33：接入 timezone
 - [x] Step 34：接入 external DnD
 - [x] Step 35：接入跨实例拖动
+- [x] Step 36：编辑作用域（Recurrence Edit Scope）
 
 ## 目标
 
@@ -163,6 +164,49 @@
 
 - 高级调度能力不破坏宿主受控数据流
 
+## Step 36：编辑作用域（Recurrence Edit Scope） ✅
+
+2026-06-06 已完成
+
+内容：
+
+- 新增 `recurrenceParentId` / `recurrenceOccurrenceDate` 到 `EventObject`、`EventModel` 及展开链
+- 新建 `CalendarRecurrenceEditScope` 类型
+- 扩展 `CalendarEventUpdateInfo` / `CalendarEventDeleteInfo`，增加 `recurrenceInstance` 字段
+- 新建 `applyRecurrenceEditScope()` 工具函数，支持 single / following / all 三种作用域
+- DnD / resize / delete 回调中接入编辑作用域逻辑
+- 新增 Storybook story
+
+新增文件：
+
+- `controller/recurrence-edit-scope.ts`
+- `controller/recurrence-edit-scope.spec.ts`
+
+修改文件：
+
+- `types/events.type.ts`
+- `types/callbacks.type.ts`
+- `model/eventModel.ts`
+- `controller/scheduler-recurrence.ts`
+- `hooks/TimeGrid/useTimeGridEventMove.ts`
+- `hooks/TimeGrid/useTimeGridEventResize.ts`
+- `components/events/TimeEvent.tsx`
+- `index.ts`
+- `stories/Calendar/Scheduler.stories.tsx`
+
+最小验证：
+
+- `pnpm --filter swell-calendar exec tsc --noEmit`
+- `pnpm lint`
+- `pnpm --filter swell-calendar test`
+- Storybook `Scheduler/RecurrenceEditScope` Story
+
+通过标准：
+
+- single / following / all 三种作用域行为正确
+- 不影响非 recurrence 事件的编辑流程
+- 全部门禁通过
+
 ## 阶段回归清单
 
 每完成一步都回归：
@@ -176,6 +220,6 @@
 
 ## 退出条件
 
-- recurrence、exceptions、timezone、external DnD、跨实例拖动全部完成
+- recurrence、exceptions、timezone、external DnD、跨实例拖动、编辑作用域全部完成
 - 不要求内建弹窗编辑器
 - 不引入 agenda、移动端或远期 backlog 能力
