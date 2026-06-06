@@ -63,8 +63,9 @@ swell-calendar 是一个**可嵌入的 React 日历组件库**，面向需要在
 | shared events                  | ✅   | `resourceIds` 可让事件出现在多个资源列，资源级策略按命中的所有资源共同判定 |
 | 资源级交互限制                 | ✅   | `eventDragInTime` / `eventResize` / `eventOverlap` 已接入     |
 | 跨资源拖动 gate                | ✅   | scheduler 全局 / 资源级 / per-event `dragBetweenResources` 已接入 |
-| recurrence 展开 + exceptions     | 🟡   | scheduler 已接入视口内展开，recurringExceptions 跳过/替换已接入渲染链；编辑作用域 / external DnD 仍未接入 |
+| recurrence 展开 + exceptions     | 🟡   | scheduler 已接入视口内展开，recurringExceptions 跳过/替换已接入渲染链；编辑作用域仍未接入 |
 | timezone 转换                     | 🟡   | `displayTimezone` + per-event `timezone` 已接入 scheduler 渲染链（数据时区→显示时区）；多时区列同时展示、全天事件跨时区边界仍未接入 |
+| external DnD                      | 🟡   | `allowExternalDrop` + `onExternalDrop` / `onExternalDropFailed` 已接入 scheduler；实时预览阴影、第三方库封装仍未接入 |
 
 ### 当前范围基线（2026-06）
 
@@ -83,12 +84,13 @@ swell-calendar 是一个**可嵌入的 React 日历组件库**，面向需要在
 - 资源分组 / 折叠
 - shared events
 - 资源级与 per-event 交互限制
+- external DnD（`onExternalDrop` / `onExternalDropFailed`）
 
 当前**仍明确后置**的能力：
 
-- recurrence 视口内展开已接入 scheduler 渲染链；recurring exceptions 的跳过/替换已接入；**编辑作用域**（本次/本次及以后/全部）仍未接入
+- recurrence 编辑作用域（本次/本次及以后/全部）
 - timezone 多时区列同时展示、全天事件跨时区边界
-- external drag & drop
+- external DnD 实时预览阴影、第三方库封装
 - 跨实例拖拽
 - `agenda`
 - 移动端适配
@@ -147,6 +149,7 @@ interface CalendarOptions {
     visibleResourceIds?: string[];
     dragBetweenResources?: boolean;
     displayTimezone?: string;
+    allowExternalDrop?: boolean;
   };
   timeline?: {
     resources?: ResourceInfo[];
@@ -245,6 +248,7 @@ interface ResourceInfo {
   eventDragBetweenResources?: boolean;
   eventResize?: boolean;
   eventOverlap?: boolean;
+  allowExternalDrop?: boolean;
 }
 
 interface BlockedTimeRange {
@@ -340,6 +344,23 @@ interface CalendarProps {
       event: EventObject;
       previousEvent?: EventObjectWithDefaultValues;
     }) => boolean;
+    onExternalDrop?: (info: {
+      dataTransfer: DataTransfer;
+      date: DayjsTZDate;
+      start: DayjsTZDate;
+      end: DayjsTZDate;
+      resourceId?: string;
+      resourceName?: string;
+    }) => void;
+    onExternalDropFailed?: (info: {
+      reason: 'invalid' | 'policy';
+      policySource?: 'resource' | 'view';
+      dataTransfer: DataTransfer;
+      date: DayjsTZDate;
+      start: DayjsTZDate;
+      end: DayjsTZDate;
+      resourceId?: string;
+    }) => void;
   };
 }
 ```

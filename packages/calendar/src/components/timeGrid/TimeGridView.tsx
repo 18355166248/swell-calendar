@@ -23,6 +23,7 @@ import { timeGridSelectionHelper } from '@/helpers/gridSelection';
 import { useDOMNode } from '@/hooks/common/useDOMNode';
 import { useIsMounted } from '@/hooks/common/useIsMounted';
 import { useGridSelection } from '@/hooks/GridSelection/useGridSelection';
+import { useExternalDrop } from '@/hooks/TimeGrid/useExternalDrop';
 import { EventUIModel } from '@/model/eventUIModel';
 import { isSameDate, setTimeStrToDate, toEndOfDay, toStartOfDay } from '@/time/datetime';
 import DayjsTZDate from '@/time/dayjs-tzdate';
@@ -218,6 +219,14 @@ export function TimeGrid({ timeGridData, events }: TimeGridProps) {
     },
   });
 
+  const { handleDragOver, handleDrop } = useExternalDrop({
+    enabled:
+      currentView === 'scheduler' && !isReadOnly && (options.scheduler?.allowExternalDrop ?? false),
+    gridPositionFinder,
+    timeGridData,
+    options,
+  });
+
   return (
     <div className={classNames.timeGrid}>
       <div className={classNames.scrollArea}>
@@ -229,6 +238,8 @@ export function TimeGrid({ timeGridData, events }: TimeGridProps) {
           ref={setColumnsContainer}
           style={{ left: timeGridLeft.width }}
           onMouseDown={isReadOnly ? undefined : handleMouseDown}
+          onDragOver={handleDragOver}
+          onDrop={handleDrop}
         >
           {/* 网格线 - 显示时间分隔线 */}
           <GridLines timeGridRows={timeGridData.rows} />

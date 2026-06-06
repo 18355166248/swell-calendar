@@ -9,7 +9,7 @@
 ## 当前状态
 
 - 总状态：`[-] 进行中`
-- 说明：Step 30-33 已完成；recurrence 视口内展开和 recurring exceptions 跳过/替换已接入 scheduler 渲染链；timezone 数据→显示转换已接入
+- 说明：Step 30-34 已完成；recurrence 视口内展开和 recurring exceptions 跳过/替换已接入 scheduler 渲染链；timezone 数据→显示转换已接入；external DnD 已接入
 
 ## 步骤清单
 
@@ -17,7 +17,7 @@
 - [x] Step 31：实现 recurrence 视口内展开
 - [x] Step 32：接入 recurring exceptions
 - [x] Step 33：接入 timezone
-- [ ] Step 34：接入 external DnD
+- [x] Step 34：接入 external DnD
 - [ ] Step 35：接入跨实例拖动
 
 ## 目标
@@ -121,20 +121,27 @@
 - 非 timezone 事件渲染结果不变
 - 200 个测试全部通过
 
-## Step 34：接入 external DnD
+## Step 34：接入 external DnD ✅
+
+2026-06-06 已完成
 
 内容：
 
-- 先提供 hooks / intent
-- 不做第三方库封装
+- 新增 `SchedulerOptions.allowExternalDrop` 全局开关与 `ResourceInfo.allowExternalDrop` 资源级开关
+- 新建 `hooks/TimeGrid/useExternalDrop.ts`：基于 HTML5 DnD API 处理外部拖入
+- `controller/scheduler.controller.ts` 新增 `createExternalDropInfo` / `isBlockedExternalDrop` / `isExternalDropAllowedForResource`
+- `TimeGridView.tsx` 列容器接入 `onDragOver` / `onDrop`
+- 新增 `onExternalDrop` / `onExternalDropFailed` 回调
+- 新增 `Scheduler/ExternalDnDMock` Story
 
 最小验证：
 
-- `Scheduler/ExternalDnDMock`
+- `Scheduler/ExternalDnDMock` Story
 
 通过标准：
 
 - 宿主可以拿到外部 drop intent
+- 200 个测试全部通过
 
 ## Step 35：接入跨实例拖动
 

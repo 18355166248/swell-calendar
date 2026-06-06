@@ -62,6 +62,35 @@ export interface CalendarEventDeleteInfo {
   event: EventObjectWithDefaultValues;
 }
 
+export interface CalendarExternalDropInfo {
+  /** 外部拖拽携带的原始 DataTransfer 对象 */
+  dataTransfer: DataTransfer;
+  /** drop 位置对应的日期 */
+  date: DayjsTZDate;
+  /** drop 位置对应的开始时间 */
+  start: DayjsTZDate;
+  /** drop 位置对应的结束时间（start + 一个时间格） */
+  end: DayjsTZDate;
+  /** drop 位置对应的资源 ID */
+  resourceId?: string;
+  /** drop 位置对应的资源名称 */
+  resourceName?: string;
+}
+
+export type CalendarExternalDropFailReason = 'invalid' | 'policy';
+
+export type CalendarExternalDropPolicySource = 'resource' | 'view';
+
+export interface CalendarExternalDropFailedInfo {
+  reason: CalendarExternalDropFailReason;
+  policySource?: CalendarExternalDropPolicySource;
+  dataTransfer: DataTransfer;
+  date: DayjsTZDate;
+  start: DayjsTZDate;
+  end: DayjsTZDate;
+  resourceId?: string;
+}
+
 export interface CalendarCallbacks {
   onEventClick?: (info: CalendarEventClickInfo) => void;
   onCellClick?: (info: CalendarCellClickInfo) => void;
@@ -74,4 +103,6 @@ export interface CalendarCallbacks {
   onEventUpdateFailed?: (info: CalendarEventChangeFailedInfo) => void;
   onEventDelete?: (info: CalendarEventDeleteInfo) => void;
   onValidateEventChange?: (info: CalendarValidateEventChangeInfo) => boolean;
+  onExternalDrop?: (info: CalendarExternalDropInfo) => void;
+  onExternalDropFailed?: (info: CalendarExternalDropFailedInfo) => void;
 }

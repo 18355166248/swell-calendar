@@ -3,10 +3,11 @@ import { uniq } from 'lodash-es';
 import { setTimeStrToDate } from '@/time/datetime';
 import DayjsTZDate from '@/time/dayjs-tzdate';
 import { convertTimezone, needsTimezoneConversion } from '@/time/timezone';
+import { CalendarExternalDropInfo } from '@/types/callbacks.type';
 import { EventObject, EventObjectWithDefaultValues } from '@/types/events.type';
-import { CommonGridColumn, TimeGridData } from '@/types/grid.type';
+import { CommonGridColumn, GridPosition, TimeGridData } from '@/types/grid.type';
 import { GridSelectionData } from '@/types/gridSelection.type';
-import { BlockedTimeRange, Options, ViewType } from '@/types/options.type';
+import { BlockedTimeRange, Options, ResourceInfo, ViewType } from '@/types/options.type';
 
 export function getTimeValue(value: EventObject['start']) {
   if (!value) {
@@ -234,4 +235,89 @@ export function createUpdatedTimeGridEvent(
   }
 
   return nextEvent;
+}
+
+/**
+ * 从 grid 位置和 HTML5 DataTransfer 构造外部拖拽 drop intent
+ */
+export function createExternalDropInfo(
+  timeGridData: TimeGridData,
+  position: GridPosition,
+  dataTransfer: DataTransfer
+): CalendarExternalDropInfo {
+  const column = timeGridData.columns[position.columnIndex];
+  const row = timeGridData.rows[position.rowIndex];
+
+  const start = setTimeStrToDate(column.date, row.startTime);
+  const end = setTimeStrToDate(column.date, row.endTime);
+
+  return {
+    dataTransfer,
+    date: new DayjsTZDate(column.date),
+    start,
+    end,
+    resourceId: column.resourceId,
+    resourceName: column.resourceName,
+  };
+}
+
+/**
+ * 检查外部 drop 位置是否命中 invalid 区间
+ */
+export function isBlockedExternalDrop(
+  options: Options,
+  view: ViewType,
+  position: GridPosition,
+  timeGridData: TimeGridData
+): boolean {
+  const column = timeGridData.columns[position.columnIndex];
+  const row = timeGridData.rows[position.rowIndex];
+
+  const dropStart = setTimeStrToDate(column.date, row.startTime);
+  const dropEnd = setTimeStrToDate(column.date, row.endTime);
+
+  // 构造一个临时 EventObject 用于复用 isBlockedEventChange
+  const probeEvent: EventObject = {
+    title: '',
+    category: 'time',
+    allDay: false,
+    start: dropStart,
+    end: dropEnd,
+    resourceId: column.resourceId,
+    resourceIds: column.resourceId ? [column.resourceId] : undefined,
+  };
+
+  return isBlockedEventChange(options, view, probeEvent);
+}
+
+/**
+ * 获取外部拖拽在资源级是否被允许
+ *
+ * 优先级：资源级 allowExternalDrop > 全局 allowExternalDrop
+ * - 资源显式 false：拒绝
+ * - 资源显式 true 或缺省：跟随全局
+ */
+export function isExternalDropAllowedForResource(
+  resources: ResourceInfo[] | undefined,
+  resourceId: string | undefined,
+  globalAllow: boolean
+): { allowed: boolean; policySource: 'resource' | 'view' } {
+  if (!resourceId || !resources) {
+    return { allowed: globalAllow, policySource: 'view' };
+  }
+
+  const resource = resources.find((r) => r.id === resourceId);
+  if (!resource) {
+    return { allowed: globalAllow, policySource: 'view' };
+  }
+
+  if (resource.allowExternalDrop === false) {
+    return { allowed: false, policySource: 'resource' };
+  }
+
+  if (resource.allowExternalDrop === true) {
+    return { allowed: true, policySource: 'resource' };
+  }
+
+  return { allowed: globalAllow, policySource: 'view' };
 }

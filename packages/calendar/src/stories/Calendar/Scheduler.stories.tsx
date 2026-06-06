@@ -2101,3 +2101,190 @@ export const Timezone: Story = {
     expect(noneTitles.length).toBeGreaterThanOrEqual(1);
   },
 };
+
+export const ExternalDnDMock: Story = {
+  render: function ExternalDnDMockStory() {
+    const today = new DayjsTZDate();
+    const weekStart = today.addDate(-today.getDay());
+
+    const [events, setEvents] = useState<EventObject[]>(() => {
+      const base: EventObject[] = [];
+      // 一些预置事件
+      base.push({
+        id: 'ext-existing-1',
+        title: '已有会议',
+        category: 'time',
+        start: dayjs(weekStart.getTime()).add(1, 'day').hour(10).minute(0).toDate(),
+        end: dayjs(weekStart.getTime()).add(1, 'day').hour(11).minute(0).toDate(),
+        resourceId: 'r1',
+        backgroundColor: '#3b82f6',
+        color: '#fff',
+      });
+      return base;
+    });
+
+    const [log, setLog] = useState<string[]>(['等待外部拖入...']);
+    const addLog = (msg: string) => setLog((prev) => [msg, ...prev.slice(0, 6)]);
+
+    const [nextId, setNextId] = useState(100);
+
+    // 外部可拖入的任务列表
+    const externalItems = [
+      { id: 'task-a', label: '需求评审', color: '#6366f1' },
+      { id: 'task-b', label: '代码审查', color: '#ec4899' },
+      { id: 'task-c', label: '技术分享', color: '#14b8a6' },
+    ];
+
+    const handleDragStart = (e: React.DragEvent, item: (typeof externalItems)[number]) => {
+      e.dataTransfer.setData('application/json', JSON.stringify(item));
+      e.dataTransfer.effectAllowed = 'copy';
+    };
+
+    // 构造 invalid 区间：周一 12:00-13:00（午休）
+    const invalidStart = dayjs(weekStart.getTime()).add(1, 'day').hour(12).minute(0);
+    const invalidEnd = dayjs(weekStart.getTime()).add(1, 'day').hour(13).minute(0);
+
+    const callbacks = useMemo<CalendarCallbacks>(
+      () => ({
+        onExternalDrop: (info) => {
+          const raw = info.dataTransfer.getData('application/json');
+          let title = '外部事件';
+          let color = '#6366f1';
+          try {
+            const parsed = JSON.parse(raw);
+            title = parsed.label ?? title;
+            color = parsed.color ?? color;
+          } catch {
+            // 非 JSON 数据，使用默认值
+          }
+
+          const newEvent: EventObject = {
+            id: `ext-${nextId}`,
+            title,
+            category: 'time',
+            start: info.start,
+            end: info.end,
+            resourceId: info.resourceId,
+            backgroundColor: color,
+            color: '#fff',
+          };
+          setEvents((prev) => [...prev, newEvent]);
+          setNextId((prev) => prev + 1);
+          addLog(`drop: "${title}" → ${info.resourceId ?? '?'} ${info.start.format('HH:mm')}`);
+        },
+        onExternalDropFailed: (info) => {
+          addLog(`drop 拒绝: reason=${info.reason} source=${info.policySource ?? '-'}`);
+        },
+      }),
+      [nextId]
+    );
+
+    return (
+      <SchedulerStoryFrame>
+        <div style={{ display: 'flex', height: '100%' }}>
+          {/* 左侧外部任务面板 */}
+          <div
+            style={{
+              width: 180,
+              padding: 12,
+              borderRight: '1px solid #e5e7eb',
+              backgroundColor: '#f9fafb',
+              flexShrink: 0,
+            }}
+          >
+            <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 12 }}>外部任务</div>
+            {externalItems.map((item) => (
+              <div
+                key={item.id}
+                draggable
+                onDragStart={(e) => handleDragStart(e, item)}
+                style={{
+                  padding: '8px 12px',
+                  marginBottom: 8,
+                  borderRadius: 6,
+                  backgroundColor: item.color,
+                  color: '#fff',
+                  fontSize: 13,
+                  cursor: 'grab',
+                  userSelect: 'none',
+                }}
+              >
+                {item.label}
+              </div>
+            ))}
+            <div
+              style={{
+                marginTop: 16,
+                padding: 8,
+                fontSize: 11,
+                color: '#6b7280',
+                lineHeight: 1.4,
+              }}
+            >
+              拖拽上方卡片到右侧 scheduler 时间网格中
+            </div>
+          </div>
+
+          {/* 右侧 scheduler + 日志 */}
+          <div style={{ flex: 1, position: 'relative', minWidth: 0 }}>
+            {/* 日志浮层 */}
+            <div
+              style={{
+                position: 'absolute',
+                top: 12,
+                right: 12,
+                zIndex: 10,
+                background: 'rgba(255,255,255,0.95)',
+                border: '1px solid #e5e7eb',
+                borderRadius: 8,
+                padding: '8px 12px',
+                fontSize: 12,
+                minWidth: 200,
+                maxWidth: 320,
+              }}
+            >
+              <div style={{ marginBottom: 6, fontWeight: 600, fontSize: 12 }}>
+                External DnD Mock
+              </div>
+              {log.map((l, i) => (
+                <div key={i}>{l}</div>
+              ))}
+            </div>
+            <Calendar
+              events={events}
+              callbacks={callbacks}
+              options={{
+                defaultView: 'scheduler',
+                scheduler: {
+                  resources: RESOURCES,
+                  hourStart: 8,
+                  hourEnd: 20,
+                  allowExternalDrop: true,
+                  invalid: [
+                    {
+                      start: invalidStart.toDate(),
+                      end: invalidEnd.toDate(),
+                      resourceId: 'r1',
+                    },
+                  ],
+                },
+              }}
+            />
+          </div>
+        </div>
+      </SchedulerStoryFrame>
+    );
+  },
+  play: async ({ canvasElement }) => {
+    await new Promise((r) => setTimeout(r, DEMO_PAUSE));
+    const canvas = within(canvasElement);
+
+    // 验证外部任务面板已渲染
+    const taskLabels = canvas.getAllByText(/需求评审|代码审查|技术分享/);
+    expect(taskLabels.length).toBe(3);
+
+    // 验证已有事件已渲染
+    const existingTitles = canvas.getAllByText('已有会议');
+    expect(existingTitles.length).toBeGreaterThanOrEqual(1);
+  },
+};

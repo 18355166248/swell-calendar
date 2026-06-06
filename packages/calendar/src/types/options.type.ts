@@ -111,6 +111,7 @@ export interface SchedulerOptions {
   visibleResourceIds?: string[];
   dragBetweenResources?: boolean;
   displayTimezone?: string;
+  allowExternalDrop?: boolean;
 }
 
 export interface TimelineOptions extends SchedulerOptions {
@@ -134,6 +135,7 @@ export interface ResourceInfo {
   eventDragBetweenResources?: boolean;
   eventResize?: boolean;
   eventOverlap?: boolean;
+  allowExternalDrop?: boolean;
 }
 
 export interface NormalizedOptions {

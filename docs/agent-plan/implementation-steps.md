@@ -20,7 +20,7 @@
 | `02-scheduler-pipeline-and-layout.md` | scheduler pipeline、all-day、多日分段、`colors` | `[x]` |
 | `03-template-and-interaction.md` | template、回调、交互闭环 | `[x]` |
 | `04-resource-scheduling.md` | 资源显隐、分组、shared events | `[x]` |
-| `05-advanced-scheduling.md` | recurrence、timezone、DnD | `[ ]` |
+| `05-advanced-scheduling.md` | recurrence、timezone、DnD | `[-]` |
 
 说明：
 
