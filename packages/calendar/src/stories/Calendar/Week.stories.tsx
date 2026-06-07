@@ -24,7 +24,7 @@ import { createRandomEvents } from './utils/randomEvents';
 
 // 定义 Storybook 元数据配置
 const meta = {
-  title: 'Calendar/Week', // Storybook 中的标题路径
+  title: '日历/视图/周视图', // Storybook 中的标题路径
   component: Wrapper, // 使用 Wrapper 作为主要组件
   parameters: {
     layout: 'fullscreen', // 使用全屏布局
@@ -61,6 +61,7 @@ type Story = StoryObj<typeof meta>;
  * 包含从周一到周日的所有日期
  */
 export const Primary: Story = {
+  name: '基础视图',
   render: (args) => (
     <Wrapper
       events={args.events}
@@ -84,6 +85,7 @@ export const Primary: Story = {
  * 通常从周一到周五
  */
 export const Workweek: Story = {
+  name: '工作周',
   render: (args) => (
     <Wrapper
       events={args.events}
@@ -150,6 +152,7 @@ function makeWeekEvent(
  * 验证在周视图某个日期列中将事件上下拖动。
  */
 export const WeekDragVertical: Story = {
+  name: '垂直拖拽',
   render: function WeekDragVerticalStory() {
     const [events, setEvents] = useState<EventObject[]>([
       makeWeekEvent('w-vert-1', 1, 9, { title: '拖我上下移动', backgroundColor: '#3b82f6' }),
@@ -237,6 +240,7 @@ export const WeekDragVertical: Story = {
  * 这是周视图独有的拖拽场景：跨列（跨天）移动。
  */
 export const WeekDragCrossDay: Story = {
+  name: '跨天拖拽',
   render: function WeekDragCrossDayStory() {
     const [events, setEvents] = useState<EventObject[]>([
       makeWeekEvent('w-cross-1', 1, 10, {
@@ -318,6 +322,7 @@ export const WeekDragCrossDay: Story = {
  * WeekDragResize — 周视图事件时长调整测试
  */
 export const WeekDragResize: Story = {
+  name: '拖拽调整时长',
   render: function WeekDragResizeStory() {
     const [events, setEvents] = useState<EventObject[]>([
       makeWeekEvent('w-resize-1', 2, 11, {
@@ -404,6 +409,7 @@ export const WeekDragResize: Story = {
  * WeekDragCancel — 周视图 ESC 取消拖拽测试
  */
 export const WeekDragCancel: Story = {
+  name: 'ESC 取消拖拽',
   render: function WeekDragCancelStory() {
     const [events] = useState<EventObject[]>([
       makeWeekEvent('w-esc-1', 3, 10, {

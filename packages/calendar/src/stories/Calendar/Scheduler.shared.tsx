@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react-vite';
+import type { StoryObj } from '@storybook/react-vite';
 import Chance from 'chance';
 import dayjs from 'dayjs';
 import { ReactNode, useMemo, useRef, useState } from 'react';
@@ -83,14 +83,7 @@ function getTimeValue(value: EventObject['start']) {
   return value.getTime();
 }
 
-const meta = {
-  title: 'Calendar/Scheduler',
-  component: Calendar,
-  parameters: { layout: 'fullscreen' },
-} satisfies Meta<typeof Calendar>;
-
-export default meta;
-type Story = StoryObj<typeof meta>;
+type Story = StoryObj<typeof Calendar>;
 
 // 演示模式下先停顿，让观众看清组件全貌
 // 可通过 SLOWMO 环境变量控制速度：SLOWMO=8000 pnpm test:storybook:headed
@@ -2923,5 +2916,35 @@ export const DragResizeRegression: Story = {
         expect(cardB().getBoundingClientRect().height).toBeGreaterThan(hBefore + 10)
       );
     }
+  },
+};
+
+export const DragResizePointerRegression: Story = {
+  tags: ['drag-regression'],
+  render: function DragResizePointerRegressionStory() {
+    const [events, setEvents] = useState<EventObject[]>(() => buildRegressionEvents());
+    const callbacks = useMemo<CalendarCallbacks>(
+      () => ({
+        onEventUpdate: ({ event, previousEvent }) => {
+          setEvents((current) =>
+            current.map((item) => (item.id === previousEvent.id ? { ...item, ...event } : item))
+          );
+        },
+      }),
+      []
+    );
+
+    return (
+      <SchedulerStoryFrame>
+        <Calendar
+          events={events}
+          callbacks={callbacks}
+          options={{
+            defaultView: 'scheduler',
+            scheduler: { resources: REGRESSION_RESOURCES, hourStart: 8, hourEnd: 20 },
+          }}
+        />
+      </SchedulerStoryFrame>
+    );
   },
 };

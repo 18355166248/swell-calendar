@@ -8,7 +8,7 @@ import { ResourceInfo } from '@/types/options.type';
 import { Wrapper } from './Layout/Wrapper';
 
 const meta = {
-  title: 'Calendar/Timeline',
+  title: '日历/视图/时间线',
   component: Wrapper,
   parameters: {
     layout: 'fullscreen',
@@ -105,6 +105,7 @@ function makeTimelineEvents() {
  * 3 个资源 × 8 小时（9:00-17:00）横向时间轴
  */
 export const Primary: Story = {
+  name: '基础视图',
   render: (args) => (
     <Wrapper
       events={args.events}
@@ -130,6 +131,7 @@ export const Primary: Story = {
  * 每个资源列 2 个时间事件，验证事件卡片在时间轴上的正确渲染
  */
 export const WithEvents: Story = {
+  name: '带事件数据',
   render: (args) => (
     <Wrapper
       events={args.events}
@@ -155,6 +157,7 @@ export const WithEvents: Story = {
  * 验证 `colors` 背景区段和 `blockedTimes` 禁止时段的渲染。
  */
 export const WithColorsAndInvalid: Story = {
+  name: '背景区段与禁用时段',
   render: (args) => (
     <Wrapper
       events={args.events}

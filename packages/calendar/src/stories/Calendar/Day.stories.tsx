@@ -14,7 +14,7 @@ import { Wrapper } from './Layout/Wrapper';
 import { createRandomEvents } from './utils/randomEvents';
 
 const meta = {
-  title: 'Calendar/Day',
+  title: '日历/视图/日视图',
   component: Wrapper,
   parameters: {
     layout: 'fullscreen',
@@ -37,6 +37,7 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Primary: Story = {
+  name: '基础视图',
   render: (args) => (
     <Wrapper events={args.events}>
       <Day />
@@ -89,6 +90,7 @@ function makeDayEvent(hour: number, overrides?: Partial<EventObject>): EventObje
  * 验证在日视图单列中将事件上下拖动，触发 onEventUpdate 回调。
  */
 export const DayDragVertical: Story = {
+  name: '垂直拖拽',
   render: function DayDragVerticalStory() {
     const [events, setEvents] = useState<EventObject[]>([
       makeDayEvent(9, { id: 'day-vert-1', title: '拖我上下移动' }),
@@ -179,6 +181,7 @@ export const DayDragVertical: Story = {
  * 验证拖拽事件底部边缘来延长事件时长。
  */
 export const DayDragResize: Story = {
+  name: '拖拽调整时长',
   render: function DayDragResizeStory() {
     const [events, setEvents] = useState<EventObject[]>([
       makeDayEvent(10, {
@@ -267,6 +270,7 @@ export const DayDragResize: Story = {
  * DayDragCancel — 日视图 ESC 取消拖拽测试
  */
 export const DayDragCancel: Story = {
+  name: 'ESC 取消拖拽',
   render: function DayDragCancelStory() {
     const [events] = useState<EventObject[]>([
       makeDayEvent(10, {

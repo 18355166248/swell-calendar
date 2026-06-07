@@ -98,7 +98,7 @@ const weekStore = createStore('week');
 loadWeekEvents(weekStore);
 
 const meta = {
-  title: 'Calendar/App',
+  title: '日历/应用示例',
   component: CalendarApp,
   parameters: { layout: 'fullscreen' },
 } satisfies Meta<typeof CalendarApp>;
@@ -107,6 +107,7 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
+  name: '周视图整页应用',
   args: {
     store: weekStore,
   },
@@ -118,6 +119,7 @@ export const Default: Story = {
 };
 
 export const Timeline: Story = {
+  name: '时间线整页应用',
   args: {
     store: weekStore,
   },

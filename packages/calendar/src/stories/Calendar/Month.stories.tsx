@@ -17,7 +17,7 @@ import { createRandomEvents } from './utils/randomEvents';
 
 // 定义 Storybook 元数据配置
 const meta = {
-  title: 'Calendar/Month', // Storybook 中的标题路径
+  title: '日历/视图/月视图', // Storybook 中的标题路径
   component: Wrapper, // 使用 Wrapper 作为主要组件
   parameters: {
     layout: 'fullscreen', // 使用全屏布局
@@ -54,6 +54,7 @@ type Story = StoryObj<typeof meta>;
  * 包含从周一到周日的所有日期
  */
 export const Basic: Story = {
+  name: '基础视图',
   render: (args) => (
     <Wrapper
       events={args.events}
@@ -79,6 +80,7 @@ export const Basic: Story = {
  * 且表头顺序与 `startDayOfWeek` 保持一致。
  */
 export const Workweek: Story = {
+  name: '工作周',
   render: (args) => (
     <Wrapper
       events={args.events}
