@@ -3,6 +3,22 @@
   overflow: hidden;
   cursor: pointer;
   white-space: nowrap;
+  transition:
+    box-shadow 0.12s ease,
+    filter 0.12s ease;
+
+  // hover 提亮 + 投影，给出“可交互”反馈（对齐 mobiscroll 事件 hover 表现）
+  &:hover {
+    box-shadow: 0 1px 6px rgba(15, 23, 42, 0.28);
+    filter: brightness(1.05);
+  }
+
+  // 键盘聚焦时给出清晰的焦点环
+  &:focus-visible {
+    outline: 2px solid rgba(81, 92, 230, 0.95);
+    outline-offset: -2px;
+  }
+
   &-content {
     font-size: 12px;
     overflow: hidden;

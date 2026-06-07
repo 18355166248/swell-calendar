@@ -66,6 +66,13 @@
   position: relative;
   height: 100%;
   display: inline-block;
+  transition: box-shadow 0.1s ease;
+
+  // hover 时高亮当前列，提示落点所在；inset 阴影铺满（绘制在背景之上、事件之下），
+  // 不会污染事件卡片本身的颜色
+  &:hover {
+    box-shadow: inset 0 0 0 9999px rgba(81, 92, 230, 0.035);
+  }
 }
 
 .blocked-times {

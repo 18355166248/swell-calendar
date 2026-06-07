@@ -81,7 +81,15 @@ https://demo.mobiscroll.com/react/scheduler/desktop-week-view
 - [x] P1 当前时间指示线（tsc / 255 tests / docs / arch 全绿，Storybook 实测通过）
 - [x] P4 all-day gutter 标签（实测对齐通过）
 - [x] P2 第二时区轴（实测：NY 00:00 → LON 05:00 → TYO 13:00，gutter 72→216px，day/week 单轴不退化）
+- [x] P5 hover / focus 视觉打磨（纯 CSS，实测规则编译/前缀正确）
 - [ ] follow-up：全天事件跨时区边界（后置，需先明确语义）
+
+### P5 hover / focus 视觉打磨（已落地，纯 CSS）
+
+- `css/events/time.scss`：`.event-time:hover` 提亮 + 投影、`:focus-visible` 焦点环
+- `css/dayGrid/allday.scss`：`.allday-event` 同款 hover / focus 反馈
+- `css/timeGrid/timeColumn.scss`：`.column:hover` 用 inset 阴影铺满高亮当前列（绘制于背景之上、事件之下，不污染事件卡片颜色，规避 inline backgroundColor 优先级问题）
+- 实测：四条规则均以 `swell-calendar-` 前缀正确编译进运行时样式表，目标元素存在；`:hover` 伪类无法脚本触发，故以样式表规则核对为准
 
 ## 本次验证结果
 
