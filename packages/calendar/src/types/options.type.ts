@@ -111,7 +111,20 @@ export interface SchedulerOptions {
   visibleResourceIds?: string[];
   dragBetweenResources?: boolean;
   displayTimezone?: string;
+  /**
+   * 额外（副）时区轴。配置后会在主时间轴左侧渲染对应数量的小时刻度列，
+   * 每列按各自时区显示与主显示时区（displayTimezone，缺省为浏览器本地时区）
+   * 对应的小时刻度。主轴始终紧邻日期网格，副轴依配置顺序向左排列。
+   */
+  timezones?: SchedulerTimezone[];
   allowExternalDrop?: boolean;
+}
+
+export interface SchedulerTimezone {
+  /** IANA 时区名，如 'Asia/Tokyo' */
+  timezone: string;
+  /** 轴顶部展示的短标签，缺省时不渲染标签 */
+  displayLabel?: string;
 }
 
 export interface TimelineOptions extends SchedulerOptions {

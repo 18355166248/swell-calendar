@@ -79,6 +79,14 @@ export function Scheduler() {
 
   const sidebarWidth = hasHierarchy ? RESOURCE_SIDEBAR_WIDTH : 0;
 
+  // 副时区轴会加宽左侧 gutter，header / all-day lane 需同步对齐
+  const schedulerTimezones = schedulerOptions?.timezones ?? [];
+  const baseGutterWidth = parseInt(`${timeGridLeft.width}`, 10) || 72;
+  const gutterWidth =
+    schedulerTimezones.length > 0
+      ? `${baseGutterWidth * (schedulerTimezones.length + 1)}px`
+      : timeGridLeft.width;
+
   const hourStart = schedulerOptions?.hourStart ?? weekOptions?.hourStart ?? 0;
   const hourEnd = schedulerOptions?.hourEnd ?? weekOptions?.hourEnd ?? 24;
   const hourDivision = weekOptions?.hourDivision ?? 2;
@@ -153,7 +161,7 @@ export function Scheduler() {
             <SchedulerHeader
               weekDates={weekDates}
               resources={resources}
-              timeGridLeftWidth={timeGridLeft.width}
+              timeGridLeftWidth={gutterWidth}
               scrollbarWidth={scrollbarWidth}
             />
           </div>
@@ -166,7 +174,7 @@ export function Scheduler() {
             <div style={{ flex: 1, minWidth: 0 }}>
               <SchedulerAllDayLane
                 uiModels={alldayEvents}
-                timeGridLeftWidth={timeGridLeft.width}
+                timeGridLeftWidth={gutterWidth}
                 scrollbarWidth={scrollbarWidth}
               />
             </div>

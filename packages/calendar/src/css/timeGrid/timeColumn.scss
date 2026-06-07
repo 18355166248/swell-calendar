@@ -19,6 +19,49 @@
   font-weight: normal;
 }
 
+.time-grid-timezone-label {
+  position: absolute;
+  top: 2px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 10px;
+  font-weight: 600;
+  color: #999;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 2px;
+}
+
+.now-indicator-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.now-indicator-line-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  border-top: 1px solid currentcolor;
+  transform: translateY(-50%);
+}
+
+.now-indicator-bullet {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
 .column {
   position: relative;
   height: 100%;

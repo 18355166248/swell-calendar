@@ -2044,6 +2044,11 @@ export const Timezone: Story = {
               hourStart: 0,
               hourEnd: 24,
               displayTimezone: 'America/New_York',
+              // 主轴（纽约）左侧叠加东京、伦敦两条副时区刻度轴
+              timezones: [
+                { timezone: 'Asia/Tokyo', displayLabel: 'TYO' },
+                { timezone: 'Europe/London', displayLabel: 'LON' },
+              ],
             },
           }}
         />
@@ -2053,6 +2058,10 @@ export const Timezone: Story = {
   play: async ({ canvasElement }) => {
     await new Promise((r) => setTimeout(r, DEMO_PAUSE));
     const canvas = within(canvasElement);
+
+    // 验证副时区轴标签已渲染
+    expect(canvas.getAllByText('TYO').length).toBeGreaterThanOrEqual(1);
+    expect(canvas.getAllByText('LON').length).toBeGreaterThanOrEqual(1);
 
     // 验证东京事件已渲染（转换后在前一天 20:00）
     const tokyoTitles = canvas.getAllByText('东京会议 (JST 9:00)');

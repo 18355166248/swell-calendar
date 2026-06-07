@@ -17,18 +17,22 @@ export function SchedulerAllDayLane({
     return null;
   }
 
-  const rightOffset = scrollbarWidth > 0 ? ` - ${scrollbarWidth}px` : '';
-
   return (
-    <div
-      className={cls('scheduler-allday-lane')}
-      style={{
-        marginLeft: timeGridLeftWidth,
-        width: `calc(100% - ${timeGridLeftWidth}${rightOffset})`,
-        minWidth: 0,
-      }}
-    >
-      <AlldayRow uiModels={uiModels} />
+    <div className={cls('scheduler-allday-lane')} style={{ display: 'flex', minWidth: 0 }}>
+      {/* 左侧 gutter 标签，与下方时间轴 gutter 等宽对齐 */}
+      <div
+        className={cls('scheduler-allday-lane-label')}
+        style={{ width: timeGridLeftWidth, flexShrink: 0 }}
+      >
+        全天
+      </div>
+      {/* 全天事件区，与下方日期列对齐（扣除竖向滚动条宽度） */}
+      <div
+        className={cls('scheduler-allday-lane-content')}
+        style={{ flex: 1, minWidth: 0, marginRight: scrollbarWidth }}
+      >
+        <AlldayRow uiModels={uiModels} />
+      </div>
     </div>
   );
 }

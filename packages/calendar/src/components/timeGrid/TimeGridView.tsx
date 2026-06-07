@@ -35,6 +35,7 @@ import Column from './Column';
 import DropPreviewShadow from './DropPreviewShadow';
 import GridLines from './GridLines';
 import MovingEventShadow from './MovingEventShadow';
+import NowIndicatorLine from './NowIndicatorLine';
 import TimeColumn from './TimeColumn';
 
 const classNames = {
@@ -70,10 +71,18 @@ export function TimeGrid({ timeGridData, events }: TimeGridProps) {
 
   const { options } = useCalendarStore();
   const currentView = useCalendarStore((state) => state.view.currentView);
-  const { timeGridLeft } = useThemeStore((state) => state.week);
+  const { timeGridLeft, showNowIndicator } = useThemeStore((state) => state.week);
   const { isReadOnly } = options;
   const { startDayOfWeek, narrowWeekend } = options.week;
   const callbacks = useCalendarCallbacks();
+
+  // 副时区轴（仅 scheduler 视图生效）：每多一个时区，gutter 增宽一个基础轴宽
+  const timezones = currentView === 'scheduler' ? options.scheduler?.timezones ?? [] : [];
+  const primaryTimezone =
+    currentView === 'scheduler' ? options.scheduler?.displayTimezone : undefined;
+  const baseGutterWidth = parseInt(`${timeGridLeft.width}`, 10) || 72;
+  const gutterWidth =
+    timezones.length > 0 ? `${baseGutterWidth * (timezones.length + 1)}px` : timeGridLeft.width;
 
   // 当前时间指示器的状态
   const [nowIndicatorState, setNowIndicatorState] = useState<{
@@ -246,12 +255,18 @@ export function TimeGrid({ timeGridData, events }: TimeGridProps) {
     <div className={classNames.timeGrid} ref={setTimeGridContainer}>
       <div className={classNames.scrollArea}>
         {/* 左侧时间轴 */}
-        <TimeColumn timeGridRows={timeGridData.rows} nowIndicatorState={nowIndicatorState} />
+        <TimeColumn
+          timeGridRows={timeGridData.rows}
+          nowIndicatorState={nowIndicatorState}
+          timezones={timezones}
+          primaryTimezone={primaryTimezone}
+          width={gutterWidth}
+        />
         {/* 右侧时间轴 */}
         <div
           className={cls('time-columns')}
           ref={setColumnsContainer}
-          style={{ left: timeGridLeft.width }}
+          style={{ left: gutterWidth }}
           onMouseDown={isReadOnly ? undefined : handleMouseDown}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
@@ -283,6 +298,11 @@ export function TimeGrid({ timeGridData, events }: TimeGridProps) {
               coloredLayouts={coloredLayoutsByColumn[index]}
             />
           ))}
+
+          {/* 当前时间指示线 - 横跨所有日期列 */}
+          {showNowIndicator && !isNil(nowIndicatorState) && (
+            <NowIndicatorLine top={nowIndicatorState.top} />
+          )}
         </div>
       </div>
     </div>
