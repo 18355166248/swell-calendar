@@ -10,6 +10,7 @@ import {
   createCrossInstanceDropInfo,
   createTimeGridDropPreview,
 } from '@/controller/scheduler.controller';
+import { isMoveDraggingType } from '@/helpers/drag';
 import { EventUIModel } from '@/model/eventUIModel';
 import { DraggingState } from '@/types/dnd.type';
 import { TimeGridDropPreview } from '@/types/dnd-preview.type';
@@ -79,10 +80,18 @@ export function useCrossInstanceDnD({
     if (!enabled) return;
 
     return store.subscribe((state: CalendarState) => {
-      const { draggingState, draggingEventUIModel, x, y } = state.dnd;
+      const { draggingState, draggingEventUIModel, draggingItemType, x, y } = state.dnd;
 
-      // 捕获拖拽中的事件模型
-      if (draggingState === DraggingState.DRAGGING && draggingEventUIModel) {
+      // 捕获拖拽中的事件模型。
+      // 跨实例只接管「移动」：resize / create 是实例内行为，不捕获，从而后续
+      // preview 与 IDLE 落点逻辑对它们自然 no-op，避免 resize 拖到容器外被误判为跨实例拖出。
+      // 注意：reset() 会把 draggingItemType 与 draggingState 一并清空，所以类型判定只放在
+      // 捕获阶段，cleanup（IDLE / CANCELED）仍依赖 wasDraggingRef，不能用提前 return 跳过。
+      if (
+        draggingState === DraggingState.DRAGGING &&
+        draggingEventUIModel &&
+        isMoveDraggingType(draggingItemType)
+      ) {
         draggingModelRef.current = draggingEventUIModel;
         wasDraggingRef.current = true;
       }

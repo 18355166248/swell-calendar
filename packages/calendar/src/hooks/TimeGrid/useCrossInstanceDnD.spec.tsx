@@ -171,4 +171,34 @@ describe('useCrossInstanceDnD preview', () => {
 
     expect(previewChanges.at(-1)).toBeNull();
   });
+
+  it('ignores resize drags — no cross-instance preview is published', () => {
+    mount();
+
+    const uiModel = makeEventUIModel();
+
+    act(() => {
+      // resize 拖拽（改时长），不应被跨实例桥接管
+      sourceStore.getState().dnd.initDrag({
+        draggingItemType: `event/timeGrid/resize/end/${uiModel.cid()}`,
+        initX: 10,
+        initY: 10,
+      });
+      sourceStore.getState().dnd.setDraggingEventUIModel(uiModel);
+      sourceStore.getState().dnd.setDragging({
+        x: 220,
+        y: 180,
+      });
+    });
+
+    // 整个 resize 过程不应产生任何跨实例预览
+    expect(previewChanges).toHaveLength(0);
+
+    act(() => {
+      sourceStore.getState().dnd.reset();
+    });
+
+    // resize 结束也不应触发跨实例落点（previewChanges 仍为空）
+    expect(previewChanges).toHaveLength(0);
+  });
 });

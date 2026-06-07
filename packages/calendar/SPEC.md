@@ -67,7 +67,7 @@ swell-calendar 是一个**可嵌入的 React 日历组件库**，面向需要在
 | recurrence 编辑作用域             | ✅   | 支持 `single` / `following` / `all` 三种作用域，`applyRecurrenceEditScope` 工具函数已落地，`onEventUpdate` / `onEventDelete` 回调已携带 `recurrenceInstance` 信息 |
 | timezone 转换                     | 🟡   | `displayTimezone` + per-event `timezone` 已接入 scheduler 渲染链（数据时区→显示时区）；`timezones` 已支持主轴左侧叠加副时区刻度轴；全天事件跨时区边界仍未接入 |
 | external DnD                      | 🟡   | `allowExternalDrop` + `onExternalDrop` / `onExternalDropFailed` 与目标格预览阴影已接入 scheduler；第三方库封装仍未接入 |
-| 跨实例拖动                         | 🟡   | `onCrossInstanceDragEnd` / `onCrossInstanceDrop` 与目标实例实时预览阴影已接入 scheduler；跨实例 resize 仍未接入 |
+| 跨实例拖动                         | ✅   | `onCrossInstanceDragEnd` / `onCrossInstanceDrop` 与目标实例实时预览阴影已接入 scheduler；策略钉死为「仅移动」：resize / create 为实例内行为，不参与跨实例桥 |
 
 ### 当前范围基线（2026-06）
 
@@ -93,9 +93,8 @@ swell-calendar 是一个**可嵌入的 React 日历组件库**，面向需要在
 
 当前**仍明确后置**的能力：
 
-- timezone 多时区列同时展示、全天事件跨时区边界
+- timezone 全天事件跨时区边界（多时区刻度轴已支持，见 `scheduler.timezones`）
 - external DnD 第三方库封装
-- 跨实例拖动跨实例 resize
 - `agenda`
 - 移动端适配
 - `connections`

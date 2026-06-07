@@ -82,7 +82,23 @@ https://demo.mobiscroll.com/react/scheduler/desktop-week-view
 - [x] P4 all-day gutter 标签（实测对齐通过）
 - [x] P2 第二时区轴（实测：NY 00:00 → LON 05:00 → TYO 13:00，gutter 72→216px，day/week 单轴不退化）
 - [x] P5 hover / focus 视觉打磨（纯 CSS，实测规则编译/前缀正确）
+- [x] P3 跨实例 resize 策略（move-only 钉死，新增回归测试）
 - [ ] follow-up：全天事件跨时区边界（后置，需先明确语义）
+
+### P3 跨实例 resize 策略（已落地）
+
+问题：`TimeEvent` 的 move 与 resize 拖拽都会 `setDraggingEventUIModel`，而 `useCrossInstanceDnD`
+源侧只看 `draggingEventUIModel` 不看拖拽类型，导致 **resize 拖到容器外会被误判为跨实例拖出**，
+错误触发 `onCrossInstanceDragEnd` / `onCrossInstanceDrop`。
+
+策略钉死：跨实例桥**仅接管 move**，resize / create 是实例内行为，不参与跨实例。
+
+- `helpers/drag.ts`：新增 `isMoveDraggingType(draggingItemType)` 谓词（`/^event\/[^/]+\/move\//`）
+- `hooks/TimeGrid/useCrossInstanceDnD.ts`：捕获阶段加 `isMoveDraggingType` 门控。
+  注意 `reset()` 会同时清空 `draggingItemType` 与 `draggingState`，故类型判定只放在捕获阶段，
+  cleanup（IDLE / CANCELED）仍依赖 `wasDraggingRef`，不能提前 return，否则会破坏 move 落点清理
+- `hooks/TimeGrid/useCrossInstanceDnD.spec.tsx`：新增「resize 拖拽不产生任何跨实例预览」回归用例
+- SPEC：跨实例拖动状态升级为 ✅，标注「仅移动」策略；从后置清单移除「跨实例 resize」
 
 ### P5 hover / focus 视觉打磨（已落地，纯 CSS）
 
