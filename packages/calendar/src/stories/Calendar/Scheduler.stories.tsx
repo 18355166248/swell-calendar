@@ -2616,9 +2616,10 @@ const REGRESSION_RESOURCES = RESOURCES.slice(0, 3);
 function buildRegressionEvents(): EventObject[] {
   const today = dayjs().startOf('day');
   return [
+    // r1 资源（蓝色列）
     {
       id: 'reg-a',
-      title: 'Reg A',
+      title: 'Reg A（可拖拽/可 resize）',
       category: 'time',
       start: today.hour(9).minute(0).toDate(),
       end: today.hour(10).minute(0).toDate(),
@@ -2627,14 +2628,96 @@ function buildRegressionEvents(): EventObject[] {
       color: '#fff',
     },
     {
+      id: 'reg-r1-2',
+      title: '站会',
+      category: 'time',
+      start: today.hour(11).minute(0).toDate(),
+      end: today.hour(11).minute(30).toDate(),
+      resourceId: 'r1',
+      backgroundColor: '#3b82f6',
+      color: '#fff',
+    },
+    {
+      id: 'reg-r1-3',
+      title: '设计评审',
+      category: 'time',
+      start: today.hour(14).minute(0).toDate(),
+      end: today.hour(15).minute(30).toDate(),
+      resourceId: 'r1',
+      backgroundColor: '#1d4ed8',
+      color: '#fff',
+    },
+    // r2 资源（绿色列）
+    {
       id: 'reg-b',
-      title: 'Reg B',
+      title: 'Reg B（可拖拽/可 resize）',
       category: 'time',
       start: today.hour(9).minute(0).toDate(),
       end: today.hour(10).minute(0).toDate(),
       resourceId: 'r2',
       backgroundColor: '#059669',
       color: '#fff',
+    },
+    {
+      id: 'reg-r2-2',
+      title: '周例会',
+      category: 'time',
+      start: today.hour(10).minute(0).toDate(),
+      end: today.hour(11).minute(0).toDate(),
+      resourceId: 'r2',
+      backgroundColor: '#10b981',
+      color: '#fff',
+    },
+    {
+      id: 'reg-r2-3',
+      title: '代码评审',
+      category: 'time',
+      start: today.hour(13).minute(0).toDate(),
+      end: today.hour(14).minute(0).toDate(),
+      resourceId: 'r2',
+      backgroundColor: '#047857',
+      color: '#fff',
+    },
+    {
+      id: 'reg-r2-4',
+      title: '一对一沟通',
+      category: 'time',
+      start: today.hour(15).minute(0).toDate(),
+      end: today.hour(15).minute(45).toDate(),
+      resourceId: 'r2',
+      backgroundColor: '#34d399',
+      color: '#111',
+    },
+    // r3 资源（橙色列）
+    {
+      id: 'reg-r3-1',
+      title: '需求梳理',
+      category: 'time',
+      start: today.hour(8).minute(30).toDate(),
+      end: today.hour(9).minute(30).toDate(),
+      resourceId: 'r3',
+      backgroundColor: '#f59e0b',
+      color: '#fff',
+    },
+    {
+      id: 'reg-r3-2',
+      title: '技术方案讨论',
+      category: 'time',
+      start: today.hour(10).minute(30).toDate(),
+      end: today.hour(12).minute(0).toDate(),
+      resourceId: 'r3',
+      backgroundColor: '#d97706',
+      color: '#fff',
+    },
+    {
+      id: 'reg-r3-3',
+      title: '回顾会',
+      category: 'time',
+      start: today.hour(14).minute(0).toDate(),
+      end: today.hour(15).minute(0).toDate(),
+      resourceId: 'r3',
+      backgroundColor: '#fbbf24',
+      color: '#111',
     },
   ];
 }
@@ -2694,8 +2777,8 @@ export const DragResizeRegression: Story = {
     const cardA = () => canvas.getByTestId('event-card-reg-a');
     const cardB = () => canvas.getByTestId('event-card-reg-b');
 
-    // 初始：两张卡片
-    expect(count()).toBe(2);
+    // 初始：所有卡片就绪（10 张）
+    expect(count()).toBe(10);
 
     // 1) MOVE reg-a 向下，落点不应产生重复幽灵卡，且应真正移动
     {
@@ -2706,7 +2789,7 @@ export const DragResizeRegression: Story = {
       ]);
       // 无重复（单张 reg-a）+ 总数不变
       expect(canvas.queryAllByTestId('event-card-reg-a').length).toBe(1);
-      expect(count()).toBe(2);
+      expect(count()).toBe(10);
       // 真正移动了
       const after = cardA().getBoundingClientRect();
       expect(after.top).toBeGreaterThan(before.rect.top + 5);
@@ -2737,7 +2820,7 @@ export const DragResizeRegression: Story = {
         { x: before.x + 1, y: before.y + 1 },
       ]);
       expect(canvas.queryAllByTestId('event-card-reg-b').length).toBe(1);
-      expect(count()).toBe(2);
+      expect(count()).toBe(10);
 
       // no-op 之后 reg-b 仍可正常移动（拖拽未失灵）
       const b2 = centerOf(cardB());
