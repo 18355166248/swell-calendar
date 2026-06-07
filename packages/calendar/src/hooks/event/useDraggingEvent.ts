@@ -1,5 +1,5 @@
 import { isNil } from 'lodash-es';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 import { EventUIModel } from '@/model/eventUIModel';
 import { DraggingState } from '@/types/dnd.type';
@@ -52,6 +52,13 @@ export function useDraggingEvent(area: EventDraggingArea, behavior: EventDraggin
   // resize 方向（仅 behavior === 'resize' 有意义，默认 'end' 底边）
   const [resizeDirection, setResizeDirection] = useState<EventResizeDirection>('end');
 
+  // "本 hook 已开始一次拖拽" 的同步标记。
+  // 不能在 transient 回调里直接读 `draggingEvent`（state）判断是否结束：state 更新到下次 render 才生效，
+  // 而 mousedown→setDragging→reset 可能在同一批次内连续触发 store 变更，回调读到的是过期闭包值，
+  // 导致 IDLE/CANCELED 的"结束"分支漏判 → `draggingEvent` 永远停在上一次拖拽的事件上，
+  // 表现为"其它卡片再也无法 resize/拖拽"。用回调内同步置位的 ref，彻底消除该竞态。
+  const startedRef = useRef(false);
+
   useTransientUpdatesCalendar(
     (state) => state.dnd,
     ({ draggingItemType, draggingEventUIModel, draggingState }) => {
@@ -59,14 +66,15 @@ export function useDraggingEvent(area: EventDraggingArea, behavior: EventDraggin
       const hasMatchingTargetEvent = Number(matched?.id) === draggingEventUIModel?.cid();
       const isIdle = draggingState === DraggingState.IDLE;
       const isCanceled = draggingState === DraggingState.CANCELED;
-      if (isNil(draggingEvent) && hasMatchingTargetEvent) {
+      if (!startedRef.current && hasMatchingTargetEvent) {
+        startedRef.current = true;
         setDraggingEvent(draggingEventUIModel);
         if (matched) {
           setResizeDirection(matched.direction);
         }
       }
 
-      if (!isNil(draggingEvent) && (isIdle || isCanceled)) {
+      if (startedRef.current && (isIdle || isCanceled)) {
         setIsDraggingEnd(true);
         setIsDraggingCanceled(isCanceled);
       }
@@ -74,6 +82,7 @@ export function useDraggingEvent(area: EventDraggingArea, behavior: EventDraggin
   );
 
   const clearDraggingEvent = () => {
+    startedRef.current = false;
     setDraggingEvent(null);
     setIsDraggingEnd(false);
     setIsDraggingCanceled(false);

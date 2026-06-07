@@ -2769,13 +2769,20 @@ async function pointerGesture(
   startPoint: { x: number; y: number },
   steps: Array<{ x: number; y: number }>
 ) {
-  fireEvent.mouseDown(startEl, { clientX: startPoint.x, clientY: startPoint.y, button: 0 });
+  // buttons:1 表示左键按住中——useDrag 用 `(e.buttons & 1)===0` 兜底丢失的 mouseup，
+  // 拖拽过程中的 mousemove 必须带 buttons:1，否则会被识别为"按键已松开"而提前结束。
+  fireEvent.mouseDown(startEl, {
+    clientX: startPoint.x,
+    clientY: startPoint.y,
+    button: 0,
+    buttons: 1,
+  });
   for (const s of steps) {
-    fireEvent.mouseMove(document, { clientX: s.x, clientY: s.y, button: 0 });
+    fireEvent.mouseMove(document, { clientX: s.x, clientY: s.y, button: 0, buttons: 1 });
     await new Promise((r) => setTimeout(r, 20));
   }
   const last = steps[steps.length - 1];
-  fireEvent.mouseUp(document, { clientX: last.x, clientY: last.y, button: 0 });
+  fireEvent.mouseUp(document, { clientX: last.x, clientY: last.y, button: 0, buttons: 0 });
   await new Promise((r) => setTimeout(r, 220));
 }
 
@@ -2868,6 +2875,53 @@ export const DragResizeRegression: Story = {
       expect(canvas.queryAllByTestId('event-card-reg-b').length).toBe(1);
       const afterB = cardB().getBoundingClientRect();
       expect(afterB.top).toBeGreaterThan(b2.rect.top + 5);
+    }
+
+    // 4) 未经任何前置交互的"孤立"卡片（6/8 8:30 的 reg-r3-1）顶/底边都能 resize、无重复
+    {
+      const card = () => canvas.getByTestId('event-card-reg-r3-1');
+
+      // 底边下拉 → 变高
+      const hBefore = card().getBoundingClientRect().height;
+      const bottom = card().querySelector('[data-testid^="resize-handle-bottom-"]')!;
+      const cb = centerOf(bottom);
+      await pointerGesture(bottom, { x: cb.x, y: cb.y }, [
+        { x: cb.x, y: cb.y + 12 },
+        { x: cb.x, y: cb.y + 90 },
+      ]);
+      expect(canvas.queryAllByTestId('event-card-reg-r3-1').length).toBe(1);
+      await waitFor(() =>
+        expect(card().getBoundingClientRect().height).toBeGreaterThan(hBefore + 10)
+      );
+
+      // 顶边上拉 → 顶部上移（开始时间提前）
+      const topBefore = card().getBoundingClientRect().top;
+      const topHandle = card().querySelector('[data-testid^="resize-handle-top-"]')!;
+      const ct = centerOf(topHandle);
+      await pointerGesture(topHandle, { x: ct.x, y: ct.y }, [
+        { x: ct.x, y: ct.y - 12 },
+        { x: ct.x, y: ct.y - 80 },
+      ]);
+      expect(canvas.queryAllByTestId('event-card-reg-r3-1').length).toBe(1);
+      await waitFor(() => expect(card().getBoundingClientRect().top).toBeLessThan(topBefore - 5));
+    }
+
+    // 5) 跨列回归：在对"另一列"的 reg-r3-1 做完 resize 之后，
+    //    先前交互过的 reg-b（不同列）必须仍能 resize。
+    //    曾因 useDraggingEvent 闭包竞态使 draggingEvent 卡在"上一次 resize 的事件"，
+    //    导致除最后那张外的所有卡片 resize 全部失灵（guide 不出现）。
+    {
+      const hBefore = cardB().getBoundingClientRect().height;
+      const bottom = cardB().querySelector('[data-testid^="resize-handle-bottom-"]')!;
+      const cb = centerOf(bottom);
+      await pointerGesture(bottom, { x: cb.x, y: cb.y }, [
+        { x: cb.x, y: cb.y + 12 },
+        { x: cb.x, y: cb.y + 90 },
+      ]);
+      expect(canvas.queryAllByTestId('event-card-reg-b').length).toBe(1);
+      await waitFor(() =>
+        expect(cardB().getBoundingClientRect().height).toBeGreaterThan(hBefore + 10)
+      );
     }
   },
 };

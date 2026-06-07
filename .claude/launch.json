@@ -1,0 +1,19 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "storybook",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "node_modules/storybook/bin/index.cjs",
+        "dev",
+        "-p",
+        "6006",
+        "--no-open",
+        "--config-dir",
+        "packages/calendar/.storybook"
+      ],
+      "port": 6006
+    }
+  ]
+}

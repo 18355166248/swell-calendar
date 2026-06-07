@@ -89,6 +89,14 @@ export function useDrag(
    */
   const handleMouseMove = useCallback<MouseEventListener>(
     (e) => {
+      // 兜底自恢复：拖拽进行中若主键（左键）已不再按下，说明 mouseup 丢失
+      // （窗口外释放 / 失焦 / 被导航打断等）。此时立即按"结束拖拽"清理，
+      // 否则 dnd 会卡在 DRAGGING：卡片半透明、且后续无法再拖拽/resize，只能刷新。
+      if ((e.buttons & 1) === 0) {
+        handleMouseUpRef.current?.(e);
+        return;
+      }
+
       const { initX, initY, draggingState } = dndSliceRef.current;
 
       // 检查鼠标是否移动了足够距离

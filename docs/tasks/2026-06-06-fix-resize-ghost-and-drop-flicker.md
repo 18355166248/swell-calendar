@@ -165,3 +165,49 @@ backgroundColor: isDraggingTarget && !isResizingEvent ? dragBackgroundColor : ba
 - 验证：`tsc --noEmit` 干净；`check-docs` / `check-arch` 通过；单测 242 全绿（无新增/回归失败）。
 - 剩余：`getEventColors` 的 `??` 空串不穿透语义未改（move 跟手原卡仍是透明 0.5 ghost，符合预期，未列入本次范围）；recurrence 落点闪帧未优化（量小、走单一真源）。
 - 追加：`DragResizeRegression` 原仅 2 张卡片，三列 scheduler 显得空洞。现补齐 13 张，事件均匀分布在 7 天（`d(0)` 到 `d(6)`）中，每天至少 1–3 张跨 r1/r2/r3，视觉饱满、同时仍以 Day0 的 reg-a/reg-b 为 play 测试的主要交互对象。
+
+## 追加：6/8 8:30 卡片"resize 拖不动"复核 + 锁测
+
+- 现象（用户反馈）：6/8（Day1）8:30 的 `reg-r3-1`（r3，8:30–9:30，孤立无重叠）resize 拖不动。
+- 复核：**fresh load 无法复现**。实测该卡顶/底手柄均存在（7px）、`elementFromPoint` 距边 0–6/0–7px 均命中
+  自身手柄（未被遮挡）；合成真实慢拖（距顶边 3px 按下、逐步上拖）正常 resize（"08:00–09:30"，顶部上移）；
+  当前页无残留幽灵卡 / 无重复。
+- 判断：最可能是**陈旧页面态**——HMR/Fast Refresh 在 move→resize 引导兜底清空修复前保留了旧的 stuck guide
+  组件状态；硬刷新（Ctrl+Shift+R）即可恢复。
+- 锁测：`DragResizeRegression` play 增加第 4 段——对未经任何前置交互的孤立卡 `reg-r3-1` 顶/底边各 resize
+  一次，断言生效（变高 / 顶部上移）且无重复。play 通过。
+
+## 追加：拖拽被打断后卡死（半透明 + 无法拖动/ resize，需刷新）
+
+- 现象：某些情况下卡片"拖拽时变半透明、之后无法再拖拽/ resize",只能刷新恢复。
+- 根因：`useDrag` 只在 document 的 `mouseup` 上清理拖拽。一旦 **mouseup 丢失**（窗口外松开 / 失焦 /
+  导航或脚本中途打断），dnd 永久停在 `DRAGGING`：`layoutContainer` 的 `dragging--*` class 不卸载、
+  `isDraggingTarget` 恒真 → 卡片半透明；`draggingEvent` 不清空 → 后续交互无法登记 → 表现为"拖不动"。
+  无任何自恢复路径，只能刷新。
+- 修复：`useDrag.handleMouseMove` 增加兜底——拖拽进行中若主键已不再按下（`(e.buttons & 1) === 0`），
+  立即按"结束拖拽"处理（`handleMouseUp` → 卸载 class + `reset()`）。这样**鼠标一移回日历就自恢复**，无需刷新。
+- 实测（浏览器）：模拟"拖拽中途丢失 mouseup"（`mousemove` 带 `buttons=0`）后，`dragging--*` class 由 1→0、
+  卡片恢复不透明、随后拖拽正常（727→825）。`tsc`/eslint/prettier 干净、vitest 249 全绿。
+- 连带修复：`DragResizeRegression` play 的 `pointerGesture` 原 `mousemove` 未带 `buttons`（默认 0），
+  会被上面的兜底识别为"按键已松开"而提前结束。已改为 mousedown/mousemove 带 `buttons:1`、mouseup 带 `buttons:0`，
+  更贴近真实拖拽。修正后 play 通过（13 张卡、无重复、reg-a 与 reg-r3-1 均成功 resize）。
+
+## 追加：useDraggingEvent 闭包竞态 → "做完一次 resize 后，其它列卡片全部无法 resize"
+
+- 现象（刷新后稳定复现，非陈旧态）：在 `DragResizeRegression`（play 会连做 move/resize）跑完后，
+  6/7 的 reg-a/reg-b 等卡片 resize 完全无反应（按下手柄、dnd 状态正确进入 DRAGGING、
+  `draggingEventUIModel` 也正确指向该卡，但**引导始终不出现**）；而最后被 resize 的那张卡仍正常。
+- 定位：经 React fiber 读取 store —— dnd 状态完全正确（`draggingEventUIModel=reg-a`、DRAGGING），
+  问题在 resize **hook** 没接住。根因是 `useDraggingEvent` 的 transient 订阅回调**直接读 state 闭包值
+  `draggingEvent`**：`setDragging→reset` 可能在同批次内连续触发 store 变更，回调读到过期闭包，
+  结束分支（IDLE/CANCELED）漏判 → 该列 hook 的 `draggingEvent` 永远停在"上一次拖拽的事件"上。
+  之后任何卡片在该列 resize：`isNil(draggingEvent)` 为假 → 不接管新拖拽 → `resizingStartUIModel` 用旧事件
+  → `baseResizingInfo` 落到错误的列 → 引导不出现、resize 失灵。只有"上一次那张"恰好匹配才仍可用。
+  （注：每列一个 `ResizingEventShadow`，且任一列的 `useDraggingEvent` 都会因 cid 全局匹配而置位，
+  故一次 resize 会让"非目标列"也进入该竞态。先用 render 阶段 ref 仅部分缓解，仍有"set→reset 早于 render"的窗口。）
+- 修复：在 `useDraggingEvent` 用**回调内同步置位的 `startedRef`** 取代"读 state 判断是否已开始/结束"——
+  匹配即 `startedRef.current=true` 并 `setDraggingEvent`；IDLE/CANCELED 且 `startedRef.current` 即置
+  `isDraggingEnd`；`clearDraggingEvent` 复位 `startedRef`。彻底消除 render 时序竞态。
+- 验证（浏览器）：play 跑完后,跨 7 天 12 张卡片**逐一 resize 全部生效**（含 reg-a/reg-b）；
+  play 新增第 5 段——在对另一列 reg-r3-1 resize 后，再对 reg-b（不同列）resize 必须仍生效（锁此回归）。
+  `tsc`/eslint/prettier 干净、vitest 249 全绿。
