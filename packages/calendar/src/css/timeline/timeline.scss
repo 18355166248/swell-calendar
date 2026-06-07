@@ -33,7 +33,7 @@
 // ─── Resource List ───────────────────────────────────────────────────────────
 
 .timeline-resource-list {
-  width: 150px;
+  width: 160px;
   flex-shrink: 0;
   border-right: 1px solid #e8e8e8;
   background: #fafafa;
@@ -49,6 +49,7 @@
   border-bottom: 1px solid #e8e8e8;
   gap: 8px;
   overflow: hidden;
+  box-sizing: border-box;
 }
 
 .timeline-resource-dot {
@@ -66,14 +67,13 @@
   text-overflow: ellipsis;
 }
 
-// ─── Header ──────────────────────────────────────────────────────────────────
+// ─── Header（双层：月份 + 天列） ───────────────────────────────────────────────
 
 .timeline-header {
   display: flex;
   flex-shrink: 0;
   border-bottom: 1px solid #e8e8e8;
   background: #fff;
-  height: 48px;
   position: sticky;
   top: 0;
   z-index: 3;
@@ -90,33 +90,64 @@
 
 .timeline-header-cells {
   display: flex;
+  flex-direction: column;
 }
 
-.timeline-header-cell {
+.timeline-header-month {
+  height: 22px;
+  line-height: 22px;
+  padding-left: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #333;
+  background: #fafafa;
+  border-bottom: 1px solid #f0f0f0;
+  position: sticky;
+  left: 0;
+  box-sizing: border-box;
+}
+
+.timeline-header-days {
+  display: flex;
+}
+
+.timeline-header-day {
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
-  padding-bottom: 4px;
-  padding-left: 4px;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 0;
   border-right: 1px solid #f0f0f0;
-  overflow: hidden;
+  box-sizing: border-box;
+
+  &--weekend {
+    background: #fafafa;
+  }
+
+  &--today {
+    background: rgba(81, 92, 230, 0.1);
+  }
+}
+
+.timeline-header-weekday {
+  font-size: 10px;
+  color: #999;
+  line-height: 1.3;
 }
 
 .timeline-header-date {
-  font-size: 11px;
-  color: #666;
-  white-space: nowrap;
-  line-height: 1.2;
+  font-size: 13px;
+  color: #333;
+  line-height: 1.3;
 }
 
-.timeline-header-hour {
-  font-size: 11px;
-  color: #aaa;
-  white-space: nowrap;
+.timeline-header-day--today .timeline-header-date {
+  color: #515ce6;
+  font-weight: 700;
 }
 
-// ─── Grid ─────────────────────────────────────────────────────────────────────
+// ─── Grid（资源行 × 天列） ─────────────────────────────────────────────────────
 
 .timeline-grid {
   flex-shrink: 0;
@@ -132,10 +163,56 @@
   flex-shrink: 0;
   border-right: 1px solid #f0f0f0;
   height: 100%;
+  box-sizing: border-box;
 
-  &.timeline-grid-cell--day-end {
-    border-right-color: #d8d8d8;
+  &--weekend {
+    background: #fafafa;
   }
+
+  &--today {
+    background: rgba(81, 92, 230, 0.06);
+  }
+}
+
+// ─── Event（跨天横条） ─────────────────────────────────────────────────────────
+
+.timeline-event {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  padding: 0 6px;
+  border-radius: 3px;
+  font-size: 12px;
+  overflow: hidden;
+  white-space: nowrap;
+  box-sizing: border-box;
+  cursor: pointer;
+  z-index: 2;
+  transition:
+    box-shadow 0.12s ease,
+    filter 0.12s ease;
+
+  &:hover {
+    box-shadow: 0 1px 6px rgba(15, 23, 42, 0.28);
+    filter: brightness(1.05);
+  }
+
+  &:focus-visible {
+    outline: 2px solid rgba(81, 92, 230, 0.95);
+    outline-offset: -2px;
+  }
+}
+
+.timeline-event-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.timeline-event-arrow {
+  flex-shrink: 0;
+  padding: 0 2px;
+  opacity: 0.85;
 }
 
 .scheduler-view {

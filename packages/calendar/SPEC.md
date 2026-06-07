@@ -37,7 +37,7 @@ swell-calendar 是一个**可嵌入的 React 日历组件库**，面向需要在
 | 日视图（Day）       | ✅ 完成     | 单日时间网格，24 小时展示                                                   |
 | 周视图（Week）      | ✅ 完成     | 7 天时间网格，支持 workweek 模式                                            |
 | 月视图（Month）     | 🟡 事件可用 | 月历格子 + 事件卡片，支持 `startDayOfWeek` 与 `workweek`，交互能力仍未扩展 |
-| 时间线（Timeline）  | 🟡 事件可用 | 资源行 + 横向时间轴，事件布局已修复，支持 colors/invalid 区段，Toolbar 可见 |
+| 时间线（Timeline）  | ✅ 日粒度排程 | 对标 Mobiscroll Calendar timeline：按天列（当月）+ 资源行，事件渲染为跨天横条、同行重叠按车道堆叠、行高自适应，今天列高亮、周末浅染；资源池与 scheduler 共享 |
 | 调度器（Scheduler） | 🟡 核心闭环可用 | 垂直时间轴 + 资源列的 time-grid 视图，桌面端核心业务闭环已形成，当前进入 Phase 3 高级体验收口阶段 |
 
 ### 事件功能
@@ -156,6 +156,10 @@ interface CalendarOptions {
   };
   timeline?: {
     resources?: ResourceInfo[];
+    visibleResourceIds?: string[];
+    // cellWidth：天列宽度（px）。日粒度 Calendar timeline 已采用按天列布局，
+    // 下列 hourStart/hourEnd/rowHeight/invalid/blockedTimes/colors 为旧「小时条」遗留字段，
+    // 当前 timeline 渲染不再消费（保留以兼容类型，不破坏宿主）。
     hourStart?: number;
     hourEnd?: number;
     rowHeight?: number;

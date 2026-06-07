@@ -32,68 +32,102 @@ function makeResources(): ResourceInfo[] {
   ];
 }
 
-/** 创建时间线事件 */
+/** 当月第 n 天（1-based）的某点 */
+function dayOfMonth(n: number, hour = 9) {
+  return dayjs()
+    .startOf('month')
+    .add(n - 1, 'day')
+    .hour(hour)
+    .minute(0)
+    .toDate();
+}
+
+/**
+ * 当月内的日粒度排程事件：包含跨多天横条与同资源行内重叠（车道堆叠）。
+ */
 function makeTimelineEvents() {
-  const today = dayjs();
   return [
+    // r1：一条跨 5 天 + 同一天两个事件（车道堆叠）
     {
       id: 't-1',
-      title: '团队会议',
+      title: '项目冲刺',
       category: 'time' as const,
       resourceId: 'r1',
-      start: today.hour(9).minute(0).toDate(),
-      end: today.hour(10).minute(30).toDate(),
+      start: dayOfMonth(2, 9),
+      end: dayOfMonth(6, 18),
       backgroundColor: '#3b82f6',
       color: '#fff',
     },
     {
       id: 't-2',
-      title: '代码评审',
+      title: '团队会议',
       category: 'time' as const,
       resourceId: 'r1',
-      start: today.hour(14).minute(0).toDate(),
-      end: today.hour(15).minute(0).toDate(),
+      start: dayOfMonth(9, 10),
+      end: dayOfMonth(9, 11),
       backgroundColor: '#3b82f6',
       color: '#fff',
     },
     {
       id: 't-3',
-      title: '客户拜访',
+      title: '代码评审',
       category: 'time' as const,
-      resourceId: 'r2',
-      start: today.hour(10).minute(0).toDate(),
-      end: today.hour(12).minute(0).toDate(),
-      backgroundColor: '#10b981',
+      resourceId: 'r1',
+      start: dayOfMonth(9, 14),
+      end: dayOfMonth(10, 15),
+      backgroundColor: '#6366f1',
       color: '#fff',
     },
+    // r2：一条长跨度横条 + 一个单日
     {
       id: 't-4',
-      title: '周报撰写',
+      title: '客户驻场',
       category: 'time' as const,
       resourceId: 'r2',
-      start: today.hour(15).minute(0).toDate(),
-      end: today.hour(16).minute(30).toDate(),
+      start: dayOfMonth(4, 9),
+      end: dayOfMonth(11, 17),
       backgroundColor: '#10b981',
       color: '#fff',
     },
     {
       id: 't-5',
-      title: '项目规划',
+      title: '周报撰写',
+      category: 'time' as const,
+      resourceId: 'r2',
+      start: dayOfMonth(15, 15),
+      end: dayOfMonth(15, 16),
+      backgroundColor: '#10b981',
+      color: '#fff',
+    },
+    // r3：相邻多日 + 同日重叠
+    {
+      id: 't-6',
+      title: '新人培训',
       category: 'time' as const,
       resourceId: 'r3',
-      start: today.hour(9).minute(0).toDate(),
-      end: today.hour(11).minute(0).toDate(),
+      start: dayOfMonth(8, 9),
+      end: dayOfMonth(9, 17),
       backgroundColor: '#f59e0b',
       color: '#fff',
     },
     {
-      id: 't-6',
-      title: '复盘会议',
+      id: 't-7',
+      title: '版本发布',
       category: 'time' as const,
       resourceId: 'r3',
-      start: today.hour(16).minute(0).toDate(),
-      end: today.hour(17).minute(30).toDate(),
+      start: dayOfMonth(16, 10),
+      end: dayOfMonth(16, 12),
       backgroundColor: '#f59e0b',
+      color: '#fff',
+    },
+    {
+      id: 't-8',
+      title: '发布复盘',
+      category: 'time' as const,
+      resourceId: 'r3',
+      start: dayOfMonth(16, 14),
+      end: dayOfMonth(16, 15),
+      backgroundColor: '#ef4444',
       color: '#fff',
     },
   ].map((event) => new EventModel(event));
@@ -102,7 +136,7 @@ function makeTimelineEvents() {
 /**
  * Primary — 基础渲染
  *
- * 3 个资源 × 8 小时（9:00-17:00）横向时间轴
+ * 3 个资源 × 当月按天列的日粒度时间轴。
  */
 export const Primary: Story = {
   name: '基础视图',
@@ -112,34 +146,6 @@ export const Primary: Story = {
       options={{
         timeline: {
           resources: makeResources(),
-          hourStart: 9,
-          hourEnd: 17,
-        },
-      }}
-    >
-      <Timeline />
-    </Wrapper>
-  ),
-  args: {
-    events: [],
-  },
-};
-
-/**
- * WithEvents — 事件渲染
- *
- * 每个资源列 2 个时间事件，验证事件卡片在时间轴上的正确渲染
- */
-export const WithEvents: Story = {
-  name: '带事件数据',
-  render: (args) => (
-    <Wrapper
-      events={args.events}
-      options={{
-        timeline: {
-          resources: makeResources(),
-          hourStart: 8,
-          hourEnd: 18,
         },
       }}
     >
@@ -152,35 +158,18 @@ export const WithEvents: Story = {
 };
 
 /**
- * WithColorsAndInvalid — 背景色区段和禁止时段
+ * WithEvents — 多日横条与重叠堆叠
  *
- * 验证 `colors` 背景区段和 `blockedTimes` 禁止时段的渲染。
+ * 验证跨多天事件渲染为横条，同资源行内重叠事件按车道纵向堆叠、行高自适应。
  */
-export const WithColorsAndInvalid: Story = {
-  name: '背景区段与禁用时段',
+export const WithEvents: Story = {
+  name: '多日横条与重叠',
   render: (args) => (
     <Wrapper
       events={args.events}
       options={{
         timeline: {
           resources: makeResources(),
-          hourStart: 8,
-          hourEnd: 18,
-          colors: [
-            {
-              start: dayjs().hour(12).minute(0).toDate(),
-              end: dayjs().hour(13).minute(0).toDate(),
-              background: '#fef3c7',
-              color: '#92400e',
-            },
-          ],
-          blockedTimes: [
-            {
-              start: dayjs().hour(8).minute(0).toDate(),
-              end: dayjs().hour(9).minute(0).toDate(),
-              resourceId: 'r2',
-            },
-          ],
         },
       }}
     >

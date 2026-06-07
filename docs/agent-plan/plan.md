@@ -153,7 +153,10 @@ PLAN4 相对 PLAN3 的主要修订：
 - `timeline` 与 `scheduler` 继续保持独立视图
 - 允许共享底层 `time/` / `model/` / `controller/` 算法
 - 不允许在 `components/` 层互相耦合
-- 本轮不为 `timeline` 新增 parity 目标
+- ~~本轮不为 `timeline` 新增 parity 目标~~（2026-06-07 修订）：应用户要求，`timeline` 升级为对标
+  **Mobiscroll React Timeline - Calendar timeline**（<https://demo.mobiscroll.com/react/timeline/calendar-timeline>）
+  的日粒度资源排程视图——按天列（当月）+ 资源行 + 跨天事件横条 + 同行车道堆叠。详见任务
+  `docs/tasks/2026-06-07-timeline-calendar-rebuild.md`
 
 **不退化保障细则**（新增）：
 

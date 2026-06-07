@@ -7,37 +7,38 @@ import { EventUIModel } from '@/model/eventUIModel';
 
 interface TimelineEventProps {
   uiModel: EventUIModel;
-  totalWidth: number;
+  left: number;
+  width: number;
+  top: number;
+  height: number;
+  exceedLeft: boolean;
+  exceedRight: boolean;
 }
 
-export function TimelineEvent({ uiModel, totalWidth }: TimelineEventProps) {
+/** Calendar Timeline 事件横条（跨天）。 */
+export function TimelineEvent({
+  uiModel,
+  left,
+  width,
+  top,
+  height,
+  exceedLeft,
+  exceedRight,
+}: TimelineEventProps) {
   const { model } = uiModel;
   const { title, backgroundColor, color, borderColor } = model;
   const callbacks = useCalendarCallbacks();
 
-  const leftPx = (uiModel.left / 100) * totalWidth;
-  const widthPx = Math.max((uiModel.width / 100) * totalWidth, 4);
-
   const style = {
     position: 'absolute' as const,
-    left: leftPx,
-    width: widthPx,
-    top: 4,
-    height: 32,
+    left,
+    width: Math.max(width, 4),
+    top,
+    height,
+    lineHeight: `${height}px`,
     backgroundColor: backgroundColor || '#3b82f6',
     borderLeft: borderColor ? `3px solid ${borderColor}` : undefined,
     color: color || '#fff',
-    borderRadius: 3,
-    overflow: 'hidden',
-    whiteSpace: 'nowrap' as const,
-    textOverflow: 'ellipsis',
-    fontSize: 12,
-    lineHeight: '32px',
-    paddingLeft: 6,
-    paddingRight: 4,
-    boxSizing: 'border-box' as const,
-    cursor: 'pointer',
-    zIndex: 1,
   };
 
   const handleClick = () => {
@@ -52,17 +53,11 @@ export function TimelineEvent({ uiModel, totalWidth }: TimelineEventProps) {
   };
 
   const handleMouseEnter = () => {
-    callbacks?.onEventHover?.({
-      event: model.toEventObject(),
-      hovering: true,
-    });
+    callbacks?.onEventHover?.({ event: model.toEventObject(), hovering: true });
   };
 
   const handleMouseLeave = () => {
-    callbacks?.onEventHover?.({
-      event: model.toEventObject(),
-      hovering: false,
-    });
+    callbacks?.onEventHover?.({ event: model.toEventObject(), hovering: false });
   };
 
   return (
@@ -78,9 +73,9 @@ export function TimelineEvent({ uiModel, totalWidth }: TimelineEventProps) {
       onPointerEnter={handleMouseEnter}
       onPointerLeave={handleMouseLeave}
     >
-      {uiModel.exceedLeft && <span style={{ marginRight: 2 }}>‹</span>}
-      {title}
-      {uiModel.exceedRight && <span style={{ marginLeft: 2 }}>›</span>}
+      {exceedLeft && <span className={cls('timeline-event-arrow')}>‹</span>}
+      <span className={cls('timeline-event-title')}>{title}</span>
+      {exceedRight && <span className={cls('timeline-event-arrow')}>›</span>}
     </div>
   );
 }
