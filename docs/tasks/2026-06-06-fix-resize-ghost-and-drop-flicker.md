@@ -164,4 +164,4 @@ backgroundColor: isDraggingTarget && !isResizingEvent ? dragBackgroundColor : ba
   浏览器实测 move→resize ×4 无重复。
 - 验证：`tsc --noEmit` 干净；`check-docs` / `check-arch` 通过；单测 242 全绿（无新增/回归失败）。
 - 剩余：`getEventColors` 的 `??` 空串不穿透语义未改（move 跟手原卡仍是透明 0.5 ghost，符合预期，未列入本次范围）；recurrence 落点闪帧未优化（量小、走单一真源）。
-- 追加：`DragResizeRegression` 原仅 2 张卡片，三列 scheduler 显得空洞。现补齐 10 张（r1/r2/r3 各含 2–4 张，覆盖 8:00–15:45），视觉饱满、同时仍以 reg-a/reg-b 为 play 测试的主要交互对象。
+- 追加：`DragResizeRegression` 原仅 2 张卡片，三列 scheduler 显得空洞。现补齐 13 张，事件均匀分布在 7 天（`d(0)` 到 `d(6)`）中，每天至少 1–3 张跨 r1/r2/r3，视觉饱满、同时仍以 Day0 的 reg-a/reg-b 为 play 测试的主要交互对象。
