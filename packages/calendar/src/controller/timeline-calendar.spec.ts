@@ -3,9 +3,18 @@ import { describe, expect, it } from 'vitest';
 import { EventModel } from '@/model/eventModel';
 import DayjsTZDate from '@/time/dayjs-tzdate';
 import { CalendarData } from '@/types/calendar.type';
+import { EventObject } from '@/types/events.type';
 import Collection from '@/utils/collection';
 
-import { getCalendarTimelineDays, getCalendarTimelineRow } from './timeline-calendar';
+import {
+  buildCreatedAlldayEvent,
+  computeMovedEvent,
+  computeResizedEvent,
+  getCalendarTimelineDays,
+  getCalendarTimelineRow,
+  getTimelineDayIndexFromX,
+  getTimelineResourceIndexFromY,
+} from './timeline-calendar';
 
 function makeCalendar(events: EventModel[]): CalendarData {
   const collection = new Collection<EventModel>((model) => model.cid());
@@ -127,6 +136,74 @@ describe('timeline-calendar', () => {
       expect(getCalendarTimelineRow(calendar, 'r2', days).items).toHaveLength(1);
       expect(getCalendarTimelineRow(calendar, 'r3', days).items).toHaveLength(1);
       expect(getCalendarTimelineRow(calendar, 'r1', days).items).toHaveLength(0);
+    });
+  });
+
+  describe('交互几何', () => {
+    it('getTimelineDayIndexFromX 按 cellWidth 取整并 clamp', () => {
+      expect(getTimelineDayIndexFromX(0, 48, 30)).toBe(0);
+      expect(getTimelineDayIndexFromX(100, 48, 30)).toBe(2);
+      expect(getTimelineDayIndexFromX(-20, 48, 30)).toBe(0);
+      expect(getTimelineDayIndexFromX(9999, 48, 30)).toBe(29);
+    });
+
+    it('getTimelineResourceIndexFromY 按累加行高定位并 clamp', () => {
+      const heights = [44, 44, 66];
+      expect(getTimelineResourceIndexFromY(0, heights)).toBe(0);
+      expect(getTimelineResourceIndexFromY(50, heights)).toBe(1);
+      expect(getTimelineResourceIndexFromY(100, heights)).toBe(2);
+      expect(getTimelineResourceIndexFromY(9999, heights)).toBe(2);
+      expect(getTimelineResourceIndexFromY(-5, heights)).toBe(0);
+    });
+
+    it('computeMovedEvent 按天平移、保留时刻、可改资源', () => {
+      const prev = {
+        start: new DayjsTZDate('2026-06-05T09:30:00'),
+        end: new DayjsTZDate('2026-06-05T10:30:00'),
+        resourceId: 'r1',
+      } as unknown as EventObject;
+
+      const moved = computeMovedEvent(prev, 2, 'r2');
+      const start = new DayjsTZDate(moved.start);
+      const end = new DayjsTZDate(moved.end);
+      expect(start.dayjs.date()).toBe(7);
+      expect(start.dayjs.hour()).toBe(9);
+      expect(start.dayjs.minute()).toBe(30);
+      expect(end.dayjs.date()).toBe(7);
+      expect(moved.resourceId).toBe('r2');
+    });
+
+    it('computeResizedEvent 改起/止天并 clamp 防反向', () => {
+      const prev = {
+        start: new DayjsTZDate('2026-06-05T09:00:00'),
+        end: new DayjsTZDate('2026-06-08T10:00:00'),
+      } as unknown as EventObject;
+
+      const startResized = computeResizedEvent(prev, 'start', -2);
+      expect(new DayjsTZDate(startResized.start).dayjs.date()).toBe(3);
+
+      const endResized = computeResizedEvent(prev, 'end', 2);
+      expect(new DayjsTZDate(endResized.end).dayjs.date()).toBe(10);
+
+      // start 拖过 end → clamp 到 end
+      const clamped = computeResizedEvent(prev, 'start', 10);
+      expect(new DayjsTZDate(clamped.start).getTime()).toBe(new DayjsTZDate(prev.end).getTime());
+    });
+
+    it('buildCreatedAlldayEvent 生成跨天全天事件并校正起止顺序', () => {
+      const created = buildCreatedAlldayEvent(
+        'r1',
+        new DayjsTZDate('2026-06-10T00:00:00'),
+        new DayjsTZDate('2026-06-08T00:00:00')
+      );
+      expect(created.allDay).toBe(true);
+      expect(created.resourceId).toBe('r1');
+      const start = new DayjsTZDate(created.start);
+      const end = new DayjsTZDate(created.end);
+      expect(start.dayjs.date()).toBe(8);
+      expect(start.dayjs.hour()).toBe(0);
+      expect(end.dayjs.date()).toBe(10);
+      expect(end.dayjs.hour()).toBe(23);
     });
   });
 });

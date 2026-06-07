@@ -151,12 +151,24 @@
 
 .timeline-grid {
   flex-shrink: 0;
+  position: relative; // 承载拖拽幽灵横条的绝对定位
 }
 
 .timeline-grid-row {
   display: flex;
   border-bottom: 1px solid #e8e8e8;
   position: relative;
+  cursor: cell; // 空白区拖拽创建提示
+}
+
+// 拖拽 / resize / 创建过程中的幽灵横条
+.timeline-drag-ghost {
+  position: absolute;
+  border-radius: 3px;
+  background: rgba(81, 92, 230, 0.22);
+  border: 1px dashed rgba(81, 92, 230, 0.9);
+  pointer-events: none;
+  z-index: 5;
 }
 
 .timeline-grid-cell {
@@ -186,7 +198,7 @@
   overflow: hidden;
   white-space: nowrap;
   box-sizing: border-box;
-  cursor: pointer;
+  cursor: grab;
   z-index: 2;
   transition:
     box-shadow 0.12s ease,
@@ -197,10 +209,36 @@
     filter: brightness(1.05);
   }
 
+  &:active {
+    cursor: grabbing;
+  }
+
   &:focus-visible {
     outline: 2px solid rgba(81, 92, 230, 0.95);
     outline-offset: -2px;
   }
+}
+
+// 左右 resize 抓取区（hover 时微显）
+.timeline-event-resize-handle {
+  position: absolute;
+  top: 0;
+  width: 8px;
+  height: 100%;
+  cursor: ew-resize;
+  z-index: 3;
+
+  &--start {
+    left: 0;
+  }
+
+  &--end {
+    right: 0;
+  }
+}
+
+.timeline-event:hover .timeline-event-resize-handle {
+  background: rgba(255, 255, 255, 0.25);
 }
 
 .timeline-event-title {

@@ -37,7 +37,7 @@ swell-calendar 是一个**可嵌入的 React 日历组件库**，面向需要在
 | 日视图（Day）       | ✅ 完成     | 单日时间网格，24 小时展示                                                   |
 | 周视图（Week）      | ✅ 完成     | 7 天时间网格，支持 workweek 模式                                            |
 | 月视图（Month）     | 🟡 事件可用 | 月历格子 + 事件卡片，支持 `startDayOfWeek` 与 `workweek`，交互能力仍未扩展 |
-| 时间线（Timeline）  | ✅ 日粒度排程 | 对标 Mobiscroll Calendar timeline：按天列（当月）+ 资源行，事件渲染为跨天横条、同行重叠按车道堆叠、行高自适应，今天列高亮、周末浅染；资源池与 scheduler 共享 |
+| 时间线（Timeline）  | ✅ 日粒度排程 | 对标 Mobiscroll Calendar timeline：按天列（当月）+ 资源行，事件渲染为跨天横条、同行重叠按车道堆叠、行高自适应，今天列高亮、周末浅染；资源池与 scheduler 共享；支持拖拽移动（含跨资源行）/ 左右 resize / 空白拖拽创建 / 日期 tooltip |
 | 调度器（Scheduler） | 🟡 核心闭环可用 | 垂直时间轴 + 资源列的 time-grid 视图，桌面端核心业务闭环已形成，当前进入 Phase 3 高级体验收口阶段 |
 
 ### 事件功能
@@ -472,7 +472,8 @@ interface CalendarInstance {
 
 ## 待开发功能（Backlog）
 
-- [ ] Timeline 拖拽交互（移动/调整）
+- [x] Timeline 拖拽交互（移动 / resize / 拖拽创建 / 日期 tooltip）— 见下方「Timeline 交互」
+- [ ] Timeline 交互后续增量：overlap/invalid 校验、ESC 取消、external/cross-instance DnD、shared events 跨资源行语义
 - [ ] agenda 视图
 - [ ] 月视图 workweek 支持
 - [ ] 顶边 resize（Scheduler 事件顶边调整开始时间）
@@ -481,9 +482,15 @@ interface CalendarInstance {
 
 ## 当前阶段说明
 
-- `timeline` 维持横向资源时间轴，面向资源时间段浏览
+- `timeline` 已升级为日粒度 Calendar Timeline（按天列 + 资源行 + 跨天横条 + 车道堆叠），对标 Mobiscroll Calendar timeline
+- `timeline` 交互（务实子集）：
+  - 拖拽横条移动（按天平移，纵向跨资源行改 `resourceId`）→ `onEventUpdate`
+  - 左右边 resize 改起止天 → `onEventUpdate`
+  - 资源行空白处横拖创建跨天**全天**事件 → `onEventCreate`
+  - 拖拽过程显示幽灵横条 + 日期范围 tooltip
+  - 校验：per-event `editable/draggable/resizable` + timeline 级 `dragToCreate/dragToMove/dragToResize` + `onValidateEventChange` + `onEventCreateFailed/onEventUpdateFailed`；**不含** overlap/invalid 区间（后续增量）
 - `scheduler` 使用垂直 time-grid + 资源列布局
-- `scheduler` 当前为近期核心，`timeline` 本轮只保证不退化
+- `scheduler` 当前为近期核心
 - 宿主受控是默认数据所有权模型，最终事件数据始终以 `props.events` 为准
 - `scheduler` 当前已向宿主暴露资源化的区间选择创建意图和拖拽移动更新意图
 - `scheduler` 当前已支持 time-grid 内单列事件 resize 后的更新意图回调

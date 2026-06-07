@@ -23,6 +23,9 @@ export const TIMELINE_ROW_PADDING_Y = 6;
 /** 资源行最小高度（px） */
 export const TIMELINE_ROW_MIN_HEIGHT = 44;
 
+/** 事件横条左右 resize 抓取区宽度（px） */
+export const TIMELINE_RESIZE_HANDLE_WIDTH = 8;
+
 /**
  * 由车道数推导资源行高度。
  * 空行（laneCount=0）也保留最小高度。

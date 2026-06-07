@@ -60,7 +60,14 @@ https://demo.mobiscroll.com/react/timeline/calendar-timeline
 - [x] 移除旧小时条 controller
 - [x] stories 重写
 - [x] SPEC / plan 同步
-- [ ] 后续视觉细节对照 demo 截图微调（hover/拖拽创建/“+N more”等交互为后续增量）
+- [x] 拖拽交互：移动（含跨资源行）/ 左右 resize / 空白拖拽创建（跨天全天事件）/ 日期 tooltip
+  - 新增 `controller/timeline-validation.ts`（务实子集校验 + 失败回调）
+  - 新增 `controller/timeline-calendar.ts` 交互几何（dayIndex/resourceIndex from offset、computeMoved/Resized、buildCreatedAllday）
+  - 新增 `hooks/Timeline/useTimelineEventDrag.ts`、`useTimelineCreate.ts`（复用 `useDrag` + `dnd` slice）
+  - 新增 `components/timeline/TimelineInteractionContext.tsx`、`TimelineRow.tsx`、`TimelineDragTooltip.tsx`
+  - 新增单测 `timeline-calendar.spec.ts`（几何 5 例）、`timeline-validation.spec.ts`（6 例）
+  - Storybook 合成指针实测：move/create 拖拽幽灵横条 + 日期 tooltip 正确显示并在 mouseup 清除
+- [ ] 后续增量：overlap/invalid 校验、ESC 取消、external/cross-instance DnD、shared events 跨资源行语义、视觉细节对照 demo 微调
 
 ## 风险与后续
 
