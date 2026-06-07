@@ -121,6 +121,25 @@ const schedulerOptions = {
 - 宿主存在“按业务动态切换资源显隐”场景时优先使用 `visibleResourceIds`
 - 老数据若仍以扁平 `parentId` 或 `hidden` 驱动，可保留兼容写法，待业务侧统一后再收敛
 
+## 新增可选能力（非破坏，无需迁移）
+
+以下为近期新增的纯增量字段，不影响既有写法，宿主可按需启用：
+
+- `scheduler.timezones?: { timezone: string; displayLabel?: string }[]`
+  - 在主时间轴左侧叠加副时区刻度轴，按配置顺序向左排列
+  - 刻度由主显示时区（`displayTimezone`，缺省为浏览器本地时区）换算到各副时区
+  - 不配置时行为与之前完全一致（单轴）
+
+  ```ts
+  const schedulerOptions = {
+    displayTimezone: 'America/New_York',
+    timezones: [
+      { timezone: 'Asia/Tokyo', displayLabel: 'TYO' },
+      { timezone: 'Europe/London', displayLabel: 'LON' },
+    ],
+  };
+  ```
+
 ## 原则
 
 - 不通过运行时 `console.warn` 提醒宿主

@@ -37,6 +37,7 @@
 |------|------|
 | [tasks/2026-05-07-scheduler-mobiscroll-parity-roadmap.md](./tasks/2026-05-07-scheduler-mobiscroll-parity-roadmap.md) | scheduler 对齐主任务 |
 | [tasks/2026-06-04-scheduler-scope-freeze.md](./tasks/2026-06-04-scheduler-scope-freeze.md) | scheduler 能力边界收敛 |
+| [tasks/2026-06-07-scheduler-mobiscroll-parity-polish.md](./tasks/2026-06-07-scheduler-mobiscroll-parity-polish.md) | scheduler 对标差异收口（当前时间线 / all-day 标签 / 副时区轴 / hover / 跨实例策略） |
 | [tasks/2026-06-04-docs-information-architecture-cleanup.md](./tasks/2026-06-04-docs-information-architecture-cleanup.md) | 文档信息架构清理 |
 | [adrs/ADR-2026-05-scheduler-parity-scope.md](./adrs/ADR-2026-05-scheduler-parity-scope.md) | scheduler 范围与设计原则 ADR |
 

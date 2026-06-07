@@ -83,7 +83,9 @@ https://demo.mobiscroll.com/react/scheduler/desktop-week-view
 - [x] P2 第二时区轴（实测：NY 00:00 → LON 05:00 → TYO 13:00，gutter 72→216px，day/week 单轴不退化）
 - [x] P5 hover / focus 视觉打磨（纯 CSS，实测规则编译/前缀正确）
 - [x] P3 跨实例 resize 策略（move-only 钉死，新增回归测试）
+- [x] 文档发现性入口：README 活跃工件登记 + MIGRATION 新增 `timezones` 非破坏说明
 - [ ] follow-up：全天事件跨时区边界（后置，需先明确语义）
+- [ ] follow-up：mobiscroll vs 本库对照截图作 ADR 验收附件（受限于无法程序化访问付费 demo，开发期以人工对照为准，非门禁）
 
 ### P3 跨实例 resize 策略（已落地）
 
