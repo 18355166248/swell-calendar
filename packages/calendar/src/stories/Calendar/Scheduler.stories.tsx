@@ -83,29 +83,6 @@ function getTimeValue(value: EventObject['start']) {
   return value.getTime();
 }
 
-function hasOverlap(events: EventObject[], targetEvent: EventObject, previousEventId?: string) {
-  const targetResourceId = targetEvent.resourceId ?? targetEvent.resourceIds?.[0];
-  const targetStart = getTimeValue(targetEvent.start);
-  const targetEnd = getTimeValue(targetEvent.end);
-
-  return events.some((event) => {
-    if (event.id === previousEventId) {
-      return false;
-    }
-
-    const eventResourceId = event.resourceId ?? event.resourceIds?.[0];
-
-    if (!targetResourceId || eventResourceId !== targetResourceId) {
-      return false;
-    }
-
-    const eventStart = getTimeValue(event.start);
-    const eventEnd = getTimeValue(event.end);
-
-    return targetStart < eventEnd && targetEnd > eventStart;
-  });
-}
-
 const meta = {
   title: 'Calendar/Scheduler',
   component: Calendar,
@@ -185,11 +162,10 @@ export const ControlledCrud: Story = {
             )
           );
         },
-        onValidateEventChange: ({ event, previousEvent }) => {
-          return !hasOverlap(events, event, previousEvent?.id);
-        },
+        // 对齐 mobiscroll：默认允许同资源时间重叠，重叠事件并排分栏渲染，不再拒绝落点。
+        // 如需禁止重叠，可在此返回 onValidateEventChange 校验，或用 scheduler.eventOverlap=false。
       }),
-      [events]
+      []
     );
 
     return (
@@ -2627,5 +2603,151 @@ export const RecurrenceEditScope: Story = {
     // 验证作用域选择按钮已渲染
     const singleBtn = canvas.getByText('本次');
     expect(singleBtn).toBeTruthy();
+  },
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 拖拽 / resize 交互回归测试（确定性、受控持久化）
+// 锁定历史 bug：落点重复幽灵卡、移动后 resize 失灵、no-op 落点导致拖拽失灵
+// ─────────────────────────────────────────────────────────────────────────────
+
+const REGRESSION_RESOURCES = RESOURCES.slice(0, 3);
+
+function buildRegressionEvents(): EventObject[] {
+  const today = dayjs().startOf('day');
+  return [
+    {
+      id: 'reg-a',
+      title: 'Reg A',
+      category: 'time',
+      start: today.hour(9).minute(0).toDate(),
+      end: today.hour(10).minute(0).toDate(),
+      resourceId: 'r1',
+      backgroundColor: '#2563eb',
+      color: '#fff',
+    },
+    {
+      id: 'reg-b',
+      title: 'Reg B',
+      category: 'time',
+      start: today.hour(9).minute(0).toDate(),
+      end: today.hour(10).minute(0).toDate(),
+      resourceId: 'r2',
+      backgroundColor: '#059669',
+      color: '#fff',
+    },
+  ];
+}
+
+function centerOf(el: Element) {
+  const r = el.getBoundingClientRect();
+  return { x: r.left + r.width / 2, y: r.top + r.height / 2, rect: r };
+}
+
+async function pointerGesture(
+  startEl: Element,
+  startPoint: { x: number; y: number },
+  steps: Array<{ x: number; y: number }>
+) {
+  fireEvent.mouseDown(startEl, { clientX: startPoint.x, clientY: startPoint.y, button: 0 });
+  for (const s of steps) {
+    fireEvent.mouseMove(document, { clientX: s.x, clientY: s.y, button: 0 });
+    await new Promise((r) => setTimeout(r, 20));
+  }
+  const last = steps[steps.length - 1];
+  fireEvent.mouseUp(document, { clientX: last.x, clientY: last.y, button: 0 });
+  await new Promise((r) => setTimeout(r, 220));
+}
+
+export const DragResizeRegression: Story = {
+  render: function DragResizeRegressionStory() {
+    const [events, setEvents] = useState<EventObject[]>(() => buildRegressionEvents());
+    const callbacks = useMemo<CalendarCallbacks>(
+      () => ({
+        onEventUpdate: ({ event, previousEvent }) => {
+          setEvents((current) =>
+            current.map((item) => (item.id === previousEvent.id ? { ...item, ...event } : item))
+          );
+        },
+      }),
+      []
+    );
+
+    return (
+      <SchedulerStoryFrame>
+        <Calendar
+          events={events}
+          callbacks={callbacks}
+          options={{
+            defaultView: 'scheduler',
+            scheduler: { resources: REGRESSION_RESOURCES, hourStart: 8, hourEnd: 20 },
+          }}
+        />
+      </SchedulerStoryFrame>
+    );
+  },
+  play: async ({ canvasElement }) => {
+    await new Promise((r) => setTimeout(r, DEMO_PAUSE));
+    const canvas = within(canvasElement);
+
+    const count = () => canvas.queryAllByTestId(/^event-card-reg-/).length;
+    const cardA = () => canvas.getByTestId('event-card-reg-a');
+    const cardB = () => canvas.getByTestId('event-card-reg-b');
+
+    // 初始：两张卡片
+    expect(count()).toBe(2);
+
+    // 1) MOVE reg-a 向下，落点不应产生重复幽灵卡，且应真正移动
+    {
+      const before = centerOf(cardA());
+      await pointerGesture(cardA(), { x: before.x, y: before.y }, [
+        { x: before.x + 3, y: before.y + 5 },
+        { x: before.x, y: before.y + 78 },
+      ]);
+      // 无重复（单张 reg-a）+ 总数不变
+      expect(canvas.queryAllByTestId('event-card-reg-a').length).toBe(1);
+      expect(count()).toBe(2);
+      // 真正移动了
+      const after = cardA().getBoundingClientRect();
+      expect(after.top).toBeGreaterThan(before.rect.top + 5);
+    }
+
+    // 2) 移动后立刻 RESIZE reg-a（底边下拉），必须生效（高度变大），且不产生重复
+    {
+      const card = cardA();
+      const hBefore = card.getBoundingClientRect().height;
+      const bottom = card.querySelector('[data-testid^="resize-handle-bottom-"]')!;
+      const c = centerOf(bottom);
+      await pointerGesture(bottom, { x: c.x, y: c.y }, [
+        { x: c.x, y: c.y + 12 },
+        { x: c.x, y: c.y + 100 },
+      ]);
+      expect(canvas.queryAllByTestId('event-card-reg-a').length).toBe(1);
+      await waitFor(() =>
+        expect(cardA().getBoundingClientRect().height).toBeGreaterThan(hBefore + 10)
+      );
+    }
+
+    // 3) no-op 落点（按下→几乎不动→松开）不得残留幽灵卡，且之后仍能正常拖拽
+    {
+      const before = centerOf(cardB());
+      // no-op：仅微动后松开
+      await pointerGesture(cardB(), { x: before.x, y: before.y }, [
+        { x: before.x + 4, y: before.y + 4 },
+        { x: before.x + 1, y: before.y + 1 },
+      ]);
+      expect(canvas.queryAllByTestId('event-card-reg-b').length).toBe(1);
+      expect(count()).toBe(2);
+
+      // no-op 之后 reg-b 仍可正常移动（拖拽未失灵）
+      const b2 = centerOf(cardB());
+      await pointerGesture(cardB(), { x: b2.x, y: b2.y }, [
+        { x: b2.x + 3, y: b2.y + 5 },
+        { x: b2.x, y: b2.y + 78 },
+      ]);
+      expect(canvas.queryAllByTestId('event-card-reg-b').length).toBe(1);
+      const afterB = cardB().getBoundingClientRect();
+      expect(afterB.top).toBeGreaterThan(b2.rect.top + 5);
+    }
   },
 };

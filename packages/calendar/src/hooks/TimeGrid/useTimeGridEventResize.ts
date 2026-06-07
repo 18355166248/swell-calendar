@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { ResizingEventShadowProps } from '@/components/timeGrid/ResizingEventShadow';
 import { useCalendarCallbacks } from '@/contexts/calendarCallbacks';
-import { useCalendarStore } from '@/contexts/calendarStore';
+import { useCalendarStore, useCalendarStoreInternal } from '@/contexts/calendarStore';
 import { buildRecurrenceInstanceInfo } from '@/controller/recurrence-edit-scope';
 import { createUpdatedTimeGridEvent } from '@/controller/scheduler.controller';
 import { shouldAcceptEventChange } from '@/controller/scheduler-validation';
@@ -25,6 +25,7 @@ export function useTimeGridEventResize({
   const options = useCalendarStore((state) => state.options);
   const currentView = useCalendarStore((state) => state.view.currentView);
   const callbacks = useCalendarCallbacks();
+  const store = useCalendarStoreInternal();
   // 使用拖拽事件Hook，专门处理时间网格的调整大小操作
   const {
     isDraggingEnd, // 是否正在结束拖拽
@@ -61,6 +62,11 @@ export function useTimeGridEventResize({
 
     // 找到事件开始日期的列索引（第一个包含该事件的列）
     const eventStartDateColumnIndex = resizeTargetUIModels.findIndex((row) => row.length > 0);
+    // 落点提交会乐观重建事件集合（cid 变化），此时拖拽中的旧 cid 可能已不在 totalUIModels 中，
+    // findIndex 返回 -1；提前返回 null，避免 resizeTargetUIModels[-1][0] 取值崩溃
+    if (eventStartDateColumnIndex < 0) {
+      return null;
+    }
     const resizingStartEventUIModel = resizeTargetUIModels[
       eventStartDateColumnIndex
     ][0] as EventUIModel;
@@ -245,8 +251,14 @@ export function useTimeGridEventResize({
         }
 
         setGuideUIModel(clonedUIModel);
+        return;
       }
     }
+
+    // 不满足引导条件时必须清空引导影子（之前只 set 不 clear）：
+    // resize 结束（resizingStartUIModel 置空 → canCalculate=false）或事件已不在本列时，
+    // 残留的 guideUIModel 会渲染成一张"重复卡片"，move→resize 时序下尤为明显。
+    setGuideUIModel(null);
   }, [
     canCalculateGuideUIModel,
     columnIndex,
@@ -311,6 +323,13 @@ export function useTimeGridEventResize({
           targetColumn: timeGridData.columns[currentGridPos.columnIndex],
         })
       ) {
+        // 非 recurrence 事件先乐观更新内部 store，让卡片直接停在落点，消除落点回跳闪帧；
+        // recurrence 走父级 applyRecurrenceEditScope 单一真源，跳过乐观更新避免误改整条序列
+        const { recurrence, recurrenceParentId } = resizingStartUIModel.model;
+        if (!recurrence && !recurrenceParentId) {
+          store.getState().calendar.updateEvent(updatedEvent);
+        }
+
         callbacks?.onEventUpdate?.({
           event: updatedEvent,
           previousEvent: resizingStartUIModel.model.toEventObject(),

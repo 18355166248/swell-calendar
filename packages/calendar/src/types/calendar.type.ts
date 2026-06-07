@@ -38,5 +38,7 @@ export type CalendarSlice = {
   calendar: CalendarData & {
     createEvents: (events: EventObject[]) => void;
     setEvents: (events: EventObject[]) => void;
+    /** 乐观更新单个事件（原地保 cid），用于拖拽/resize 落点同步内部 store */
+    updateEvent: (updated: EventObject) => void;
   };
 };

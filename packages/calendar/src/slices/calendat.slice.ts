@@ -1,6 +1,10 @@
 import { produce } from 'immer';
 
-import { createEventCollection, createEvents } from '@/controller/event.controller';
+import {
+  applyOptimisticEventUpdate,
+  createEventCollection,
+  createEvents,
+} from '@/controller/event.controller';
 import { EventModel } from '@/model/eventModel';
 import { CalendarInfo, CalendarSlice } from '@/types/calendar.type';
 import { CalendarStore } from '@/types/store.type';
@@ -36,6 +40,13 @@ export function createCalendarSlice(calendars: CalendarInfo[] = []) {
             state.calendar.events = createEventCollection<EventModel>();
             state.calendar.idsOfDay = {};
             createEvents(state.calendar, events);
+          })
+        );
+      },
+      updateEvent: (updated) => {
+        set(
+          produce((state: CalendarStore) => {
+            applyOptimisticEventUpdate(state.calendar, updated);
           })
         );
       },

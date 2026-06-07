@@ -5,7 +5,7 @@ import { isNil } from 'lodash-es';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 
 import { useCalendarCallbacks } from '@/contexts/calendarCallbacks';
-import { useCalendarStore } from '@/contexts/calendarStore';
+import { useCalendarStore, useCalendarStoreInternal } from '@/contexts/calendarStore';
 import { buildRecurrenceInstanceInfo } from '@/controller/recurrence-edit-scope';
 import { createUpdatedTimeGridEvent } from '@/controller/scheduler.controller';
 import { shouldAcceptEventChange } from '@/controller/scheduler-validation';
@@ -121,6 +121,7 @@ export function useTimeGridEventMove({
   const options = useCalendarStore((state) => state.options);
   const currentView = useCalendarStore((state) => state.view.currentView);
   const callbacks = useCalendarCallbacks();
+  const store = useCalendarStoreInternal();
 
   // 获取拖拽事件状态，包括是否正在拖拽、是否取消、拖拽事件对象和清理函数
   const { isDraggingEnd, isDraggingCanceled, draggingEvent, clearDraggingEvent } = useDraggingEvent(
@@ -267,15 +268,24 @@ export function useTimeGridEventMove({
           targetColumn: timeGridData.columns[currentGridPos.columnIndex],
         })
       ) {
+        // 非 recurrence 事件先乐观更新内部 store，让卡片直接停在落点，消除落点回跳闪帧；
+        // recurrence 走父级 applyRecurrenceEditScope 单一真源，跳过乐观更新避免误改整条序列
+        const { recurrence, recurrenceParentId } = draggingEvent.model;
+        if (!recurrence && !recurrenceParentId) {
+          store.getState().calendar.updateEvent(updatedEvent);
+        }
+
         callbacks?.onEventUpdate?.({
           event: updatedEvent,
           previousEvent: draggingEvent.model.toEventObject(),
           recurrenceInstance: buildRecurrenceInstanceInfo(draggingEvent.model.toEventObject()),
         });
       }
-
-      clearState();
     }
+
+    // 无论是否提交（含未移动 / 落点被拒 / 取消），拖拽结束都必须清理状态，
+    // 否则 movingEvent 影子不卸载（残留重复卡片）、draggingEvent 不清空（后续无法再拖拽）
+    clearState();
   }, isDraggingEnd);
 
   // 返回移动中的事件和下一个开始时间

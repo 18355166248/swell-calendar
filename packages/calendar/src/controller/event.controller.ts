@@ -114,3 +114,33 @@ export function createEvents(calendarData: CalendarData, events: EventObject[] =
 export function getDateRange(start: DayjsTZDate, end: DayjsTZDate) {
   return makeDateRange(toStartOfDay(start), toEndOfDay(end), MS_PER_DAY);
 }
+
+/**
+ * 乐观更新：把 store 内与 updated 同 id 的事件**原地**更新到落点状态。
+ *
+ * 关键点：复用同一个 `EventModel` 实例并调用 `init()` 重写字段（`cid` 由 `stamp` 保持不变），
+ * 其余事件也复用原实例。只新建一个集合引用来触发重渲染。
+ *
+ * 这样做的原因：旧实现 `setEvents` 会整集合重建，**所有事件 cid 全部变化**。
+ * 拖拽/resize 进行中持有的 `EventUIModel` 以 cid 为索引去 `totalUIModels` 找回自身，
+ * cid 全量变化会让"落点提交后立刻发起的下一次交互"（如移动后马上 resize）偶发失配、
+ * 引导/落点计算拿不到 baseInfo 而失灵。原地保 cid 后该竞态消失。
+ *
+ * @param {CalendarData} calendarData - 当前日历数据（store 内部状态 / immer draft）
+ * @param {EventObject} updated - 落点后的事件对象（保留原 id）
+ */
+export function applyOptimisticEventUpdate(calendarData: CalendarData, updated: EventObject): void {
+  const model = calendarData.events.find((event) => event.id === updated.id);
+  if (!model) {
+    return;
+  }
+
+  // 原地重写字段，保留同一实例与 cid（stamp 幂等）
+  model.init({ ...model.toEventObject(), ...updated });
+
+  // 用同一批 model 实例新建集合引用（cid 不变）以触发重渲染，并重建日期矩阵
+  const models = calendarData.events.toArray();
+  calendarData.events = createEventCollection<EventModel>(...models);
+  calendarData.idsOfDay = {};
+  models.forEach((eventModel) => addToMatrix(calendarData.idsOfDay, eventModel));
+}

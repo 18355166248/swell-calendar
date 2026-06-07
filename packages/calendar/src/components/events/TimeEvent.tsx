@@ -69,7 +69,9 @@ function getStyles({
     width: getContainerWidth(duplicateWidth || width, marginLeft), // 宽度
     height: `calc(${toPercent(Math.max(minHeight, height))} - ${defaultMarginBottom}px)`, // 高度
     marginLeft, // 左边距
-    backgroundColor: isDraggingTarget ? dragBackgroundColor : backgroundColor, // 背景色（拖拽时使用特殊颜色）
+    // 背景色：move 跟手原卡用 dragBackgroundColor；resize 引导（isResizingEvent）保持正常
+    // backgroundColor，避免 dragBackgroundColor 为空串时引导卡渲染成透明、看不清
+    backgroundColor: isDraggingTarget && !isResizingEvent ? dragBackgroundColor : backgroundColor,
     borderRadius,
     borderLeft: `3px solid ${borderColor}`, // 边框颜色
     color, // 文字颜色
