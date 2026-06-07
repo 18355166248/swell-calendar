@@ -3,9 +3,11 @@ import { useCallback } from 'react';
 import { useCalendarCallbacks } from '@/contexts/calendarCallbacks';
 import {
   createExternalDropInfo,
+  createTimeGridDropPreview,
   isBlockedExternalDrop,
   isExternalDropAllowedForResource,
 } from '@/controller/scheduler.controller';
+import { TimeGridDropPreview } from '@/types/dnd-preview.type';
 import { GridPositionFinder, TimeGridData } from '@/types/grid.type';
 import { NormalizedOptions } from '@/types/options.type';
 
@@ -14,6 +16,7 @@ interface UseExternalDropParams {
   gridPositionFinder: GridPositionFinder;
   timeGridData: TimeGridData;
   options: NormalizedOptions;
+  onPreviewChange?: (preview: TimeGridDropPreview | null) => void;
 }
 
 /**
@@ -29,6 +32,7 @@ export function useExternalDrop({
   gridPositionFinder,
   timeGridData,
   options,
+  onPreviewChange,
 }: UseExternalDropParams) {
   const callbacks = useCalendarCallbacks();
 
@@ -37,14 +41,46 @@ export function useExternalDrop({
       if (!enabled) return;
       // 必须 preventDefault 才能触发 drop 事件
       e.preventDefault();
+      const position = gridPositionFinder({ clientX: e.clientX, clientY: e.clientY });
+      if (!position) {
+        onPreviewChange?.(null);
+        return;
+      }
+
+      const column = timeGridData.columns[position.columnIndex];
+      if (!column) {
+        onPreviewChange?.(null);
+        return;
+      }
+
+      const schedulerOptions = options.scheduler;
+      const globalAllow = schedulerOptions?.allowExternalDrop ?? false;
+      const { allowed } = isExternalDropAllowedForResource(
+        schedulerOptions?.resources,
+        column.resourceId,
+        globalAllow
+      );
+
+      const status = !allowed
+        ? 'policy'
+        : isBlockedExternalDrop(options, 'scheduler', position, timeGridData)
+          ? 'invalid'
+          : 'allowed';
+
+      onPreviewChange?.(createTimeGridDropPreview('external', status, timeGridData, position));
     },
-    [enabled]
+    [enabled, gridPositionFinder, onPreviewChange, options, timeGridData]
   );
+
+  const handleDragLeave = useCallback(() => {
+    onPreviewChange?.(null);
+  }, [onPreviewChange]);
 
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
       if (!enabled) return;
       e.preventDefault();
+      onPreviewChange?.(null);
 
       const position = gridPositionFinder({ clientX: e.clientX, clientY: e.clientY });
       if (!position) return;
@@ -94,8 +130,8 @@ export function useExternalDrop({
       // 3. 通过所有检查，触发 onExternalDrop
       callbacks?.onExternalDrop?.(dropInfo);
     },
-    [enabled, gridPositionFinder, timeGridData, options, callbacks]
+    [enabled, gridPositionFinder, timeGridData, options, callbacks, onPreviewChange]
   );
 
-  return { handleDragOver, handleDrop };
+  return { handleDragOver, handleDragLeave, handleDrop };
 }

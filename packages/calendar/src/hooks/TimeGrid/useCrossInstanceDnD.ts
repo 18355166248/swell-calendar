@@ -2,10 +2,18 @@ import { useCallback, useEffect, useRef } from 'react';
 
 import { useCalendarCallbacks } from '@/contexts/calendarCallbacks';
 import { useCalendarStoreInternal } from '@/contexts/calendarStore';
-import { crossInstanceBridge } from '@/controller/cross-instance-bridge';
-import { createCrossInstanceDropInfo } from '@/controller/scheduler.controller';
+import {
+  crossInstanceBridge,
+  CrossInstanceBridgeMessage,
+} from '@/controller/cross-instance-bridge';
+import {
+  createCrossInstanceDropInfo,
+  createTimeGridDropPreview,
+} from '@/controller/scheduler.controller';
 import { EventUIModel } from '@/model/eventUIModel';
 import { DraggingState } from '@/types/dnd.type';
+import { TimeGridDropPreview } from '@/types/dnd-preview.type';
+import { EventObject } from '@/types/events.type';
 import { GridPositionFinder, TimeGridData } from '@/types/grid.type';
 import { CalendarState } from '@/types/store.type';
 
@@ -14,6 +22,7 @@ interface UseCrossInstanceDnDParams {
   containerEl: HTMLElement | null;
   gridPositionFinder: GridPositionFinder;
   timeGridData: TimeGridData;
+  onPreviewChange?: (preview: TimeGridDropPreview | null) => void;
 }
 
 /**
@@ -34,6 +43,7 @@ export function useCrossInstanceDnD({
   containerEl,
   gridPositionFinder,
   timeGridData,
+  onPreviewChange,
 }: UseCrossInstanceDnDParams) {
   const store = useCalendarStoreInternal();
   const callbacks = useCalendarCallbacks();
@@ -46,6 +56,23 @@ export function useCrossInstanceDnD({
   // 保持 containerEl 的最新值（避免 subscribe 闭包捕获旧值）
   const containerElRef = useRef(containerEl);
   containerElRef.current = containerEl;
+
+  const publishClear = useCallback((event?: EventObject) => {
+    crossInstanceBridge.publish({
+      type: 'clear',
+      event:
+        event ??
+        ({
+          title: '',
+          category: 'time',
+          start: new Date(0),
+          end: new Date(0),
+        } as EventObject),
+      cursorX: 0,
+      cursorY: 0,
+      sourceContainer: containerElRef.current,
+    });
+  }, []);
 
   // 源侧：监听 DnD 状态变化，捕获拖拽数据和 cursor
   useEffect(() => {
@@ -65,6 +92,28 @@ export function useCrossInstanceDnD({
         lastCursorRef.current = { x, y };
       }
 
+      if (
+        draggingState === DraggingState.DRAGGING &&
+        draggingModelRef.current &&
+        lastCursorRef.current
+      ) {
+        crossInstanceBridge.publish({
+          type: 'preview',
+          event: draggingModelRef.current.model.toEventObject(),
+          cursorX: lastCursorRef.current.x,
+          cursorY: lastCursorRef.current.y,
+          sourceContainer: containerElRef.current,
+        });
+      }
+
+      if (wasDraggingRef.current && draggingState === DraggingState.CANCELED) {
+        wasDraggingRef.current = false;
+        draggingModelRef.current = null;
+        lastCursorRef.current = null;
+        publishClear();
+        return;
+      }
+
       // 检测 DRAGGING → IDLE 转变
       if (wasDraggingRef.current && draggingState === DraggingState.IDLE) {
         const model = draggingModelRef.current;
@@ -82,11 +131,14 @@ export function useCrossInstanceDnD({
         if (!container) return;
 
         const elements = document.elementsFromPoint(cursor.x, cursor.y);
-        if (elements.includes(container)) return; // cursor 在容器内，不触发
-
-        // cursor 在容器外部 → 跨实例拖出
         const eventObject = model.model.toEventObject();
 
+        if (elements.includes(container)) {
+          publishClear(eventObject);
+          return;
+        }
+
+        // cursor 在容器外部 → 跨实例拖出
         // 触发源侧回调
         callbacks?.onCrossInstanceDragEnd?.({
           event: eventObject,
@@ -94,34 +146,53 @@ export function useCrossInstanceDnD({
 
         // 发布到 bridge
         crossInstanceBridge.publish({
+          type: 'drop',
           event: eventObject,
           cursorX: cursor.x,
           cursorY: cursor.y,
+          sourceContainer: container,
         });
+        publishClear(eventObject);
       }
     });
-  }, [enabled, store, callbacks]);
+  }, [enabled, store, callbacks, publishClear]);
 
   // 目标侧：订阅 bridge
   const handleCrossInstanceReceive = useCallback(
-    (data: {
-      event: import('@/types/events.type').EventObject;
-      cursorX: number;
-      cursorY: number;
-    }) => {
+    (data: CrossInstanceBridgeMessage) => {
       const container = containerElRef.current;
       if (!container) return;
+      if (data.sourceContainer === container) return;
+
+      if (data.type === 'clear') {
+        onPreviewChange?.(null);
+        return;
+      }
 
       // 检查 cursor 是否在本容器内
       const elements = document.elementsFromPoint(data.cursorX, data.cursorY);
-      if (!elements.includes(container)) return;
+      if (!elements.includes(container)) {
+        onPreviewChange?.(null);
+        return;
+      }
 
       // 计算 grid 位置
       const position = gridPositionFinder({ clientX: data.cursorX, clientY: data.cursorY });
-      if (!position) return;
+      if (!position) {
+        onPreviewChange?.(null);
+        return;
+      }
+
+      if (data.type === 'preview') {
+        onPreviewChange?.(
+          createTimeGridDropPreview('cross-instance', 'allowed', timeGridData, position, data.event)
+        );
+        return;
+      }
 
       // 构造 drop info
       const dropInfo = createCrossInstanceDropInfo(timeGridData, position);
+      onPreviewChange?.(null);
 
       callbacks?.onCrossInstanceDrop?.({
         event: data.event,
@@ -132,7 +203,7 @@ export function useCrossInstanceDnD({
         resourceName: dropInfo.resourceName,
       });
     },
-    [gridPositionFinder, timeGridData, callbacks]
+    [gridPositionFinder, timeGridData, callbacks, onPreviewChange]
   );
 
   useEffect(() => {

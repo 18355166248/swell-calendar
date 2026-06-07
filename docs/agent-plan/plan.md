@@ -87,7 +87,7 @@ PLAN4 相对 PLAN3 的主要修订：
 | shared events | ✅ | ✅ | 公开承诺 | `resourceIds` 已进入 scheduler 布局链 | 2 已落地 |
 | 资源级交互限制 | ✅ | ✅ | 公开承诺 | `eventDragInTime` / `eventResize` / `eventOverlap` 已接入 | 2 已落地 |
 | 跨资源拖动 gate | ✅ | ✅ | 公开承诺 | 全局 / 资源级 / per-event `dragBetweenResources` 已接入 | 2 已落地 |
-| recurrence 展开 | ✅ | 🟡 | 内部已有，未承诺 | 字段已暴露，但未进入视口展开与编辑链 | 3 已落地 |
+| recurrence 展开 | ✅ | ✅ | 公开承诺 | 视口窗口展开、异常跳过/替换与实例编辑链已接入 scheduler | 3 已落地 |
 | recurring exception | ✅ | ✅ | 公开承诺 | 跳过/替换已接入 scheduler 渲染链 | 3 已落地 |
 | 编辑作用域 | ✅ | ✅ | 公开承诺 | `recurrenceScope`（本次 / 本次及以后 / 全部）已接入编辑链 | 3 已落地 |
 | timezone | ✅ | ✅ | 公开承诺 | 数据→显示时区转换已接入 scheduler 渲染链 | 3 已落地 |

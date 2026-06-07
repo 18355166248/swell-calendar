@@ -4,6 +4,11 @@ import { setTimeStrToDate } from '@/time/datetime';
 import DayjsTZDate from '@/time/dayjs-tzdate';
 import { convertTimezone, needsTimezoneConversion } from '@/time/timezone';
 import { CalendarCrossInstanceDropInfo, CalendarExternalDropInfo } from '@/types/callbacks.type';
+import {
+  TimeGridDropPreview,
+  TimeGridDropPreviewSource,
+  TimeGridDropPreviewStatus,
+} from '@/types/dnd-preview.type';
 import { EventObject, EventObjectWithDefaultValues } from '@/types/events.type';
 import { CommonGridColumn, GridPosition, TimeGridData } from '@/types/grid.type';
 import { GridSelectionData } from '@/types/gridSelection.type';
@@ -283,6 +288,31 @@ export function createCrossInstanceDropInfo(
     end,
     resourceId: column.resourceId,
     resourceName: column.resourceName,
+  };
+}
+
+export function createTimeGridDropPreview(
+  source: TimeGridDropPreviewSource,
+  status: TimeGridDropPreviewStatus,
+  timeGridData: TimeGridData,
+  position: GridPosition,
+  event?: EventObject
+): TimeGridDropPreview {
+  const column = timeGridData.columns[position.columnIndex];
+  const row = timeGridData.rows[position.rowIndex];
+
+  const start = setTimeStrToDate(column.date, row.startTime);
+  const end = setTimeStrToDate(column.date, row.endTime);
+
+  return {
+    source,
+    status,
+    position,
+    start,
+    end,
+    resourceId: column.resourceId,
+    resourceName: column.resourceName,
+    event,
   };
 }
 

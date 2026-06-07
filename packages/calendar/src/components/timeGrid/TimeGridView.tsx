@@ -28,9 +28,11 @@ import { useExternalDrop } from '@/hooks/TimeGrid/useExternalDrop';
 import { EventUIModel } from '@/model/eventUIModel';
 import { isSameDate, setTimeStrToDate, toEndOfDay, toStartOfDay } from '@/time/datetime';
 import DayjsTZDate from '@/time/dayjs-tzdate';
+import { TimeGridDropPreview } from '@/types/dnd-preview.type';
 import { CommonGridColumn, TimeGridData } from '@/types/grid.type';
 
 import Column from './Column';
+import DropPreviewShadow from './DropPreviewShadow';
 import GridLines from './GridLines';
 import MovingEventShadow from './MovingEventShadow';
 import TimeColumn from './TimeColumn';
@@ -78,6 +80,7 @@ export function TimeGrid({ timeGridData, events }: TimeGridProps) {
     top: number; // 指示器距离顶部的百分比位置
     now: DayjsTZDate; // 当前时间
   } | null>(null);
+  const [dropPreview, setDropPreview] = useState<TimeGridDropPreview | null>(null);
 
   /**
    * 计算所有列的事件 UI 模型
@@ -222,12 +225,13 @@ export function TimeGrid({ timeGridData, events }: TimeGridProps) {
     },
   });
 
-  const { handleDragOver, handleDrop } = useExternalDrop({
+  const { handleDragOver, handleDragLeave, handleDrop } = useExternalDrop({
     enabled:
       currentView === 'scheduler' && !isReadOnly && (options.scheduler?.allowExternalDrop ?? false),
     gridPositionFinder,
     timeGridData,
     options,
+    onPreviewChange: setDropPreview,
   });
 
   useCrossInstanceDnD({
@@ -235,6 +239,7 @@ export function TimeGrid({ timeGridData, events }: TimeGridProps) {
     containerEl: timeGridContainer,
     gridPositionFinder,
     timeGridData,
+    onPreviewChange: setDropPreview,
   });
 
   return (
@@ -249,6 +254,7 @@ export function TimeGrid({ timeGridData, events }: TimeGridProps) {
           style={{ left: timeGridLeft.width }}
           onMouseDown={isReadOnly ? undefined : handleMouseDown}
           onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
           onDrop={handleDrop}
         >
           {/* 网格线 - 显示时间分隔线 */}
@@ -260,6 +266,7 @@ export function TimeGrid({ timeGridData, events }: TimeGridProps) {
             timeGridData={timeGridData}
             events={events}
           />
+          <DropPreviewShadow preview={dropPreview} timeGridData={timeGridData} />
 
           {/* 渲染日期列 */}
           {columns.map((col, index) => (

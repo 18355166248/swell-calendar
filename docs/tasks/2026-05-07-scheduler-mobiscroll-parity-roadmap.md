@@ -150,4 +150,4 @@ https://demo.mobiscroll.com/react/scheduler/desktop-week-view
 
 - 当前代码已具备 all-day lane、多日分段、overlap policy、failed callbacks、资源显隐/分组/共享事件、recurrence 展开、timezone 转换、external DnD、跨实例拖动等能力
 - 当前主要风险不再是“底座没有做出来”，而是“规格、phase 状态与实现状态需要持续对齐”
-- 编辑作用域（本次/本次及以后/全部）仍是明确未完成的高级调度范围
+- 编辑作用域（本次/本次及以后/全部）已完成接入，后续重点转为 Phase 3 高级体验收口

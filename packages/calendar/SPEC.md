@@ -38,7 +38,7 @@ swell-calendar 是一个**可嵌入的 React 日历组件库**，面向需要在
 | 周视图（Week）      | ✅ 完成     | 7 天时间网格，支持 workweek 模式                                            |
 | 月视图（Month）     | 🟡 事件可用 | 月历格子 + 事件卡片，支持 `startDayOfWeek` 与 `workweek`，交互能力仍未扩展 |
 | 时间线（Timeline）  | 🟡 事件可用 | 资源行 + 横向时间轴，事件布局已修复，支持 colors/invalid 区段，Toolbar 可见 |
-| 调度器（Scheduler） | 🟡 核心基线可用 | 垂直时间轴 + 资源列的 time-grid 视图，已具备桌面端基础闭环，Phase 3 高级能力未完成 |
+| 调度器（Scheduler） | 🟡 核心闭环可用 | 垂直时间轴 + 资源列的 time-grid 视图，桌面端核心业务闭环已形成，当前进入 Phase 3 高级体验收口阶段 |
 
 ### 事件功能
 
@@ -63,11 +63,11 @@ swell-calendar 是一个**可嵌入的 React 日历组件库**，面向需要在
 | shared events                  | ✅   | `resourceIds` 可让事件出现在多个资源列，资源级策略按命中的所有资源共同判定 |
 | 资源级交互限制                 | ✅   | `eventDragInTime` / `eventResize` / `eventOverlap` 已接入     |
 | 跨资源拖动 gate                | ✅   | scheduler 全局 / 资源级 / per-event `dragBetweenResources` 已接入 |
-| recurrence 展开 + exceptions     | 🟡   | scheduler 已接入视口内展开，recurringExceptions 跳过/替换已接入渲染链；编辑作用域仍未接入 |
+| recurrence 展开 + exceptions     | ✅   | scheduler 已接入视口内展开，`recurringExceptions` 跳过/替换与实例编辑链已闭环 |
 | recurrence 编辑作用域             | ✅   | 支持 `single` / `following` / `all` 三种作用域，`applyRecurrenceEditScope` 工具函数已落地，`onEventUpdate` / `onEventDelete` 回调已携带 `recurrenceInstance` 信息 |
 | timezone 转换                     | 🟡   | `displayTimezone` + per-event `timezone` 已接入 scheduler 渲染链（数据时区→显示时区）；多时区列同时展示、全天事件跨时区边界仍未接入 |
-| external DnD                      | 🟡   | `allowExternalDrop` + `onExternalDrop` / `onExternalDropFailed` 已接入 scheduler；实时预览阴影、第三方库封装仍未接入 |
-| 跨实例拖动                         | 🟡   | `onCrossInstanceDragEnd` / `onCrossInstanceDrop` 已接入 scheduler；跨实例预览阴影、跨实例 resize 仍未接入 |
+| external DnD                      | 🟡   | `allowExternalDrop` + `onExternalDrop` / `onExternalDropFailed` 与目标格预览阴影已接入 scheduler；第三方库封装仍未接入 |
+| 跨实例拖动                         | 🟡   | `onCrossInstanceDragEnd` / `onCrossInstanceDrop` 与目标实例实时预览阴影已接入 scheduler；跨实例 resize 仍未接入 |
 
 ### 当前范围基线（2026-06）
 
@@ -86,14 +86,16 @@ swell-calendar 是一个**可嵌入的 React 日历组件库**，面向需要在
 - 资源分组 / 折叠
 - shared events
 - 资源级与 per-event 交互限制
+- recurrence 展开 / exceptions / 编辑作用域
+- timezone 数据时区 -> 显示时区转换
 - external DnD（`onExternalDrop` / `onExternalDropFailed`）
 - 跨实例拖动（`onCrossInstanceDragEnd` / `onCrossInstanceDrop`）
 
 当前**仍明确后置**的能力：
 
 - timezone 多时区列同时展示、全天事件跨时区边界
-- external DnD 实时预览阴影、第三方库封装
-- 跨实例拖动预览阴影、跨实例 resize
+- external DnD 第三方库封装
+- 跨实例拖动跨实例 resize
 - `agenda`
 - 移动端适配
 - `connections`
@@ -467,7 +469,6 @@ interface CalendarInstance {
 
 - [ ] Timeline 拖拽交互（移动/调整）
 - [ ] agenda 视图
-- [ ] recurrence 实例展开与编辑协议
 - [ ] 月视图 workweek 支持
 - [ ] 顶边 resize（Scheduler 事件顶边调整开始时间）
 - [ ] 资源层级渲染（利用 `parentId` 字段）
@@ -485,4 +486,4 @@ interface CalendarInstance {
 - `create/move/resize` 当前支持通过 `onValidateEventChange` 做同步准入校验
 - `create/move/resize` 当前也会先检查 `invalid` / `blockedTimes`，命中后直接拒绝提交
 - `invalid` / `blockedTimes` 当前会在 time-grid 中渲染为只读遮罩，提示不可操作区域
-- 内部尚未内建事件编辑弹窗、冲突校验、blocked time 和 recurrence 编辑
+- 内部尚未内建事件编辑弹窗、宿主侧冲突解决 UI、external/cross-instance 预览层与 timezone 完整多时区体验

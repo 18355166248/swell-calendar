@@ -1,21 +1,14 @@
 import { EventObject } from '@/types/events.type';
 
-/**
- * 跨实例拖拽数据
- *
- * 当源实例的内部拖拽在日历容器外部结束时，
- * 通过模块级 bridge 发布此数据给所有订阅者。
- */
-export interface CrossInstanceDragData {
-  /** 被拖拽事件的完整数据 */
+export interface CrossInstanceBridgeMessage {
+  type: 'preview' | 'drop' | 'clear';
   event: EventObject;
-  /** 鼠标释放时的 clientX */
   cursorX: number;
-  /** 鼠标释放时的 clientY */
   cursorY: number;
+  sourceContainer: HTMLElement | null;
 }
 
-type CrossInstanceSubscriber = (data: CrossInstanceDragData) => void;
+type CrossInstanceSubscriber = (data: CrossInstanceBridgeMessage) => void;
 
 /**
  * 跨实例拖拽桥接器
@@ -47,7 +40,7 @@ export const crossInstanceBridge = {
    * 发布跨实例拖拽事件
    * 所有已订阅的 Calendar 实例都会收到通知
    */
-  publish(data: CrossInstanceDragData): void {
+  publish(data: CrossInstanceBridgeMessage): void {
     subscribers.forEach((cb) => {
       try {
         cb(data);
