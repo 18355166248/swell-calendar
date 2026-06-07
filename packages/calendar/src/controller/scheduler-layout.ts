@@ -256,7 +256,10 @@ export function getSchedulerViewEvents(
 
   const rawAlldayEvents = flattenSchedulerDayGridMatrix(eventGroups.allday as DayGridEventMatrix);
 
-  // allday 也受 fetch 扩展影响：丢弃落在原始视口外的全天事件
+  // 全天事件时区无关（floating）：对齐业内方案（Google Calendar / RFC 5545 floating time），
+  // 全天事件锚定在其日历日期上，不随 displayTimezone 平移边界。
+  // 因此这里只按视口过滤，绝不对 allday 做 convertSchedulerEventTimezone。
+  // allday 同样受 ±1 天 fetch 扩展影响：丢弃落在原始视口外的全天事件
   const viewFilteredAlldayEvents = displayTimezone
     ? rawAlldayEvents.filter((uiModel) => {
         const eventEnd = uiModel.model.getEnds();

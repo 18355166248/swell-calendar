@@ -84,8 +84,29 @@ https://demo.mobiscroll.com/react/scheduler/desktop-week-view
 - [x] P5 hover / focus 视觉打磨（纯 CSS，实测规则编译/前缀正确）
 - [x] P3 跨实例 resize 策略（move-only 钉死，新增回归测试）
 - [x] 文档发现性入口：README 活跃工件登记 + MIGRATION 新增 `timezones` 非破坏说明
-- [ ] follow-up：全天事件跨时区边界（后置，需先明确语义）
+- [x] 全天事件跨时区边界：跟随业内 floating 语义（时区无关，不平移），锁定 + 回归测试 + SPEC
+- [x] timeline 资源回退：timeline 未配置资源时回退 `scheduler.resources`，修复切换视图「暂无资源配置」
 - [ ] follow-up：mobiscroll vs 本库对照截图作 ADR 验收附件（受限于无法程序化访问付费 demo，开发期以人工对照为准，非门禁）
+
+### 全天事件跨时区边界（已落地，跟随业内方案）
+
+裁决：全天事件采用 floating / 时区无关语义（对齐 Google Calendar / RFC 5545 floating time），
+锚定在日历日期上，不随 `displayTimezone` 平移；只有定时事件参与时区换算。
+
+- `controller/scheduler-layout.ts`：现有实现本就只对 `time` 事件做 `convertSchedulerEventTimezone`，
+  补显式 guard 注释钉死「绝不对 allday 做时区转换」
+- `controller/scheduler-layout.spec.ts`：新增回归用例——`displayTimezone` 下全天事件日历日期不变、
+  同场景定时事件钟点平移
+- SPEC：timezone 能力升级为 ✅，记录 floating 语义；从后置清单移除
+
+### timeline 资源回退（已落地）
+
+问题：选项归一化会给 `options.timeline` 填充默认 `resources: []`，宿主只配 `scheduler.resources`
+时切到时间线视图会显示「暂无资源配置」。
+
+- `components/view/Timeline.tsx`：以「timeline 资源池为空」为回退条件（非 nullish）回退到
+  `scheduler.resources`，`visibleResourceIds` 跟随所选资源池；空提示文案同步更新
+- 实测：从 scheduler story 切到时间线，5 个资源（含共享事件）正确渲染
 
 ### P3 跨实例 resize 策略（已落地）
 

@@ -101,6 +101,54 @@ describe('scheduler-layout', () => {
     expect(result.allday[0].model.title).toBe('scheduler-allday-event');
   });
 
+  it('全天事件时区无关：displayTimezone 下不平移边界，而定时事件平移', () => {
+    const alldayEvent = new EventModel({
+      id: 'e-allday-tz',
+      title: 'allday-floating',
+      start: new DayjsTZDate('2026-05-07T00:00:00'),
+      end: new DayjsTZDate('2026-05-07T23:59:59'),
+      allDay: true,
+    });
+    const timedEvent = new EventModel({
+      id: 'e-timed-tz',
+      // 选小偏移时区（LA 比 NY 慢 3h），转换后仍落在同一天视口内，便于断言钟点平移
+      title: 'timed-shift',
+      start: new DayjsTZDate('2026-05-07T12:00:00'),
+      end: new DayjsTZDate('2026-05-07T13:00:00'),
+      timezone: 'America/Los_Angeles',
+    });
+    const events = new Collection<EventModel>((model) => model.cid())
+      .add(alldayEvent)
+      .add(timedEvent);
+    const calendar: CalendarData = {
+      calendars: [],
+      events,
+      idsOfDay: {
+        '20260507': [alldayEvent.cid(), timedEvent.cid()],
+      },
+    };
+
+    const result = getSchedulerViewEvents(calendar, {
+      start: new DayjsTZDate('2026-05-07T00:00:00'),
+      end: new DayjsTZDate('2026-05-09T23:59:59'),
+      hourStart: 0,
+      hourEnd: 24,
+      displayTimezone: 'America/New_York',
+    });
+
+    // 全天事件：日历日期保持 5/7，边界不随时区平移
+    expect(result.allday).toHaveLength(1);
+    const allday = result.allday[0];
+    expect(allday.model.getStarts().getFullYear()).toBe(2026);
+    expect(allday.model.getStarts().getMonth()).toBe(4); // 0-based → 5 月
+    expect(allday.model.getStarts().getDate()).toBe(7);
+
+    // 定时事件：LA 12:00 在纽约视角应被平移到更晚的钟点（确有转换发生）
+    const timed = result.time.find((m) => m.model.id === 'e-timed-tz');
+    expect(timed).toBeDefined();
+    expect(timed!.model.getStarts().getHours()).not.toBe(12);
+  });
+
   it('应该按 EventObject.order 对 scheduler 同槽位事件稳定排序', () => {
     const first = new EventUIModel(
       new EventModel({
