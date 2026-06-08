@@ -67,7 +67,24 @@ https://demo.mobiscroll.com/react/timeline/calendar-timeline
   - 新增 `components/timeline/TimelineInteractionContext.tsx`、`TimelineRow.tsx`、`TimelineDragTooltip.tsx`
   - 新增单测 `timeline-calendar.spec.ts`（几何 5 例）、`timeline-validation.spec.ts`（6 例）
   - Storybook 合成指针实测：move/create 拖拽幽灵横条 + 日期 tooltip 正确显示并在 mouseup 清除
-- [ ] 后续增量：overlap/invalid 校验、ESC 取消、external/cross-instance DnD、shared events 跨资源行语义、视觉细节对照 demo 微调
+- [x] ESC 取消（见 `docs/tasks/2026-06-08-drag-esc-cancel.md`：接通 useDrag 已声明却未连线的 onPressESCKey/cancelDrag 管线，timeline move/resize/create 拖拽接入清预览）
+- [x] 修复 Storybook `Wrapper` seed-once 缺陷：`Layout/Wrapper.tsx` 原用模块级 `let start`
+  只 seed 第一个挂载的 Wrapper 故事。Storybook manager 内切故事不整页刷新，标记停在 true，
+  后续 Wrapper 故事（Day/Week/Month/Timeline）拿到未配置的新 store——timeline 表现为
+  「暂无资源配置」。改为按实例 `useRef` 持有 store 并在创建时一次性 seed events/options
+  （options 由 `createCalendarStore` 经 `createOptionsSlice` 归一化，等价旧 `setOptions`）。
+  实测：manager 内 primary→with-events 无刷新切换后正常渲染 3 行 / 8 事件，无报错；
+  week(42 事件/9 列) / day(9 事件/3 列) 直载正常
+- [x] 精简 timeline stories：删除 `WithEvents`（多日横条与重叠）——它与 `Primary` 完全重复
+  （同 `makeTimelineEvents()` 数据、同 `makeResources()`、同无回调 Wrapper，渲染一致且不可拖）。
+  其「跨多天 + 重叠车道堆叠」职责并入 `Primary` 注释。最终 timeline 仅留两个故事：
+  `基础视图`（静态渲染）+ `受控拖拽与 resize`（交互）
+- [x] 受控拖拽演示故事：新增 `时间线--controlled-drag-resize`（`Timeline.stories.tsx`）。
+  原 Primary / WithEvents 用 `Wrapper` 只 seed 事件、不接回调，timeline 又是宿主受控，
+  导致直接拖拽「横条回弹、看似不能拖」。新故事用 `Calendar` + useState 持有 events、
+  在 onEventUpdate/onEventCreate 写回，实测：move +2 列横条左移 160px、end-resize 横条加宽 160px、
+  ESC 取消回弹，均正确
+- [ ] 后续增量：overlap/invalid 校验、external/cross-instance DnD、shared events 跨资源行语义、视觉细节对照 demo 微调
 
 ## 风险与后续
 

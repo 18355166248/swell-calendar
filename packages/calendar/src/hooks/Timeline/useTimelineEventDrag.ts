@@ -73,6 +73,7 @@ export function useTimelineEventDrag({
         commitMove(uiModel, dayDelta, targetResourceIndex);
       }
     },
+    onPressESCKey: () => setDragPreview(null),
   });
 
   const makeResizeHandlers = (edge: 'start' | 'end') => ({
@@ -95,6 +96,7 @@ export function useTimelineEventDrag({
         commitResize(uiModel, edge, dayDelta);
       }
     },
+    onPressESCKey: () => setDragPreview(null),
   });
 
   const onResizeStartStart = useDrag(resizeStartType, makeResizeHandlers('start'));

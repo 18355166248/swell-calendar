@@ -49,6 +49,10 @@ export function useTimelineCreate({ resourceIndex }: UseTimelineCreateParams) {
       startDayRef.current = null;
       commitCreate(resourceIndex, startDayIndex, endDayIndex);
     },
+    onPressESCKey: () => {
+      setDragPreview(null);
+      startDayRef.current = null;
+    },
   });
 
   return onCreateStart;
