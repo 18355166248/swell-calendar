@@ -79,6 +79,9 @@ https://demo.mobiscroll.com/react/timeline/calendar-timeline
   （同 `makeTimelineEvents()` 数据、同 `makeResources()`、同无回调 Wrapper，渲染一致且不可拖）。
   其「跨多天 + 重叠车道堆叠」职责并入 `Primary` 注释。最终 timeline 仅留两个故事：
   `基础视图`（静态渲染）+ `受控拖拽与 resize`（交互）
+- [x] 测试硬化：新增 `hooks/Timeline/useTimelineInteraction.spec.tsx`（6 例），
+  覆盖 move/resize/create 的 mouseup 提交几何 + 三类拖拽 ESC 取消（清预览、不提交、
+  trailing mouseup 也不提交）。把此前仅靠浏览器验证的 `onPressESCKey` 接线锁进 CI。
 - [x] 受控拖拽演示故事：新增 `时间线--controlled-drag-resize`（`Timeline.stories.tsx`）。
   原 Primary / WithEvents 用 `Wrapper` 只 seed 事件、不接回调，timeline 又是宿主受控，
   导致直接拖拽「横条回弹、看似不能拖」。新故事用 `Calendar` + useState 持有 events、
