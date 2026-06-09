@@ -4,53 +4,22 @@ import { ReactNode, useMemo, useState } from 'react';
 import { expect, fireEvent, userEvent, within } from 'storybook/test';
 
 import { Calendar } from '@/components/Calendar';
-import { Day } from '@/components/view/Day';
-import { EventModel } from '@/model/eventModel';
 import DayjsTZDate from '@/time/dayjs-tzdate';
 import { CalendarCallbacks } from '@/types/callbacks.type';
 import { EventObject } from '@/types/events.type';
 
-import { Wrapper } from './Layout/Wrapper';
-import { createRandomEvents } from './utils/randomEvents';
-
 const meta = {
   title: '日历/视图/日视图',
-  component: Wrapper,
+  component: Calendar,
   parameters: {
     layout: 'fullscreen',
   },
   tags: [],
   argTypes: {},
-  args: {
-    events: [] as EventModel[],
-  },
-} satisfies Meta<typeof Day>;
-
-function createTimeGridEvents() {
-  const start = new DayjsTZDate();
-  const end = start.setHours(23, 59, 59, 999);
-
-  return createRandomEvents(start, end, 10).map((event) => new EventModel(event));
-}
+} satisfies Meta<typeof Calendar>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
-
-export const Primary: Story = {
-  name: '基础视图',
-  render: (args) => (
-    <Wrapper events={args.events}>
-      <Day />
-    </Wrapper>
-  ),
-  args: {
-    events: createTimeGridEvents(),
-  },
-};
-
-// ============================================================================
-// 拖拽交互测试
-// ============================================================================
 
 /** 演示模式下每步停顿，可通过 SLOWMO 覆盖 */
 const DEMO_PAUSE = 2000;
