@@ -1,5 +1,16 @@
-// ===== App shell: sidebar + topbar =====（移植自设计稿 shell.jsx）
-import { CAT_COLORS, resources, type Cat } from './data';
+// ===== App shell: sidebar + topbar =====
+// P3: 外围控件已替换为 @react-spectrum/s2 真实组件（Button / ActionButton / SearchField / SegmentedControl）。
+// 侧栏导航项保留 CSS 版（S2 无直接等价物，强行替换会偏离像素）。
+import {
+  ActionButton,
+  Button,
+  SearchField,
+  SegmentedControl,
+  SegmentedControlItem,
+} from '@react-spectrum/s2';
+import type { Key } from 'react';
+
+import { CAT_COLORS, type Cat } from './data';
 import { Ic } from './icons';
 
 export type ViewId = 'day' | 'week' | 'month' | 'scheduler' | 'timeline';
@@ -37,10 +48,13 @@ export function Sidebar({ view, setView, openCreate }: SidebarProps) {
           <div className="brand-sub">日程调度</div>
         </div>
       </div>
-      <button className="side-cta" onClick={openCreate}>
-        <Ic.plus />
-        <span className="lbl">新建日程</span>
-      </button>
+      {/* P3: S2 Button variant="accent" 替换原生 button */}
+      <div className="side-cta-wrap">
+        <Button variant="accent" onPress={openCreate} UNSAFE_className={'s2-seafoam-cta' as any}>
+          <Ic.plus />
+          <span className="lbl">新建日程</span>
+        </Button>
+      </div>
       <nav className="nav">
         <div className="nav-label">视图</div>
         {navMain.map((n) => (
@@ -149,51 +163,72 @@ export function Topbar({ view, setView, toolbar, toggleRail, title, sub }: Topba
     { id: 'scheduler', label: '调度', icon: Ic.sched },
     { id: 'timeline', label: '时间线', icon: Ic.timeline },
   ];
-  const segClass = 'seg' + (toolbar === 'boxed' ? ' boxed' : toolbar === 'tabs' ? ' tabs' : '');
   return (
     <header className="topbar">
-      <button className="tb-rail-toggle" onClick={toggleRail} title="切换侧栏">
+      {/* P3: S2 ActionButton (quiet) */}
+      <ActionButton
+        isQuiet
+        onPress={toggleRail}
+        aria-label="切换侧栏"
+        UNSAFE_className={'s2-sf' as any}
+      >
         <Ic.sidebar />
-      </button>
+      </ActionButton>
       <div className="tb-date">
         <div className="tb-title">{title}</div>
         <div className="tb-sub">{sub}</div>
       </div>
       <div className="tb-nav">
-        <button className="tb-today">今天</button>
-        <button className="tb-arrow">
+        {/* P3: S2 Button (outline) */}
+        <Button variant="secondary" fillStyle="outline" size="S">
+          今天
+        </Button>
+        {/* P3: S2 ActionButton (quiet) */}
+        <ActionButton isQuiet aria-label="上一期" UNSAFE_className={'s2-sf' as any}>
           <Ic.chevL />
-        </button>
-        <button className="tb-arrow">
+        </ActionButton>
+        <ActionButton isQuiet aria-label="下一期" UNSAFE_className={'s2-sf' as any}>
           <Ic.chevR />
-        </button>
+        </ActionButton>
       </div>
       <div className="tb-spacer" />
+      {/* P3: S2 SearchField */}
       {toolbar !== 'minimal' && (
-        <div className="tb-search">
-          <Ic.search />
-          <input placeholder="搜索日程、与会人…" />
+        <div className="tb-search-wrap">
+          <SearchField
+            placeholder="搜索日程、与会人…"
+            size="S"
+            aria-label="搜索"
+            UNSAFE_className={'s2-sf' as any}
+          />
         </div>
       )}
-      <div className={segClass}>
-        {views.map((v) => (
-          <button
-            key={v.id}
-            className={'seg-btn' + (view === v.id ? ' active' : '')}
-            onClick={() => setView(v.id)}
-          >
-            <v.icon />
-            {toolbar !== 'minimal' && <span>{v.label}</span>}
-          </button>
-        ))}
-      </div>
-      <button className="tb-icon-btn">
-        <span className="dot" />
-        <Ic.bell />
-      </button>
-      <button className="tb-icon-btn">
+      {/* P3: S2 SegmentedControl */}
+      {toolbar !== 'minimal' && (
+        <SegmentedControl
+          selectedKey={view}
+          onSelectionChange={(k: Key) => setView(k as ViewId)}
+          aria-label="视图切换"
+          UNSAFE_className={'s2-ss' as any}
+        >
+          {views.map((v) => (
+            <SegmentedControlItem key={v.id} id={v.id}>
+              <v.icon />
+              <span>{v.label}</span>
+            </SegmentedControlItem>
+          ))}
+        </SegmentedControl>
+      )}
+      {/* P3: S2 ActionButton (quiet) + notification dot */}
+      <span className="tb-icon-wrap">
+        <ActionButton isQuiet aria-label="通知" UNSAFE_className={'s2-sf' as any}>
+          <Ic.bell />
+        </ActionButton>
+        <span className="s2-dot" />
+      </span>
+      <ActionButton isQuiet aria-label="设置" UNSAFE_className={'s2-sf' as any}>
         <Ic.settings />
-      </button>
+      </ActionButton>
     </header>
   );
 }

@@ -79,43 +79,20 @@ button {
   display: none;
 }
 
-.side-cta {
+/* P3: S2 Button variant="accent" 容器 */
+.side-cta-wrap {
   margin: 4px 14px 14px;
-  display: flex;
-  align-items: center;
+}
+.side-cta-wrap > button {
+  width: 100%;
   justify-content: center;
-  gap: 8px;
-  height: 38px;
-  padding: 0 14px;
-  background: var(--accent-bg);
-  color: var(--accent-contrast);
-  border: none;
-  border-radius: var(--r-full);
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: var(--shadow-sm);
-  transition:
-    background 0.14s,
-    transform 0.08s;
-  white-space: nowrap;
 }
-.side-cta:hover {
-  background: var(--accent-bg-hover);
-}
-.side-cta:active {
-  background: var(--accent-bg-down);
-  transform: translateY(1px);
-}
-.side-cta svg {
+.side-cta-wrap svg {
   width: 16px;
   height: 16px;
   flex: none;
 }
-.app[data-sidebar='rail'] .side-cta {
-  padding: 0;
-}
-.app[data-sidebar='rail'] .side-cta .lbl {
+.app[data-sidebar='rail'] .side-cta-wrap .lbl {
   display: none;
 }
 
@@ -318,6 +295,9 @@ button {
   background: var(--bg-app);
 }
 
+/* P3: topbar 现在混用 S2 组件（ActionButton / Button / SearchField / SegmentedControl）。
+   以下样式主要处理布局与 S2 组件外层微调，S2 内部视觉由组件自行管理。 */
+
 .topbar {
   display: flex;
   align-items: center;
@@ -325,22 +305,6 @@ button {
   padding: 14px 22px;
   border-bottom: 1px solid var(--border);
   background: var(--bg-layer);
-}
-.tb-rail-toggle {
-  width: 34px;
-  height: 34px;
-  border-radius: var(--r-100);
-  flex: none;
-  border: 1px solid var(--border);
-  background: var(--bg-layer-2);
-  color: var(--text-2);
-  cursor: pointer;
-  display: grid;
-  place-items: center;
-}
-.tb-rail-toggle:hover {
-  background: var(--bg-hover);
-  color: var(--text-1);
 }
 
 .tb-date {
@@ -363,98 +327,86 @@ button {
   align-items: center;
   gap: 6px;
 }
-.tb-today {
-  height: 34px;
-  padding: 0 14px;
-  border-radius: var(--r-full);
-  border: 1px solid var(--border-strong);
-  background: var(--bg-layer-2);
-  color: var(--text-1);
-  font-size: 13.5px;
-  font-weight: 600;
-  cursor: pointer;
-}
-.tb-today:hover {
-  background: var(--bg-hover);
-}
-.tb-arrow {
-  width: 34px;
-  height: 34px;
-  border-radius: var(--r-100);
-  border: 1px solid var(--border);
-  background: var(--bg-layer-2);
-  color: var(--text-2);
-  cursor: pointer;
-  display: grid;
-  place-items: center;
-}
-.tb-arrow:hover {
-  background: var(--bg-hover);
-  color: var(--text-1);
-}
 
 .tb-spacer {
   flex: 1;
 }
 
-.tb-search {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  height: 34px;
-  padding: 0 12px;
+/* P3: S2 SearchField 容器 */
+.tb-search-wrap {
   min-width: 200px;
-  border: 1px solid var(--border-strong);
-  border-radius: var(--r-full);
-  background: var(--bg-layer-2);
-  color: var(--text-3);
 }
-.tb-search svg {
-  width: 15px;
-  height: 15px;
-  flex: none;
-}
-.tb-search input {
-  border: none;
-  background: none;
-  outline: none;
-  color: var(--text-1);
-  font-size: 13.5px;
+.tb-search-wrap > [role='search'] {
   width: 100%;
 }
-.tb-search input::placeholder {
-  color: var(--text-3);
-}
 
-.tb-icon-btn {
-  width: 34px;
-  height: 34px;
-  border-radius: var(--r-100);
-  flex: none;
-  border: 1px solid var(--border);
-  background: var(--bg-layer-2);
-  color: var(--text-2);
-  cursor: pointer;
-  display: grid;
-  place-items: center;
+/* P3: S2 ActionButton + 通知圆点 */
+.tb-icon-wrap {
   position: relative;
+  display: inline-flex;
 }
-.tb-icon-btn:hover {
-  background: var(--bg-hover);
-  color: var(--text-1);
+.tb-icon-wrap svg {
+  width: 16px;
+  height: 16px;
+  flex: none;
 }
-.tb-icon-btn .dot {
+.s2-dot {
   position: absolute;
-  top: 7px;
-  right: 8px;
+  top: 5px;
+  right: 5px;
   width: 7px;
   height: 7px;
   background: var(--cat-magenta-line);
   border-radius: 50%;
-  border: 1.5px solid var(--bg-layer-2);
+  border: 1.5px solid var(--bg-layer);
+  pointer-events: none;
+  z-index: 1;
 }
 
-/* view switcher (segmented) */
+/* ---------- P3-2: S2 SEAFOAM ACCENT OVERRIDES ----------
+   S2 variant="accent" 默认渲染 Spectrum blue（#3b63fb），
+   这里用 !important 覆盖为我们的 seafoam。
+
+   Button 组件使用 CSS 变量 --g 控制背景色，只需覆盖该变量即可。
+   文字色为 #fff（px131 类），不受 --g 影响。
+   焦点环使用 outline-color: light-dark(#4b75ff, #4069fd)，需单独覆盖。
+
+   s2-seafoam-cta  → CTA Button（accent fill）
+   s2-sf           → ActionButton / SearchField（焦点环）
+   s2-ss           → SegmentedControl（焦点环） */
+
+/* CTA Button — seafoam fill（覆盖 S2 的 --g 变量） */
+.s2-seafoam-cta {
+  --g: var(--accent-bg) !important;
+}
+.s2-seafoam-cta:hover,
+.s2-seafoam-cta:active,
+.s2-seafoam-cta[data-pressed] {
+  --g: var(--accent-bg-hover) !important;
+}
+.s2-seafoam-cta:focus-visible,
+.s2-seafoam-cta[data-focus-visible] {
+  outline-color: var(--accent-bg) !important;
+}
+
+/* ActionButton / SearchField — seafoam focus ring */
+.s2-sf:focus-visible,
+.s2-sf[data-focus-visible],
+.s2-sf [data-focus-visible] {
+  outline-color: var(--accent-bg) !important;
+}
+.s2-sf:focus-within {
+  outline-color: var(--accent-bg) !important;
+}
+
+/* SegmentedControl — seafoam focus ring */
+.s2-ss button:focus-visible,
+.s2-ss button[data-focus-visible] {
+  outline-color: var(--accent-bg) !important;
+}
+
+/* P3: 视图切换现为 S2 SegmentedControl，原生样式由组件管理。
+   保留 .seg 类名以防其它 toolbar 模式需要。 */
 .seg {
   display: inline-flex;
   background: var(--bg-sunken);
