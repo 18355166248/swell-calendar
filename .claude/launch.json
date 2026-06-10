@@ -14,6 +14,18 @@
         "packages/calendar/.storybook"
       ],
       "port": 6006
+    },
+    {
+      "name": "s2-app",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "apps/swell-calendar-s2/node_modules/vite/bin/vite.js",
+        "apps/swell-calendar-s2",
+        "--port",
+        "5180",
+        "--strictPort"
+      ],
+      "port": 5180
     }
   ]
 }
