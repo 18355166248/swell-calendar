@@ -50,6 +50,19 @@ function makeDate(dayIndex: number, decimalHours: number): Date {
   return d;
 }
 
+/** 把 `YYYY-MM-DD` 转成相对 BASE_DATE(2025-03-17) 的天偏移（CalEvent.day 语义）。 */
+export function dateToDayIndex(dateStr: string): number {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const target = new Date(y, (m || 1) - 1, d || 1);
+  return Math.round((target.getTime() - BASE_DATE.getTime()) / 86_400_000);
+}
+
+/** 把 `HH:mm` 转成十进制小时（CalEvent.start/end 语义），如 09:30 → 9.5。 */
+export function timeToDecimalHour(time: string): number {
+  const [h, min] = time.split(':').map(Number);
+  return (h || 0) + (min || 0) / 60;
+}
+
 /** 将 S2 mock CalEvent 转换为 swell-calendar EventObject */
 export function toCalendarEvents(evts: CalEvent[]): EventObject[] {
   return evts.map((e) => {

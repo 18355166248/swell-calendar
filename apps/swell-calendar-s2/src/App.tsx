@@ -2,17 +2,52 @@
 // 设计稿的 tweaks 面板是 Claude Design 编辑器宿主工具，非真实功能，已剔除；
 // 这里固定采用其默认配置（light / seafoam / soft / segmented / rich / full / regular）。
 // P4: scheduler / timeline 视图已替换为 swell-calendar 真引擎（拖拽/resize/创建）。
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import type { CalendarInstance } from 'swell-calendar';
 import Calendar from 'swell-calendar';
 
-import { calendarCalendars, calendarEvents, calendarResources, toPickEvent } from './calendarData';
-import { CreateDialog, Popover } from './overlays';
+import {
+  calendarCalendars,
+  calendarResources,
+  dateToDayIndex,
+  timeToDecimalHour,
+  toCalendarEvents,
+  toPickEvent,
+} from './calendarData';
+import { CreateDialog, type NewEventInput, Popover } from './overlays';
 import { Sidebar, Topbar, type ViewId } from './shell';
 import { SubBar } from './overlays';
 import { DayView, MonthView, type PickEvent, WeekView } from './views';
-import { events as ALL_EVENTS } from './data';
+import { type CalEvent, events as SEED_EVENTS, resources as RESOURCES } from './data';
+
+// 仅持久化「用户新建」的事件，种子数据保持不可变、可随代码更新。
+const USER_EVENTS_KEY = 'swell-calendar-s2:user-events';
+
+function loadUserEvents(): CalEvent[] {
+  try {
+    const raw = localStorage.getItem(USER_EVENTS_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? (parsed as CalEvent[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+/** 把新建对话框的输入转成 CalEvent（loc 取资源短名，便于 popover 展示）。 */
+function inputToCalEvent(input: NewEventInput): CalEvent {
+  const resource = RESOURCES.find((r) => r.id === input.res);
+  return {
+    id: `u-${Date.now()}`,
+    res: input.res,
+    day: dateToDayIndex(input.date),
+    start: timeToDecimalHour(input.start),
+    end: timeToDecimalHour(input.end),
+    title: input.title,
+    cat: input.cat,
+    loc: resource?.short,
+  };
+}
 
 const CONFIG = {
   theme: 'light' as 'light' | 'dark',
@@ -73,7 +108,22 @@ export default function App() {
   const [creating, setCreating] = useState(false);
   const [showWknd, setShowWknd] = useState(true);
   const [sidebar, setSidebar] = useState(CONFIG.sidebar);
+  const [userEvents, setUserEvents] = useState<CalEvent[]>(loadUserEvents);
   const calRef = useRef<CalendarInstance>(null);
+
+  // 种子（不可变）+ 用户新建，合并为完整事件列表
+  const allEvents = useMemo(() => [...SEED_EVENTS, ...userEvents], [userEvents]);
+  // 引擎 events prop 需新数组引用才会重渲，useMemo 在 allEvents 变化时给出新引用
+  const calendarEvents = useMemo(() => toCalendarEvents(allEvents), [allEvents]);
+
+  // 持久化用户新建的事件
+  useEffect(() => {
+    localStorage.setItem(USER_EVENTS_KEY, JSON.stringify(userEvents));
+  }, [userEvents]);
+
+  const handleCreate = (input: NewEventInput) => {
+    setUserEvents((prev) => [...prev, inputToCalEvent(input)]);
+  };
 
   // 主题 + 强调色作用到 root
   useEffect(() => {
@@ -163,11 +213,11 @@ export default function App() {
           ) : (
             <>
               {view === 'day' && (
-                <DayView events={ALL_EVENTS} onPick={onPick} selId={pick?.ev.id} hourH={hourH} />
+                <DayView events={allEvents} onPick={onPick} selId={pick?.ev.id} hourH={hourH} />
               )}
               {view === 'week' && (
                 <WeekView
-                  events={ALL_EVENTS}
+                  events={allEvents}
                   onPick={onPick}
                   selId={pick?.ev.id}
                   hourH={hourH}
@@ -183,7 +233,7 @@ export default function App() {
       {pick && (
         <Popover ev={pick.ev} anchor={pick.anchor} onClose={closePop} variant={CONFIG.popover} />
       )}
-      {creating && <CreateDialog onClose={() => setCreating(false)} />}
+      {creating && <CreateDialog onClose={() => setCreating(false)} onCreate={handleCreate} />}
     </div>
   );
 }

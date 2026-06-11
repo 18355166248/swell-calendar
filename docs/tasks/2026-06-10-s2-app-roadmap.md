@@ -24,7 +24,7 @@
 | P2 | 忠实移植设计稿（5 视图 + overlays） | ✅ 完成 2026-06-10 | `apps/swell-calendar-s2/src` |
 | P3 | 真实 S2 组件替换外围控件 | ✅ 完成 2026-06-11（视觉已验证） | `src/shell.tsx`、`src/main.tsx` |
 | P4 | 挂活 `packages/calendar` 拖拽引擎 + timeline 主题 | ✅ 完成 2026-06-11 | `src/views.tsx` + `packages/calendar` |
-| P5 | 控件真功能化（主题切换 / 搜索 / 筛选 / 新建落库） | ⬜ 未开始 | `apps/swell-calendar-s2/src` |
+| P5 | 控件真功能化（主题切换 / 搜索 / 筛选 / 新建落库） | 🟡 进行中（新建落库 ✅ 2026-06-11） | `apps/swell-calendar-s2/src` |
 | P6 | 接真数据（替换 mock SWELL，事件 CRUD） | ⬜ 未开始 | `apps/swell-calendar-s2/src` |
 
 图例：✅ 完成 · 🟡 进行中 · ⬜ 未开始 · ⏸ 暂缓
@@ -52,13 +52,16 @@
 - 验收：week/scheduler 可拖拽，视觉贴设计；calendar 默认主题零行为回归；`pnpm check` 通过。
 - 风险：calendar 主题注入策略「不注入全局 CSS 变量」，着色落点要与现有方式一致。
 
-## P5 · 控件真功能化 ⬜
+## P5 · 控件真功能化 🟡
 
-设计稿里固定为默认的开关做成真功能。
+设计稿里固定为默认的开关做成真功能。分切片推进，每片独立任务单。
 
 - 范围：明暗/强调色/密度切换（设计 CSS 已支持 `data-theme`/`data-accent` + density）；
   搜索过滤；分类 chips 筛选；新建对话框真正落库到本地状态。
 - 验收：切换即时生效并持久化（localStorage）；筛选/搜索影响渲染；新建后出现在视图里。
+- 切片进度：
+  - ✅ 新建落库（[2026-06-11-s2-p5-create-event.md](./2026-06-11-s2-p5-create-event.md)）2026-06-11
+  - ⬜ 明暗/强调色/密度切换 · ⬜ 搜索过滤 · ⬜ 分类 chips 筛选 · ⬜ 事件编辑/删除
 
 ## P6 · 接真数据 ⬜
 

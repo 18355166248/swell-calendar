@@ -147,7 +147,23 @@ export function Popover({
   );
 }
 
-export function CreateDialog({ onClose }: { onClose: () => void }) {
+/** 新建对话框回填给 App 的原始输入（App 负责转成 CalEvent 落库）。 */
+export interface NewEventInput {
+  title: string;
+  res: string;
+  date: string; // YYYY-MM-DD
+  start: string; // HH:mm
+  end: string; // HH:mm
+  cat: Cat;
+}
+
+export function CreateDialog({
+  onClose,
+  onCreate,
+}: {
+  onClose: () => void;
+  onCreate: (input: NewEventInput) => void;
+}) {
   const cats: { c: Cat; label: string }[] = [
     { c: 'seafoam', label: '会议' },
     { c: 'indigo', label: '规划' },
@@ -159,6 +175,25 @@ export function CreateDialog({ onClose }: { onClose: () => void }) {
   const [cat, setCat] = useState<Cat>('seafoam');
   const [rep, setRep] = useState('none');
   const [title, setTitle] = useState('');
+  const [res, setRes] = useState(resources[0]?.id ?? 'r1');
+  const [date, setDate] = useState('2025-03-21');
+  const [start, setStart] = useState('09:00');
+  const [end, setEnd] = useState('10:00');
+  const [err, setErr] = useState<string | null>(null);
+
+  const submit = () => {
+    if (!title.trim()) {
+      setErr('请填写标题');
+      return;
+    }
+    if (end <= start) {
+      setErr('结束时间需晚于开始时间');
+      return;
+    }
+    onCreate({ title: title.trim(), res, date, start, end, cat });
+    onClose();
+  };
+
   return (
     <div className="scrim" onMouseDown={onClose}>
       <div className="dialog" onMouseDown={(e) => e.stopPropagation()}>
@@ -179,7 +214,7 @@ export function CreateDialog({ onClose }: { onClose: () => void }) {
           </div>
           <div className="field">
             <div className="field-label">资源</div>
-            <select className="field-select" defaultValue="r1">
+            <select className="field-select" value={res} onChange={(e) => setRes(e.target.value)}>
               {resources.map((r) => (
                 <option key={r.id} value={r.id}>
                   {r.name}
@@ -190,14 +225,29 @@ export function CreateDialog({ onClose }: { onClose: () => void }) {
           <div className="field-row">
             <div className="field">
               <div className="field-label">日期</div>
-              <input className="field-input" type="text" defaultValue="2025-03-21" />
+              <input
+                className="field-input"
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+              />
             </div>
             <div className="field">
               <div className="field-label">时间</div>
               <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                <input className="field-input" type="text" defaultValue="09:00" />
+                <input
+                  className="field-input"
+                  type="time"
+                  value={start}
+                  onChange={(e) => setStart(e.target.value)}
+                />
                 <span style={{ color: 'var(--text-3)' }}>–</span>
-                <input className="field-input" type="text" defaultValue="10:00" />
+                <input
+                  className="field-input"
+                  type="time"
+                  value={end}
+                  onChange={(e) => setEnd(e.target.value)}
+                />
               </div>
             </div>
           </div>
@@ -238,10 +288,13 @@ export function CreateDialog({ onClose }: { onClose: () => void }) {
           </div>
         </div>
         <div className="dlg-foot">
+          {err && (
+            <span style={{ color: 'var(--cat-magenta-line)', marginRight: 'auto' }}>{err}</span>
+          )}
           <button className="dlg-btn" onClick={onClose}>
             取消
           </button>
-          <button className="dlg-btn primary" onClick={onClose}>
+          <button className="dlg-btn primary" onClick={submit}>
             创建日程
           </button>
         </div>
