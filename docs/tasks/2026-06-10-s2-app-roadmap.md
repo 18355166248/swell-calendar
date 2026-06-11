@@ -22,7 +22,7 @@
 | P0 | 文档门禁 + 任务文档 | ✅ 完成 2026-06-10 | `docs/tasks/` |
 | P1 | 脚手架 + S2 macro 链路验证 | ✅ 完成 2026-06-10 | `apps/swell-calendar-s2` |
 | P2 | 忠实移植设计稿（5 视图 + overlays） | ✅ 完成 2026-06-10 | `apps/swell-calendar-s2/src` |
-| P3 | 真实 S2 组件替换外围控件 | 🟡 代码完成，待视觉验证 | `src/shell.tsx`、`src/main.tsx` |
+| P3 | 真实 S2 组件替换外围控件 | ✅ 完成 2026-06-11（视觉已验证） | `src/shell.tsx`、`src/main.tsx` |
 | P4 | 挂活 `packages/calendar` 拖拽引擎 + timeline 主题 | ✅ 完成 2026-06-11 | `src/views.tsx` + `packages/calendar` |
 | P5 | 控件真功能化（主题切换 / 搜索 / 筛选 / 新建落库） | ⬜ 未开始 | `apps/swell-calendar-s2/src` |
 | P6 | 接真数据（替换 mock SWELL，事件 CRUD） | ⬜ 未开始 | `apps/swell-calendar-s2/src` |
@@ -149,3 +149,16 @@
 - **换行符归一化**：上次提交 `theme.type.ts` 被编辑器整文件 CRLF→LF 翻转，真实改动 67 行却记成 `+136/-69`，污染 diff/blame。新增根 `.gitattributes`（`* text=auto eol=lf` + 二进制排除）固化 LF；现仓库 321 个文本文件已全部 LF，对提交零 churn。
 - **verify 脚本去硬编码**：`scripts/verify-s2-*.mjs` 原写死作者本机 macOS 绝对路径（playwright 入口 + `/private/tmp`），跨平台/CI 必失败。改为 `import('playwright')` 常规解析（`S2_VERIFY_PLAYWRIGHT` 可覆盖）+ `os.tmpdir()`（`S2_VERIFY_OUT` 可覆盖），并移除未使用的 `readFile` 导入。
 - 说明：playwright 未列为仓库依赖，脚本为一次性验收用途，现已可移植，谁装了 playwright 即可运行。
+
+### 2026-06-11 · P3 视觉验证完成（含 Windows 构建回归修复）
+
+- **P3 收尾验证**（浏览器实测，端口 5180）：
+  - S2 顶栏控件（新建 CTA / SegmentedControl / SearchField / 通知设置图标）全部正常渲染。
+  - CTA `background-color: oklch(0.58 0.085 192)` = seafoam（非 Spectrum blue），文字白、`align-items: center`（P3-3 对齐修复仍生效）。
+  - SearchField 焦点环 `outline-color: oklch(0.58 0.085 192)` = seafoam。
+  - SegmentedControl 跟随视图切换；静态 day/week/month 与引擎 scheduler/timeline 均无回归；控制台零 error。
+  - **结论：P3 → ✅**。
+- **修复 P4 引入的 Windows 构建回归**（`vite.config.ts`）：app 在本 Windows 机器上原本完全白屏，根因两处——
+  1. `node:path.resolve()` 在 Windows 返回反斜杠路径，而 vite 传入的 importer 是正斜杠，导致 `importer.startsWith(calendarSrcRoot)` 恒为 false，calendar 源码内部 `@/...` 全部解析失败。改为用 `normalizePath` 统一正斜杠后再比较/返回。
+  2. `swell-calendar/style.css` 映射到 `dist/style.css`，但该产物需先构建（`pnpm --filter swell-calendar build`）才存在；缺失时 vite 报错晦涩。现加 `existsSync` 兜底，缺失时抛出可读错误指明先构建。
+- 遗留：calendar dist 产物为本地构建依赖（非入库），首次起 s2-app 前需先 build calendar 包——这条 build-order 耦合 review 已记，后续可考虑 turbo 依赖串联自动化。
