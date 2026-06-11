@@ -61,7 +61,9 @@
 - 验收：切换即时生效并持久化（localStorage）；筛选/搜索影响渲染；新建后出现在视图里。
 - 切片进度：
   - ✅ 新建落库（[2026-06-11-s2-p5-create-event.md](./2026-06-11-s2-p5-create-event.md)）2026-06-11
-  - ⬜ 明暗/强调色/密度切换 · ⬜ 搜索过滤 · ⬜ 分类 chips 筛选 · ⬜ 事件编辑/删除
+  - ✅ 搜索过滤 + 分类 chips 筛选（[2026-06-11-s2-p5-search-filter.md](./2026-06-11-s2-p5-search-filter.md)）2026-06-11
+  - ⬜ 明暗/强调色/密度切换（S2 Provider 在 main.tsx 写死 + seafoam 多处硬编码 + 无 data-density，需先解耦）
+  - ⬜ 事件编辑/删除
 
 ## P6 · 接真数据 ⬜
 

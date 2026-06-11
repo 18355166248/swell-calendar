@@ -15,11 +15,11 @@ import {
   toCalendarEvents,
   toPickEvent,
 } from './calendarData';
-import { CreateDialog, type NewEventInput, Popover } from './overlays';
+import { CreateDialog, FILTER_CATS, type NewEventInput, Popover } from './overlays';
 import { Sidebar, Topbar, type ViewId } from './shell';
 import { SubBar } from './overlays';
 import { DayView, MonthView, type PickEvent, WeekView } from './views';
-import { type CalEvent, events as SEED_EVENTS, resources as RESOURCES } from './data';
+import { type Cat, type CalEvent, events as SEED_EVENTS, resources as RESOURCES } from './data';
 
 // 仅持久化「用户新建」的事件，种子数据保持不可变、可随代码更新。
 const USER_EVENTS_KEY = 'swell-calendar-s2:user-events';
@@ -109,12 +109,31 @@ export default function App() {
   const [showWknd, setShowWknd] = useState(true);
   const [sidebar, setSidebar] = useState(CONFIG.sidebar);
   const [userEvents, setUserEvents] = useState<CalEvent[]>(loadUserEvents);
+  const [query, setQuery] = useState('');
+  const [activeCats, setActiveCats] = useState<Set<Cat>>(() => new Set(FILTER_CATS));
   const calRef = useRef<CalendarInstance>(null);
+
+  const toggleCat = (c: Cat) =>
+    setActiveCats((prev) => {
+      const next = new Set(prev);
+      next.has(c) ? next.delete(c) : next.add(c);
+      return next;
+    });
 
   // 种子（不可变）+ 用户新建，合并为完整事件列表
   const allEvents = useMemo(() => [...SEED_EVENTS, ...userEvents], [userEvents]);
-  // 引擎 events prop 需新数组引用才会重渲，useMemo 在 allEvents 变化时给出新引用
-  const calendarEvents = useMemo(() => toCalendarEvents(allEvents), [allEvents]);
+  // 搜索 + 分类过滤后的可见事件
+  const visibleEvents = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return allEvents.filter((e) => {
+      // chip 分类被关闭则隐藏；非 chip 分类（如 magenta）始终可见
+      if (FILTER_CATS.includes(e.cat) && !activeCats.has(e.cat)) return false;
+      if (q && !`${e.title} ${e.who ?? ''} ${e.loc ?? ''}`.toLowerCase().includes(q)) return false;
+      return true;
+    });
+  }, [allEvents, query, activeCats]);
+  // 引擎 events prop 需新数组引用才会重渲，useMemo 在 visibleEvents 变化时给出新引用
+  const calendarEvents = useMemo(() => toCalendarEvents(visibleEvents), [visibleEvents]);
 
   // 持久化用户新建的事件
   useEffect(() => {
@@ -172,9 +191,17 @@ export default function App() {
           toggleRail={() => setSidebar(sidebar === 'full' ? 'rail' : 'full')}
           title={title}
           sub={sub}
+          query={query}
+          setQuery={setQuery}
         />
         {(view === 'week' || view === 'day' || view === 'scheduler') && (
-          <SubBar showWknd={showWknd} setShowWknd={setShowWknd} />
+          <SubBar
+            showWknd={showWknd}
+            setShowWknd={setShowWknd}
+            activeCats={activeCats}
+            onToggleCat={toggleCat}
+            onShowAll={() => setActiveCats(new Set(FILTER_CATS))}
+          />
         )}
         <div className="canvas" key={view}>
           {useEngine ? (
@@ -213,11 +240,11 @@ export default function App() {
           ) : (
             <>
               {view === 'day' && (
-                <DayView events={allEvents} onPick={onPick} selId={pick?.ev.id} hourH={hourH} />
+                <DayView events={visibleEvents} onPick={onPick} selId={pick?.ev.id} hourH={hourH} />
               )}
               {view === 'week' && (
                 <WeekView
-                  events={allEvents}
+                  events={visibleEvents}
                   onPick={onPick}
                   selId={pick?.ev.id}
                   hourH={hourH}

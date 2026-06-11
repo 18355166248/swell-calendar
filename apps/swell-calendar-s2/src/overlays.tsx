@@ -303,29 +303,44 @@ export function CreateDialog({
   );
 }
 
+/** 子栏分类 chips 控制的分类集合（用于 App 端构造初始过滤态与判定可过滤分类）。 */
+export const SUBBAR_CATS: { c: Cat; label: string }[] = [
+  { c: 'seafoam', label: '会议·评审' },
+  { c: 'indigo', label: '规划·设计' },
+  { c: 'orange', label: '客户·对外' },
+  { c: 'green', label: '工程·协作' },
+  { c: 'purple', label: '面试·招聘' },
+];
+export const FILTER_CATS: Cat[] = SUBBAR_CATS.map((c) => c.c);
+
 export function SubBar({
   showWknd,
   setShowWknd,
+  activeCats,
+  onToggleCat,
+  onShowAll,
 }: {
   showWknd: boolean;
   setShowWknd: (v: boolean) => void;
+  activeCats: Set<Cat>;
+  onToggleCat: (c: Cat) => void;
+  onShowAll: () => void;
 }) {
-  const cats: { c: Cat; label: string }[] = [
-    { c: 'seafoam', label: '会议·评审' },
-    { c: 'indigo', label: '规划·设计' },
-    { c: 'orange', label: '客户·对外' },
-    { c: 'green', label: '工程·协作' },
-    { c: 'purple', label: '面试·招聘' },
-  ];
+  const allOn = SUBBAR_CATS.every((c) => activeCats.has(c.c));
   return (
     <div className="subbar">
       <div className="chips">
-        <button className="chip">
+        {/* 已过滤时点「全部」一键恢复显示所有分类 */}
+        <button className="chip" onClick={onShowAll} disabled={allOn}>
           <Ic.filter />
-          筛选
+          {allOn ? '筛选' : '全部'}
         </button>
-        {cats.map((c) => (
-          <button key={c.c} className="chip on">
+        {SUBBAR_CATS.map((c) => (
+          <button
+            key={c.c}
+            className={'chip' + (activeCats.has(c.c) ? ' on' : '')}
+            onClick={() => onToggleCat(c.c)}
+          >
             <span className="swatch" style={{ background: CAT_COLORS[c.c] }} />
             {c.label}
           </button>

@@ -153,9 +153,20 @@ interface TopbarProps {
   toggleRail: () => void;
   title: string;
   sub: string;
+  query: string;
+  setQuery: (v: string) => void;
 }
 
-export function Topbar({ view, setView, toolbar, toggleRail, title, sub }: TopbarProps) {
+export function Topbar({
+  view,
+  setView,
+  toolbar,
+  toggleRail,
+  title,
+  sub,
+  query,
+  setQuery,
+}: TopbarProps) {
   const views: { id: ViewId; label: string; icon: () => JSX.Element }[] = [
     { id: 'day', label: '日', icon: Ic.day },
     { id: 'week', label: '周', icon: Ic.week },
@@ -199,6 +210,8 @@ export function Topbar({ view, setView, toolbar, toggleRail, title, sub }: Topba
             placeholder="搜索日程、与会人…"
             size="S"
             aria-label="搜索"
+            value={query}
+            onChange={setQuery}
             UNSAFE_className={'s2-sf' as any}
           />
         </div>
