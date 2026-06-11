@@ -15,6 +15,7 @@ export interface PickEvent {
   id?: string;
   title: string;
   cat: Cat;
+  dateLabel?: string;
   who?: string;
   loc?: string;
   desc?: string;

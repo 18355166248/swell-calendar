@@ -62,7 +62,7 @@ export function Popover({
             <div className="pop-row">
               <Ic.clock />
               <span>
-                3月21 · {evRange(ev)}{' '}
+                {ev.dateLabel || '3月21'} · {evRange(ev)}{' '}
                 <span className="muted">({Math.round((ev.end - ev.start) * 60)} 分钟)</span>
               </span>
             </div>

@@ -34,3 +34,4 @@ export type {
   ViewType,
   WeekOptions,
 } from '@/types/options.type';
+export type { ThemeState } from '@/types/theme.type';

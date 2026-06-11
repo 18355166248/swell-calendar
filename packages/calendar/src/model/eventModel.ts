@@ -79,6 +79,7 @@ export class EventModel implements EventObject {
 
   init({
     id = '',
+    calendarId = '',
     title = '',
     start = new DayjsTZDate(),
     end = new DayjsTZDate(),
@@ -95,6 +96,7 @@ export class EventModel implements EventObject {
     resizable = true,
     order,
     dragBetweenResources,
+    raw = null,
     resourceId,
     resourceIds,
     timezone,
@@ -109,6 +111,7 @@ export class EventModel implements EventObject {
     const normalizedAllDay = category === 'allday' || isAllday || allDay;
 
     this.id = id;
+    this.calendarId = calendarId;
     this.title = title;
     this.allDay = normalizedAllDay;
     this.isAllday = normalizedAllDay;
@@ -123,6 +126,7 @@ export class EventModel implements EventObject {
     this.resizable = resizable;
     this.order = order;
     this.dragBetweenResources = dragBetweenResources;
+    this.raw = raw;
     this.resourceId = resourceId;
     this.resourceIds = resourceIds;
     this.timezone = timezone;

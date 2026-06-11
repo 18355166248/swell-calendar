@@ -23,7 +23,7 @@
 | P1 | 脚手架 + S2 macro 链路验证 | ✅ 完成 2026-06-10 | `apps/swell-calendar-s2` |
 | P2 | 忠实移植设计稿（5 视图 + overlays） | ✅ 完成 2026-06-10 | `apps/swell-calendar-s2/src` |
 | P3 | 真实 S2 组件替换外围控件 | 🟡 代码完成，待视觉验证 | `src/shell.tsx`、`src/main.tsx` |
-| P4 | 挂活 `packages/calendar` 拖拽引擎 + timeline 主题 | ⬜ 未开始 | `src/views.tsx` + `packages/calendar` |
+| P4 | 挂活 `packages/calendar` 拖拽引擎 + timeline 主题 | ✅ 完成 2026-06-11 | `src/views.tsx` + `packages/calendar` |
 | P5 | 控件真功能化（主题切换 / 搜索 / 筛选 / 新建落库） | ⬜ 未开始 | `apps/swell-calendar-s2/src` |
 | P6 | 接真数据（替换 mock SWELL，事件 CRUD） | ⬜ 未开始 | `apps/swell-calendar-s2/src` |
 
@@ -41,14 +41,14 @@
 - 验收：被替换控件用真 S2；`style()` macro 生效；视觉 diff 可接受；tsc/lint 通过。
 - 风险：S2 Provider 的 `page.css` 全局背景与设计 `--bg-app` 冲突——**已规避**：不引 page.css，Provider 默认 background 为 transparent。
 
-## P4 · 挂活引擎 + timeline 主题 ⬜
+## P4 · 挂活引擎 + timeline 主题 🟡
 
 把 week/scheduler 的**静态**视图换成 `packages/calendar` 的真引擎（拖拽移动/resize/空白创建/车道堆叠），
 并用设计 token 重新着色。**前置 = 完成 [timeline-theme](./2026-06-10-timeline-theme.md)**（给库加 timeline 主题切片，
 因为 timeline.scss 现为硬编码 hex，宿主无法用主题面还原设计）。
 
-- 步骤：① 先做 timeline-theme（改 `theme.type.ts` + `SPEC.md`，docs-first）；
-  ② app 用 `workspace:*` 依赖 calendar 并构建；③ 用设计 token 经 ThemeStore 注入着色。
+- 步骤：① 先做 timeline-theme（改 `theme.type.ts` + `SPEC.md`，docs-first） ✅；
+  ② app 用 `workspace:*` 依赖 calendar 并构建 ✅；③ 用设计 token 经 ThemeStore 注入着色 ✅。
 - 验收：week/scheduler 可拖拽，视觉贴设计；calendar 默认主题零行为回归；`pnpm check` 通过。
 - 风险：calendar 主题注入策略「不注入全局 CSS 变量」，着色落点要与现有方式一致。
 
@@ -118,3 +118,28 @@
   - `.side-cta-wrap svg` 加 `display: block`（消除 inline SVG 基线偏差）。
 - **app.css 改动**：`.side-cta-wrap > button` 与 `.side-cta-wrap svg` 规则更新。
 - 验证：`tsc --noEmit` ✅ · `vite build`（357KB JS / 87KB CSS）✅。
+
+### 2026-06-11 · P4 挂活引擎 + timeline 主题完成
+
+- **packages/calendar — timeline 主题能力**（详见 `2026-06-10-timeline-theme.md`）：
+  - 新增 `TimelineTheme` 类型（resourceList / resourceItem / header / schedulerHeader / schedulerResourceCell / grid / tooltip / emptyColor），并入 `ThemeState`。
+  - 新增 `theme.timeline.slice.ts`，默认值 = 当前 SCSS 硬编码 hex，保证零视觉回归。
+  - 6 个 timeline 组件改为通过 `useThemeStore` 消费主题值（inline style 注入）。
+  - `timeline.scss` 移除 timeline 专属类的硬编码颜色。
+  - `SPEC.md` 更新核心约束 #4。
+- **S2 app — 引擎集成**：
+  - `package.json` 添加 `swell-calendar: workspace:*` 依赖（+ dayjs / zustand peer deps）。
+  - 新建 `calendarData.ts` 数据适配层：将 mock `CalEvent[]`（十进制小时 + day 索引）转换为 `EventObject[]`（Date 对象），`Resource[]` 转换为 `ResourceInfo[]`。
+  - `App.tsx`：scheduler / timeline 视图替换为 `<Calendar>` 真引擎组件（拖拽移动/resize/空白创建/车道堆叠），day/week/month 视图暂保留静态版。
+  - `main.tsx` 引入 `swell-calendar/style.css`。
+  - `app.css` 隐藏日历自带工具栏（`.swell-calendar-toolbar { display: none }`）。
+- **seafoam 设计 token 注入**：
+  - `SEAFOAM_THEME` 常量覆盖 week/common/timeline 的强调色（indigo → oklch seafoam），经 `theme` prop 传入 Calendar。
+- 验证：`tsc --noEmit` ✅ · `vite build`（539KB JS / 101KB CSS）✅ · 282 项测试全部通过 ✅ · `check-docs` ✅ · `check-arch` ✅。
+- 浏览器验证：Scheduler / Timeline 均已确认渲染正常、切换流畅、today/seafoam 着色生效、控制台干净 ✅。
+
+### 2026-06-11 · P4 review follow-up 修复
+
+- **事件详情回归修复**：`calendarData.ts` 将原始 mock 事件挂回 `EventObject.raw`，并新增 `toPickEvent()`，使 Scheduler / Timeline 点击事件后，Popover 能显示真实日期、时间、地点、参与人与描述，不再使用硬编码 `3月21 / 9:00-10:00` 占位。
+- **Scheduler 周末开关接通**：`App.tsx` 将 `showWknd` 映射到 `week.workweek`，让引擎版 scheduler 与顶栏开关保持一致，不再出现 UI 可切换但始终渲染 7 天的问题。
+- **scheduler 主题 API 接通**：`SchedulerHeader.tsx` / `timeline.scss` 现已消费 `timeline.schedulerHeader` 与 `timeline.schedulerResourceCell`，宿主可通过 theme 覆盖 scheduler 日期头和资源头文字/分隔线颜色，避免“类型已声明但默认实现不生效”。

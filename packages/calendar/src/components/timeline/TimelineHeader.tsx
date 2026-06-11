@@ -1,3 +1,4 @@
+import { useThemeStore } from '@/contexts/themeStore';
 import { cls } from '@/helpers/css';
 import { isWeekend } from '@/time/datetime';
 import DayjsTZDate from '@/time/dayjs-tzdate';
@@ -24,13 +25,33 @@ export function TimelineHeader({
   monthLabel,
   todayIndex,
 }: TimelineHeaderProps) {
+  const theme = useThemeStore((s) => s.timeline.header);
   const totalWidth = days.length * cellWidth;
 
   return (
-    <div className={cls('timeline-header')}>
-      <div className={cls('timeline-header-placeholder')} style={{ width: resourceListWidth }} />
+    <div
+      className={cls('timeline-header')}
+      style={{ borderBottom: theme.borderBottom, background: theme.backgroundColor }}
+    >
+      <div
+        className={cls('timeline-header-placeholder')}
+        style={{
+          width: resourceListWidth,
+          borderRight: theme.borderBottom, // 同色边框
+          background: theme.placeholderBackgroundColor,
+        }}
+      />
       <div className={cls('timeline-header-cells')} style={{ width: totalWidth }}>
-        <div className={cls('timeline-header-month')}>{monthLabel}</div>
+        <div
+          className={cls('timeline-header-month')}
+          style={{
+            color: theme.monthColor,
+            background: theme.monthBackgroundColor,
+            borderBottom: theme.monthBorderBottom,
+          }}
+        >
+          {monthLabel}
+        </div>
         <div className={cls('timeline-header-days')}>
           {days.map((day, index) => {
             const weekend = isWeekend(day.dayjs.day());
@@ -42,10 +63,25 @@ export function TimelineHeader({
                   'timeline-header-day--weekend': weekend,
                   'timeline-header-day--today': isToday,
                 })}
-                style={{ width: cellWidth }}
+                style={{
+                  width: cellWidth,
+                  borderRight: theme.dayBorderRight,
+                  ...(weekend ? { background: theme.weekendBackgroundColor } : {}),
+                  ...(isToday ? { background: theme.todayBackgroundColor } : {}),
+                }}
               >
-                <span className={cls('timeline-header-weekday')}>{DAY_NAMES[day.dayjs.day()]}</span>
-                <span className={cls('timeline-header-date')}>{day.dayjs.date()}</span>
+                <span
+                  className={cls('timeline-header-weekday')}
+                  style={{ color: theme.weekdayColor }}
+                >
+                  {DAY_NAMES[day.dayjs.day()]}
+                </span>
+                <span
+                  className={cls('timeline-header-date')}
+                  style={{ color: isToday ? theme.todayColor : theme.dateColor }}
+                >
+                  {day.dayjs.date()}
+                </span>
               </div>
             );
           })}

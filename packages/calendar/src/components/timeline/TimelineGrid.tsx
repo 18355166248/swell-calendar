@@ -3,6 +3,7 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 import { TIMELINE_EVENT_HEIGHT, TIMELINE_ROW_PADDING_Y } from '@/constants/timeline-const';
 import { useCalendarCallbacks } from '@/contexts/calendarCallbacks';
 import { useCalendarStore } from '@/contexts/calendarStore';
+import { useThemeStore } from '@/contexts/themeStore';
 import {
   buildCreatedAlldayEvent,
   CalendarTimelineRow,
@@ -40,6 +41,7 @@ export function TimelineGrid({ rows, days, rowHeights, cellWidth, todayIndex }: 
 
   const { options } = useCalendarStore();
   const callbacks = useCalendarCallbacks();
+  const gridTheme = useThemeStore((s) => s.timeline.grid);
 
   const gridRef = useRef<HTMLDivElement>(null);
   const [dragPreview, setDragPreview] = useState<TimelineDragPreview | null>(null);
@@ -184,6 +186,8 @@ export function TimelineGrid({ rows, days, rowHeights, cellWidth, todayIndex }: 
               left: ghost.left,
               width: ghost.width,
               height: TIMELINE_EVENT_HEIGHT,
+              background: gridTheme.dragGhostBackgroundColor,
+              border: gridTheme.dragGhostBorder,
             }}
           />
         )}

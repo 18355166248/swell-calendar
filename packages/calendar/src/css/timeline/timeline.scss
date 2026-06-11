@@ -10,8 +10,8 @@
   align-items: center;
   justify-content: center;
   height: 100%;
-  color: #999;
   font-size: 14px;
+  // color: driven by timeline.emptyColor theme
 }
 
 // 单一滚动容器，header 与 body 同步水平滚动
@@ -35,21 +35,20 @@
 .timeline-resource-list {
   width: 160px;
   flex-shrink: 0;
-  border-right: 1px solid #e8e8e8;
-  background: #fafafa;
   position: sticky;
   left: 0;
   z-index: 2;
+  // border-right, background: driven by timeline.resourceList theme
 }
 
 .timeline-resource-item {
   display: flex;
   align-items: center;
   padding: 0 12px;
-  border-bottom: 1px solid #e8e8e8;
   gap: 8px;
   overflow: hidden;
   box-sizing: border-box;
+  // border-bottom: driven by timeline.resourceItem theme
 }
 
 .timeline-resource-dot {
@@ -61,10 +60,10 @@
 
 .timeline-resource-name {
   font-size: 13px;
-  color: #333;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  // color: driven by timeline.resourceItem.nameColor theme
 }
 
 // ─── Header（双层：月份 + 天列） ───────────────────────────────────────────────
@@ -72,20 +71,18 @@
 .timeline-header {
   display: flex;
   flex-shrink: 0;
-  border-bottom: 1px solid #e8e8e8;
-  background: #fff;
   position: sticky;
   top: 0;
   z-index: 3;
+  // border-bottom, background: driven by timeline.header theme
 }
 
 .timeline-header-placeholder {
   flex-shrink: 0;
-  border-right: 1px solid #e8e8e8;
-  background: #fafafa;
   position: sticky;
   left: 0;
   z-index: 4;
+  // border-right, background: driven by timeline.header theme
 }
 
 .timeline-header-cells {
@@ -99,12 +96,10 @@
   padding-left: 8px;
   font-size: 12px;
   font-weight: 600;
-  color: #333;
-  background: #fafafa;
-  border-bottom: 1px solid #f0f0f0;
   position: sticky;
   left: 0;
   box-sizing: border-box;
+  // color, background, border-bottom: driven by timeline.header theme
 }
 
 .timeline-header-days {
@@ -118,33 +113,25 @@
   align-items: center;
   justify-content: center;
   padding: 3px 0;
-  border-right: 1px solid #f0f0f0;
   box-sizing: border-box;
-
-  &--weekend {
-    background: #fafafa;
-  }
-
-  &--today {
-    background: rgba(81, 92, 230, 0.1);
-  }
+  // border-right, background (--weekend/--today): driven by timeline.header theme
 }
 
 .timeline-header-weekday {
   font-size: 10px;
-  color: #999;
   line-height: 1.3;
+  // color: driven by timeline.header.weekdayColor theme
 }
 
 .timeline-header-date {
   font-size: 13px;
-  color: #333;
   line-height: 1.3;
+  // color: driven by timeline.header.dateColor / todayColor theme
 }
 
 .timeline-header-day--today .timeline-header-date {
-  color: #515ce6;
   font-weight: 700;
+  // color: driven by timeline.header.todayColor theme
 }
 
 // ─── Grid（资源行 × 天列） ─────────────────────────────────────────────────────
@@ -156,34 +143,25 @@
 
 .timeline-grid-row {
   display: flex;
-  border-bottom: 1px solid #e8e8e8;
   position: relative;
   cursor: cell; // 空白区拖拽创建提示
+  // border-bottom: driven by timeline.grid.rowBorderBottom theme
 }
 
 // 拖拽 / resize / 创建过程中的幽灵横条
 .timeline-drag-ghost {
   position: absolute;
   border-radius: 3px;
-  background: rgba(81, 92, 230, 0.22);
-  border: 1px dashed rgba(81, 92, 230, 0.9);
   pointer-events: none;
   z-index: 5;
+  // background, border: driven by timeline.grid theme
 }
 
 .timeline-grid-cell {
   flex-shrink: 0;
-  border-right: 1px solid #f0f0f0;
   height: 100%;
   box-sizing: border-box;
-
-  &--weekend {
-    background: #fafafa;
-  }
-
-  &--today {
-    background: rgba(81, 92, 230, 0.06);
-  }
+  // border-right, background (--weekend/--today): driven by timeline.grid theme
 }
 
 // ─── Event（跨天横条） ─────────────────────────────────────────────────────────
@@ -260,8 +238,7 @@
 .scheduler-header {
   display: flex;
   flex-direction: column;
-  background: #fff;
-  border-bottom: 1px solid #e8e8e8;
+  // background, border-bottom: driven by timeline.schedulerHeader theme
 }
 
 .scheduler-allday-lane {
@@ -310,8 +287,7 @@
 
 .scheduler-header-date-row {
   display: flex;
-  background: #fafafa;
-  border-bottom: 1px solid #f0f0f0;
+  // background, border-bottom: driven by timeline.schedulerHeader theme
 }
 
 .scheduler-header-day-label {
@@ -320,10 +296,9 @@
   justify-content: center;
   height: 28px;
   font-size: 12px;
-  color: #666;
-  border-right: 1px solid #e8e8e8;
   min-width: 0;
   overflow: hidden;
+  // color, border-right: driven by timeline.schedulerHeader theme
 }
 
 .scheduler-header-resource-row {
@@ -371,5 +346,5 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: 12px;
-  color: #333;
+  color: inherit;
 }

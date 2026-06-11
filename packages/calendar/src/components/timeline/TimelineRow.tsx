@@ -3,6 +3,7 @@ import {
   TIMELINE_EVENT_HEIGHT,
   TIMELINE_ROW_PADDING_Y,
 } from '@/constants/timeline-const';
+import { useThemeStore } from '@/contexts/themeStore';
 import { CalendarTimelineRow } from '@/controller/timeline-calendar';
 import { cls } from '@/helpers/css';
 import { useTimelineCreate } from '@/hooks/Timeline/useTimelineCreate';
@@ -30,24 +31,34 @@ export function TimelineRow({
   isWeekendDay,
 }: TimelineRowProps) {
   const onCreateStart = useTimelineCreate({ resourceIndex: rowIndex });
+  const gridTheme = useThemeStore((s) => s.timeline.grid);
 
   return (
     <div
       className={cls('timeline-grid-row')}
-      style={{ height: rowHeight }}
+      style={{ height: rowHeight, borderBottom: gridTheme.rowBorderBottom }}
       onMouseDown={onCreateStart}
     >
       {/* 天列格（网格线 + 周末/今天浅染） */}
-      {days.map((day, dayIndex) => (
-        <div
-          key={dayIndex}
-          className={cls('timeline-grid-cell', {
-            'timeline-grid-cell--weekend': isWeekendDay(day),
-            'timeline-grid-cell--today': dayIndex === todayIndex,
-          })}
-          style={{ width: cellWidth }}
-        />
-      ))}
+      {days.map((day, dayIndex) => {
+        const weekend = isWeekendDay(day);
+        const isToday = dayIndex === todayIndex;
+        return (
+          <div
+            key={dayIndex}
+            className={cls('timeline-grid-cell', {
+              'timeline-grid-cell--weekend': weekend,
+              'timeline-grid-cell--today': isToday,
+            })}
+            style={{
+              width: cellWidth,
+              borderRight: gridTheme.cellBorderRight,
+              ...(weekend ? { background: gridTheme.weekendBackgroundColor } : {}),
+              ...(isToday ? { background: gridTheme.todayBackgroundColor } : {}),
+            }}
+          />
+        );
+      })}
 
       {/* 事件横条 */}
       {row.items.map((item) => {
