@@ -35,11 +35,13 @@
 
 | 文档 | 作用 |
 |------|------|
-| [tasks/2026-05-07-scheduler-mobiscroll-parity-roadmap.md](./tasks/2026-05-07-scheduler-mobiscroll-parity-roadmap.md) | scheduler 对齐主任务 |
-| [tasks/2026-06-04-scheduler-scope-freeze.md](./tasks/2026-06-04-scheduler-scope-freeze.md) | scheduler 能力边界收敛 |
-| [tasks/2026-06-07-scheduler-mobiscroll-parity-polish.md](./tasks/2026-06-07-scheduler-mobiscroll-parity-polish.md) | scheduler 对标差异收口（当前时间线 / all-day 标签 / 副时区轴 / hover / 跨实例策略） |
-| [tasks/2026-06-04-docs-information-architecture-cleanup.md](./tasks/2026-06-04-docs-information-architecture-cleanup.md) | 文档信息架构清理 |
+| [tasks/2026-05-07-scheduler-mobiscroll-parity-roadmap.md](./tasks/2026-05-07-scheduler-mobiscroll-parity-roadmap.md) | scheduler 对齐主任务（能力活索引） |
+| [tasks/2026-06-10-s2-app-roadmap.md](./tasks/2026-06-10-s2-app-roadmap.md) | swell-calendar-s2 外壳路线图与进度真源（当前 epic，P5/P6 待做） |
+| [tasks/2026-06-10-s2-shell-app.md](./tasks/2026-06-10-s2-shell-app.md) | S2 外壳移植主任务 |
+| [tasks/2026-06-10-timeline-theme.md](./tasks/2026-06-10-timeline-theme.md) | 库 timeline 主题切片 |
 | [adrs/ADR-2026-05-scheduler-parity-scope.md](./adrs/ADR-2026-05-scheduler-parity-scope.md) | scheduler 范围与设计原则 ADR |
+
+> scheduler 的历史 closure / feature 任务单（scope-freeze、parity-polish、各 DnD/resize/timezone/storybook 收口等）已迁入 [archive/tasks/](./archive/tasks/)，结论沉淀在 `SPEC` / `agent-plan/plan.md`。
 
 ## 模板与归档
 
