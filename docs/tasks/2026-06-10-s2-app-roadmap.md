@@ -62,8 +62,8 @@
 - 切片进度：
   - ✅ 新建落库（[2026-06-11-s2-p5-create-event.md](./2026-06-11-s2-p5-create-event.md)）2026-06-11
   - ✅ 搜索过滤 + 分类 chips 筛选（[2026-06-11-s2-p5-search-filter.md](./2026-06-11-s2-p5-search-filter.md)）2026-06-11
+  - ✅ 事件编辑/删除（override 层，种子可改删，[2026-06-12-s2-p5-event-edit-delete.md](./2026-06-12-s2-p5-event-edit-delete.md)）2026-06-12
   - ⬜ 明暗/强调色/密度切换（S2 Provider 在 main.tsx 写死 + seafoam 多处硬编码 + 无 data-density，需先解耦）
-  - ⬜ 事件编辑/删除
 
 ## P6 · 接真数据 ⬜
 

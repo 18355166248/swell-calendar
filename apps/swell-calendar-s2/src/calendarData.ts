@@ -63,6 +63,22 @@ export function timeToDecimalHour(time: string): number {
   return (h || 0) + (min || 0) / 60;
 }
 
+/** dateToDayIndex 的逆：天偏移 → `YYYY-MM-DD`（编辑回填用）。 */
+export function dayIndexToDate(dayIndex: number): string {
+  const d = new Date(BASE_DATE);
+  d.setDate(d.getDate() + dayIndex);
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${d.getFullYear()}-${mm}-${dd}`;
+}
+
+/** timeToDecimalHour 的逆：十进制小时 → `HH:mm`（编辑回填用），如 9.5 → 09:30。 */
+export function decimalHourToTime(decimalHours: number): string {
+  const h = Math.floor(decimalHours);
+  const m = Math.round((decimalHours - h) * 60);
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+}
+
 /** 将 S2 mock CalEvent 转换为 swell-calendar EventObject */
 export function toCalendarEvents(evts: CalEvent[]): EventObject[] {
   return evts.map((e) => {

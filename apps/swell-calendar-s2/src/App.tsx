@@ -11,6 +11,8 @@ import {
   calendarCalendars,
   calendarResources,
   dateToDayIndex,
+  dayIndexToDate,
+  decimalHourToTime,
   timeToDecimalHour,
   toCalendarEvents,
   toPickEvent,
@@ -21,24 +23,27 @@ import { SubBar } from './overlays';
 import { DayView, MonthView, type PickEvent, WeekView } from './views';
 import { type Cat, type CalEvent, events as SEED_EVENTS, resources as RESOURCES } from './data';
 
-// 仅持久化「用户新建」的事件，种子数据保持不可变、可随代码更新。
+// 持久化分三层：用户新建事件 / 对种子&新建事件的编辑覆盖 / 删除墓碑。
+// 种子数据始终不可变，编辑与删除都以叠加层表达，刷新后可完整还原视图。
 const USER_EVENTS_KEY = 'swell-calendar-s2:user-events';
+const OVERRIDES_KEY = 'swell-calendar-s2:overrides';
+const DELETED_KEY = 'swell-calendar-s2:deleted-ids';
 
-function loadUserEvents(): CalEvent[] {
+function loadJSON<T>(key: string, fallback: T): T {
   try {
-    const raw = localStorage.getItem(USER_EVENTS_KEY);
-    const parsed = raw ? JSON.parse(raw) : [];
-    return Array.isArray(parsed) ? (parsed as CalEvent[]) : [];
+    const raw = localStorage.getItem(key);
+    return raw ? (JSON.parse(raw) as T) : fallback;
   } catch {
-    return [];
+    return fallback;
   }
 }
 
-/** 把新建对话框的输入转成 CalEvent（loc 取资源短名，便于 popover 展示）。 */
-function inputToCalEvent(input: NewEventInput): CalEvent {
+/** 把对话框输入转成 CalEvent；编辑时传入原 id 与原事件以保留 who/desc 等对话框不编辑的字段。 */
+function inputToCalEvent(input: NewEventInput, base?: CalEvent): CalEvent {
   const resource = RESOURCES.find((r) => r.id === input.res);
   return {
-    id: `u-${Date.now()}`,
+    ...base,
+    id: base?.id ?? `u-${Date.now()}`,
     res: input.res,
     day: dateToDayIndex(input.date),
     start: timeToDecimalHour(input.start),
@@ -46,6 +51,18 @@ function inputToCalEvent(input: NewEventInput): CalEvent {
     title: input.title,
     cat: input.cat,
     loc: resource?.short,
+  };
+}
+
+/** CalEvent → 对话框预填输入（编辑回填用）。 */
+function calEventToInput(e: CalEvent): NewEventInput {
+  return {
+    title: e.title,
+    res: e.res,
+    date: dayIndexToDate(e.day),
+    start: decimalHourToTime(e.start),
+    end: decimalHourToTime(e.end),
+    cat: e.cat,
   };
 }
 
@@ -108,9 +125,16 @@ export default function App() {
   const [creating, setCreating] = useState(false);
   const [showWknd, setShowWknd] = useState(true);
   const [sidebar, setSidebar] = useState(CONFIG.sidebar);
-  const [userEvents, setUserEvents] = useState<CalEvent[]>(loadUserEvents);
+  const [userEvents, setUserEvents] = useState<CalEvent[]>(() =>
+    loadJSON<CalEvent[]>(USER_EVENTS_KEY, [])
+  );
+  const [overrides, setOverrides] = useState<Record<string, CalEvent>>(() =>
+    loadJSON<Record<string, CalEvent>>(OVERRIDES_KEY, {})
+  );
+  const [deletedIds, setDeletedIds] = useState<string[]>(() => loadJSON<string[]>(DELETED_KEY, []));
   const [query, setQuery] = useState('');
   const [activeCats, setActiveCats] = useState<Set<Cat>>(() => new Set(FILTER_CATS));
+  const [editing, setEditing] = useState<CalEvent | null>(null);
   const calRef = useRef<CalendarInstance>(null);
 
   const toggleCat = (c: Cat) =>
@@ -120,8 +144,13 @@ export default function App() {
       return next;
     });
 
-  // 种子（不可变）+ 用户新建，合并为完整事件列表
-  const allEvents = useMemo(() => [...SEED_EVENTS, ...userEvents], [userEvents]);
+  // 种子（不可变）+ 用户新建，再叠加编辑覆盖、剔除已删除，得到完整事件列表
+  const allEvents = useMemo(() => {
+    const deleted = new Set(deletedIds);
+    return [...SEED_EVENTS, ...userEvents]
+      .filter((e) => !deleted.has(e.id))
+      .map((e) => overrides[e.id] ?? e);
+  }, [userEvents, overrides, deletedIds]);
   // 搜索 + 分类过滤后的可见事件
   const visibleEvents = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -135,13 +164,46 @@ export default function App() {
   // 引擎 events prop 需新数组引用才会重渲，useMemo 在 visibleEvents 变化时给出新引用
   const calendarEvents = useMemo(() => toCalendarEvents(visibleEvents), [visibleEvents]);
 
-  // 持久化用户新建的事件
+  // 持久化三层叠加状态
   useEffect(() => {
     localStorage.setItem(USER_EVENTS_KEY, JSON.stringify(userEvents));
   }, [userEvents]);
+  useEffect(() => {
+    localStorage.setItem(OVERRIDES_KEY, JSON.stringify(overrides));
+  }, [overrides]);
+  useEffect(() => {
+    localStorage.setItem(DELETED_KEY, JSON.stringify(deletedIds));
+  }, [deletedIds]);
 
-  const handleCreate = (input: NewEventInput) => {
-    setUserEvents((prev) => [...prev, inputToCalEvent(input)]);
+  // 新建 / 编辑共用同一对话框：editing 为空走新建，否则把编辑结果写入覆盖层
+  const handleSubmit = (input: NewEventInput) => {
+    if (editing) {
+      const updated = inputToCalEvent(input, editing);
+      setOverrides((prev) => ({ ...prev, [editing.id]: updated }));
+    } else {
+      setUserEvents((prev) => [...prev, inputToCalEvent(input)]);
+    }
+  };
+
+  const openEdit = () => {
+    const original = allEvents.find((e) => e.id === pick?.ev.id);
+    if (original) {
+      setEditing(original);
+      setPick(null);
+    }
+  };
+
+  const handleDelete = () => {
+    const id = pick?.ev.id;
+    if (id) {
+      setDeletedIds((prev) => (prev.includes(id) ? prev : [...prev, id]));
+      setPick(null);
+    }
+  };
+
+  const closeDialog = () => {
+    setCreating(false);
+    setEditing(null);
   };
 
   // 主题 + 强调色作用到 root
@@ -258,9 +320,22 @@ export default function App() {
       </div>
 
       {pick && (
-        <Popover ev={pick.ev} anchor={pick.anchor} onClose={closePop} variant={CONFIG.popover} />
+        <Popover
+          ev={pick.ev}
+          anchor={pick.anchor}
+          onClose={closePop}
+          variant={CONFIG.popover}
+          onEdit={openEdit}
+          onDelete={handleDelete}
+        />
       )}
-      {creating && <CreateDialog onClose={() => setCreating(false)} onCreate={handleCreate} />}
+      {(creating || editing) && (
+        <CreateDialog
+          onClose={closeDialog}
+          onCreate={handleSubmit}
+          initial={editing ? calEventToInput(editing) : undefined}
+        />
+      )}
     </div>
   );
 }

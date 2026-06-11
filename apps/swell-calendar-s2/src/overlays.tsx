@@ -12,11 +12,15 @@ export function Popover({
   anchor,
   onClose,
   variant,
+  onEdit,
+  onDelete,
 }: {
   ev: PickEvent;
   anchor: HTMLElement | null;
   onClose: () => void;
   variant: PopoverVariant;
+  onEdit: () => void;
+  onDelete: () => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState({ top: -999, left: -999 });
@@ -108,29 +112,25 @@ export function Popover({
           </div>
           {variant === 'rich' && (
             <div className="pop-actions">
-              <button className="pbtn">
-                <Ic.video />
-                加入
+              <button className="pbtn" onClick={onDelete}>
+                <Ic.trash />
+                删除
               </button>
-              <button className="pbtn">
+              <button className="pbtn primary" onClick={onEdit}>
                 <Ic.edit />
                 编辑
-              </button>
-              <button className="pbtn primary">
-                <Ic.check />
-                接受
               </button>
             </div>
           )}
           {variant === 'default' && (
             <div className="pop-actions">
-              <button className="pbtn">
+              <button className="pbtn" onClick={onDelete}>
+                <Ic.trash />
+                删除
+              </button>
+              <button className="pbtn primary" onClick={onEdit}>
                 <Ic.edit />
                 编辑
-              </button>
-              <button className="pbtn primary">
-                <Ic.check />
-                接受
               </button>
             </div>
           )}
@@ -160,10 +160,14 @@ export interface NewEventInput {
 export function CreateDialog({
   onClose,
   onCreate,
+  initial,
 }: {
   onClose: () => void;
   onCreate: (input: NewEventInput) => void;
+  /** 传入则进入编辑模式，预填字段；不传为新建。 */
+  initial?: NewEventInput;
 }) {
+  const isEdit = !!initial;
   const cats: { c: Cat; label: string }[] = [
     { c: 'seafoam', label: '会议' },
     { c: 'indigo', label: '规划' },
@@ -172,13 +176,13 @@ export function CreateDialog({
     { c: 'green', label: '协作' },
     { c: 'purple', label: '面试' },
   ];
-  const [cat, setCat] = useState<Cat>('seafoam');
+  const [cat, setCat] = useState<Cat>(initial?.cat ?? 'seafoam');
   const [rep, setRep] = useState('none');
-  const [title, setTitle] = useState('');
-  const [res, setRes] = useState(resources[0]?.id ?? 'r1');
-  const [date, setDate] = useState('2025-03-21');
-  const [start, setStart] = useState('09:00');
-  const [end, setEnd] = useState('10:00');
+  const [title, setTitle] = useState(initial?.title ?? '');
+  const [res, setRes] = useState(initial?.res ?? resources[0]?.id ?? 'r1');
+  const [date, setDate] = useState(initial?.date ?? '2025-03-21');
+  const [start, setStart] = useState(initial?.start ?? '09:00');
+  const [end, setEnd] = useState(initial?.end ?? '10:00');
   const [err, setErr] = useState<string | null>(null);
 
   const submit = () => {
@@ -198,8 +202,10 @@ export function CreateDialog({
     <div className="scrim" onMouseDown={onClose}>
       <div className="dialog" onMouseDown={(e) => e.stopPropagation()}>
         <div className="dlg-hd">
-          <div className="dlg-title">新建日程</div>
-          <div className="dlg-sub">为会议室或成员预定时间段</div>
+          <div className="dlg-title">{isEdit ? '编辑日程' : '新建日程'}</div>
+          <div className="dlg-sub">
+            {isEdit ? '修改已有日程的安排' : '为会议室或成员预定时间段'}
+          </div>
         </div>
         <div className="dlg-body">
           <div className="field">
@@ -295,7 +301,7 @@ export function CreateDialog({
             取消
           </button>
           <button className="dlg-btn primary" onClick={submit}>
-            创建日程
+            {isEdit ? '保存' : '创建日程'}
           </button>
         </div>
       </div>
