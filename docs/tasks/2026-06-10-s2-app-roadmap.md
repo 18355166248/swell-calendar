@@ -143,3 +143,9 @@
 - **事件详情回归修复**：`calendarData.ts` 将原始 mock 事件挂回 `EventObject.raw`，并新增 `toPickEvent()`，使 Scheduler / Timeline 点击事件后，Popover 能显示真实日期、时间、地点、参与人与描述，不再使用硬编码 `3月21 / 9:00-10:00` 占位。
 - **Scheduler 周末开关接通**：`App.tsx` 将 `showWknd` 映射到 `week.workweek`，让引擎版 scheduler 与顶栏开关保持一致，不再出现 UI 可切换但始终渲染 7 天的问题。
 - **scheduler 主题 API 接通**：`SchedulerHeader.tsx` / `timeline.scss` 现已消费 `timeline.schedulerHeader` 与 `timeline.schedulerResourceCell`，宿主可通过 theme 覆盖 scheduler 日期头和资源头文字/分隔线颜色，避免“类型已声明但默认实现不生效”。
+
+### 2026-06-11 · P4 codereview 工程项修复
+
+- **换行符归一化**：上次提交 `theme.type.ts` 被编辑器整文件 CRLF→LF 翻转，真实改动 67 行却记成 `+136/-69`，污染 diff/blame。新增根 `.gitattributes`（`* text=auto eol=lf` + 二进制排除）固化 LF；现仓库 321 个文本文件已全部 LF，对提交零 churn。
+- **verify 脚本去硬编码**：`scripts/verify-s2-*.mjs` 原写死作者本机 macOS 绝对路径（playwright 入口 + `/private/tmp`），跨平台/CI 必失败。改为 `import('playwright')` 常规解析（`S2_VERIFY_PLAYWRIGHT` 可覆盖）+ `os.tmpdir()`（`S2_VERIFY_OUT` 可覆盖），并移除未使用的 `readFile` 导入。
+- 说明：playwright 未列为仓库依赖，脚本为一次性验收用途，现已可移植，谁装了 playwright 即可运行。
