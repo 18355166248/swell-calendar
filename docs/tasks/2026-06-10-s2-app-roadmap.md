@@ -108,3 +108,13 @@
 - **SegmentedControl 发现**：选中态滑块为白色（`light-dark(#fff, #111)`），非蓝色，无需覆盖背景。
 - 验证：`tsc --noEmit` ✅ · `vite build`（357KB JS / 87KB CSS）✅。
 - 待验证：浏览器视觉确认 CTA 按钮和焦点环为 seafoam。
+
+### 2026-06-11 · P3-3 新建按钮图标-文字垂直对齐修复
+
+- **问题**：侧栏「新建日程」按钮中，`+` 图标与文字未垂直居中对齐。
+- **根因分析**：S2 Button 的 `control({wrap: true, icon: true})` 在有文字时使用 `align-items: baseline`（为文字换行场景设计，图标对齐首行基线）。自定义 SVG 未通过 S2 `IconContext`（无 `slot="icon"`），`centerBaseline` 包装未生效，导致基线对齐产生视觉偏移。
+- **方案**：CSS 覆盖。
+  - `.side-cta-wrap > button` 加 `align-items: center !important`（覆盖 S2 的 baseline）。
+  - `.side-cta-wrap svg` 加 `display: block`（消除 inline SVG 基线偏差）。
+- **app.css 改动**：`.side-cta-wrap > button` 与 `.side-cta-wrap svg` 规则更新。
+- 验证：`tsc --noEmit` ✅ · `vite build`（357KB JS / 87KB CSS）✅。

@@ -86,11 +86,13 @@ button {
 .side-cta-wrap > button {
   width: 100%;
   justify-content: center;
+  align-items: center !important; /* 覆盖 S2 control() 的 baseline（wrap 模式下默认 baseline） */
 }
 .side-cta-wrap svg {
   width: 16px;
   height: 16px;
   flex: none;
+  display: block; /* 消除 inline SVG 基线偏移 */
 }
 .app[data-sidebar='rail'] .side-cta-wrap .lbl {
   display: none;
