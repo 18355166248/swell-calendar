@@ -24,7 +24,7 @@
 | P2 | 忠实移植设计稿（5 视图 + overlays） | ✅ 完成 2026-06-10 | `apps/swell-calendar-s2/src` |
 | P3 | 真实 S2 组件替换外围控件 | ✅ 完成 2026-06-11（视觉已验证） | `src/shell.tsx`、`src/main.tsx` |
 | P4 | 挂活 `packages/calendar` 拖拽引擎 + timeline 主题 | ✅ 完成 2026-06-11 | `src/views.tsx` + `packages/calendar` |
-| P5 | 控件真功能化（主题切换 / 搜索 / 筛选 / 新建落库） | 🟡 进行中（新建落库 ✅ 2026-06-11） | `apps/swell-calendar-s2/src` |
+| P5 | 控件真功能化（主题切换 / 搜索 / 筛选 / 新建落库） | 🟡 进行中（新建/搜索筛选/编辑删除 ✅；仅剩主题切换，阻塞于主题解耦） | `apps/swell-calendar-s2/src` |
 | P6 | 接真数据（替换 mock SWELL，事件 CRUD） | ⬜ 未开始 | `apps/swell-calendar-s2/src` |
 
 图例：✅ 完成 · 🟡 进行中 · ⬜ 未开始 · ⏸ 暂缓
