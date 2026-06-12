@@ -22,8 +22,11 @@ export interface CalendarDataSource {
 }
 
 // 模拟网络/IO 延迟，让 loading 态成为真实存在的一帧而非闪烁。
-const IO_DELAY_MS = 180;
-const delay = (ms = IO_DELAY_MS) => new Promise<void>((r) => setTimeout(r, ms));
+// list() 保留首屏 loading 体验；mutation 路径（create/update/remove）设 0，
+// 避免拖拽 move/resize 时引擎宿主受控渲染回弹闪烁（PLAN4 §4.1）。
+const LIST_DELAY_MS = 180;
+const MUTATION_DELAY_MS = 0;
+const delay = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
 const USER_EVENTS_KEY = 'swell-calendar-s2:user-events';
 const OVERRIDES_KEY = 'swell-calendar-s2:overrides';
@@ -67,12 +70,12 @@ export class LocalStorageDataSource implements CalendarDataSource {
   }
 
   async list(): Promise<CalEvent[]> {
-    await delay();
+    await delay(LIST_DELAY_MS);
     return this.resolve();
   }
 
   async create(draft: EventDraft): Promise<CalEvent> {
-    await delay();
+    await delay(MUTATION_DELAY_MS);
     const created: CalEvent = { ...draft, id: `u-${Date.now()}` };
     const user = readJSON<CalEvent[]>(USER_EVENTS_KEY, []);
     writeJSON(USER_EVENTS_KEY, [...user, created]);
@@ -80,7 +83,7 @@ export class LocalStorageDataSource implements CalendarDataSource {
   }
 
   async update(id: string, patch: EventDraft): Promise<CalEvent> {
-    await delay();
+    await delay(MUTATION_DELAY_MS);
     const updated: CalEvent = { ...patch, id };
     const overrides = readJSON<Record<string, CalEvent>>(OVERRIDES_KEY, {});
     writeJSON(OVERRIDES_KEY, { ...overrides, [id]: updated });
@@ -88,7 +91,7 @@ export class LocalStorageDataSource implements CalendarDataSource {
   }
 
   async remove(id: string): Promise<void> {
-    await delay();
+    await delay(MUTATION_DELAY_MS);
     const deleted = readJSON<string[]>(DELETED_KEY, []);
     if (!deleted.includes(id)) writeJSON(DELETED_KEY, [...deleted, id]);
   }

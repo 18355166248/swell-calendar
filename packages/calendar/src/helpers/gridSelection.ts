@@ -52,6 +52,8 @@ function createSortedGridSelection(
     startRowIndex: isReversed ? currentPos.rowIndex : initPos.rowIndex,
     endColumnIndex: isReversed ? initPos.columnIndex : currentPos.columnIndex,
     endRowIndex: isReversed ? initPos.rowIndex : currentPos.rowIndex,
+    // 透传约束器设置的 allowedColumnIndices，用于 scheduler 跨列选中过滤
+    allowedColumnIndices: currentPos.allowedColumnIndices,
   };
 }
 
@@ -80,10 +82,16 @@ function calculateTimeGridSelectionByCurrentIndex(
   }
 
   // 解构选择数据，获取选择区域的边界信息
-  const { startColumnIndex, endColumnIndex, endRowIndex, startRowIndex } = timeGridSelection;
+  const { startColumnIndex, endColumnIndex, endRowIndex, startRowIndex, allowedColumnIndices } =
+    timeGridSelection;
 
-  // 检查当前列是否在选择范围内
-  // 如果当前列索引不在起始列和结束列之间，则不在选择范围内
+  // 当设置了 allowedColumnIndices 时，只允许列表中的列显示选中效果
+  // （用于 scheduler 跨天同资源拖拽，跳过中间不同资源的列）
+  if (allowedColumnIndices && !allowedColumnIndices.includes(columnIndex)) {
+    return null;
+  }
+
+  // 检查当前列是否在列索引范围内（兜底检查）
   if (!isBetween(columnIndex, startColumnIndex, endColumnIndex)) {
     return null;
   }

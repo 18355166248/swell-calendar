@@ -2,6 +2,7 @@
 import type { EventObject, ResourceInfo } from 'swell-calendar';
 
 import { type Cat, type CalEvent, type Resource, events, resources } from './data';
+import type { EventDraft } from './dataSource';
 import type { PickEvent } from './views';
 
 // oklch 色彩映射（对应 spectrum-tokens.css 中的 CSS 变量）
@@ -182,4 +183,45 @@ export function toPickEvent(event: EventObject): PickEvent {
     start: event.start ? toDecimalHour(event.start as DateLike) : raw?.start || 0,
     end: event.end ? toDecimalHour(event.end as DateLike) : raw?.end || 0,
   };
+}
+
+/**
+ * 将引擎事件对象转回 EventDraft（供 onEventCreate / onEventUpdate 回调使用）。
+ *
+ * - 更新路径（event.raw 存在）：以原事件为底合并，只覆盖时间 / 资源，
+ *   保留 title / cat / who / desc 等业务字段，防止 override 全量替换时丢失。
+ * - 新建路径（无 raw）：从引擎 event 字段直接构建 draft。
+ */
+export function engineEventToDraft(event: EventObject): EventDraft {
+  const raw = event.raw as CalEvent | undefined;
+  const start = event.start ? toDecimalHour(event.start as DateLike) : 0;
+  const end = event.end ? toDecimalHour(event.end as DateLike) : 0;
+  const startDate = event.start ? toNativeDate(event.start as DateLike) : null;
+  const day = startDate ? dateToDayIndex(formatISODate(startDate)) : 0;
+  const res = (event.resourceId as string) || raw?.res || resources[0]?.id || '';
+
+  if (raw) {
+    // 更新路径：以原事件为底，只覆盖时间/资源（排除 id，保持 EventDraft = Omit<CalEvent, 'id'>）
+    const { id: _, ...rest } = raw;
+    return { ...rest, day, start, end, res };
+  }
+
+  // 新建路径：从引擎字段构建
+  const resource = resources.find((r) => r.id === res);
+  return {
+    title: event.title || '新日程',
+    cat: (event.calendarId as Cat) || 'seafoam',
+    day,
+    start,
+    end,
+    res,
+    loc: resource?.short,
+  };
+}
+
+function formatISODate(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${dd}`;
 }

@@ -588,6 +588,31 @@ describe('createEventFromTimeGridSelection', () => {
     expect(event.resourceIds).toContain('room-b');
     expect(event.resourceIds?.length).toBe(2);
   });
+
+  it('应在设置 allowedColumnIndices 时跳过中间不同资源的列（scheduler 跨天同资源拖拽）', () => {
+    // col0=2026-05-07 room-a, col1=2026-05-08 room-b, col2=2026-05-08 room-a
+    // 从 Day1 room-a 拖到 Day2 room-a，约束器跳过中间的 col1(room-b)
+    const constrainedSelection: GridSelectionData = {
+      startColumnIndex: 0,
+      endColumnIndex: 2,
+      startRowIndex: 0,
+      endRowIndex: 0,
+      allowedColumnIndices: [0, 2],
+    };
+
+    const event = createEventFromTimeGridSelection(timeGridData, constrainedSelection);
+
+    // 中间的 room-b 被排除，事件只归属 room-a，且有单一主资源
+    expect(event.resourceId).toBe('room-a');
+    expect(event.resourceIds).toEqual(['room-a']);
+    // 跨天日期仍以起止列为准
+    expect((event.start as DayjsTZDate).getTime()).toBe(
+      new DayjsTZDate('2026-05-07T09:00:00').getTime()
+    );
+    expect((event.end as DayjsTZDate).getTime()).toBe(
+      new DayjsTZDate('2026-05-08T10:00:00').getTime()
+    );
+  });
 });
 
 /* -------------------------------------------------------------------------- */
@@ -629,6 +654,23 @@ describe('createRangeSelectionInfo', () => {
     expect(info.resourceId).toBeUndefined();
     expect(info.resourceIds).toEqual(['room-a', 'room-b']);
     expect(info.resourceNames).toEqual(['会议室 A', '会议室 B']);
+  });
+
+  it('应在 allowedColumnIndices 约束下只汇总被允许列的资源名称', () => {
+    // 跨天同资源拖拽：col0→col2 同为 room-a，中间 col1(room-b) 被跳过
+    const selection: GridSelectionData = {
+      startColumnIndex: 0,
+      endColumnIndex: 2,
+      startRowIndex: 0,
+      endRowIndex: 0,
+      allowedColumnIndices: [0, 2],
+    };
+
+    const info = createRangeSelectionInfo(timeGridData, selection, 'scheduler');
+
+    expect(info.resourceId).toBe('room-a');
+    expect(info.resourceIds).toEqual(['room-a']);
+    expect(info.resourceNames).toEqual(['会议室 A']);
   });
 });
 

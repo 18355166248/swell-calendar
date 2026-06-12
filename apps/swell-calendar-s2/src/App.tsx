@@ -5,7 +5,7 @@
 import { Provider } from '@react-spectrum/s2';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
-import type { CalendarInstance } from 'swell-calendar';
+import type { CalendarInstance, EventObject } from 'swell-calendar';
 import Calendar from 'swell-calendar';
 
 import {
@@ -14,6 +14,7 @@ import {
   dateToDayIndex,
   dayIndexToDate,
   decimalHourToTime,
+  engineEventToDraft,
   timeToDecimalHour,
   toCalendarEvents,
   toPickEvent,
@@ -189,6 +190,8 @@ export default function App() {
   const [activeCats, setActiveCats] = useState<Set<Cat>>(() => new Set(FILTER_CATS));
   const [editing, setEditing] = useState<CalEvent | null>(null);
   const [settingsAnchor, setSettingsAnchor] = useState<HTMLElement | null>(null);
+  // 引擎滑动新建 / 单元格点击预填的新建对话框初始值（P7b）
+  const [createInitial, setCreateInitial] = useState<NewEventInput | null>(null);
   const calRef = useRef<CalendarInstance>(null);
 
   const toggleCat = (c: Cat) =>
@@ -254,10 +257,39 @@ export default function App() {
   const closeDialog = () => {
     setCreating(false);
     setEditing(null);
+    setCreateInitial(null);
   };
 
   const openSettings = (anchor: HTMLElement) => {
     setSettingsAnchor((prev) => (prev === anchor ? null : anchor));
+  };
+
+  // ===== P7b: 引擎回调接线 =====
+
+  /** 把引擎事件对象转为新建对话框的预填值（NewEventInput）。 */
+  const engineEventToCreateInput = (event: EventObject): NewEventInput => {
+    const draft = engineEventToDraft(event);
+    return {
+      title: draft.title,
+      res: draft.res,
+      date: dayIndexToDate(draft.day),
+      start: decimalHourToTime(draft.start),
+      end: decimalHourToTime(draft.end),
+      cat: draft.cat,
+    };
+  };
+
+  /** 滑动新建 / 单元格点击 → 弹出新建对话框并预填时间、资源。 */
+  const handleEngineCreate = (info: { event: EventObject }) => {
+    setCreateInitial(engineEventToCreateInput(info.event));
+    setCreating(true);
+  };
+
+  /** 拖拽移动 / resize → 基于原事件合并后写回数据源（防止丢失 title/cat/who/desc）。 */
+  const handleEngineUpdate = (info: { event: EventObject }) => {
+    if (!info.event.id) return;
+    const draft = engineEventToDraft(info.event);
+    updateEvent(info.event.id, draft);
   };
 
   // 当视图切换时，同步 Calendar 内部视图
@@ -369,6 +401,14 @@ export default function App() {
                       anchor: document.activeElement as HTMLElement,
                     });
                   },
+                  // P7b: 滑动新建 / 单元格点击 → 预填对话框
+                  onEventCreate: handleEngineCreate,
+                  // P7b: 拖拽移动 / resize → 基于 raw 合并写回数据源
+                  onEventUpdate: handleEngineUpdate,
+                  // P7b: 创建 / 更新被引擎策略拒绝时静默忽略
+                  // TODO: toast 提示用户 overlap / invalid / policy 拒绝原因
+                  onEventCreateFailed: () => {},
+                  onEventUpdateFailed: () => {},
                 }}
               />
             ) : (
@@ -410,7 +450,7 @@ export default function App() {
           <CreateDialog
             onClose={closeDialog}
             onCreate={handleSubmit}
-            initial={editing ? calEventToInput(editing) : undefined}
+            initial={editing ? calEventToInput(editing) : createInitial ?? undefined}
           />
         )}
         {settingsAnchor && (

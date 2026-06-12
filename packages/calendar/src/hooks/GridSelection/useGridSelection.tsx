@@ -14,12 +14,19 @@ export function useGridSelection({
   type,
   gridPositionFinder,
   selectionSorter,
+  constrainPosition,
   onClickSelection,
   onSelectionEnd,
 }: {
   type: GridSelectionType;
   gridPositionFinder: GridPositionFinder;
   selectionSorter: (initPos: GridPosition, currentPos: GridPosition) => GridSelectionData;
+  /**
+   * 可选的位置约束函数
+   * 在计算选区之前对当前位置进行约束，用于限制拖拽范围
+   * 例如：scheduler 视图中同一天不同资源的列之间不允许跨列选区
+   */
+  constrainPosition?: (initPos: GridPosition, currentPos: GridPosition) => GridPosition;
   onClickSelection?: (selection: GridSelectionData) => void;
   onSelectionEnd?: (selection: GridSelectionData) => void;
 }) {
@@ -43,7 +50,11 @@ export function useGridSelection({
   const setGridSelectionByPosition = (e: MouseEvent) => {
     const gridPosition = gridPositionFinder(e);
     if (!isNil(initGridPosition) && !isNil(gridPosition)) {
-      setGridSelection(type, selectionSorter(initGridPosition, gridPosition));
+      // 如果提供了位置约束函数，先对当前位置进行约束
+      const constrainedPosition = constrainPosition
+        ? constrainPosition(initGridPosition, gridPosition)
+        : gridPosition;
+      setGridSelection(type, selectionSorter(initGridPosition, constrainedPosition));
     }
   };
 

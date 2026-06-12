@@ -24,6 +24,11 @@ export interface GridPosition {
   columnIndex: number;
   /** 行索引（从0开始） */
   rowIndex: number;
+  /**
+   * 允许显示选中效果的列索引列表（可选）
+   * 用于 scheduler 跨列拖拽时，仅允许指定列显示选中高亮
+   */
+  allowedColumnIndices?: number[];
 }
 
 /**

@@ -204,6 +204,96 @@ export function TimeGrid({ timeGridData, events }: TimeGridProps) {
   }, [isMounted, updateTimeIndicatorPosition, currentDateData]);
 
   /**
+   * Scheduler 视图拖拽位置约束器
+   *
+   * 在 scheduler 视图中，列按 [日期1-资源1, 日期1-资源2, 日期2-资源1, 日期2-资源2, ...] 排列。
+   * 每一列代表一个 "日期 + 资源" 的组合，跨列拖拽创建事件只允许在同一个资源内进行。
+   *
+   * 约束规则：
+   * - 同列（同日期同资源）→ 允许纵向拖拽选择时间范围
+   * - 不同列但同资源（不同天同一资源，如张三→张三）→ 允许跨列拖拽创建跨天事件
+   * - 不同列且不同资源（如张三→李四，无论是否同一天）→ 限制为单列选区
+   * - 非 scheduler 视图或列无 resourceId → 不约束
+   */
+  const schedulerSelectionConstrainer = useMemo(() => {
+    if (currentView !== 'scheduler') {
+      return undefined;
+    }
+
+    return (
+      initPos: { columnIndex: number; rowIndex: number },
+      currentPos: { columnIndex: number; rowIndex: number }
+    ) => {
+      const initColumn = columns[initPos.columnIndex];
+      const currentColumn = columns[currentPos.columnIndex];
+
+      // 仅对含有 resourceId 的列（scheduler 视图）进行约束
+      // currentColumn 越界（拖出网格）时不施加约束，避免后续解引用抛错
+      if (!initColumn?.resourceId || !currentColumn) {
+        return currentPos;
+      }
+
+      // 不同列时，检查资源是否一致
+      if (
+        initPos.columnIndex !== currentPos.columnIndex &&
+        initColumn.resourceId !== currentColumn?.resourceId
+      ) {
+        // 资源不同：自动吸附到当前鼠标所在日期的同资源列
+        // 鼠标一进入新的日期区域，就立即选中该日期下对应资源的列
+        const targetResourceId = initColumn.resourceId;
+        const currentColumnDate = currentColumn.date;
+        const snappedColumnIndex = columns.findIndex(
+          (col) => isSameDate(col.date, currentColumnDate) && col.resourceId === targetResourceId
+        );
+
+        if (snappedColumnIndex !== -1) {
+          // 找到了同日期同资源的列，吸附过去
+          const startCol = Math.min(initPos.columnIndex, snappedColumnIndex);
+          const endCol = Math.max(initPos.columnIndex, snappedColumnIndex);
+          const allowedColumnIndices: number[] = [];
+          for (let i = startCol; i <= endCol; i++) {
+            if (columns[i].resourceId === targetResourceId) {
+              allowedColumnIndices.push(i);
+            }
+          }
+          return {
+            columnIndex: snappedColumnIndex,
+            rowIndex: currentPos.rowIndex,
+            allowedColumnIndices,
+          };
+        }
+
+        // 当前日期下没有该资源，回退到起始列
+        return {
+          columnIndex: initPos.columnIndex,
+          rowIndex: currentPos.rowIndex,
+        };
+      }
+
+      // 跨列同资源拖拽：只允许同资源的列显示选中效果，
+      // 中间不同资源的列不显示选中高亮
+      if (initPos.columnIndex !== currentPos.columnIndex) {
+        const startCol = Math.min(initPos.columnIndex, currentPos.columnIndex);
+        const endCol = Math.max(initPos.columnIndex, currentPos.columnIndex);
+        const targetResourceId = initColumn.resourceId;
+        const allowedColumnIndices: number[] = [];
+        for (let i = startCol; i <= endCol; i++) {
+          if (columns[i].resourceId === targetResourceId) {
+            allowedColumnIndices.push(i);
+          }
+        }
+        return {
+          columnIndex: currentPos.columnIndex,
+          rowIndex: currentPos.rowIndex,
+          allowedColumnIndices,
+        };
+      }
+
+      return currentPos;
+    };
+  }, [currentView, columns]);
+
+  /**
    * 网格选择处理函数
    * 处理鼠标拖拽选择时间范围的逻辑
    */
@@ -211,6 +301,7 @@ export function TimeGrid({ timeGridData, events }: TimeGridProps) {
     type: 'timeGrid',
     gridPositionFinder,
     selectionSorter: timeGridSelectionHelper.sortSelection, // 选择排序器
+    constrainPosition: schedulerSelectionConstrainer, // scheduler 视图拖拽约束
     onClickSelection: (selection) => {
       if (currentView === 'scheduler') {
         callbacks?.onCellClick?.(createRangeSelectionInfo(timeGridData, selection, currentView));

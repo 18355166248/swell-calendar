@@ -133,6 +133,14 @@ export function getBlockedTimeLayoutsForColumn(
 }
 
 function getSelectionColumns(columns: CommonGridColumn[], selection: GridSelectionData) {
+  // 约束器设置了 allowedColumnIndices 时（scheduler 跨天同资源拖拽），
+  // 只取被允许的列，跳过中间不同资源的列，避免事件错误地带上中间列的资源
+  if (selection.allowedColumnIndices) {
+    return selection.allowedColumnIndices
+      .map((index) => columns[index])
+      .filter((column): column is CommonGridColumn => Boolean(column));
+  }
+
   return columns.slice(selection.startColumnIndex, selection.endColumnIndex + 1);
 }
 
