@@ -1,7 +1,8 @@
 // ===== swell-calendar 主应用 =====（移植自设计稿 app.jsx）
 // 设计稿的 tweaks 面板是 Claude Design 编辑器宿主工具，非真实功能，已剔除；
-// 这里固定采用其默认配置（light / seafoam / soft / segmented / rich / full / regular）。
+// 当前把主题/强调色/密度收敛为宿主可持久化配置，其余 card/toolbar/popover 保持设计默认值。
 // P4: scheduler / timeline 视图已替换为 swell-calendar 真引擎（拖拽/resize/创建）。
+import { Provider } from '@react-spectrum/s2';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import type { CalendarInstance } from 'swell-calendar';
@@ -17,17 +18,116 @@ import {
   toCalendarEvents,
   toPickEvent,
 } from './calendarData';
-import { CreateDialog, FILTER_CATS, type NewEventInput, Popover } from './overlays';
-import { Sidebar, Topbar, type ViewId } from './shell';
-import { SubBar } from './overlays';
-import { DayView, MonthView, type PickEvent, WeekView } from './views';
 import { type Cat, type CalEvent, events as SEED_EVENTS, resources as RESOURCES } from './data';
+import {
+  CreateDialog,
+  FILTER_CATS,
+  Popover,
+  SettingsPanel,
+  SubBar,
+  type NewEventInput,
+  type UiPrefs,
+} from './overlays';
+import { Sidebar, Topbar, type ViewId } from './shell';
+import { DayView, MonthView, type PickEvent, WeekView } from './views';
 
-// 持久化分三层：用户新建事件 / 对种子&新建事件的编辑覆盖 / 删除墓碑。
+// 持久化分四层：用户新建事件 / 对种子&新建事件的编辑覆盖 / 删除墓碑 / UI 偏好。
 // 种子数据始终不可变，编辑与删除都以叠加层表达，刷新后可完整还原视图。
 const USER_EVENTS_KEY = 'swell-calendar-s2:user-events';
 const OVERRIDES_KEY = 'swell-calendar-s2:overrides';
 const DELETED_KEY = 'swell-calendar-s2:deleted-ids';
+const UI_PREFS_KEY = 'swell-calendar-s2:ui-prefs';
+
+const UI_DEFAULTS = {
+  prefs: {
+    theme: 'light',
+    accent: 'seafoam',
+    density: 'regular',
+  } as UiPrefs,
+  card: 'soft',
+  toolbar: 'segmented' as const,
+  popover: 'rich' as const,
+  sidebar: 'full' as 'full' | 'rail' | 'hidden',
+};
+
+const DENSITY_TIMELINE_ROW_HEIGHT: Record<UiPrefs['density'], number> = {
+  compact: 56,
+  regular: 64,
+  comfy: 76,
+};
+
+const VIEW_TITLE: Record<ViewId, [string, string]> = {
+  day: ['周四 · 3月21日', '2025年 · 第12周'],
+  week: ['3月18日 – 24日', '2025年 · 第12周'],
+  month: ['2025年 3月', '31天 · 12场会议'],
+  scheduler: ['周四 · 3月21日', '6项资源 · 会议室与成员'],
+  timeline: ['本周日程', '3月18日 – 24日 · 议程视图'],
+};
+
+// 主题值全部指向 CSS 变量。
+// 这样 root 上的 data-theme / data-accent 改变后，日历引擎无需维护多份硬编码 theme object。
+const CALENDAR_THEME = {
+  week: {
+    nowIndicatorLabel: { color: 'var(--accent-bg)' },
+    gridSelection: { color: 'var(--accent-bg)' },
+    today: { color: 'inherit', backgroundColor: 'var(--accent-tint)' },
+  },
+  common: {
+    gridSelection: {
+      backgroundColor: 'var(--accent-tint)',
+      border: '1px solid var(--accent-bg)',
+    },
+  },
+  timeline: {
+    header: {
+      borderBottom: '1px solid var(--border)',
+      backgroundColor: 'var(--bg-layer)',
+      placeholderBackgroundColor: 'var(--bg-layer)',
+      monthColor: 'var(--text-2)',
+      monthBackgroundColor: 'var(--bg-layer)',
+      monthBorderBottom: '1px solid var(--border)',
+      dayBorderRight: '1px solid var(--grid-line)',
+      weekendBackgroundColor: 'var(--weekend-bg)',
+      todayBackgroundColor: 'var(--accent-tint)',
+      todayColor: 'var(--accent-text)',
+      weekdayColor: 'var(--text-3)',
+      dateColor: 'var(--text-1)',
+    },
+    schedulerHeader: {
+      borderBottom: '1px solid var(--border)',
+      backgroundColor: 'var(--bg-layer)',
+      dayLabelColor: 'var(--text-2)',
+      dayLabelBorderRight: '1px solid var(--grid-line)',
+      dateRowBackgroundColor: 'var(--bg-layer)',
+      dateRowBorderBottom: '1px solid var(--border)',
+    },
+    schedulerResourceCell: {
+      nameColor: 'var(--text-1)',
+    },
+    resourceList: {
+      borderRight: '1px solid var(--border)',
+      backgroundColor: 'var(--bg-layer-2)',
+    },
+    resourceItem: {
+      borderBottom: '1px solid var(--grid-line)',
+      nameColor: 'var(--text-1)',
+    },
+    grid: {
+      rowBorderBottom: '1px solid var(--grid-line-soft)',
+      cellBorderRight: '1px solid var(--grid-line)',
+      weekendBackgroundColor: 'var(--weekend-bg)',
+      todayBackgroundColor: 'var(--accent-tint)',
+      dragGhostBackgroundColor: 'var(--accent-tint-strong)',
+      dragGhostBorder: '1px dashed var(--accent-bg)',
+    },
+    emptyColor: 'var(--text-disabled)',
+    tooltip: {
+      backgroundColor: 'var(--bg-layer-2)',
+      color: 'var(--text-1)',
+      border: '1px solid var(--border)',
+    },
+  },
+};
 
 function loadJSON<T>(key: string, fallback: T): T {
   try {
@@ -36,6 +136,11 @@ function loadJSON<T>(key: string, fallback: T): T {
   } catch {
     return fallback;
   }
+}
+
+function loadPrefs(): UiPrefs {
+  const raw = loadJSON<Partial<UiPrefs>>(UI_PREFS_KEY, UI_DEFAULTS.prefs);
+  return { ...UI_DEFAULTS.prefs, ...raw };
 }
 
 /** 把对话框输入转成 CalEvent；编辑时传入原 id 与原事件以保留 who/desc 等对话框不编辑的字段。 */
@@ -66,65 +171,13 @@ function calEventToInput(e: CalEvent): NewEventInput {
   };
 }
 
-const CONFIG = {
-  theme: 'light' as 'light' | 'dark',
-  accent: 'seafoam',
-  card: 'soft',
-  toolbar: 'segmented' as const,
-  popover: 'rich' as const,
-  sidebar: 'full' as 'full' | 'rail' | 'hidden',
-  density: 'regular' as 'compact' | 'regular' | 'comfy',
-};
-
-const VIEW_TITLE: Record<ViewId, [string, string]> = {
-  day: ['周四 · 3月21日', '2025年 · 第12周'],
-  week: ['3月18日 – 24日', '2025年 · 第12周'],
-  month: ['2025年 3月', '31天 · 12场会议'],
-  scheduler: ['周四 · 3月21日', '6项资源 · 会议室与成员'],
-  timeline: ['本周日程', '3月18日 – 24日 · 议程视图'],
-};
-
-// seafoam 设计 token — 将日历库默认的 indigo 色系替换为 seafoam 色系
-const SEAFOAM_THEME = {
-  week: {
-    nowIndicatorLabel: { color: 'oklch(0.62 0.09 192)' },
-    gridSelection: { color: 'oklch(0.62 0.09 192)' },
-    today: { color: 'inherit', backgroundColor: 'oklch(0.93 0.04 192 / 0.5)' },
-  },
-  common: {
-    gridSelection: {
-      backgroundColor: 'oklch(0.62 0.09 192 / 0.15)',
-      border: '1px solid oklch(0.62 0.09 192 / 0.4)',
-    },
-  },
-  timeline: {
-    header: {
-      todayBackgroundColor: 'oklch(0.62 0.09 192 / 0.1)',
-      todayColor: 'oklch(0.52 0.09 192)',
-    },
-    schedulerHeader: {
-      dayLabelColor: 'oklch(0.43 0.03 210)',
-      dayLabelBorderRight: '1px solid oklch(0.9 0.01 210)',
-      dateRowBackgroundColor: 'oklch(0.98 0.01 192)',
-      dateRowBorderBottom: '1px solid oklch(0.91 0.02 192)',
-    },
-    schedulerResourceCell: {
-      nameColor: 'oklch(0.32 0.03 210)',
-    },
-    grid: {
-      todayBackgroundColor: 'oklch(0.62 0.09 192 / 0.06)',
-      dragGhostBackgroundColor: 'oklch(0.62 0.09 192 / 0.22)',
-      dragGhostBorder: '1px dashed oklch(0.52 0.09 192 / 0.9)',
-    },
-  },
-};
-
 export default function App() {
   const [view, setView] = useState<ViewId>('scheduler');
   const [pick, setPick] = useState<{ ev: PickEvent; anchor: HTMLElement } | null>(null);
   const [creating, setCreating] = useState(false);
   const [showWknd, setShowWknd] = useState(true);
-  const [sidebar, setSidebar] = useState(CONFIG.sidebar);
+  const [sidebar, setSidebar] = useState(UI_DEFAULTS.sidebar);
+  const [prefs, setPrefs] = useState<UiPrefs>(loadPrefs);
   const [userEvents, setUserEvents] = useState<CalEvent[]>(() =>
     loadJSON<CalEvent[]>(USER_EVENTS_KEY, [])
   );
@@ -135,6 +188,7 @@ export default function App() {
   const [query, setQuery] = useState('');
   const [activeCats, setActiveCats] = useState<Set<Cat>>(() => new Set(FILTER_CATS));
   const [editing, setEditing] = useState<CalEvent | null>(null);
+  const [settingsAnchor, setSettingsAnchor] = useState<HTMLElement | null>(null);
   const calRef = useRef<CalendarInstance>(null);
 
   const toggleCat = (c: Cat) =>
@@ -163,8 +217,9 @@ export default function App() {
   }, [allEvents, query, activeCats]);
   // 引擎 events prop 需新数组引用才会重渲，useMemo 在 visibleEvents 变化时给出新引用
   const calendarEvents = useMemo(() => toCalendarEvents(visibleEvents), [visibleEvents]);
+  const timelineRowHeight = DENSITY_TIMELINE_ROW_HEIGHT[prefs.density];
 
-  // 持久化三层叠加状态
+  // 事件数据与 UI 偏好都放在 localStorage，保证 demo 刷新后还能复现当前工作上下文。
   useEffect(() => {
     localStorage.setItem(USER_EVENTS_KEY, JSON.stringify(userEvents));
   }, [userEvents]);
@@ -174,6 +229,17 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem(DELETED_KEY, JSON.stringify(deletedIds));
   }, [deletedIds]);
+  useEffect(() => {
+    localStorage.setItem(UI_PREFS_KEY, JSON.stringify(prefs));
+  }, [prefs]);
+
+  // 根节点 data-* 是整套设计 CSS 的总开关；同时 calendar theme 也读取同名 CSS 变量。
+  useEffect(() => {
+    const r = document.documentElement;
+    r.setAttribute('data-theme', prefs.theme);
+    r.setAttribute('data-accent', prefs.accent);
+    r.setAttribute('data-density', prefs.density);
+  }, [prefs]);
 
   // 新建 / 编辑共用同一对话框：editing 为空走新建，否则把编辑结果写入覆盖层
   const handleSubmit = (input: NewEventInput) => {
@@ -206,12 +272,9 @@ export default function App() {
     setEditing(null);
   };
 
-  // 主题 + 强调色作用到 root
-  useEffect(() => {
-    const r = document.documentElement;
-    r.setAttribute('data-theme', CONFIG.theme);
-    r.setAttribute('data-accent', CONFIG.accent);
-  }, []);
+  const openSettings = (anchor: HTMLElement) => {
+    setSettingsAnchor((prev) => (prev === anchor ? null : anchor));
+  };
 
   // 当视图切换时，同步 Calendar 内部视图
   useEffect(() => {
@@ -231,111 +294,131 @@ export default function App() {
     }
   }, [view]);
 
-  const hourH = CONFIG.density === 'compact' ? 46 : CONFIG.density === 'comfy' ? 70 : 56;
+  const hourH = prefs.density === 'compact' ? 46 : prefs.density === 'comfy' ? 70 : 56;
 
   const onPick: (ev: PickEvent, anchor: HTMLElement) => void = (ev, anchor) =>
     setPick({ ev, anchor });
   const closePop = () => setPick(null);
 
   const [title, sub] = VIEW_TITLE[view];
-
-  // 是否使用真引擎（Calendar 组件）
   const useEngine = view === 'scheduler' || view === 'timeline';
 
   return (
-    <div className="app" data-sidebar={sidebar} data-card={CONFIG.card}>
-      <Sidebar view={view} setView={setView} openCreate={() => setCreating(true)} />
-      <div className="main">
-        <Topbar
-          view={view}
-          setView={setView}
-          toolbar={CONFIG.toolbar}
-          toggleRail={() => setSidebar(sidebar === 'full' ? 'rail' : 'full')}
-          title={title}
-          sub={sub}
-          query={query}
-          setQuery={setQuery}
-        />
-        {(view === 'week' || view === 'day' || view === 'scheduler') && (
-          <SubBar
-            showWknd={showWknd}
-            setShowWknd={setShowWknd}
-            activeCats={activeCats}
-            onToggleCat={toggleCat}
-            onShowAll={() => setActiveCats(new Set(FILTER_CATS))}
+    <Provider colorScheme={prefs.theme}>
+      <div
+        className="app"
+        data-sidebar={sidebar}
+        data-card={UI_DEFAULTS.card}
+        data-density={prefs.density}
+      >
+        <Sidebar view={view} setView={setView} openCreate={() => setCreating(true)} />
+        <div className="main">
+          <Topbar
+            view={view}
+            setView={setView}
+            toolbar={UI_DEFAULTS.toolbar}
+            toggleRail={() => setSidebar(sidebar === 'full' ? 'rail' : 'full')}
+            title={title}
+            sub={sub}
+            query={query}
+            setQuery={setQuery}
+            openSettings={openSettings}
+          />
+          {(view === 'week' || view === 'day' || view === 'scheduler') && (
+            <SubBar
+              showWknd={showWknd}
+              setShowWknd={setShowWknd}
+              activeCats={activeCats}
+              onToggleCat={toggleCat}
+              onShowAll={() => setActiveCats(new Set(FILTER_CATS))}
+            />
+          )}
+          <div className="canvas" key={view}>
+            {useEngine ? (
+              <Calendar
+                ref={calRef}
+                events={calendarEvents}
+                calendars={calendarCalendars}
+                theme={CALENDAR_THEME}
+                options={{
+                  defaultView: view,
+                  initialDate: '2025-03-21',
+                  week: {
+                    startDayOfWeek: 1,
+                    hourStart: 8,
+                    hourEnd: 20,
+                    workweek: !showWknd,
+                  },
+                  scheduler: {
+                    resources: calendarResources,
+                    hourStart: 8,
+                    hourEnd: 20,
+                  },
+                  timeline: {
+                    resources: calendarResources,
+                    rowHeight: timelineRowHeight,
+                  },
+                }}
+                callbacks={{
+                  onEventClick: ({ event }) => {
+                    setPick({
+                      ev: toPickEvent(event),
+                      anchor: document.activeElement as HTMLElement,
+                    });
+                  },
+                }}
+              />
+            ) : (
+              <>
+                {view === 'day' && (
+                  <DayView
+                    events={visibleEvents}
+                    onPick={onPick}
+                    selId={pick?.ev.id}
+                    hourH={hourH}
+                  />
+                )}
+                {view === 'week' && (
+                  <WeekView
+                    events={visibleEvents}
+                    onPick={onPick}
+                    selId={pick?.ev.id}
+                    hourH={hourH}
+                    showWknd={showWknd}
+                  />
+                )}
+                {view === 'month' && <MonthView onPick={onPick} />}
+              </>
+            )}
+          </div>
+        </div>
+
+        {pick && (
+          <Popover
+            ev={pick.ev}
+            anchor={pick.anchor}
+            onClose={closePop}
+            variant={UI_DEFAULTS.popover}
+            onEdit={openEdit}
+            onDelete={handleDelete}
           />
         )}
-        <div className="canvas" key={view}>
-          {useEngine ? (
-            <Calendar
-              ref={calRef}
-              events={calendarEvents}
-              calendars={calendarCalendars}
-              theme={SEAFOAM_THEME}
-              options={{
-                defaultView: view,
-                initialDate: '2025-03-21',
-                week: {
-                  startDayOfWeek: 1,
-                  hourStart: 8,
-                  hourEnd: 20,
-                  workweek: !showWknd,
-                },
-                scheduler: {
-                  resources: calendarResources,
-                  hourStart: 8,
-                  hourEnd: 20,
-                },
-                timeline: {
-                  resources: calendarResources,
-                },
-              }}
-              callbacks={{
-                onEventClick: ({ event }) => {
-                  setPick({
-                    ev: toPickEvent(event),
-                    anchor: document.activeElement as HTMLElement,
-                  });
-                },
-              }}
-            />
-          ) : (
-            <>
-              {view === 'day' && (
-                <DayView events={visibleEvents} onPick={onPick} selId={pick?.ev.id} hourH={hourH} />
-              )}
-              {view === 'week' && (
-                <WeekView
-                  events={visibleEvents}
-                  onPick={onPick}
-                  selId={pick?.ev.id}
-                  hourH={hourH}
-                  showWknd={showWknd}
-                />
-              )}
-              {view === 'month' && <MonthView onPick={onPick} />}
-            </>
-          )}
-        </div>
+        {(creating || editing) && (
+          <CreateDialog
+            onClose={closeDialog}
+            onCreate={handleSubmit}
+            initial={editing ? calEventToInput(editing) : undefined}
+          />
+        )}
+        {settingsAnchor && (
+          <SettingsPanel
+            anchor={settingsAnchor}
+            value={prefs}
+            onChange={setPrefs}
+            onClose={() => setSettingsAnchor(null)}
+          />
+        )}
       </div>
-
-      {pick && (
-        <Popover
-          ev={pick.ev}
-          anchor={pick.anchor}
-          onClose={closePop}
-          variant={CONFIG.popover}
-          onEdit={openEdit}
-          onDelete={handleDelete}
-        />
-      )}
-      {(creating || editing) && (
-        <CreateDialog
-          onClose={closeDialog}
-          onCreate={handleSubmit}
-          initial={editing ? calEventToInput(editing) : undefined}
-        />
-      )}
-    </div>
+    </Provider>
   );
 }

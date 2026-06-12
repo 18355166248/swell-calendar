@@ -19,6 +19,40 @@ button {
   font-family: inherit;
 }
 
+:root,
+[data-density='regular'] {
+  --topbar-gap: 14px;
+  --topbar-pad-y: 14px;
+  --topbar-pad-x: 22px;
+  --subbar-pad-y: 10px;
+  --subbar-pad-x: 22px;
+  --nav-item-h: 38px;
+  --chip-h: 28px;
+  --engine-time-grid-min-height: 900px;
+}
+
+[data-density='compact'] {
+  --topbar-gap: 10px;
+  --topbar-pad-y: 10px;
+  --topbar-pad-x: 18px;
+  --subbar-pad-y: 8px;
+  --subbar-pad-x: 18px;
+  --nav-item-h: 34px;
+  --chip-h: 26px;
+  --engine-time-grid-min-height: 760px;
+}
+
+[data-density='comfy'] {
+  --topbar-gap: 16px;
+  --topbar-pad-y: 16px;
+  --topbar-pad-x: 24px;
+  --subbar-pad-y: 12px;
+  --subbar-pad-x: 24px;
+  --nav-item-h: 42px;
+  --chip-h: 30px;
+  --engine-time-grid-min-height: 1040px;
+}
+
 .app {
   display: grid;
   grid-template-columns: var(--rail, 248px) 1fr;
@@ -122,7 +156,7 @@ button {
   display: flex;
   align-items: center;
   gap: 11px;
-  height: 38px;
+  height: var(--nav-item-h);
   padding: 0 11px;
   border-radius: var(--r-100);
   color: var(--text-2);
@@ -305,8 +339,8 @@ button {
 .topbar {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 14px 22px;
+  gap: var(--topbar-gap);
+  padding: var(--topbar-pad-y) var(--topbar-pad-x);
   border-bottom: 1px solid var(--border);
   background: var(--bg-layer);
   min-width: 0;
@@ -528,7 +562,7 @@ button {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px 22px;
+  padding: var(--subbar-pad-y) var(--subbar-pad-x);
   border-bottom: 1px solid var(--border);
   background: var(--bg-layer);
 }
@@ -542,7 +576,7 @@ button {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  height: 28px;
+  height: var(--chip-h);
   padding: 0 12px;
   border-radius: var(--r-full);
   border: 1px solid var(--border-strong);
@@ -636,4 +670,138 @@ button {
 /* 隐藏日历组件自带的工具栏（S2 外壳已有自定义 Topbar） */
 .canvas .swell-calendar-toolbar {
   display: none;
+}
+
+.app[data-density='compact'] .canvas .time-grid {
+  min-height: var(--engine-time-grid-min-height);
+}
+
+.app[data-density='regular'] .canvas .time-grid {
+  min-height: var(--engine-time-grid-min-height);
+}
+
+.app[data-density='comfy'] .canvas .time-grid {
+  min-height: var(--engine-time-grid-min-height);
+}
+
+/* ---------- SETTINGS PANEL ---------- */
+.settings-panel {
+  position: fixed;
+  width: 320px;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  background: var(--bg-layer-2);
+  box-shadow: var(--shadow-lg);
+  padding: 16px;
+  z-index: 30;
+}
+
+.settings-hd {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.settings-title {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.settings-sub {
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--text-3);
+}
+
+.settings-group {
+  margin-top: 16px;
+}
+
+.settings-label {
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-2);
+}
+
+.settings-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.settings-pill,
+.settings-accent {
+  border: 1px solid var(--border);
+  background: var(--bg-layer);
+  color: var(--text-2);
+  cursor: pointer;
+  transition:
+    border-color 0.12s,
+    background 0.12s,
+    color 0.12s;
+}
+
+.settings-pill {
+  min-width: 84px;
+  height: 34px;
+  border-radius: 999px;
+  padding: 0 14px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.settings-pill:hover,
+.settings-accent:hover {
+  background: var(--bg-hover);
+  color: var(--text-1);
+}
+
+.settings-pill.active,
+.settings-accent.active {
+  border-color: var(--accent-bg);
+  background: var(--accent-tint);
+  color: var(--accent-text);
+}
+
+.settings-accent-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.settings-accent {
+  height: 42px;
+  border-radius: 12px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.settings-accent-swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 5px;
+  flex: none;
+}
+
+.settings-accent-swatch[data-accent='seafoam'] {
+  background: oklch(0.58 0.085 192);
+}
+
+.settings-accent-swatch[data-accent='blue'] {
+  background: oklch(0.56 0.16 256);
+}
+
+.settings-accent-swatch[data-accent='indigo'] {
+  background: oklch(0.52 0.17 282);
+}
+
+.settings-accent-swatch[data-accent='magenta'] {
+  background: oklch(0.55 0.2 348);
 }

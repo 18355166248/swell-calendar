@@ -1,6 +1,8 @@
 // ===== App shell: sidebar + topbar =====
 // P3: 外围控件已替换为 @react-spectrum/s2 真实组件（Button / ActionButton / SearchField / SegmentedControl）。
 // 侧栏导航项保留 CSS 版（S2 无直接等价物，强行替换会偏离像素）。
+import { useRef, type Key } from 'react';
+
 import {
   ActionButton,
   Button,
@@ -8,7 +10,6 @@ import {
   SegmentedControl,
   SegmentedControlItem,
 } from '@react-spectrum/s2';
-import type { Key } from 'react';
 
 import { CAT_COLORS, type Cat } from './data';
 import { Ic } from './icons';
@@ -155,6 +156,7 @@ interface TopbarProps {
   sub: string;
   query: string;
   setQuery: (v: string) => void;
+  openSettings: (anchor: HTMLElement) => void;
 }
 
 export function Topbar({
@@ -166,7 +168,9 @@ export function Topbar({
   sub,
   query,
   setQuery,
+  openSettings,
 }: TopbarProps) {
+  const settingsAnchorRef = useRef<HTMLSpanElement>(null);
   const views: { id: ViewId; label: string; icon: () => JSX.Element }[] = [
     { id: 'day', label: '日', icon: Ic.day },
     { id: 'week', label: '周', icon: Ic.week },
@@ -239,9 +243,20 @@ export function Topbar({
         </ActionButton>
         <span className="s2-dot" />
       </span>
-      <ActionButton isQuiet aria-label="设置" UNSAFE_className={'s2-sf' as any}>
-        <Ic.settings />
-      </ActionButton>
+      <span className="tb-icon-wrap" ref={settingsAnchorRef}>
+        <ActionButton
+          isQuiet
+          aria-label="设置"
+          UNSAFE_className={'s2-sf' as any}
+          onPress={() => {
+            if (settingsAnchorRef.current) {
+              openSettings(settingsAnchorRef.current);
+            }
+          }}
+        >
+          <Ic.settings />
+        </ActionButton>
+      </span>
     </header>
   );
 }

@@ -1,4 +1,4 @@
-// ===== Overlays: 事件弹窗 + 新建对话框 + 子栏 =====（移植自设计稿 overlays.jsx）
+// ===== Overlays: 事件弹窗 + 新建对话框 + 设置面板 + 子栏 =====（移植自设计稿 overlays.jsx）
 import { useLayoutEffect, useRef, useState } from 'react';
 
 import { CAT_COLORS, type Cat, resources } from './data';
@@ -6,6 +6,15 @@ import { Ic } from './icons';
 import { evRange, type PickEvent } from './views';
 
 export type PopoverVariant = 'rich' | 'default' | 'minimal';
+export type ThemeMode = 'light' | 'dark';
+export type AccentPreset = 'seafoam' | 'blue' | 'indigo' | 'magenta';
+export type DensityPreset = 'compact' | 'regular' | 'comfy';
+
+export interface UiPrefs {
+  theme: ThemeMode;
+  accent: AccentPreset;
+  density: DensityPreset;
+}
 
 export function Popover({
   ev,
@@ -303,6 +312,117 @@ export function CreateDialog({
           <button className="dlg-btn primary" onClick={submit}>
             {isEdit ? '保存' : '创建日程'}
           </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function SettingsPanel({
+  anchor,
+  value,
+  onChange,
+  onClose,
+}: {
+  anchor: HTMLElement | null;
+  value: UiPrefs;
+  onChange: (next: UiPrefs) => void;
+  onClose: () => void;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [pos, setPos] = useState({ top: -999, left: -999 });
+
+  useLayoutEffect(() => {
+    if (!anchor || !ref.current) return;
+    const a = anchor.getBoundingClientRect();
+    const p = ref.current.getBoundingClientRect();
+    let left = a.right - p.width;
+    let top = a.bottom + 10;
+    if (left < 12) left = 12;
+    if (left + p.width > window.innerWidth - 12) left = window.innerWidth - p.width - 12;
+    if (top + p.height > window.innerHeight - 12) top = a.top - p.height - 10;
+    if (top < 12) top = 12;
+    setPos({ top, left });
+  }, [anchor, value]);
+
+  const themeOptions: { value: ThemeMode; label: string }[] = [
+    { value: 'light', label: '浅色' },
+    { value: 'dark', label: '深色' },
+  ];
+  const accentOptions: { value: AccentPreset; label: string }[] = [
+    { value: 'seafoam', label: 'Seafoam' },
+    { value: 'blue', label: 'Blue' },
+    { value: 'indigo', label: 'Indigo' },
+    { value: 'magenta', label: 'Magenta' },
+  ];
+  const densityOptions: { value: DensityPreset; label: string }[] = [
+    { value: 'compact', label: '紧凑' },
+    { value: 'regular', label: '常规' },
+    { value: 'comfy', label: '舒展' },
+  ];
+
+  return (
+    <div className="pop-layer" onMouseDown={onClose}>
+      <div
+        ref={ref}
+        className="settings-panel"
+        style={{ top: pos.top, left: pos.left, opacity: pos.top > -900 ? 1 : 0 }}
+        onMouseDown={(e) => e.stopPropagation()}
+      >
+        <div className="settings-hd">
+          <div>
+            <div className="settings-title">界面设置</div>
+            <div className="settings-sub">实时切换外壳主题与日历密度</div>
+          </div>
+          <button className="pop-x" onClick={onClose}>
+            ✕
+          </button>
+        </div>
+
+        <div className="settings-group">
+          <div className="settings-label">明暗模式</div>
+          <div className="settings-row">
+            {themeOptions.map((option) => (
+              <button
+                key={option.value}
+                className={'settings-pill' + (value.theme === option.value ? ' active' : '')}
+                onClick={() => onChange({ ...value, theme: option.value })}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="settings-group">
+          <div className="settings-label">强调色</div>
+          <div className="settings-accent-grid">
+            {accentOptions.map((option) => (
+              <button
+                key={option.value}
+                className={'settings-accent' + (value.accent === option.value ? ' active' : '')}
+                onClick={() => onChange({ ...value, accent: option.value })}
+              >
+                <span className="settings-accent-swatch" data-accent={option.value} />
+                <span>{option.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="settings-group">
+          <div className="settings-label">信息密度</div>
+          <div className="settings-row">
+            {densityOptions.map((option) => (
+              <button
+                key={option.value}
+                className={'settings-pill' + (value.density === option.value ? ' active' : '')}
+                onClick={() => onChange({ ...value, density: option.value })}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
     </div>

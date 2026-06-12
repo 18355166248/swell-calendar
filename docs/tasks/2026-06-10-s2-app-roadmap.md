@@ -24,7 +24,7 @@
 | P2 | 忠实移植设计稿（5 视图 + overlays） | ✅ 完成 2026-06-10 | `apps/swell-calendar-s2/src` |
 | P3 | 真实 S2 组件替换外围控件 | ✅ 完成 2026-06-11（视觉已验证） | `src/shell.tsx`、`src/main.tsx` |
 | P4 | 挂活 `packages/calendar` 拖拽引擎 + timeline 主题 | ✅ 完成 2026-06-11 | `src/views.tsx` + `packages/calendar` |
-| P5 | 控件真功能化（主题切换 / 搜索 / 筛选 / 新建落库） | 🟡 进行中（新建/搜索筛选/编辑删除 ✅；仅剩主题切换，阻塞于主题解耦） | `apps/swell-calendar-s2/src` |
+| P5 | 控件真功能化（主题切换 / 搜索 / 筛选 / 新建落库） | ✅ 完成 2026-06-12 | `apps/swell-calendar-s2/src` |
 | P6 | 接真数据（替换 mock SWELL，事件 CRUD） | ⬜ 未开始 | `apps/swell-calendar-s2/src` |
 
 图例：✅ 完成 · 🟡 进行中 · ⬜ 未开始 · ⏸ 暂缓
@@ -52,7 +52,7 @@
 - 验收：week/scheduler 可拖拽，视觉贴设计；calendar 默认主题零行为回归；`pnpm check` 通过。
 - 风险：calendar 主题注入策略「不注入全局 CSS 变量」，着色落点要与现有方式一致。
 
-## P5 · 控件真功能化 🟡
+## P5 · 控件真功能化 ✅
 
 设计稿里固定为默认的开关做成真功能。分切片推进，每片独立任务单。
 
@@ -63,7 +63,7 @@
   - ✅ 新建落库（[2026-06-11-s2-p5-create-event.md](./2026-06-11-s2-p5-create-event.md)）2026-06-11
   - ✅ 搜索过滤 + 分类 chips 筛选（[2026-06-11-s2-p5-search-filter.md](./2026-06-11-s2-p5-search-filter.md)）2026-06-11
   - ✅ 事件编辑/删除（override 层，种子可改删，[2026-06-12-s2-p5-event-edit-delete.md](./2026-06-12-s2-p5-event-edit-delete.md)）2026-06-12
-  - ⬜ 明暗/强调色/密度切换（S2 Provider 在 main.tsx 写死 + seafoam 多处硬编码 + 无 data-density，需先解耦）
+  - ✅ 明暗/强调色/密度切换（[2026-06-12-s2-p5-theme-switching.md](./2026-06-12-s2-p5-theme-switching.md)）2026-06-12
 
 ## P6 · 接真数据 ⬜
 
@@ -167,3 +167,17 @@
   1. `node:path.resolve()` 在 Windows 返回反斜杠路径，而 vite 传入的 importer 是正斜杠，导致 `importer.startsWith(calendarSrcRoot)` 恒为 false，calendar 源码内部 `@/...` 全部解析失败。改为用 `normalizePath` 统一正斜杠后再比较/返回。
   2. `swell-calendar/style.css` 映射到 `dist/style.css`，但该产物需先构建（`pnpm --filter swell-calendar build`）才存在；缺失时 vite 报错晦涩。现加 `existsSync` 兜底，缺失时抛出可读错误指明先构建。
 - 遗留：calendar dist 产物为本地构建依赖（非入库），首次起 s2-app 前需先 build calendar 包——这条 build-order 耦合 review 已记，后续可考虑 turbo 依赖串联自动化。
+
+### 2026-06-12 · P5-4 主题切换完成
+
+- **状态收敛**：`App.tsx` 新增 `ui-prefs` 持久化层，统一托管 `theme / accent / density`；root 会同步写入 `data-theme / data-accent / data-density`。
+- **Provider 解耦**：S2 `Provider` 从 `main.tsx` 挪回 `App.tsx`，`colorScheme` 跟随当前主题，不再写死 `light`。
+- **calendar 主题变量化**：原 `SEAFOAM_THEME` 改为 CSS 变量驱动的 `CALENDAR_THEME`，scheduler / timeline 强调色与明暗模式可跟随 root token 自动切换。
+- **设置面板落地**：`overlays.tsx` 新增 `SettingsPanel`，由顶栏设置按钮锚定，支持明暗 / 强调色 / 密度三组切换。
+- **密度落点**：`app.css` 新增 `data-density` 变量分支，调整 topbar / subbar / nav / chip / time-grid 高度；timeline 通过 `rowHeight` 跟随密度。
+- **静态验证**：`tsc --noEmit` ✅ · `vite build`（546KB JS / 104KB CSS）✅ · `check-docs` ✅ · `check-arch` ✅。
+- **浏览器验收**：改用 Codex in-app browser 真实打开 `127.0.0.1:5180` 验收。
+  - 设置按钮可拉起 `SettingsPanel`
+  - 切到 `dark + indigo + comfy` 后，root `data-theme/data-accent/data-density` 已切为 `dark / indigo / comfy`
+  - 页面截图确认深色外壳、indigo 强调色与舒展密度均已生效
+  - **结论：P5 → ✅**
