@@ -33,15 +33,15 @@
 
 ## 当前活跃工件
 
+当前没有进行中的任务单（`docs/tasks/` 仅保留 `TEMPLATE.md`）。两条 epic 路线图均已完成并沉淀到 [archive/tasks/](./archive/tasks/)：
+
 | 文档 | 作用 |
 |------|------|
-| [tasks/2026-05-07-scheduler-mobiscroll-parity-roadmap.md](./tasks/2026-05-07-scheduler-mobiscroll-parity-roadmap.md) | scheduler 对齐主任务（能力活索引） |
-| [tasks/2026-06-10-s2-app-roadmap.md](./tasks/2026-06-10-s2-app-roadmap.md) | swell-calendar-s2 外壳路线图与进度真源（当前 epic，P5/P6 待做） |
-| [tasks/2026-06-10-s2-shell-app.md](./tasks/2026-06-10-s2-shell-app.md) | S2 外壳移植主任务 |
-| [tasks/2026-06-10-timeline-theme.md](./tasks/2026-06-10-timeline-theme.md) | 库 timeline 主题切片 |
-| [adrs/ADR-2026-05-scheduler-parity-scope.md](./adrs/ADR-2026-05-scheduler-parity-scope.md) | scheduler 范围与设计原则 ADR |
+| [archive/tasks/2026-05-07-scheduler-mobiscroll-parity-roadmap.md](./archive/tasks/2026-05-07-scheduler-mobiscroll-parity-roadmap.md) | scheduler 对齐 epic 路线图（已完成，结论沉淀在 `SPEC` / `agent-plan/plan.md`） |
+| [archive/tasks/2026-06-10-s2-app-roadmap.md](./archive/tasks/2026-06-10-s2-app-roadmap.md) | swell-calendar-s2 外壳路线图与进度真源（P0–P6 全部完成） |
+| [adrs/ADR-2026-05-scheduler-parity-scope.md](./adrs/ADR-2026-05-scheduler-parity-scope.md) | scheduler 范围与设计原则 ADR（一级原则记录，保留） |
 
-> scheduler 的历史 closure / feature 任务单（scope-freeze、parity-polish、各 DnD/resize/timezone/storybook 收口等）已迁入 [archive/tasks/](./archive/tasks/)，结论沉淀在 `SPEC` / `agent-plan/plan.md`。
+> scheduler 与 S2 的历史 closure / feature / 切片任务单（scope-freeze、parity-polish、各 DnD/resize/timezone/storybook 收口、S2 P3–P6 等）均已迁入 [archive/tasks/](./archive/tasks/)，结论沉淀在 `SPEC` / `agent-plan/plan.md`。
 
 ## 模板与归档
 
@@ -57,7 +57,7 @@
 - https://demo.mobiscroll.com/react/scheduler/desktop-week-view
 - 主计划：[agent-plan/plan.md](./agent-plan/plan.md)
 - 实施索引（执行附件）：[agent-plan/implementation-steps.md](./agent-plan/implementation-steps.md)
-- 任务文档：[tasks/2026-05-07-scheduler-mobiscroll-parity-roadmap.md](./tasks/2026-05-07-scheduler-mobiscroll-parity-roadmap.md)
+- 任务文档（已归档）：[archive/tasks/2026-05-07-scheduler-mobiscroll-parity-roadmap.md](./archive/tasks/2026-05-07-scheduler-mobiscroll-parity-roadmap.md)
 
 ## 文档分层
 

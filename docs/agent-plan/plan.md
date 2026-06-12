@@ -431,7 +431,7 @@ components/scheduler/
 #### 交付物
 
 - `docs/agent-plan/PLAN4-claude-code.md`（本文件）
-- `docs/tasks/2026-05-07-scheduler-mobiscroll-parity-roadmap.md`
+- `docs/archive/tasks/2026-05-07-scheduler-mobiscroll-parity-roadmap.md`（已归档）
 - `packages/calendar/SPEC.md` 重写
 - `docs/ARCHITECTURE.md` 补 scheduler 子系统分层
 - `docs/adrs/ADR-2026-05-scheduler-parity-scope.md`
@@ -741,7 +741,7 @@ https://demo.mobiscroll.com/react/scheduler/desktop-week-view
 至少要出现在：
 
 - `docs/agent-plan/PLAN4-claude-code.md`
-- `docs/tasks/2026-05-07-scheduler-mobiscroll-parity-roadmap.md`
+- `docs/archive/tasks/2026-05-07-scheduler-mobiscroll-parity-roadmap.md`（已归档）
 - `packages/calendar/SPEC.md`
 - `docs/adrs/ADR-2026-05-scheduler-parity-scope.md`
 - `docs/README.md`

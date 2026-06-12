@@ -30,7 +30,7 @@
 
 内容：
 
-- 完成 `docs/tasks/2026-05-07-scheduler-mobiscroll-parity-roadmap.md`
+- 完成 `docs/archive/tasks/2026-05-07-scheduler-mobiscroll-parity-roadmap.md`（已归档）
 - 完成 `docs/MIGRATION.md`
 - 在 `docs/README.md` 增加 scheduler 路线图入口
 - 在 `packages/calendar/SPEC.md`、`docs/ARCHITECTURE.md`、ADR 中写入主参考样例

@@ -2,7 +2,7 @@
 
 ## 背景
 
-S2 外壳应用（见 `docs/tasks/2026-06-10-s2-shell-app.md`）要把中间“资源×时间”调度网格还原到
+S2 外壳应用（见 `docs/archive/tasks/2026-06-10-s2-shell-app.md`）要把中间“资源×时间”调度网格还原到
 `swell-calendar.html` 设计稿。但当前 `packages/calendar` 的主题面 **`ThemeState` 只覆盖
 `week / common / month`，没有 `timeline`**。Timeline 的视觉（资源列底 `#fafafa`、网格边框 `#e8e8e8`、
 空态 `#999`、今天列高亮、周末浅染等）全部**硬编码在 `src/css/timeline/timeline.scss`**，

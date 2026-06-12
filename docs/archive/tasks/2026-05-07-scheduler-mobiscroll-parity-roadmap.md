@@ -50,8 +50,8 @@ https://demo.mobiscroll.com/react/scheduler/desktop-week-view
 
 本任务不复制完整 phase 内容，统一以以下文档为单一事实来源：
 
-- 总路线图：[../agent-plan/plan.md](../agent-plan/plan.md)
-- 实施步骤索引：[../agent-plan/implementation-steps.md](../agent-plan/implementation-steps.md)
+- 总路线图：[../../agent-plan/plan.md](../../agent-plan/plan.md)
+- 实施步骤索引：[../../agent-plan/implementation-steps.md](../../agent-plan/implementation-steps.md)
 
 ## Phase 拆分
 
