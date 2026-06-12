@@ -18,7 +18,9 @@ import {
   toCalendarEvents,
   toPickEvent,
 } from './calendarData';
-import { type Cat, type CalEvent, events as SEED_EVENTS, resources as RESOURCES } from './data';
+import { type Cat, type CalEvent, resources as RESOURCES } from './data';
+import { dataSource, type EventDraft } from './dataSource';
+import { useCalendarData } from './useCalendarData';
 import {
   CreateDialog,
   FILTER_CATS,
@@ -31,11 +33,8 @@ import {
 import { Sidebar, Topbar, type ViewId } from './shell';
 import { DayView, MonthView, type PickEvent, WeekView } from './views';
 
-// 持久化分四层：用户新建事件 / 对种子&新建事件的编辑覆盖 / 删除墓碑 / UI 偏好。
-// 种子数据始终不可变，编辑与删除都以叠加层表达，刷新后可完整还原视图。
-const USER_EVENTS_KEY = 'swell-calendar-s2:user-events';
-const OVERRIDES_KEY = 'swell-calendar-s2:overrides';
-const DELETED_KEY = 'swell-calendar-s2:deleted-ids';
+// 事件 CRUD（种子 / 用户新建 / 编辑覆盖 / 删除墓碑四层）已收敛到 dataSource + useCalendarData（P6）。
+// App 仅持有 UI 偏好的持久化——UI 状态不属于业务数据，不走数据源。
 const UI_PREFS_KEY = 'swell-calendar-s2:ui-prefs';
 
 const UI_DEFAULTS = {
@@ -143,12 +142,11 @@ function loadPrefs(): UiPrefs {
   return { ...UI_DEFAULTS.prefs, ...raw };
 }
 
-/** 把对话框输入转成 CalEvent；编辑时传入原 id 与原事件以保留 who/desc 等对话框不编辑的字段。 */
-function inputToCalEvent(input: NewEventInput, base?: CalEvent): CalEvent {
+/** 把对话框输入转成事件草稿（无 id，由数据源分配）；编辑时传入原事件以保留 who/desc 等对话框不编辑的字段。 */
+function inputToDraft(input: NewEventInput, base?: CalEvent): EventDraft {
   const resource = RESOURCES.find((r) => r.id === input.res);
   return {
     ...base,
-    id: base?.id ?? `u-${Date.now()}`,
     res: input.res,
     day: dateToDayIndex(input.date),
     start: timeToDecimalHour(input.start),
@@ -178,13 +176,15 @@ export default function App() {
   const [showWknd, setShowWknd] = useState(true);
   const [sidebar, setSidebar] = useState(UI_DEFAULTS.sidebar);
   const [prefs, setPrefs] = useState<UiPrefs>(loadPrefs);
-  const [userEvents, setUserEvents] = useState<CalEvent[]>(() =>
-    loadJSON<CalEvent[]>(USER_EVENTS_KEY, [])
-  );
-  const [overrides, setOverrides] = useState<Record<string, CalEvent>>(() =>
-    loadJSON<Record<string, CalEvent>>(OVERRIDES_KEY, {})
-  );
-  const [deletedIds, setDeletedIds] = useState<string[]>(() => loadJSON<string[]>(DELETED_KEY, []));
+  const {
+    events: allEvents,
+    status,
+    error,
+    reload,
+    createEvent,
+    updateEvent,
+    deleteEvent,
+  } = useCalendarData(dataSource);
   const [query, setQuery] = useState('');
   const [activeCats, setActiveCats] = useState<Set<Cat>>(() => new Set(FILTER_CATS));
   const [editing, setEditing] = useState<CalEvent | null>(null);
@@ -198,13 +198,7 @@ export default function App() {
       return next;
     });
 
-  // 种子（不可变）+ 用户新建，再叠加编辑覆盖、剔除已删除，得到完整事件列表
-  const allEvents = useMemo(() => {
-    const deleted = new Set(deletedIds);
-    return [...SEED_EVENTS, ...userEvents]
-      .filter((e) => !deleted.has(e.id))
-      .map((e) => overrides[e.id] ?? e);
-  }, [userEvents, overrides, deletedIds]);
+  // allEvents 由数据源解析（四层叠加在 LocalStorageDataSource 内部完成）。
   // 搜索 + 分类过滤后的可见事件
   const visibleEvents = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -219,16 +213,7 @@ export default function App() {
   const calendarEvents = useMemo(() => toCalendarEvents(visibleEvents), [visibleEvents]);
   const timelineRowHeight = DENSITY_TIMELINE_ROW_HEIGHT[prefs.density];
 
-  // 事件数据与 UI 偏好都放在 localStorage，保证 demo 刷新后还能复现当前工作上下文。
-  useEffect(() => {
-    localStorage.setItem(USER_EVENTS_KEY, JSON.stringify(userEvents));
-  }, [userEvents]);
-  useEffect(() => {
-    localStorage.setItem(OVERRIDES_KEY, JSON.stringify(overrides));
-  }, [overrides]);
-  useEffect(() => {
-    localStorage.setItem(DELETED_KEY, JSON.stringify(deletedIds));
-  }, [deletedIds]);
+  // UI 偏好放在 localStorage，保证 demo 刷新后还能复现当前外观上下文。
   useEffect(() => {
     localStorage.setItem(UI_PREFS_KEY, JSON.stringify(prefs));
   }, [prefs]);
@@ -241,13 +226,12 @@ export default function App() {
     r.setAttribute('data-density', prefs.density);
   }, [prefs]);
 
-  // 新建 / 编辑共用同一对话框：editing 为空走新建，否则把编辑结果写入覆盖层
+  // 新建 / 编辑共用同一对话框：editing 为空走新建，否则把编辑结果写入数据源（内部落 override 层）
   const handleSubmit = (input: NewEventInput) => {
     if (editing) {
-      const updated = inputToCalEvent(input, editing);
-      setOverrides((prev) => ({ ...prev, [editing.id]: updated }));
+      updateEvent(editing.id, inputToDraft(input, editing));
     } else {
-      setUserEvents((prev) => [...prev, inputToCalEvent(input)]);
+      createEvent(inputToDraft(input));
     }
   };
 
@@ -262,7 +246,7 @@ export default function App() {
   const handleDelete = () => {
     const id = pick?.ev.id;
     if (id) {
-      setDeletedIds((prev) => (prev.includes(id) ? prev : [...prev, id]));
+      deleteEvent(id);
       setPick(null);
     }
   };
@@ -334,7 +318,26 @@ export default function App() {
             />
           )}
           <div className="canvas" key={view}>
-            {useEngine ? (
+            {status === 'loading' ? (
+              <div className="data-state" role="status" aria-live="polite">
+                <div className="data-state-spinner" aria-hidden />
+                <p className="data-state-msg">正在加载日程…</p>
+              </div>
+            ) : status === 'error' ? (
+              <div className="data-state data-state--error" role="alert">
+                <p className="data-state-msg">日程加载失败{error ? `：${error}` : ''}</p>
+                <button type="button" className="data-state-btn" onClick={reload}>
+                  重试
+                </button>
+              </div>
+            ) : allEvents.length === 0 ? (
+              <div className="data-state">
+                <p className="data-state-msg">还没有任何日程</p>
+                <button type="button" className="data-state-btn" onClick={() => setCreating(true)}>
+                  新建日程
+                </button>
+              </div>
+            ) : useEngine ? (
               <Calendar
                 ref={calRef}
                 events={calendarEvents}

@@ -25,7 +25,7 @@
 | P3 | 真实 S2 组件替换外围控件 | ✅ 完成 2026-06-11（视觉已验证） | `src/shell.tsx`、`src/main.tsx` |
 | P4 | 挂活 `packages/calendar` 拖拽引擎 + timeline 主题 | ✅ 完成 2026-06-11 | `src/views.tsx` + `packages/calendar` |
 | P5 | 控件真功能化（主题切换 / 搜索 / 筛选 / 新建落库） | ✅ 完成 2026-06-12 | `apps/swell-calendar-s2/src` |
-| P6 | 接真数据（替换 mock SWELL，事件 CRUD） | ⬜ 未开始 | `apps/swell-calendar-s2/src` |
+| P6 | 接真数据（数据源抽象 + 异步 CRUD + 状态态） | ✅ 完成 2026-06-12 | `apps/swell-calendar-s2/src` |
 
 图例：✅ 完成 · 🟡 进行中 · ⬜ 未开始 · ⏸ 暂缓
 
@@ -65,14 +65,32 @@
   - ✅ 事件编辑/删除（override 层，种子可改删，[2026-06-12-s2-p5-event-edit-delete.md](./2026-06-12-s2-p5-event-edit-delete.md)）2026-06-12
   - ✅ 明暗/强调色/密度切换（[2026-06-12-s2-p5-theme-switching.md](./2026-06-12-s2-p5-theme-switching.md)）2026-06-12
 
-## P6 · 接真数据 ⬜
+## P6 · 接真数据 ✅
 
 - 范围：抽象数据源接口，替换 `src/data.ts` 的 mock SWELL；事件 CRUD 走真实后端/本地存储。
 - 验收：增删改查闭环；空态/加载/错误态有处理。
+- 落地（[2026-06-12-s2-p6-data-source.md](./2026-06-12-s2-p6-data-source.md)）：P5 散在 App.tsx 的四层
+  localStorage CRUD 收敛到可替换的 `CalendarDataSource` 异步接口背后；默认 `LocalStorageDataSource`
+  保留种子+叠加语义，对外扁平 async CRUD。新增 `useCalendarData` hook 托管 loading/ready/error 三态，
+  canvas 补 loading/error（可重试）/empty（新建 CTA）。无后端，替换真后端只改 `dataSource` 单例一处。
 
 ---
 
 ## 完成记录
+
+### 2026-06-12 · P6 接真数据完成
+
+- **数据源抽象**：新增 `dataSource.ts`——`CalendarDataSource` 异步接口（`list/create/update/remove`）
+  + `LocalStorageDataSource` 实现。内部沿用 P5 的种子+用户新建+override+墓碑四层叠加（key 名不变，
+  行为等价），对外只暴露扁平 async CRUD；id 生成下沉到数据源，每方法加 180ms 模拟 IO 延迟。
+- **数据 hook**：新增 `useCalendarData.ts`，托管 `loading/ready/error` 三态与事件列表，mutation 后
+  静默重拉；StrictMode 双跑用 `aliveRef` 防竞态。
+- **App 解耦**：`App.tsx` 移除三个事件 localStorage key/state/effect 与四层 `useMemo`，改消费 hook；
+  `inputToCalEvent` → `inputToDraft`（产出无 id 的 `EventDraft`）。canvas 新增 loading（spinner）/
+  error（可重试）/ empty（无任何事件 → 新建 CTA）三态。UI 偏好仍留在 App 内（非业务数据）。
+- **验证**：`tsc --noEmit` ✅ · `vite build`（548KB JS / 104KB CSS）✅ · `check-docs` ✅ ·
+  `check-arch` ✅ · 浏览器（5180）首屏 loading→scheduler 完整渲染 6 资源 + 种子事件，控制台零错误。
+- **结论：P6 → ✅，S2 外壳应用路线图 P0–P6 全部完成。**
 
 ### 2026-06-10 · P0 + P1 + P2 完成
 
