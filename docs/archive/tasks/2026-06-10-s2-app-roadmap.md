@@ -26,6 +26,8 @@
 | P4 | 挂活 `packages/calendar` 拖拽引擎 + timeline 主题 | ✅ 完成 2026-06-11 | `src/views.tsx` + `packages/calendar` |
 | P5 | 控件真功能化（主题切换 / 搜索 / 筛选 / 新建落库） | ✅ 完成 2026-06-12 | `apps/swell-calendar-s2/src` |
 | P6 | 接真数据（数据源抽象 + 异步 CRUD + 状态态） | ✅ 完成 2026-06-12 | `apps/swell-calendar-s2/src` |
+| P7 | 全视图引擎化 + 交互闭环（7a 日周月接入引擎 / 7b scheduler 滑动新建 / 7c day-week 交互） | ⬜ 未开始 | 规划详见 [2026-06-12-s2-next-plan.md](../../tasks/2026-06-12-s2-next-plan.md) |
+| P8 | 侧栏交互完善（8a 日历分类切换 / 8b MiniCalendar 日期选择与同步） | ⬜ 未开始 | 规划详见 [2026-06-12-s2-next-plan.md](../../tasks/2026-06-12-s2-next-plan.md) |
 
 图例：✅ 完成 · 🟡 进行中 · ⬜ 未开始 · ⏸ 暂缓
 

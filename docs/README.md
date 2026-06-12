@@ -33,12 +33,11 @@
 
 ## 当前活跃工件
 
-当前没有进行中的任务单（`docs/tasks/` 仅保留 `TEMPLATE.md`）。两条 epic 路线图均已完成并沉淀到 [archive/tasks/](./archive/tasks/)：
-
 | 文档 | 作用 |
 |------|------|
+| [tasks/2026-06-12-s2-next-plan.md](./tasks/2026-06-12-s2-next-plan.md) | S2 外壳 P7–P8 后续规划（全视图引擎化 + 侧栏交互） |
 | [archive/tasks/2026-05-07-scheduler-mobiscroll-parity-roadmap.md](./archive/tasks/2026-05-07-scheduler-mobiscroll-parity-roadmap.md) | scheduler 对齐 epic 路线图（已完成，结论沉淀在 `SPEC` / `agent-plan/plan.md`） |
-| [archive/tasks/2026-06-10-s2-app-roadmap.md](./archive/tasks/2026-06-10-s2-app-roadmap.md) | swell-calendar-s2 外壳路线图与进度真源（P0–P6 全部完成） |
+| [archive/tasks/2026-06-10-s2-app-roadmap.md](./archive/tasks/2026-06-10-s2-app-roadmap.md) | swell-calendar-s2 外壳路线图与进度真源（P0–P6 完成，P7–P8 规划中） |
 | [adrs/ADR-2026-05-scheduler-parity-scope.md](./adrs/ADR-2026-05-scheduler-parity-scope.md) | scheduler 范围与设计原则 ADR（一级原则记录，保留） |
 
 > scheduler 与 S2 的历史 closure / feature / 切片任务单（scope-freeze、parity-polish、各 DnD/resize/timezone/storybook 收口、S2 P3–P6 等）均已迁入 [archive/tasks/](./archive/tasks/)，结论沉淀在 `SPEC` / `agent-plan/plan.md`。
