@@ -8,6 +8,7 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "check:types": "tsc --noEmit",
+    "test": "node ../../packages/calendar/node_modules/vitest/vitest.mjs run",
     "lint": "echo \"(no lint configured yet)\""
   },
   "dependencies": {

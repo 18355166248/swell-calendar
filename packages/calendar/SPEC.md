@@ -55,6 +55,7 @@ swell-calendar 是一个**可嵌入的 React 日历组件库**，面向需要在
 | `colors` 背景区段（scheduler） | ✅   | scheduler/timeline time-grid 背景时段，`invalid` 视觉层级在上 |
 | all-day lane（scheduler）      | ✅   | scheduler 顶部全天事件栏                                      |
 | 多日事件分段（scheduler）      | ✅   | scheduler time 事件按日期切分到资源列                         |
+| 多日 time 事件分段（day/week） | ✅   | 跨天（>24h）的 `time` 事件在日/周时间网格内按天分段渲染（起始日起点→当日底、中间日整列、结束日顶→终点），**不再**因时长超 24h 塌进顶部全天条；仅显式 `allDay` / `isAllday` 进全天栏。详见下方说明 |
 | overlap policy                 | ✅   | scheduler 全局 `eventOverlap` 与 per-event `overlap` 均已接入 |
 | 删除事件（scheduler）          | ✅   | 聚焦事件卡片后支持 `Delete/Backspace` 删除                    |
 | failed callbacks               | ✅   | `onEventCreateFailed` / `onEventUpdateFailed` 已接入          |
@@ -239,6 +240,7 @@ interface RecurringException {
 > `scheduler.timezones` 已于 2026-06-07 接入：在主时间轴左侧叠加副时区刻度轴，按配置顺序向左排列，刻度由主显示时区（`displayTimezone`，缺省为浏览器本地时区）换算到各副时区。
 > 全天事件采用业内通行的 floating（时区无关）语义：对齐 Google Calendar / RFC 5545 floating time，全天事件锚定在其日历日期上，**不**随 `displayTimezone` 平移边界；只有定时事件参与数据→显示时区换算。
 > 编辑作用域（`single` / `following` / `all`）已于 2026-06-06 落地，`applyRecurrenceEditScope` 工具函数与回调 `recurrenceInstance` 信息已接入。
+> 跨天定时事件的归类规则（2026-06-13 调整）：`category: 'time'` 事件**不再**因「时长 > 24h」被归为全天。`isAllday` 仅按显式 `allDay` / `isAllday` 判定，`isTimeEvent` 不再排除 `hasMultiDates`。后果：日/周视图中跨天定时事件在时间网格内按天分段渲染（每列经 `setRenderInfo` 裁剪到当天可见范围），与 scheduler 的多日分段行为对齐；顶部全天栏只保留显式全天事件。此前的「>24h time 事件 → 全天条」为继承自 toast-ui 的旧默认，已移除。
 
 ### 重复事件编辑作用域 API
 

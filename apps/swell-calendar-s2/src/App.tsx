@@ -9,18 +9,17 @@ import type { CalendarInstance, EventObject } from 'swell-calendar';
 import Calendar from 'swell-calendar';
 
 import {
+  calEventToInput,
   calendarCalendars,
   calendarResources,
-  dateToDayIndex,
-  dayIndexToDate,
-  decimalHourToTime,
+  engineEventToCreateInput,
   engineEventToDraft,
-  timeToDecimalHour,
+  inputToDraft,
   toCalendarEvents,
   toPickEvent,
 } from './calendarData';
-import { type Cat, type CalEvent, resources as RESOURCES } from './data';
-import { dataSource, type EventDraft } from './dataSource';
+import { type Cat, type CalEvent } from './data';
+import { dataSource } from './dataSource';
 import { useCalendarData } from './useCalendarData';
 import {
   CreateDialog,
@@ -143,33 +142,6 @@ function loadPrefs(): UiPrefs {
   return { ...UI_DEFAULTS.prefs, ...raw };
 }
 
-/** 把对话框输入转成事件草稿（无 id，由数据源分配）；编辑时传入原事件以保留 who/desc 等对话框不编辑的字段。 */
-function inputToDraft(input: NewEventInput, base?: CalEvent): EventDraft {
-  const resource = RESOURCES.find((r) => r.id === input.res);
-  return {
-    ...base,
-    res: input.res,
-    day: dateToDayIndex(input.date),
-    start: timeToDecimalHour(input.start),
-    end: timeToDecimalHour(input.end),
-    title: input.title,
-    cat: input.cat,
-    loc: resource?.short,
-  };
-}
-
-/** CalEvent → 对话框预填输入（编辑回填用）。 */
-function calEventToInput(e: CalEvent): NewEventInput {
-  return {
-    title: e.title,
-    res: e.res,
-    date: dayIndexToDate(e.day),
-    start: decimalHourToTime(e.start),
-    end: decimalHourToTime(e.end),
-    cat: e.cat,
-  };
-}
-
 export default function App() {
   const [view, setView] = useState<ViewId>('scheduler');
   const [pick, setPick] = useState<{ ev: PickEvent; anchor: HTMLElement } | null>(null);
@@ -265,19 +237,6 @@ export default function App() {
   };
 
   // ===== P7b: 引擎回调接线 =====
-
-  /** 把引擎事件对象转为新建对话框的预填值（NewEventInput）。 */
-  const engineEventToCreateInput = (event: EventObject): NewEventInput => {
-    const draft = engineEventToDraft(event);
-    return {
-      title: draft.title,
-      res: draft.res,
-      date: dayIndexToDate(draft.day),
-      start: decimalHourToTime(draft.start),
-      end: decimalHourToTime(draft.end),
-      cat: draft.cat,
-    };
-  };
 
   /** 滑动新建 / 单元格点击 → 弹出新建对话框并预填时间、资源。 */
   const handleEngineCreate = (info: { event: EventObject }) => {

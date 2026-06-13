@@ -15,8 +15,13 @@ export interface Resource {
 export interface CalEvent {
   id: string;
   res: string;
-  /** 0=周一 .. 6=周日，当前展示周内 */
+  /** 0=周一 .. 6=周日，当前展示周内（事件开始日） */
   day: number;
+  /**
+   * 事件结束日（周内索引）。省略时等同 `day`，即单日事件。
+   * 跨天事件（如周一 14:00 → 周二 10:00）用 endDay > day 表示。
+   */
+  endDay?: number;
   /** 十进制小时，如 9.5 = 9:30 */
   start: number;
   end: number;

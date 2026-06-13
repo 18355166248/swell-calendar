@@ -3,6 +3,7 @@ import type { EventObject, ResourceInfo } from 'swell-calendar';
 
 import { type Cat, type CalEvent, type Resource, events, resources } from './data';
 import type { EventDraft } from './dataSource';
+import type { NewEventInput } from './overlays';
 import type { PickEvent } from './views';
 
 // oklch 色彩映射（对应 spectrum-tokens.css 中的 CSS 变量）
@@ -96,7 +97,8 @@ export function toCalendarEvents(evts: CalEvent[]): EventObject[] {
       calendarId: e.cat,
       title: e.title,
       start: makeDate(e.day, e.start),
-      end: makeDate(e.day, e.end),
+      // 跨天事件结束落在 endDay；endDay 省略时等同 day（单日事件）
+      end: makeDate(e.endDay ?? e.day, e.end),
       resourceId: e.res,
       category: 'time' as const,
       backgroundColor: colors.fill,
@@ -197,13 +199,17 @@ export function engineEventToDraft(event: EventObject): EventDraft {
   const start = event.start ? toDecimalHour(event.start as DateLike) : 0;
   const end = event.end ? toDecimalHour(event.end as DateLike) : 0;
   const startDate = event.start ? toNativeDate(event.start as DateLike) : null;
+  const endDate = event.end ? toNativeDate(event.end as DateLike) : null;
   const day = startDate ? dateToDayIndex(formatISODate(startDate)) : 0;
+  // 跨天拖拽：结束落在不同天 → endDay > day。单日时 endDay === day。
+  const endDay = endDate ? dateToDayIndex(formatISODate(endDate)) : day;
   const res = (event.resourceId as string) || raw?.res || resources[0]?.id || '';
 
   if (raw) {
     // 更新路径：以原事件为底，只覆盖时间/资源（排除 id，保持 EventDraft = Omit<CalEvent, 'id'>）
+    // endDay 必须显式覆盖，否则旧值会盖掉本次拖拽产生的跨天跨度
     const { id: _, ...rest } = raw;
-    return { ...rest, day, start, end, res };
+    return { ...rest, day, endDay, start, end, res };
   }
 
   // 新建路径：从引擎字段构建
@@ -212,10 +218,60 @@ export function engineEventToDraft(event: EventObject): EventDraft {
     title: event.title || '新日程',
     cat: (event.calendarId as Cat) || 'seafoam',
     day,
+    endDay,
     start,
     end,
     res,
     loc: resource?.short,
+  };
+}
+
+/**
+ * 对话框输入（NewEventInput）↔ 数据草稿（EventDraft）/ 引擎事件 的转换。
+ * 集中放在数据适配层，保证跨天字段（date/endDate ↔ day/endDay）在整条
+ * 新建/编辑链路上不被丢弃，并可独立单测。
+ */
+
+/** 对话框输入 → 事件草稿；编辑时传入原事件以保留 who/desc 等对话框不编辑的字段。 */
+export function inputToDraft(input: NewEventInput, base?: CalEvent): EventDraft {
+  const resource = resources.find((r) => r.id === input.res);
+  return {
+    ...base,
+    res: input.res,
+    day: dateToDayIndex(input.date),
+    endDay: dateToDayIndex(input.endDate),
+    start: timeToDecimalHour(input.start),
+    end: timeToDecimalHour(input.end),
+    title: input.title,
+    cat: input.cat,
+    loc: resource?.short,
+  };
+}
+
+/** CalEvent → 对话框预填输入（编辑回填用）。 */
+export function calEventToInput(e: CalEvent): NewEventInput {
+  return {
+    title: e.title,
+    res: e.res,
+    date: dayIndexToDate(e.day),
+    endDate: dayIndexToDate(e.endDay ?? e.day),
+    start: decimalHourToTime(e.start),
+    end: decimalHourToTime(e.end),
+    cat: e.cat,
+  };
+}
+
+/** 引擎事件对象 → 新建对话框的预填输入（滑动新建 / 单元格点击用）。 */
+export function engineEventToCreateInput(event: EventObject): NewEventInput {
+  const draft = engineEventToDraft(event);
+  return {
+    title: draft.title,
+    res: draft.res,
+    date: dayIndexToDate(draft.day),
+    endDate: dayIndexToDate(draft.endDay ?? draft.day),
+    start: decimalHourToTime(draft.start),
+    end: decimalHourToTime(draft.end),
+    cat: draft.cat,
   };
 }
 

@@ -347,8 +347,10 @@ export class EventModel implements EventObject {
  * @returns {boolean} 如果是时间事件返回true
  */
 export function isTimeEvent({ model }: EventUIModel) {
-  const { category, allDay, hasMultiDates } = model;
+  const { category, allDay } = model;
 
-  // 时间事件：类别为time，非全天，非多日
-  return category === 'time' && !allDay && !hasMultiDates;
+  // 时间事件：类别为 time 且非全天。
+  // 跨天（hasMultiDates）的 time 事件也算时间事件——交由时间网格按列裁剪分段渲染，
+  // 不再因跨天被排除（否则会丢失「在网格下方按天铺开」的渲染）。
+  return category === 'time' && !allDay;
 }

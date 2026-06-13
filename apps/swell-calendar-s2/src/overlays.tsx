@@ -160,7 +160,8 @@ export function Popover({
 export interface NewEventInput {
   title: string;
   res: string;
-  date: string; // YYYY-MM-DD
+  date: string; // YYYY-MM-DD（开始日）
+  endDate: string; // YYYY-MM-DD（结束日；单日事件与 date 相同）
   start: string; // HH:mm
   end: string; // HH:mm
   cat: Cat;
@@ -190,6 +191,7 @@ export function CreateDialog({
   const [title, setTitle] = useState(initial?.title ?? '');
   const [res, setRes] = useState(initial?.res ?? resources[0]?.id ?? 'r1');
   const [date, setDate] = useState(initial?.date ?? '2025-03-21');
+  const [endDate, setEndDate] = useState(initial?.endDate ?? initial?.date ?? '2025-03-21');
   const [start, setStart] = useState(initial?.start ?? '09:00');
   const [end, setEnd] = useState(initial?.end ?? '10:00');
   const [err, setErr] = useState<string | null>(null);
@@ -199,11 +201,13 @@ export function CreateDialog({
       setErr('请填写标题');
       return;
     }
-    if (end <= start) {
+    // 跨天比较完整的「日期+时间」时间戳，而非仅比较时间——
+    // 否则周一 14:00 → 周二 10:00 这类跨天事件会被误判为结束早于开始
+    if (`${endDate}T${end}` <= `${date}T${start}`) {
       setErr('结束时间需晚于开始时间');
       return;
     }
-    onCreate({ title: title.trim(), res, date, start, end, cat });
+    onCreate({ title: title.trim(), res, date, endDate, start, end, cat });
     onClose();
   };
 
@@ -239,24 +243,37 @@ export function CreateDialog({
           </div>
           <div className="field-row">
             <div className="field">
-              <div className="field-label">日期</div>
-              <input
-                className="field-input"
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-              />
-            </div>
-            <div className="field">
-              <div className="field-label">时间</div>
+              <div className="field-label">开始</div>
               <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <input
+                  className="field-input"
+                  type="date"
+                  value={date}
+                  onChange={(e) => {
+                    const next = e.target.value;
+                    setDate(next);
+                    // 开始日晚于结束日时，把结束日跟着前移，避免出现负跨度
+                    if (endDate < next) setEndDate(next);
+                  }}
+                />
                 <input
                   className="field-input"
                   type="time"
                   value={start}
                   onChange={(e) => setStart(e.target.value)}
                 />
-                <span style={{ color: 'var(--text-3)' }}>–</span>
+              </div>
+            </div>
+            <div className="field">
+              <div className="field-label">结束</div>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <input
+                  className="field-input"
+                  type="date"
+                  value={endDate}
+                  min={date}
+                  onChange={(e) => setEndDate(e.target.value)}
+                />
                 <input
                   className="field-input"
                   type="time"
