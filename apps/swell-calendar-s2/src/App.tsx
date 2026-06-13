@@ -32,7 +32,7 @@ import {
   type UiPrefs,
 } from './overlays';
 import { Sidebar, Topbar, type ViewId } from './shell';
-import { DayView, MonthView, type PickEvent, WeekView } from './views';
+import { type PickEvent } from './views';
 
 // 事件 CRUD（种子 / 用户新建 / 编辑覆盖 / 删除墓碑四层）已收敛到 dataSource + useCalendarData（P6）。
 // App 仅持有 UI 偏好的持久化——UI 状态不属于业务数据，不走数据源。
@@ -60,7 +60,7 @@ const VIEW_TITLE: Record<ViewId, [string, string]> = {
   day: ['周四 · 3月21日', '2025年 · 第12周'],
   week: ['3月18日 – 24日', '2025年 · 第12周'],
   month: ['2025年 3月', '31天 · 12场会议'],
-  scheduler: ['周四 · 3月21日', '6项资源 · 会议室与成员'],
+  scheduler: ['周四 · 3月21日', '3项资源 · 会议室'],
   timeline: ['本周日程', '3月18日 – 24日 · 议程视图'],
 };
 
@@ -310,14 +310,9 @@ export default function App() {
     }
   }, [view]);
 
-  const hourH = prefs.density === 'compact' ? 46 : prefs.density === 'comfy' ? 70 : 56;
-
-  const onPick: (ev: PickEvent, anchor: HTMLElement) => void = (ev, anchor) =>
-    setPick({ ev, anchor });
   const closePop = () => setPick(null);
 
   const [title, sub] = VIEW_TITLE[view];
-  const useEngine = view === 'scheduler' || view === 'timeline';
 
   return (
     <Provider colorScheme={prefs.theme}>
@@ -340,7 +335,7 @@ export default function App() {
             setQuery={setQuery}
             openSettings={openSettings}
           />
-          {(view === 'week' || view === 'day' || view === 'scheduler') && (
+          {(view === 'week' || view === 'day' || view === 'scheduler' || view === 'month') && (
             <SubBar
               showWknd={showWknd}
               setShowWknd={setShowWknd}
@@ -369,7 +364,7 @@ export default function App() {
                   新建日程
                 </button>
               </div>
-            ) : useEngine ? (
+            ) : (
               <Calendar
                 ref={calRef}
                 events={calendarEvents}
@@ -411,27 +406,6 @@ export default function App() {
                   onEventUpdateFailed: () => {},
                 }}
               />
-            ) : (
-              <>
-                {view === 'day' && (
-                  <DayView
-                    events={visibleEvents}
-                    onPick={onPick}
-                    selId={pick?.ev.id}
-                    hourH={hourH}
-                  />
-                )}
-                {view === 'week' && (
-                  <WeekView
-                    events={visibleEvents}
-                    onPick={onPick}
-                    selId={pick?.ev.id}
-                    hourH={hourH}
-                    showWknd={showWknd}
-                  />
-                )}
-                {view === 'month' && <MonthView onPick={onPick} />}
-              </>
             )}
           </div>
         </div>
