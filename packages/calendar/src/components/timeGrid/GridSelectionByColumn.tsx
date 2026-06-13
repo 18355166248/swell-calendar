@@ -71,9 +71,21 @@ export function GridSelectionByColumn({
     // 构建显示的时间文本
     let text = `${startRowStartTime} - ${endRowEndTime}`;
 
-    // 如果正在选择多列，只在起始列显示时间
-    if (isSelectingMultipleColumns) {
-      text = isStartingColumn ? startRowStartTime : '';
+    // 跨列（跨天）选择：参考 mobiscroll —— 第一列显示完整起止区间、
+    // 最后一列只显示结束时间、中间列不显示时间。
+    // 这里用 timeGridSelection 的全局起止行取真实事件起止时间（各列的 row 已被裁剪到本列）。
+    if (isSelectingMultipleColumns && !isNil(timeGridSelection)) {
+      const globalStartTime = timeGridRows[timeGridSelection.startRowIndex].startTime;
+      const globalEndTime = timeGridRows[timeGridSelection.endRowIndex].endTime;
+      const isEndingColumn = columnIndex === timeGridSelection.endColumnIndex;
+
+      if (isStartingColumn) {
+        text = `${globalStartTime} - ${globalEndTime}`;
+      } else if (isEndingColumn) {
+        text = globalEndTime;
+      } else {
+        text = '';
+      }
     }
 
     return {
@@ -81,7 +93,7 @@ export function GridSelectionByColumn({
       height: gridSelectionHeight,
       text,
     };
-  }, [gridSelectionData, timeGridRows]);
+  }, [gridSelectionData, timeGridRows, timeGridSelection, columnIndex]);
 
   if (isNil(gridSelectionProps)) {
     return null;

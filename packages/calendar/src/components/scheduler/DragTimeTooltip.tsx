@@ -12,10 +12,11 @@ interface DragTimeTooltipProps {
 }
 
 export function DragTimeTooltip({ end, start, uiModel }: DragTimeTooltipProps) {
-  const { currentView } = useCalendarStore((state) => state.view);
   const { x, y } = useCalendarStore((state) => state.dnd);
 
-  if (currentView !== 'scheduler' || !start || !end || x === null || y === null) {
+  // 在所有时间网格视图（day / week / scheduler）拖拽时都显示时间范围提示。
+  // 该组件只在 TimeGrid 的移动/缩放阴影里挂载，故无需再按视图类型门控。
+  if (!start || !end || x === null || y === null) {
     return null;
   }
 

@@ -4,6 +4,7 @@ import { subscribeWithSelector } from 'zustand/middleware';
 import { createCalendarSlice } from '@/slices/calendat.slice';
 import { createDndSlice } from '@/slices/dnd.slice';
 import { createGridSelectionSlice } from '@/slices/gridSelection.slice';
+import { createHoverSlice } from '@/slices/hover.slice';
 import { createLayoutSlice } from '@/slices/layout.slice';
 import { createOptionsSlice } from '@/slices/options.slice';
 import { createResourceSlice } from '@/slices/resource.slice';
@@ -40,6 +41,8 @@ const storeCreator = (options: Options) => (set: SetState) => ({
   ...createGridSelectionSlice()(set),
   // 创建资源切片 - 处理资源折叠/展开状态
   ...createResourceSlice()(set),
+  // 创建悬浮切片 - 跨天事件多段联动高亮
+  ...createHoverSlice()(set),
 });
 
 export type CalendarStoreContext = ReturnType<typeof createCalendarStore>;

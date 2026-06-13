@@ -86,9 +86,11 @@ interface ColumnProps {
 function VerticalEvents({
   eventUIModels,
   minEventHeight,
+  columnDate,
 }: {
   eventUIModels: EventUIModel[];
   minEventHeight: number;
+  columnDate: DayjsTZDate;
 }) {
   // @TODO: 使用动态值替代硬编码的右边距
   const style = { marginRight: 8 };
@@ -100,6 +102,7 @@ function VerticalEvents({
           key={`${eventUIModel.valueOf()}-${eventUIModel.cid()}`}
           uiModel={eventUIModel}
           minHeight={minEventHeight}
+          columnDate={columnDate}
         />
       ))}
     </div>
@@ -192,7 +195,11 @@ function Column({
       <BlockedTimes blockedLayouts={blockedLayouts} />
 
       {/* 渲染多个事件 */}
-      <VerticalEvents eventUIModels={uiModelsByColumn} minEventHeight={minEventHeight} />
+      <VerticalEvents
+        eventUIModels={uiModelsByColumn}
+        minEventHeight={minEventHeight}
+        columnDate={columnDate}
+      />
 
       {/* 渲染调整上下区间的事件 */}
       <ResizingEventShadow

@@ -53,9 +53,19 @@ export const templates: Template = {
   },
 
   time(model: EventObjectWithDefaultValues) {
-    const { start, title } = model;
+    const { start, end, title } = model;
+    // 跨天分段角色（由 TimeEvent 按列日期注入）：
+    //   start  → 起始列，显示开始时间
+    //   end    → 结束列，显示结束时间
+    //   middle → 中间整天列，显示「全天」
+    //   undefined → 单日事件，按原行内格式「开始时间 标题」
+    const segmentRole = (model as { segmentRole?: 'start' | 'middle' | 'end' }).segmentRole;
 
-    if (start) {
+    // 单日事件：保持原行内格式
+    if (!segmentRole) {
+      if (!start) {
+        return <span>{stripTags(title)}</span>;
+      }
       return (
         <span>
           <strong>{start.dayjs.format('HH:mm')}</strong>&nbsp;
@@ -64,7 +74,23 @@ export const templates: Template = {
       );
     }
 
-    return stripTags(title);
+    // 跨天分段：两行布局——第一行标题，第二行时间/全天。
+    // 起始列→开始时间、结束列→结束时间、中间整天列→「全天」。
+    let subLabel: string | null = null;
+    if (segmentRole === 'start') {
+      subLabel = start ? start.dayjs.format('HH:mm') : null;
+    } else if (segmentRole === 'end') {
+      subLabel = end ? end.dayjs.format('HH:mm') : null;
+    } else {
+      subLabel = '全天';
+    }
+
+    return (
+      <span className={cls('event-time-multiday')}>
+        <span className={cls('event-time-multiday-title')}>{stripTags(title)}</span>
+        {subLabel ? <strong className={cls('event-time-multiday-sub')}>{subLabel}</strong> : null}
+      </span>
+    );
   },
 
   schedulerTime(model: EventObjectWithDefaultValues) {
