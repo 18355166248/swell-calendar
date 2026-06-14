@@ -29,7 +29,7 @@ function ResizingEventShadow(props: ResizingEventShadowProps) {
 
   return (
     <>
-      <TimeEvent uiModel={guideUIModel} isResizingEvent={true} />
+      <TimeEvent uiModel={guideUIModel} isResizingEvent={true} isGuideEvent={true} />
       <DragTimeTooltip uiModel={guideUIModel} start={nextStartTime} end={nextEndTime} />
     </>
   );

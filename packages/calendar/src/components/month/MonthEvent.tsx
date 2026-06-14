@@ -47,6 +47,8 @@ export function MonthEvent({
     textOverflow: 'ellipsis',
     cursor: 'pointer',
     boxSizing: 'border-box',
+    opacity: 0.9,
+    transition: 'opacity 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease',
   };
 
   const handleClick = () => {

@@ -73,8 +73,8 @@ const CALENDAR_THEME = {
   },
   common: {
     gridSelection: {
-      backgroundColor: 'var(--accent-tint)',
-      border: '1px solid var(--accent-bg)',
+      backgroundColor: 'color-mix(in oklch, var(--accent-tint) 58%, transparent)',
+      border: '1px solid color-mix(in oklch, var(--accent-bg) 70%, transparent)',
     },
   },
   timeline: {

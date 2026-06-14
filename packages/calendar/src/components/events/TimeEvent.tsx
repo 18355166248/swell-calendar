@@ -76,7 +76,9 @@ function getStyles({
     borderRadius,
     borderLeft: `3px solid ${borderColor}`, // 边框颜色
     color, // 文字颜色
-    opacity: isDraggingTarget && !isResizingEvent ? 0.5 : 1, // 透明度（拖拽时半透明）
+    // 拖拽目标半透明；其余情况不写内联 opacity，交由 CSS 控制
+    // （静置略带透明、hover 时恢复不透明，见 events/time.scss）
+    opacity: isDraggingTarget && !isResizingEvent ? 0.5 : undefined,
     zIndex: hasNextStartTime ? 1 : 0, // 层级（重叠事件时调整）
   };
 
@@ -130,6 +132,8 @@ export interface TimeEventProps {
   nextEndTime?: DayjsTZDate | null;
   /** 是否为调整大小事件 */
   isResizingEvent?: boolean;
+  /** 是否为拖拽/resize 过程中的引导阴影卡片。 */
+  isGuideEvent?: boolean;
   /** 当前事件所在列的日期（time-grid 按列渲染）。用于跨天事件分段时间标签：
    *  起始列显示开始时间、结束列显示结束时间、中间列不显示时间。 */
   columnDate?: DayjsTZDate;
@@ -189,6 +193,7 @@ export function TimeEvent({
   nextStartTime,
   nextEndTime,
   isResizingEvent,
+  isGuideEvent = false,
   columnDate,
 }: TimeEventProps) {
   // 获取事件的日历颜色配置
@@ -408,7 +413,10 @@ export function TimeEvent({
 
   return (
     <div
-      className={cls('event-time', { 'event-time--hovered': isHovered })}
+      className={cls('event-time', {
+        'event-time--hovered': isHovered,
+        'event-time--guide': isGuideEvent,
+      })}
       style={containerStyle}
       data-testid={`event-card-${model.id}`}
       tabIndex={0}

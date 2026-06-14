@@ -37,6 +37,12 @@ export interface MonthEvent {
   cat: Cat;
 }
 
+export interface CatColorStyle {
+  line: string;
+  fill: string;
+  text: string;
+}
+
 export const resources: Resource[] = [
   {
     id: 'r1',
@@ -264,11 +270,39 @@ export const monthEvents: Record<number, MonthEvent[]> = {
 export const weekDays = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
 export const weekDates = [18, 19, 20, 21, 22, 23, 24];
 
-export const CAT_COLORS: Record<Cat, string> = {
-  seafoam: 'var(--cat-seafoam-line)',
-  indigo: 'var(--cat-indigo-line)',
-  magenta: 'var(--cat-magenta-line)',
-  orange: 'var(--cat-orange-line)',
-  green: 'var(--cat-green-line)',
-  purple: 'var(--cat-purple-line)',
+export const CAT_COLOR_STYLES: Record<Cat, CatColorStyle> = {
+  seafoam: {
+    line: 'var(--cat-seafoam-line)',
+    fill: 'var(--cat-seafoam-fill)',
+    text: 'var(--cat-seafoam-text)',
+  },
+  indigo: {
+    line: 'var(--cat-indigo-line)',
+    fill: 'var(--cat-indigo-fill)',
+    text: 'var(--cat-indigo-text)',
+  },
+  magenta: {
+    line: 'var(--cat-magenta-line)',
+    fill: 'var(--cat-magenta-fill)',
+    text: 'var(--cat-magenta-text)',
+  },
+  orange: {
+    line: 'var(--cat-orange-line)',
+    fill: 'var(--cat-orange-fill)',
+    text: 'var(--cat-orange-text)',
+  },
+  green: {
+    line: 'var(--cat-green-line)',
+    fill: 'var(--cat-green-fill)',
+    text: 'var(--cat-green-text)',
+  },
+  purple: {
+    line: 'var(--cat-purple-line)',
+    fill: 'var(--cat-purple-fill)',
+    text: 'var(--cat-purple-text)',
+  },
 };
+
+export const CAT_COLORS: Record<Cat, string> = Object.fromEntries(
+  Object.entries(CAT_COLOR_STYLES).map(([cat, colors]) => [cat, colors.line])
+) as Record<Cat, string>;

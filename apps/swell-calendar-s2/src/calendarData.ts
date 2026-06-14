@@ -1,44 +1,17 @@
 // 数据适配层：将 S2 app 的 mock 数据转换为 swell-calendar 的 EventObject / ResourceInfo 格式。
 import type { EventObject, ResourceInfo } from 'swell-calendar';
 
-import { type Cat, type CalEvent, type Resource, events, resources } from './data';
+import {
+  CAT_COLOR_STYLES,
+  type Cat,
+  type CalEvent,
+  type Resource,
+  events,
+  resources,
+} from './data';
 import type { EventDraft } from './dataSource';
 import type { NewEventInput } from './overlays';
 import type { PickEvent } from './views';
-
-// oklch 色彩映射（对应 spectrum-tokens.css 中的 CSS 变量）
-const CAT_COLORS: Record<Cat, { line: string; fill: string; text: string }> = {
-  seafoam: {
-    line: 'oklch(0.62 0.09 192)',
-    fill: 'oklch(0.93 0.04 192)',
-    text: 'oklch(0.4 0.07 192)',
-  },
-  indigo: {
-    line: 'oklch(0.55 0.16 282)',
-    fill: 'oklch(0.93 0.05 282)',
-    text: 'oklch(0.42 0.13 282)',
-  },
-  magenta: {
-    line: 'oklch(0.58 0.19 348)',
-    fill: 'oklch(0.94 0.045 348)',
-    text: 'oklch(0.45 0.15 348)',
-  },
-  orange: {
-    line: 'oklch(0.68 0.16 55)',
-    fill: 'oklch(0.94 0.05 65)',
-    text: 'oklch(0.5 0.12 50)',
-  },
-  green: {
-    line: 'oklch(0.62 0.13 150)',
-    fill: 'oklch(0.93 0.05 150)',
-    text: 'oklch(0.43 0.1 150)',
-  },
-  purple: {
-    line: 'oklch(0.55 0.15 310)',
-    fill: 'oklch(0.93 0.05 310)',
-    text: 'oklch(0.43 0.12 310)',
-  },
-};
 
 // 基准日期：day 0 = 2025-03-17（周一，与日历 week startDayOfWeek=1 对齐）
 const BASE_DATE = new Date(2025, 2, 17);
@@ -84,7 +57,7 @@ export function decimalHourToTime(decimalHours: number): string {
 /** 将 S2 mock CalEvent 转换为 swell-calendar EventObject */
 export function toCalendarEvents(evts: CalEvent[]): EventObject[] {
   return evts.map((e) => {
-    const colors = CAT_COLORS[e.cat];
+    const colors = CAT_COLOR_STYLES[e.cat];
     const pickMeta = {
       cat: e.cat,
       who: e.who,
@@ -115,7 +88,7 @@ export function toCalendarEvents(evts: CalEvent[]): EventObject[] {
 /** 将 S2 mock Resource 转换为 swell-calendar ResourceInfo */
 export function toCalendarResources(res: Resource[]): ResourceInfo[] {
   return res.map((r) => {
-    const colors = CAT_COLORS[r.color];
+    const colors = CAT_COLOR_STYLES[r.color];
     return {
       id: r.id,
       name: r.name,
@@ -130,7 +103,7 @@ export const calendarEvents = toCalendarEvents(events);
 export const calendarResources = toCalendarResources(resources);
 
 /** 分类颜色查找（供 calendars prop 使用） */
-export const calendarCalendars = Object.entries(CAT_COLORS).map(([id, colors]) => ({
+export const calendarCalendars = Object.entries(CAT_COLOR_STYLES).map(([id, colors]) => ({
   id,
   name: id,
   backgroundColor: colors.fill,
