@@ -1,7 +1,7 @@
 // ===== App shell: sidebar + topbar =====
 // P3: 外围控件已替换为 @react-spectrum/s2 真实组件（Button / ActionButton / SearchField / SegmentedControl）。
 // 侧栏导航项保留 CSS 版（S2 无直接等价物，强行替换会偏离像素）。
-import { useRef, type Key } from 'react';
+import { useEffect, useRef, useState, type Key } from 'react';
 
 import {
   ActionButton,
@@ -13,6 +13,7 @@ import {
 
 import { CAT_COLORS, type Cat } from './data';
 import { Ic } from './icons';
+import { SUBBAR_CATS } from './overlays';
 
 export type ViewId = 'day' | 'week' | 'month' | 'scheduler' | 'timeline';
 export type Sidebar = 'full' | 'rail' | 'hidden';
@@ -22,9 +23,21 @@ interface SidebarProps {
   view: ViewId;
   setView: (v: ViewId) => void;
   openCreate: () => void;
+  activeCats: Set<Cat>;
+  onToggleCat: (c: Cat) => void;
+  currentDate: Date;
+  onDateChange: (d: Date) => void;
 }
 
-export function Sidebar({ view, setView, openCreate }: SidebarProps) {
+export function Sidebar({
+  view,
+  setView,
+  openCreate,
+  activeCats,
+  onToggleCat,
+  currentDate,
+  onDateChange,
+}: SidebarProps) {
   const navMain: { id: ViewId; label: string; icon: () => JSX.Element; badge?: string }[] = [
     { id: 'day', label: '日视图', icon: Ic.day },
     { id: 'week', label: '周视图', icon: Ic.week },
@@ -32,12 +45,8 @@ export function Sidebar({ view, setView, openCreate }: SidebarProps) {
     { id: 'scheduler', label: '资源调度', icon: Ic.sched, badge: '6' },
     { id: 'timeline', label: '时间线', icon: Ic.timeline },
   ];
-  const navCal: { c: Cat; label: string }[] = [
-    { c: 'seafoam', label: '会议·评审' },
-    { c: 'indigo', label: '规划·设计' },
-    { c: 'orange', label: '客户·对外' },
-    { c: 'green', label: '工程·协作' },
-  ];
+  // 「我的日历」分类复用 SubBar 同一份分类集合（含「面试·招聘」），与顶栏 chips 共用 activeCats 状态。
+  const navCal = SUBBAR_CATS;
   return (
     <aside className="sidebar">
       <div className="brand">
@@ -70,18 +79,27 @@ export function Sidebar({ view, setView, openCreate }: SidebarProps) {
           </button>
         ))}
         <div className="nav-label">我的日历</div>
-        {navCal.map((n) => (
-          <button key={n.c} className="nav-item">
-            <span style={{ width: 18, display: 'grid', placeItems: 'center' }}>
-              <span
-                style={{ width: 11, height: 11, borderRadius: 4, background: CAT_COLORS[n.c] }}
-              />
-            </span>
-            <span className="lbl">{n.label}</span>
-          </button>
-        ))}
+        {navCal.map((n) => {
+          const on = activeCats.has(n.c);
+          return (
+            <button
+              key={n.c}
+              className={'nav-item nav-cal' + (on ? '' : ' off')}
+              onClick={() => onToggleCat(n.c)}
+              aria-pressed={on}
+            >
+              <span style={{ width: 18, display: 'grid', placeItems: 'center' }}>
+                <span
+                  className="nav-cal-dot"
+                  style={{ background: on ? CAT_COLORS[n.c] : 'var(--text-disabled)' }}
+                />
+              </span>
+              <span className="lbl">{n.label}</span>
+            </button>
+          );
+        })}
       </nav>
-      <MiniCalendar />
+      <MiniCalendar currentDate={currentDate} onDateChange={onDateChange} />
       <div className="side-foot">
         <div className="user-chip">
           <div className="avatar" style={{ background: 'var(--cat-magenta-line)' }}>
@@ -97,50 +115,100 @@ export function Sidebar({ view, setView, openCreate }: SidebarProps) {
   );
 }
 
-function MiniCalendar() {
-  // 2025年3月；高亮 18-24 当周，21 为今天
-  const dow = ['一', '二', '三', '四', '五', '六', '日'];
-  const firstOffset = 5; // 当月从周六开始
-  const cells: { dnum: number; inMonth: boolean; inWeek: boolean; today: boolean }[] = [];
+interface MiniCalendarProps {
+  /** 主视图当前聚焦日期：高亮其所在周，并随顶栏导航反向联动翻月。 */
+  currentDate: Date;
+  /** 点击某日 → 主视图跳转到该日。 */
+  onDateChange: (d: Date) => void;
+}
+
+const MINI_DOW = ['一', '二', '三', '四', '五', '六', '日'];
+
+/** 周一为一周起点：返回 0=周一 … 6=周日。 */
+function mondayIndex(d: Date): number {
+  return (d.getDay() + 6) % 7;
+}
+
+function isSameDay(a: Date, b: Date): boolean {
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  );
+}
+
+function startOfWeekMonday(d: Date): Date {
+  const s = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  s.setDate(s.getDate() - mondayIndex(s));
+  return s;
+}
+
+function MiniCalendar({ currentDate, onDateChange }: MiniCalendarProps) {
+  // 显示月份：默认跟随 currentDate 所在月；左右箭头独立翻月。
+  // currentDate 跨月变化时（顶栏翻页 / 点日期）useEffect 把 displayMonth 拉回同步。
+  const [displayMonth, setDisplayMonth] = useState(
+    () => new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
+  );
+  useEffect(() => {
+    setDisplayMonth(new Date(currentDate.getFullYear(), currentDate.getMonth(), 1));
+  }, [currentDate]);
+
+  const today = new Date();
+  const weekStart = startOfWeekMonday(currentDate);
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekEnd.getDate() + 6);
+
+  // 网格首格：displayMonth 当月 1 号所在周的周一
+  const gridStart = startOfWeekMonday(displayMonth);
+  const cells: { date: Date; inMonth: boolean; inWeek: boolean; today: boolean }[] = [];
   for (let i = 0; i < 42; i++) {
-    const dnum = i - firstOffset + 1;
+    const date = new Date(gridStart);
+    date.setDate(date.getDate() + i);
     cells.push({
-      dnum,
-      inMonth: dnum >= 1 && dnum <= 31,
-      inWeek: dnum >= 18 && dnum <= 24,
-      today: dnum === 21,
+      date,
+      inMonth: date.getMonth() === displayMonth.getMonth(),
+      inWeek: date >= weekStart && date <= weekEnd,
+      today: isSameDay(date, today),
     });
   }
+
+  const shiftMonth = (delta: number) =>
+    setDisplayMonth((m) => new Date(m.getFullYear(), m.getMonth() + delta, 1));
+
   return (
     <div className="mini">
       <div className="mini-hd">
-        <div className="mini-title">2025年3月</div>
+        <div className="mini-title">
+          {displayMonth.getFullYear()}年{displayMonth.getMonth() + 1}月
+        </div>
         <div className="mini-nav">
-          <button>
+          <button onClick={() => shiftMonth(-1)} aria-label="上个月">
             <Ic.chevL />
           </button>
-          <button>
+          <button onClick={() => shiftMonth(1)} aria-label="下个月">
             <Ic.chevR />
           </button>
         </div>
       </div>
       <div className="mini-grid">
-        {dow.map((d) => (
+        {MINI_DOW.map((d) => (
           <div key={d} className="mini-dow">
             {d}
           </div>
         ))}
         {cells.map((c, i) => (
-          <div
+          <button
             key={i}
+            type="button"
             className={
               'mini-day' +
               (c.inMonth ? '' : ' dim') +
-              (c.today ? ' today' : c.inWeek ? ' in-week' : '')
+              (isSameDay(c.date, currentDate) ? ' today' : c.inWeek ? ' in-week' : '')
             }
+            onClick={() => onDateChange(c.date)}
           >
-            {c.inMonth ? c.dnum : c.dnum < 1 ? 23 + c.dnum + 5 : c.dnum - 31}
-          </div>
+            {c.date.getDate()}
+          </button>
         ))}
       </div>
     </div>
@@ -157,6 +225,8 @@ interface TopbarProps {
   query: string;
   setQuery: (v: string) => void;
   openSettings: (anchor: HTMLElement) => void;
+  onToday: () => void;
+  onNavigate: (dir: 'prev' | 'next') => void;
 }
 
 export function Topbar({
@@ -169,6 +239,8 @@ export function Topbar({
   query,
   setQuery,
   openSettings,
+  onToday,
+  onNavigate,
 }: TopbarProps) {
   const settingsAnchorRef = useRef<HTMLSpanElement>(null);
   const views: { id: ViewId; label: string; icon: () => JSX.Element }[] = [
@@ -195,14 +267,24 @@ export function Topbar({
       </div>
       <div className="tb-nav">
         {/* P3: S2 Button (outline) */}
-        <Button variant="secondary" fillStyle="outline" size="S">
+        <Button variant="secondary" fillStyle="outline" size="S" onPress={onToday}>
           今天
         </Button>
         {/* P3: S2 ActionButton (quiet) */}
-        <ActionButton isQuiet aria-label="上一期" UNSAFE_className={'s2-sf' as any}>
+        <ActionButton
+          isQuiet
+          aria-label="上一期"
+          UNSAFE_className={'s2-sf' as any}
+          onPress={() => onNavigate('prev')}
+        >
           <Ic.chevL />
         </ActionButton>
-        <ActionButton isQuiet aria-label="下一期" UNSAFE_className={'s2-sf' as any}>
+        <ActionButton
+          isQuiet
+          aria-label="下一期"
+          UNSAFE_className={'s2-sf' as any}
+          onPress={() => onNavigate('next')}
+        >
           <Ic.chevR />
         </ActionButton>
       </div>

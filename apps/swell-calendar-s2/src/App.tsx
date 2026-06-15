@@ -128,6 +128,14 @@ const CALENDAR_THEME = {
   },
 };
 
+function isSameDay(a: Date, b: Date): boolean {
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  );
+}
+
 function loadJSON<T>(key: string, fallback: T): T {
   try {
     const raw = localStorage.getItem(key);
@@ -144,6 +152,8 @@ function loadPrefs(): UiPrefs {
 
 export default function App() {
   const [view, setView] = useState<ViewId>('scheduler');
+  // 主视图当前聚焦日期：MiniCalendar / 顶栏导航 ↔ 引擎双向同步（P8b）
+  const [currentDate, setCurrentDate] = useState<Date>(() => new Date(2025, 2, 21));
   const [pick, setPick] = useState<{ ev: PickEvent; anchor: HTMLElement } | null>(null);
   const [creating, setCreating] = useState(false);
   const [showWknd, setShowWknd] = useState(true);
@@ -251,6 +261,30 @@ export default function App() {
     updateEvent(info.event.id, draft);
   };
 
+  // ===== P8b: 日期导航双向同步 =====
+
+  /** 正向：MiniCalendar 点日期 → 同步 state + 引擎 setDate（引擎回填的 onPageChange 同日，不会成环）。 */
+  const goToDate = (d: Date) => {
+    setCurrentDate(d);
+    calRef.current?.setDate(d);
+  };
+
+  /** 顶栏「今天」：引擎回到今天，日期由 onPageChange 回填 currentDate。 */
+  const goToToday = () => {
+    calRef.current?.goToToday();
+  };
+
+  /** 顶栏左右箭头：引擎翻页，日期由 onPageChange 回填 currentDate。 */
+  const navigate = (dir: 'prev' | 'next') => {
+    calRef.current?.navigate(dir);
+  };
+
+  /** 反向：引擎翻页（顶栏箭头 / 今天 / setDate）→ 回填 currentDate，仅在跨日时更新避免重渲抖动。 */
+  const handlePageChange = (info: { date: { toDate: () => Date } }) => {
+    const next = info.date.toDate();
+    setCurrentDate((prev) => (isSameDay(prev, next) ? prev : next));
+  };
+
   // 当视图切换时，同步 Calendar 内部视图
   useEffect(() => {
     if (
@@ -281,7 +315,15 @@ export default function App() {
         data-card={UI_DEFAULTS.card}
         data-density={prefs.density}
       >
-        <Sidebar view={view} setView={setView} openCreate={() => setCreating(true)} />
+        <Sidebar
+          view={view}
+          setView={setView}
+          openCreate={() => setCreating(true)}
+          activeCats={activeCats}
+          onToggleCat={toggleCat}
+          currentDate={currentDate}
+          onDateChange={goToDate}
+        />
         <div className="main">
           <Topbar
             view={view}
@@ -293,6 +335,8 @@ export default function App() {
             query={query}
             setQuery={setQuery}
             openSettings={openSettings}
+            onToday={goToToday}
+            onNavigate={navigate}
           />
           {(view === 'week' || view === 'day' || view === 'scheduler' || view === 'month') && (
             <SubBar
@@ -303,7 +347,8 @@ export default function App() {
               onShowAll={() => setActiveCats(new Set(FILTER_CATS))}
             />
           )}
-          <div className="canvas" key={view}>
+          {/* P8b: 去掉 key={view}，改纯 setView 驱动，避免切视图重挂载重置已导航日期 */}
+          <div className="canvas">
             {status === 'loading' ? (
               <div className="data-state" role="status" aria-live="polite">
                 <div className="data-state-spinner" aria-hidden />
@@ -331,7 +376,8 @@ export default function App() {
                 theme={CALENDAR_THEME}
                 options={{
                   defaultView: view,
-                  initialDate: '2025-03-21',
+                  // 动态兜底：即便发生重挂载也落在当前导航日期
+                  initialDate: currentDate,
                   week: {
                     startDayOfWeek: 1,
                     hourStart: 8,
@@ -363,6 +409,8 @@ export default function App() {
                   // TODO: toast 提示用户 overlap / invalid / policy 拒绝原因
                   onEventCreateFailed: () => {},
                   onEventUpdateFailed: () => {},
+                  // P8b: 引擎翻页 → 回填 currentDate，联动 MiniCalendar 高亮
+                  onPageChange: handlePageChange,
                 }}
               />
             )}
