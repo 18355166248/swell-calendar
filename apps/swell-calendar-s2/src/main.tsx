@@ -5,7 +5,7 @@
 import 'swell-calendar/style.css';
 import './styles/spectrum-tokens.css';
 import './styles/app.css';
-import './styles/views.css';
+import './styles/overlays.css';
 
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
