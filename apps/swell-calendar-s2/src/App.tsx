@@ -6,7 +6,7 @@ import { Provider } from '@react-spectrum/s2';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import type { CalendarInstance, EventObject } from 'swell-calendar';
-import Calendar from 'swell-calendar';
+import Calendar, { useCalendarDataSource } from 'swell-calendar';
 
 import {
   calEventToInput,
@@ -20,7 +20,6 @@ import {
 } from './calendarData';
 import { type Cat, type CalEvent, type PickEvent } from './data';
 import { dataSource } from './dataSource';
-import { useCalendarData } from './useCalendarData';
 import {
   CreateDialog,
   FILTER_CATS,
@@ -32,7 +31,8 @@ import {
 } from './overlays';
 import { Sidebar, Topbar, type ViewId } from './shell';
 
-// 事件 CRUD（种子 / 用户新建 / 编辑覆盖 / 删除墓碑四层）已收敛到 dataSource + useCalendarData（P6）。
+// 事件 CRUD（种子 / 用户新建 / 编辑覆盖 / 删除墓碑四层）已收敛到 dataSource + useCalendarDataSource（P6）。
+// useCalendarDataSource 与 CalendarDataSource 契约已下沉到 swell-calendar 包（宿主侧可选装配件）。
 // App 仅持有 UI 偏好的持久化——UI 状态不属于业务数据，不走数据源。
 const UI_PREFS_KEY = 'swell-calendar-s2:ui-prefs';
 
@@ -166,7 +166,7 @@ export default function App() {
     createEvent,
     updateEvent,
     deleteEvent,
-  } = useCalendarData(dataSource);
+  } = useCalendarDataSource(dataSource);
   const [query, setQuery] = useState('');
   const [activeCats, setActiveCats] = useState<Set<Cat>>(() => new Set(FILTER_CATS));
   const [editing, setEditing] = useState<CalEvent | null>(null);

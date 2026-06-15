@@ -1,27 +1,29 @@
-// ===== 事件数据 hook =====（P6）
-// 托管异步数据源的加载状态与事件列表，把 loading / ready / error 三态和 CRUD 操作
-// 暴露给 App。组件层不再直接碰 localStorage，也不再持有叠加层细节。
+// 宿主侧数据装配 hook：托管异步数据源的加载状态与事件列表。
+// 把 loading / ready / error 三态和 CRUD 操作暴露给宿主，宿主无需重写
+// StrictMode 守卫与 mutation 静默重拉等样板。引擎本体仍只消费 EventObject props，
+// 该 hook 不做领域类型 → EventObject 的转换（由宿主负责）。
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import type { CalEvent } from './data';
-import type { CalendarDataSource, EventDraft } from './dataSource';
+import type { CalendarDataSource } from '@/types/dataSource.type';
 
-export type DataStatus = 'loading' | 'ready' | 'error';
+export type CalendarDataStatus = 'loading' | 'ready' | 'error';
 
-export interface UseCalendarData {
-  events: CalEvent[];
-  status: DataStatus;
+export interface UseCalendarDataSourceResult<TEvent, TDraft> {
+  events: TEvent[];
+  status: CalendarDataStatus;
   error: string | null;
   reload: () => void;
-  createEvent: (draft: EventDraft) => Promise<void>;
-  updateEvent: (id: string, patch: EventDraft) => Promise<void>;
+  createEvent: (draft: TDraft) => Promise<void>;
+  updateEvent: (id: string, patch: TDraft) => Promise<void>;
   deleteEvent: (id: string) => Promise<void>;
 }
 
-export function useCalendarData(source: CalendarDataSource): UseCalendarData {
-  const [events, setEvents] = useState<CalEvent[]>([]);
-  const [status, setStatus] = useState<DataStatus>('loading');
+export function useCalendarDataSource<TEvent, TDraft>(
+  source: CalendarDataSource<TEvent, TDraft>
+): UseCalendarDataSourceResult<TEvent, TDraft> {
+  const [events, setEvents] = useState<TEvent[]>([]);
+  const [status, setStatus] = useState<CalendarDataStatus>('loading');
   const [error, setError] = useState<string | null>(null);
   // StrictMode 下 effect 会跑两次；用 ref 防止已卸载实例覆盖状态。
   const aliveRef = useRef(true);
@@ -38,7 +40,7 @@ export function useCalendarData(source: CalendarDataSource): UseCalendarData {
       } catch (e) {
         if (!aliveRef.current) return;
         setStatus('error');
-        setError(e instanceof Error ? e.message : '数据加载失败');
+        setError(e instanceof Error ? e.message : 'Failed to load calendar data');
       }
     },
     [source]
@@ -64,7 +66,7 @@ export function useCalendarData(source: CalendarDataSource): UseCalendarData {
         await refresh(false);
       } catch (e) {
         if (!aliveRef.current) return;
-        setError(e instanceof Error ? e.message : '操作失败');
+        setError(e instanceof Error ? e.message : 'Calendar data operation failed');
         setStatus('error');
       }
     },
@@ -72,11 +74,11 @@ export function useCalendarData(source: CalendarDataSource): UseCalendarData {
   );
 
   const createEvent = useCallback(
-    (draft: EventDraft) => mutate(() => source.create(draft)),
+    (draft: TDraft) => mutate(() => source.create(draft)),
     [mutate, source]
   );
   const updateEvent = useCallback(
-    (id: string, patch: EventDraft) => mutate(() => source.update(id, patch)),
+    (id: string, patch: TDraft) => mutate(() => source.update(id, patch)),
     [mutate, source]
   );
   const deleteEvent = useCallback(

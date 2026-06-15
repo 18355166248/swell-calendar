@@ -446,6 +446,42 @@ interface CalendarInstance {
 }
 ```
 
+### 宿主侧数据装配（可选）
+
+引擎本体只消费 `EventObject` props，数据获取/持久化是宿主职责。为减少"把 Calendar 接到异步数据源"的重复样板，包额外暴露一对**可选**宿主侧装配件，不参与渲染/交互引擎本体：
+
+```ts
+// 异步事件数据源契约；任意实现（HTTP / IndexedDB / localStorage）皆可
+interface CalendarDataSource<TEvent, TDraft = Omit<TEvent, 'id'>> {
+  list(): Promise<TEvent[]>;
+  create(draft: TDraft): Promise<TEvent>;
+  update(id: string, patch: TDraft): Promise<TEvent>;
+  remove(id: string): Promise<void>;
+}
+
+type CalendarDataStatus = 'loading' | 'ready' | 'error';
+
+// 托管数据源的三态与 CRUD；StrictMode 安全，mutation 后静默重拉列表
+function useCalendarDataSource<TEvent, TDraft>(
+  source: CalendarDataSource<TEvent, TDraft>
+): {
+  events: TEvent[];
+  status: CalendarDataStatus;
+  error: string | null;
+  reload: () => void;
+  createEvent: (draft: TDraft) => Promise<void>;
+  updateEvent: (id: string, patch: TDraft) => Promise<void>;
+  deleteEvent: (id: string) => Promise<void>;
+};
+```
+
+约定：
+
+- `TEvent` 是宿主领域事件类型；宿主自行把它转换为 `EventObject` 再传给 `Calendar`，hook 不做转换
+- `TDraft` 默认 `Omit<TEvent, 'id'>`，`id` 由数据源（后端职责）分配
+- `list()` 返回完整列表；`status='loading'` 仅首屏/`reload()` 出现，mutation 走静默重拉不闪 loading
+- 失败时 `status='error'` 且 `error` 取 `Error.message`，无 message 时回退中性英文兜底
+
 ## 测试体系
 
 | 层级       | 工具                               | 运行命令                                 |

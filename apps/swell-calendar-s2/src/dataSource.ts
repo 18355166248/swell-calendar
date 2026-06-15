@@ -4,22 +4,15 @@
 // 不再持有 localStorage key 与叠加细节。默认实现仍落 localStorage（环境无后端），但接口形态
 // 对齐真实后端，将来可整体替换为 HTTP / IndexedDB 实现而不动消费方。
 
+import type { CalendarDataSource } from 'swell-calendar';
+
 import { type CalEvent, events as SEED_EVENTS } from './data';
 
 /** 新建草稿：除 id 外的全部业务字段。id 由数据源（后端职责）分配。 */
 export type EventDraft = Omit<CalEvent, 'id'>;
 
-/** 异步事件数据源契约。任意实现都可直接喂给 useCalendarData。 */
-export interface CalendarDataSource {
-  /** 返回当前完整事件列表（已解析叠加层）。 */
-  list(): Promise<CalEvent[]>;
-  /** 落库一条新事件，分配 id 后返回。 */
-  create(draft: EventDraft): Promise<CalEvent>;
-  /** 按 id 整体替换事件字段，返回更新后的事件。 */
-  update(id: string, patch: EventDraft): Promise<CalEvent>;
-  /** 按 id 删除事件。 */
-  remove(id: string): Promise<void>;
-}
+/** 本 app 的数据源类型：泛型契约绑定到 CalEvent / EventDraft。 */
+export type AppDataSource = CalendarDataSource<CalEvent, EventDraft>;
 
 // 模拟网络/IO 延迟，让 loading 态成为真实存在的一帧而非闪烁。
 // list() 保留首屏 loading 体验；mutation 路径（create/update/remove）设 0，
@@ -51,7 +44,7 @@ function writeJSON(key: string, value: unknown): void {
  * 这样种子可被改/删（以叠加表达），demo 刷新后视图完整还原，且种子更新仍能下发。
  * 对外只暴露扁平 CRUD，调用方无需感知叠加细节。
  */
-export class LocalStorageDataSource implements CalendarDataSource {
+export class LocalStorageDataSource implements AppDataSource {
   private read(): { user: CalEvent[]; overrides: Record<string, CalEvent>; deleted: string[] } {
     return {
       user: readJSON<CalEvent[]>(USER_EVENTS_KEY, []),
@@ -98,4 +91,4 @@ export class LocalStorageDataSource implements CalendarDataSource {
 }
 
 /** 默认数据源单例。替换为真后端时只需换这一处。 */
-export const dataSource: CalendarDataSource = new LocalStorageDataSource();
+export const dataSource: AppDataSource = new LocalStorageDataSource();
