@@ -66,11 +66,16 @@ export const templates: Template = {
       return <span>{stripTags(title)}</span>;
     }
 
-    // 时间行内容：跨天结束列取结束时间、中间整天列取「全天」；
-    // 单日与起始列取开始时间。
+    // 时间行内容：
+    //   起始列 → `开始 -`（右侧 `-` 表示向后延续到次日）
+    //   结束列 → `- 结束`（左侧 `-` 表示从前一日延续而来）
+    //   中间整天列 → 「全天」
+    //   单日 → 仅开始时间（无 `-`）
     let subLabel: string | null;
-    if (segmentRole === 'end') {
-      subLabel = end ? end.dayjs.format('HH:mm') : null;
+    if (segmentRole === 'start') {
+      subLabel = `${start.dayjs.format('HH:mm')} -`;
+    } else if (segmentRole === 'end') {
+      subLabel = end ? `- ${end.dayjs.format('HH:mm')}` : null;
     } else if (segmentRole === 'middle') {
       subLabel = '全天';
     } else {

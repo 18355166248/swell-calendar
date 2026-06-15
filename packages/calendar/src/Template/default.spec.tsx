@@ -24,15 +24,15 @@ describe('time 模板 · 跨天分段时间标签', () => {
     expect(html).not.toContain('10:30');
   });
 
-  it('起始列（segmentRole=start）显示开始时间', () => {
+  it('起始列（segmentRole=start）显示「开始 -」（右侧延续标记）', () => {
     const html = renderTime('2026-05-18T08:00:00', '2026-05-20T10:00:00', 'start');
-    expect(html).toContain('08:00');
+    expect(html).toContain('08:00 -');
     expect(html).not.toContain('10:00');
   });
 
-  it('结束列（segmentRole=end）显示结束时间', () => {
+  it('结束列（segmentRole=end）显示「- 结束」（左侧延续标记）', () => {
     const html = renderTime('2026-05-18T08:00:00', '2026-05-20T10:00:00', 'end');
-    expect(html).toContain('10:00');
+    expect(html).toContain('- 10:00');
     expect(html).not.toContain('08:00');
   });
 

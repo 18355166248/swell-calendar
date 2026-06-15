@@ -55,7 +55,7 @@ swell-calendar 是一个**可嵌入的 React 日历组件库**，面向需要在
 | `colors` 背景区段（scheduler） | ✅   | scheduler/timeline time-grid 背景时段，`invalid` 视觉层级在上 |
 | all-day lane（scheduler）      | ✅   | scheduler 顶部全天事件栏                                      |
 | 多日事件分段（scheduler）      | ✅   | scheduler time 事件按日期切分到资源列                         |
-| 多日 time 事件分段（day/week） | ✅   | 跨天（>24h）的 `time` 事件在日/周时间网格内按天分段渲染（起始日起点→当日底、中间日整列、结束日顶→终点），**不再**因时长超 24h 塌进顶部全天条；仅显式 `allDay` / `isAllday` 进全天栏。分段标签两行布局（第一行标题、第二行时间）：起始列第二行显示开始时间、结束列显示结束时间、中间整天列显示「全天」。单日事件同样为两行布局（第一行标题、第二行开始时间）。新建框选预览：起始列显示 `开始 - 结束` 完整区间、结束列显示结束时间、中间列留空。详见下方说明 |
+| 多日 time 事件分段（day/week） | ✅   | 跨天（>24h）的 `time` 事件在日/周时间网格内按天分段渲染（起始日起点→当日底、中间日整列、结束日顶→终点），**不再**因时长超 24h 塌进顶部全天条；仅显式 `allDay` / `isAllday` 进全天栏。分段标签两行布局（第一行标题、第二行时间）：起始列第二行显示「开始 -」（右侧 `-` 表示向后延续）、结束列显示「- 结束」（左侧 `-` 表示从前一日延续）、中间整天列显示「全天」。单日事件同样为两行布局（第一行标题、第二行开始时间，无延续标记）。新建框选预览：起始列显示 `开始 - 结束` 完整区间、结束列显示结束时间、中间列留空。详见下方说明 |
 | overlap policy                 | ✅   | scheduler 全局 `eventOverlap` 与 per-event `overlap` 均已接入 |
 | 删除事件（scheduler）          | ✅   | 聚焦事件卡片后支持 `Delete/Backspace` 删除                    |
 | failed callbacks               | ✅   | `onEventCreateFailed` / `onEventUpdateFailed` 已接入          |
