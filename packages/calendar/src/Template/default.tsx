@@ -58,37 +58,30 @@ export const templates: Template = {
     //   start  → 起始列，显示开始时间
     //   end    → 结束列，显示结束时间
     //   middle → 中间整天列，显示「全天」
-    //   undefined → 单日事件，按原行内格式「开始时间 标题」
+    //   undefined → 单日事件，时间行显示开始时间
     const segmentRole = (model as { segmentRole?: 'start' | 'middle' | 'end' }).segmentRole;
 
-    // 单日事件：保持原行内格式
-    if (!segmentRole) {
-      if (!start) {
-        return <span>{stripTags(title)}</span>;
-      }
-      return (
-        <span>
-          <strong>{start.dayjs.format('HH:mm')}</strong>&nbsp;
-          <span>{stripTags(title)}</span>
-        </span>
-      );
+    // 无开始时间：仅显示标题
+    if (!start) {
+      return <span>{stripTags(title)}</span>;
     }
 
-    // 跨天分段：两行布局——第一行标题，第二行时间/全天。
-    // 起始列→开始时间、结束列→结束时间、中间整天列→「全天」。
-    let subLabel: string | null = null;
-    if (segmentRole === 'start') {
-      subLabel = start ? start.dayjs.format('HH:mm') : null;
-    } else if (segmentRole === 'end') {
+    // 时间行内容：跨天结束列取结束时间、中间整天列取「全天」；
+    // 单日与起始列取开始时间。
+    let subLabel: string | null;
+    if (segmentRole === 'end') {
       subLabel = end ? end.dayjs.format('HH:mm') : null;
-    } else {
+    } else if (segmentRole === 'middle') {
       subLabel = '全天';
+    } else {
+      subLabel = start.dayjs.format('HH:mm');
     }
 
+    // 两行布局（单日与跨天统一）：第一行标题，第二行时间/「全天」。
     return (
-      <span className={cls('event-time-multiday')}>
-        <span className={cls('event-time-multiday-title')}>{stripTags(title)}</span>
-        {subLabel ? <strong className={cls('event-time-multiday-sub')}>{subLabel}</strong> : null}
+      <span className={cls('event-time-stack')}>
+        <span className={cls('event-time-stack-title')}>{stripTags(title)}</span>
+        {subLabel ? <strong className={cls('event-time-stack-sub')}>{subLabel}</strong> : null}
       </span>
     );
   },

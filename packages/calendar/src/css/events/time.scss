@@ -40,8 +40,8 @@
     text-overflow: ellipsis;
   }
 
-  // 跨天分段两行布局：第一行标题，第二行时间/「全天」
-  &-multiday {
+  // 两行布局（单日与跨天分段统一）：第一行标题，第二行时间/「全天」
+  &-stack {
     display: flex;
     flex-direction: column;
     gap: 1px;

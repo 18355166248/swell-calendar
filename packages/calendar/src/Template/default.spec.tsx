@@ -46,13 +46,15 @@ describe('time 模板 · 跨天分段时间标签', () => {
 
   it('跨天分段为两行结构（标题行 + 时间/全天行）', () => {
     const html = renderTime('2026-05-18T08:00:00', '2026-05-20T10:00:00', 'start');
-    expect(html).toContain('event-time-multiday-title');
-    expect(html).toContain('event-time-multiday-sub');
+    expect(html).toContain('event-time-stack-title');
+    expect(html).toContain('event-time-stack-sub');
   });
 
-  it('单日事件保持行内格式（无两行 multiday 结构）', () => {
+  it('单日事件为两行结构（标题行 + 开始时间行）', () => {
     const html = renderTime('2026-05-18T09:00:00', '2026-05-18T10:30:00');
-    expect(html).not.toContain('event-time-multiday');
+    expect(html).toContain('event-time-stack-title');
+    expect(html).toContain('event-time-stack-sub');
+    expect(html).toContain('09:00');
   });
 });
 
