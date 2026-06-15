@@ -1,6 +1,19 @@
 // swell-calendar sample data — 会议室 + 成员排期（移植自设计稿 data.js）
 export type Cat = 'seafoam' | 'indigo' | 'magenta' | 'orange' | 'green' | 'purple';
 
+/** 事件详情弹层（Popover）消费的事件结构，由 calendarData.toPickEvent 从引擎事件回填。 */
+export interface PickEvent {
+  id?: string;
+  title: string;
+  cat: Cat;
+  dateLabel?: string;
+  who?: string;
+  loc?: string;
+  desc?: string;
+  start: number;
+  end: number;
+}
+
 export interface Resource {
   id: string;
   name: string;

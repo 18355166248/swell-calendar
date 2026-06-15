@@ -18,7 +18,7 @@ import {
   toCalendarEvents,
   toPickEvent,
 } from './calendarData';
-import { type Cat, type CalEvent } from './data';
+import { type Cat, type CalEvent, type PickEvent } from './data';
 import { dataSource } from './dataSource';
 import { useCalendarData } from './useCalendarData';
 import {
@@ -31,7 +31,6 @@ import {
   type UiPrefs,
 } from './overlays';
 import { Sidebar, Topbar, type ViewId } from './shell';
-import { type PickEvent } from './views';
 
 // 事件 CRUD（种子 / 用户新建 / 编辑覆盖 / 删除墓碑四层）已收敛到 dataSource + useCalendarData（P6）。
 // App 仅持有 UI 偏好的持久化——UI 状态不属于业务数据，不走数据源。

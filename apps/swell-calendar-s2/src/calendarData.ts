@@ -5,13 +5,13 @@ import {
   CAT_COLOR_STYLES,
   type Cat,
   type CalEvent,
+  type PickEvent,
   type Resource,
   events,
   resources,
 } from './data';
 import type { EventDraft } from './dataSource';
 import type { NewEventInput } from './overlays';
-import type { PickEvent } from './views';
 
 // 基准日期：day 0 = 2025-03-17（周一，与日历 week startDayOfWeek=1 对齐）
 const BASE_DATE = new Date(2025, 2, 17);

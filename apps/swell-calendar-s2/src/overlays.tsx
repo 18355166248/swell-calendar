@@ -1,9 +1,17 @@
 // ===== Overlays: 事件弹窗 + 新建对话框 + 设置面板 + 子栏 =====（移植自设计稿 overlays.jsx）
 import { useLayoutEffect, useRef, useState } from 'react';
 
-import { CAT_COLORS, type Cat, resources } from './data';
+import { CAT_COLORS, type Cat, type PickEvent, resources } from './data';
 import { Ic } from './icons';
-import { evRange, type PickEvent } from './views';
+
+/** 十进制小时 → `H:mm`，如 9.5 → 9:30。 */
+const fmtH = (h: number) => {
+  const hr = Math.floor(h);
+  const m = Math.round((h - hr) * 60);
+  return `${hr}:${String(m).padStart(2, '0')}`;
+};
+/** 事件时间区间标签，如 `9:00 – 10:30`。 */
+const evRange = (e: { start: number; end: number }) => `${fmtH(e.start)} – ${fmtH(e.end)}`;
 
 export type PopoverVariant = 'rich' | 'default' | 'minimal';
 export type ThemeMode = 'light' | 'dark';
