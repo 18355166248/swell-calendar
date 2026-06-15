@@ -266,27 +266,15 @@ export function Topbar({
         <div className="tb-sub">{sub}</div>
       </div>
       <div className="tb-nav">
-        {/* P3: S2 Button (outline) */}
-        <Button variant="secondary" fillStyle="outline" size="S" onPress={onToday}>
-          今天
-        </Button>
-        {/* P3: S2 ActionButton (quiet) */}
-        <ActionButton
-          isQuiet
-          aria-label="上一期"
-          UNSAFE_className={'s2-sf' as any}
-          onPress={() => onNavigate('prev')}
-        >
+        <button className="tb-arrow" onClick={() => onNavigate('prev')} aria-label="上一期">
           <Ic.chevL />
-        </ActionButton>
-        <ActionButton
-          isQuiet
-          aria-label="下一期"
-          UNSAFE_className={'s2-sf' as any}
-          onPress={() => onNavigate('next')}
-        >
+        </button>
+        <button className="tb-today" onClick={onToday}>
+          今天
+        </button>
+        <button className="tb-arrow" onClick={() => onNavigate('next')} aria-label="下一期">
           <Ic.chevR />
-        </ActionButton>
+        </button>
       </div>
       <div className="tb-spacer" />
       {/* P3: S2 SearchField */}

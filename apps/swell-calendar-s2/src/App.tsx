@@ -3,6 +3,9 @@
 // 当前把主题/强调色/密度收敛为宿主可持久化配置，其余 card/toolbar/popover 保持设计默认值。
 // P4: scheduler / timeline 视图已替换为 swell-calendar 真引擎（拖拽/resize/创建）。
 import { Provider } from '@react-spectrum/s2';
+import dayjs from 'dayjs';
+import 'dayjs/locale/zh-cn';
+import weekOfYear from 'dayjs/plugin/weekOfYear';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import type { CalendarInstance, EventObject } from 'swell-calendar';
@@ -54,13 +57,52 @@ const DENSITY_TIMELINE_ROW_HEIGHT: Record<UiPrefs['density'], number> = {
   comfy: 76,
 };
 
-const VIEW_TITLE: Record<ViewId, [string, string]> = {
-  day: ['周四 · 3月21日', '2025年 · 第12周'],
-  week: ['3月18日 – 24日', '2025年 · 第12周'],
-  month: ['2025年 3月', '31天 · 12场会议'],
-  scheduler: ['周四 · 3月21日', '3项资源 · 会议室'],
-  timeline: ['本周日程', '3月18日 – 24日 · 议程视图'],
-};
+// dayjs 初始化
+dayjs.extend(weekOfYear);
+dayjs.locale('zh-cn');
+
+const DOW_SHORT = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+
+/** 根据 view + currentDate 动态生成顶栏标题和副标题 */
+function computeViewTitle(view: ViewId, d: Date): [string, string] {
+  const dj = dayjs(d);
+  const year = dj.year();
+  const week = dj.week();
+  const month = dj.month() + 1;
+  const date = dj.date();
+  const dow = DOW_SHORT[dj.day()];
+  const weekSub = `${year}年 · 第${week}周`;
+
+  switch (view) {
+    case 'day':
+      return [`${dow} · ${month}月${date}日`, weekSub];
+    case 'week': {
+      // dayjs zh-cn locale: startOf('week') = 周一
+      const start = dj.startOf('week');
+      const end = start.add(6, 'day');
+      const sMonth = start.month() + 1;
+      const sDate = start.date();
+      const eDate = end.date();
+      return [`${sMonth}月${sDate}日 – ${eDate}日`, weekSub];
+    }
+    case 'month': {
+      const daysInMonth = dj.daysInMonth();
+      return [`${year}年 ${month}月`, `${daysInMonth}天`];
+    }
+    case 'scheduler':
+      return [`${dow} · ${month}月${date}日`, `${calendarResources.length}项资源`];
+    case 'timeline': {
+      const start = dj.startOf('week');
+      const end = start.add(6, 'day');
+      const sMonth = start.month() + 1;
+      const sDate = start.date();
+      const eDate = end.date();
+      return ['本周日程', `${sMonth}月${sDate}日 – ${eDate}日 · 议程视图`];
+    }
+    default:
+      return [`${month}月${date}日`, weekSub];
+  }
+}
 
 // 主题值全部指向 CSS 变量。
 // 这样 root 上的 data-theme / data-accent 改变后，日历引擎无需维护多份硬编码 theme object。
@@ -304,7 +346,7 @@ export default function App() {
 
   const closePop = () => setPick(null);
 
-  const [title, sub] = VIEW_TITLE[view];
+  const [title, sub] = useMemo(() => computeViewTitle(view, currentDate), [view, currentDate]);
 
   return (
     <Provider colorScheme={prefs.theme}>

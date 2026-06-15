@@ -365,33 +365,96 @@ button {
 }
 
 .tb-date {
-  flex: 0 1 280px;
+  flex: 0 1 auto;
   min-width: 0;
+  max-width: 260px;
   overflow: hidden;
 }
 .tb-title {
-  font-size: 20px;
+  font-size: 19px;
   font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 1.1;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  color: var(--text-1);
 }
 .tb-sub {
-  font-size: 12.5px;
+  font-size: 12px;
   color: var(--text-3);
-  margin-top: 1px;
+  margin-top: 2px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  letter-spacing: 0.01em;
 }
 
 .tb-nav {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 2px;
   flex-shrink: 0;
+  margin-left: -6px; /* 紧贴左侧标题区域 */
+  /* 轻量分组容器 */
+  background: var(--bg-sunken);
+  border-radius: 8px;
+  padding: 2px;
+}
+
+/* === 「今天」按钮 === */
+.tb-today {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--accent-text);
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  height: 28px;
+  padding: 0 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  letter-spacing: 0.01em;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+.tb-today:hover {
+  background: var(--accent-tint);
+}
+.tb-today:active {
+  background: var(--accent-tint-strong);
+}
+
+/* === 左右箭头 === */
+.tb-arrow {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--text-3);
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-radius: 6px;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+.tb-arrow svg {
+  width: 15px;
+  height: 15px;
+}
+.tb-arrow:hover {
+  background: var(--bg-hover);
+  color: var(--text-1);
+}
+.tb-arrow:active {
+  background: var(--bg-down);
 }
 
 .tb-spacer {
@@ -399,13 +462,29 @@ button {
   min-width: 8px;
 }
 
-/* P3: S2 SearchField 容器 */
+/* P3: S2 SearchField 容器 — 自适应宽度 + 最大宽度 */
 .tb-search-wrap {
-  flex: 0 1 240px;
-  min-width: 160px;
+  flex: 1 1 0;
+  min-width: 120px;
+  max-width: 320px;
+  position: relative;
 }
 .tb-search-wrap > [role='search'] {
   width: 100%;
+  border-radius: 8px !important;
+  background: var(--bg-sunken) !important;
+  border: 1px solid transparent !important;
+  box-shadow: none !important;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+.tb-search-wrap > [role='search']:hover {
+  border-color: var(--border) !important;
+}
+.tb-search-wrap > [role='search']:focus-within {
+  border-color: var(--accent-bg) !important;
+  background: var(--bg-layer-2) !important;
 }
 
 /* P3: S2 ActionButton + 通知圆点 */
@@ -420,8 +499,8 @@ button {
 }
 .s2-dot {
   position: absolute;
-  top: 5px;
-  right: 5px;
+  top: 6px;
+  right: 6px;
   width: 7px;
   height: 7px;
   background: var(--cat-magenta-line);
@@ -440,6 +519,10 @@ button {
   .tb-date {
     flex: 1 1 160px;
     min-width: 140px;
+  }
+
+  .tb-nav {
+    margin-left: -4px;
   }
 
   .tb-title {
@@ -496,54 +579,123 @@ button {
   outline-color: var(--accent-bg) !important;
 }
 
-/* SegmentedControl — 收回到设计稿的轻量胶囊样式，而不是 S2 默认的较重分段观感 */
+/* SegmentedControl — 极简强调色风格
+   S2 内部结构：每个 button 内有一个 position:absolute 的 slider div 作为选中指示器，
+   默认是白色底 + 2px 深色边框，视觉上太重。
+   我们的方案：把 slider 改为主题强调色实心底 + 去边框，按钮文字选中时反白。 */
 .s2-ss {
-  display: inline-flex;
+  display: inline-flex !important;
   align-items: center;
-  gap: 2px;
-  padding: 3px;
-  border: 1px solid var(--border);
-  border-radius: var(--r-full);
-  background: var(--bg-sunken);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  gap: 0;
+  padding: 3px !important;
+  border: none !important;
+  border-radius: 10px !important;
+  background: var(--bg-sunken) !important;
+  box-shadow: none !important;
+  outline: none !important;
+  white-space: nowrap;
+  overflow: visible;
 }
 
+/* === 按钮本体 === */
 .s2-ss button {
-  min-width: 0;
-  height: 28px;
-  padding: 0 12px !important;
+  min-width: 0 !important;
+  height: 28px !important;
+  padding: 0 13px !important;
   border: none !important;
-  border-radius: var(--r-full) !important;
+  border-radius: 7px !important;
   background: transparent !important;
-  color: var(--text-2) !important;
-  font-size: 13px !important;
-  font-weight: 600 !important;
+  color: var(--text-3) !important;
+  font-size: 12.5px !important;
+  font-weight: 500 !important;
+  box-shadow: none !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 5px !important;
+  line-height: 1 !important;
+  letter-spacing: 0.01em;
+  flex-shrink: 0 !important;
+  flex-grow: 0 !important;
+  position: relative !important;
+  overflow: hidden !important;
+  transition: color 0.18s ease;
+}
+
+/* === S2 slider div：绝对定位在每个 button 内部，选中时显示 === */
+.s2-ss button > div:first-child {
+  border: none !important;
+  border-width: 0 !important;
+  border-color: transparent !important;
+  background: transparent !important;
+  border-radius: 7px !important;
   box-shadow: none !important;
   transition:
-    background 0.12s ease,
-    color 0.12s ease,
-    box-shadow 0.12s ease;
+    background 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
+/* 选中态 slider：强调色实心底 */
+.s2-ss button[aria-pressed='true'] > div:first-child,
+.s2-ss button[aria-checked='true'] > div:first-child,
+.s2-ss button[data-selected] > div:first-child {
+  background: var(--accent-bg) !important;
+  border: none !important;
+  border-width: 0 !important;
+  box-shadow: 0 1px 4px color-mix(in oklch, var(--accent-bg) 35%, transparent) !important;
+}
+
+/* 选中态按钮：白字 */
+.s2-ss button[aria-pressed='true'],
+.s2-ss button[aria-checked='true'],
+.s2-ss button[data-selected] {
+  color: var(--accent-contrast) !important;
+  font-weight: 600 !important;
+}
+
+/* 选中态图标 */
+.s2-ss button[aria-pressed='true'] svg,
+.s2-ss button[aria-checked='true'] svg,
+.s2-ss button[data-selected] svg {
+  color: var(--accent-contrast);
+  opacity: 1;
+}
+
+/* 未选中态 hover */
 .s2-ss button:hover {
   color: var(--text-1) !important;
 }
 
+/* 图标基础样式 */
 .s2-ss button svg {
-  width: 14px;
-  height: 14px;
-  flex: none;
+  width: 14px !important;
+  height: 14px !important;
+  flex: none !important;
+  display: block !important;
+  opacity: 0.65;
+  transition: opacity 0.18s ease;
 }
 
-.s2-ss button[aria-checked='true'] {
-  background: var(--bg-layer-2) !important;
-  color: var(--accent-text) !important;
-  box-shadow: var(--shadow-sm) !important;
+.s2-ss button:hover svg {
+  opacity: 0.85;
 }
 
+/* 文字 span */
+.s2-ss button span {
+  line-height: 1 !important;
+}
+
+/* 隐藏可能的 S2 内部文字溢出包裹层 */
+.s2-ss button > div:nth-child(2) {
+  overflow: visible !important;
+  text-overflow: unset !important;
+}
+
+/* Focus */
 .s2-ss button:focus-visible,
 .s2-ss button[data-focus-visible] {
   outline-color: var(--accent-bg) !important;
+  outline-offset: -2px !important;
 }
 
 /* P3: 视图切换现为 S2 SegmentedControl，原生样式由组件管理。
@@ -641,27 +793,50 @@ button {
   height: var(--chip-h);
   padding: 0 12px;
   border-radius: var(--r-full);
-  border: 1px solid var(--border-strong);
+  /* 默认即「未选中」态：弱边框 + 弱文字，与 .on 形成明显对比 */
+  border: 1px solid var(--border);
   background: var(--bg-layer-2);
   font-size: 12.5px;
   font-weight: 500;
-  color: var(--text-2);
+  color: var(--text-3);
   cursor: pointer;
   white-space: nowrap;
   flex: none;
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease,
+    background 0.15s ease;
 }
 .chip:hover {
   background: var(--bg-hover);
+  color: var(--text-2);
 }
 .chip .swatch {
   width: 9px;
   height: 9px;
   border-radius: 3px;
   flex: none;
+  /* 未选中：色块去饱和、淡化，让选中态的彩色更突出 */
+  opacity: 0.4;
+  filter: grayscale(0.5);
+  /* 文字墨迹在行盒内偏上约 1px（CJK 字体度量），色块/图标同步上移 1px 做视觉对齐 */
+  transform: translateY(-1px);
+  transition:
+    opacity 0.15s ease,
+    filter 0.15s ease;
+}
+.chip > svg {
+  transform: translateY(-1px);
 }
 .chip.on {
   color: var(--text-1);
+  font-weight: 600;
   border-color: var(--border-strong);
+  background: var(--bg-hover);
+}
+.chip.on .swatch {
+  opacity: 1;
+  filter: none;
 }
 .chip.off {
   opacity: 0.45;
