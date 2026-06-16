@@ -45,11 +45,6 @@ export interface CalEvent {
   desc?: string;
 }
 
-export interface MonthEvent {
-  title: string;
-  cat: Cat;
-}
-
 export interface CatColorStyle {
   line: string;
   fill: string;
@@ -245,43 +240,6 @@ export const events: CalEvent[] = [
     loc: '协作区',
   },
 ];
-
-export const monthEvents: Record<number, MonthEvent[]> = {
-  3: [
-    { title: '季度启动', cat: 'seafoam' },
-    { title: '1:1 · 李娜', cat: 'magenta' },
-  ],
-  4: [{ title: '客户演示', cat: 'orange' }],
-  7: [
-    { title: '设计评审', cat: 'indigo' },
-    { title: '结对编程', cat: 'green' },
-    { title: 'Bug 分诊', cat: 'orange' },
-  ],
-  8: [{ title: '全员同步', cat: 'seafoam' }],
-  11: [{ title: '面试 ×2', cat: 'purple' }],
-  12: [
-    { title: '路线图梳理', cat: 'indigo' },
-    { title: '客户演示彩排', cat: 'orange' },
-  ],
-  14: [{ title: '季度规划工作坊', cat: 'indigo' }],
-  15: [
-    { title: '架构评审', cat: 'purple' },
-    { title: '组件库设计', cat: 'purple' },
-  ],
-  18: [{ title: '干系人对齐', cat: 'orange' }],
-  21: [
-    { title: '产品双周评审', cat: 'seafoam' },
-    { title: '1:1 · 张明', cat: 'magenta' },
-    { title: '设计走查', cat: 'indigo' },
-    { title: 'Bug 分诊', cat: 'orange' },
-  ],
-  22: [{ title: '全员同步会', cat: 'seafoam' }],
-  25: [{ title: '发布评审', cat: 'green' }],
-  28: [{ title: '回顾会', cat: 'indigo' }],
-};
-
-export const weekDays = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
-export const weekDates = [18, 19, 20, 21, 22, 23, 24];
 
 export const CAT_COLOR_STYLES: Record<Cat, CatColorStyle> = {
   seafoam: {

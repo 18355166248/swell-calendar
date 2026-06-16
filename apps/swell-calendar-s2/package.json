@@ -14,7 +14,9 @@
   },
   "dependencies": {
     "@react-spectrum/s2": "^1.4.0",
+    "axios": "^1.18.0",
     "dayjs": "^1.11.13",
+    "mockjs": "^1.1.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "swell-calendar": "workspace:*",
@@ -22,6 +24,7 @@
   },
   "devDependencies": {
     "@repo/typescript-config": "workspace:*",
+    "@types/mockjs": "^1.0.10",
     "@types/react": "^18.2.61",
     "@types/react-dom": "^18.2.19",
     "@vitejs/plugin-react": "^4.2.1",

@@ -60,7 +60,7 @@ export function Sidebar({
       </div>
       {/* P3: S2 Button variant="accent" 替换原生 button */}
       <div className="side-cta-wrap">
-        <Button variant="accent" onPress={openCreate} UNSAFE_className={'s2-seafoam-cta' as any}>
+        <Button variant="accent" onPress={openCreate} UNSAFE_className="s2-seafoam-cta">
           <Ic.plus />
           <span className="lbl">新建日程</span>
         </Button>
@@ -253,12 +253,7 @@ export function Topbar({
   return (
     <header className="topbar">
       {/* P3: S2 ActionButton (quiet) */}
-      <ActionButton
-        isQuiet
-        onPress={toggleRail}
-        aria-label="切换侧栏"
-        UNSAFE_className={'s2-sf' as any}
-      >
+      <ActionButton isQuiet onPress={toggleRail} aria-label="切换侧栏" UNSAFE_className="s2-sf">
         <Ic.sidebar />
       </ActionButton>
       <div className="tb-date">
@@ -286,7 +281,7 @@ export function Topbar({
             aria-label="搜索"
             value={query}
             onChange={setQuery}
-            UNSAFE_className={'s2-sf' as any}
+            UNSAFE_className="s2-sf"
           />
         </div>
       )}
@@ -296,7 +291,7 @@ export function Topbar({
           selectedKey={view}
           onSelectionChange={(k: Key) => setView(k as ViewId)}
           aria-label="视图切换"
-          UNSAFE_className={'s2-ss' as any}
+          UNSAFE_className="s2-ss"
         >
           {views.map((v) => (
             <SegmentedControlItem key={v.id} id={v.id}>
@@ -308,7 +303,7 @@ export function Topbar({
       )}
       {/* P3: S2 ActionButton (quiet) + notification dot */}
       <span className="tb-icon-wrap">
-        <ActionButton isQuiet aria-label="通知" UNSAFE_className={'s2-sf' as any}>
+        <ActionButton isQuiet aria-label="通知" UNSAFE_className="s2-sf">
           <Ic.bell />
         </ActionButton>
         <span className="s2-dot" />
@@ -317,7 +312,7 @@ export function Topbar({
         <ActionButton
           isQuiet
           aria-label="设置"
-          UNSAFE_className={'s2-sf' as any}
+          UNSAFE_className="s2-sf"
           onPress={() => {
             if (settingsAnchorRef.current) {
               openSettings(settingsAnchorRef.current);

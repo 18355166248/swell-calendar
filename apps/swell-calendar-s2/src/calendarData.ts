@@ -7,7 +7,6 @@ import {
   type CalEvent,
   type PickEvent,
   type Resource,
-  events,
   resources,
 } from './data';
 import type { EventDraft } from './dataSource';
@@ -99,7 +98,6 @@ export function toCalendarResources(res: Resource[]): ResourceInfo[] {
 }
 
 /** 预转换数据 */
-export const calendarEvents = toCalendarEvents(events);
 export const calendarResources = toCalendarResources(resources);
 
 /** 分类颜色查找（供 calendars prop 使用） */

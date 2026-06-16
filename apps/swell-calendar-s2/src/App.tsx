@@ -2,7 +2,7 @@
 // 设计稿的 tweaks 面板是 Claude Design 编辑器宿主工具，非真实功能，已剔除；
 // 当前把主题/强调色/密度收敛为宿主可持久化配置，其余 card/toolbar/popover 保持设计默认值。
 // P4: scheduler / timeline 视图已替换为 swell-calendar 真引擎（拖拽/resize/创建）。
-import { Provider } from '@react-spectrum/s2';
+import { Provider, ToastContainer, ToastQueue } from '@react-spectrum/s2';
 import dayjs from 'dayjs';
 import 'dayjs/locale/zh-cn';
 import weekOfYear from 'dayjs/plugin/weekOfYear';
@@ -350,6 +350,7 @@ export default function App() {
 
   return (
     <Provider colorScheme={prefs.theme}>
+      <ToastContainer />
       <div
         className="app"
         data-sidebar={sidebar}
@@ -446,10 +447,17 @@ export default function App() {
                   onEventCreate: handleEngineCreate,
                   // P7b: 拖拽移动 / resize → 基于 raw 合并写回数据源
                   onEventUpdate: handleEngineUpdate,
-                  // P7b: 创建 / 更新被引擎策略拒绝时静默忽略
-                  // TODO: toast 提示用户 overlap / invalid / policy 拒绝原因
-                  onEventCreateFailed: () => {},
-                  onEventUpdateFailed: () => {},
+                  // P7b: 创建 / 更新被引擎策略拒绝（overlap / invalid / policy）时 toast 提示
+                  onEventCreateFailed: () => {
+                    ToastQueue.negative('无法创建日程：与现有安排冲突或时段不合法', {
+                      timeout: 5000,
+                    });
+                  },
+                  onEventUpdateFailed: () => {
+                    ToastQueue.negative('无法更新日程：与现有安排冲突或时段不合法', {
+                      timeout: 5000,
+                    });
+                  },
                   // P8b: 引擎翻页 → 回填 currentDate，联动 MiniCalendar 高亮
                   onPageChange: handlePageChange,
                 }}
