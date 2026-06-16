@@ -145,6 +145,8 @@ interface CalendarOptions {
     hourStart?: number;
     hourEnd?: number;
     workweek?: boolean;
+    /** 固定列宽（px）。设置后 scheduler 启用水平滚动，每列宽度固定为此值 */
+    columnWidth?: number;
     invalid?: BlockedTimeRange[];
     blockedTimes?: BlockedTimeRange[];
     colors?: ColoredRange[];

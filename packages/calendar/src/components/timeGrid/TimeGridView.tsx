@@ -46,6 +46,8 @@ const classNames = {
 export interface TimeGridProps {
   timeGridData: TimeGridData;
   events: EventUIModel[]; // 需要在网格中显示的事件数组
+  /** 固定列宽（像素），由 scheduler 视图传入以启用水平滚动 */
+  columnWidth?: number;
 }
 
 function isSameResourceColumn(column: CommonGridColumn, uiModel: EventUIModel) {
@@ -59,7 +61,7 @@ function isSameResourceColumn(column: CommonGridColumn, uiModel: EventUIModel) {
   return resourceId === column.resourceId || resourceIds.includes(column.resourceId);
 }
 
-export function TimeGrid({ timeGridData, events }: TimeGridProps) {
+export function TimeGrid({ timeGridData, events, columnWidth }: TimeGridProps) {
   const { columns } = timeGridData;
 
   // 获取列容器的 DOM 节点引用
@@ -83,6 +85,12 @@ export function TimeGrid({ timeGridData, events }: TimeGridProps) {
   const baseGutterWidth = parseInt(`${timeGridLeft.width}`, 10) || 72;
   const gutterWidth =
     timezones.length > 0 ? `${baseGutterWidth * (timezones.length + 1)}px` : timeGridLeft.width;
+
+  // 固定列宽模式：计算网格总像素宽度，用于 .time-columns 和 .time-grid-scroll-area 的显式宽度
+  const gutterWidthPx =
+    timezones.length > 0 ? baseGutterWidth * (timezones.length + 1) : baseGutterWidth;
+  const gridPixelWidth = columnWidth ? columns.length * columnWidth : undefined;
+  const scrollAreaWidth = gridPixelWidth ? `${gutterWidthPx + gridPixelWidth}px` : undefined;
 
   // 当前时间指示器的状态
   const [nowIndicatorState, setNowIndicatorState] = useState<{
@@ -344,20 +352,28 @@ export function TimeGrid({ timeGridData, events }: TimeGridProps) {
 
   return (
     <div className={classNames.timeGrid} ref={setTimeGridContainer}>
-      <div className={classNames.scrollArea}>
-        {/* 左侧时间轴 */}
+      <div
+        className={classNames.scrollArea}
+        style={scrollAreaWidth ? { width: scrollAreaWidth } : undefined}
+      >
+        {/* 左侧时间轴 — 固定列宽模式下 sticky 固定在可视区左侧 */}
         <TimeColumn
           timeGridRows={timeGridData.rows}
           nowIndicatorState={nowIndicatorState}
           timezones={timezones}
           primaryTimezone={primaryTimezone}
           width={gutterWidth}
+          style={columnWidth ? { position: 'sticky', left: 0, zIndex: 2 } : undefined}
         />
         {/* 右侧时间轴 */}
         <div
           className={cls('time-columns')}
           ref={setColumnsContainer}
-          style={{ left: gutterWidth }}
+          style={
+            gridPixelWidth
+              ? { left: gutterWidth, width: `${gridPixelWidth}px`, right: 'auto' }
+              : { left: gutterWidth }
+          }
           onMouseDown={isReadOnly ? undefined : handleMouseDown}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
@@ -378,7 +394,7 @@ export function TimeGrid({ timeGridData, events }: TimeGridProps) {
           {columns.map((col, index) => (
             <Column
               key={index}
-              width={toPercent(col.width)}
+              width={columnWidth ? `${col.width}px` : toPercent(col.width)}
               columnIndex={index}
               timeGridData={timeGridData}
               columnDate={col.date}

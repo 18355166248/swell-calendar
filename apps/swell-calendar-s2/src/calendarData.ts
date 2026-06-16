@@ -184,7 +184,6 @@ export function engineEventToDraft(event: EventObject): EventDraft {
   }
 
   // 新建路径：从引擎字段构建
-  const resource = resources.find((r) => r.id === res);
   return {
     title: event.title || '新日程',
     cat: (event.calendarId as Cat) || 'seafoam',
@@ -193,7 +192,6 @@ export function engineEventToDraft(event: EventObject): EventDraft {
     start,
     end,
     res,
-    loc: resource?.short,
   };
 }
 
@@ -205,7 +203,6 @@ export function engineEventToDraft(event: EventObject): EventDraft {
 
 /** 对话框输入 → 事件草稿；编辑时传入原事件以保留 who/desc 等对话框不编辑的字段。 */
 export function inputToDraft(input: NewEventInput, base?: CalEvent): EventDraft {
-  const resource = resources.find((r) => r.id === input.res);
   return {
     ...base,
     res: input.res,
@@ -215,7 +212,6 @@ export function inputToDraft(input: NewEventInput, base?: CalEvent): EventDraft 
     end: timeToDecimalHour(input.end),
     title: input.title,
     cat: input.cat,
-    loc: resource?.short,
   };
 }
 

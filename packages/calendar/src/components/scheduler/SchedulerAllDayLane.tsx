@@ -6,12 +6,18 @@ interface SchedulerAllDayLaneProps {
   scrollbarWidth?: number;
   timeGridLeftWidth: number | string;
   uiModels: EventUIModel[];
+  /** 固定列宽（像素），设置后全天事件区使用像素宽度 */
+  columnWidth?: number;
+  /** 网格总像素宽度，用于全天事件区显式宽度 */
+  gridPixelWidth?: number;
 }
 
 export function SchedulerAllDayLane({
   scrollbarWidth = 0,
   timeGridLeftWidth,
   uiModels,
+  columnWidth,
+  gridPixelWidth,
 }: SchedulerAllDayLaneProps) {
   if (uiModels.length === 0) {
     return null;
@@ -19,17 +25,25 @@ export function SchedulerAllDayLane({
 
   return (
     <div className={cls('scheduler-allday-lane')} style={{ display: 'flex', minWidth: 0 }}>
-      {/* 左侧 gutter 标签，与下方时间轴 gutter 等宽对齐 */}
+      {/* 左侧 gutter 标签，与下方时间轴 gutter 等宽对齐 — 固定列宽模式下 sticky */}
       <div
         className={cls('scheduler-allday-lane-label')}
-        style={{ width: timeGridLeftWidth, flexShrink: 0 }}
+        style={{
+          width: timeGridLeftWidth,
+          flexShrink: 0,
+          ...(columnWidth ? { position: 'sticky', left: 0, zIndex: 1, background: '#fff' } : {}),
+        }}
       >
         全天
       </div>
-      {/* 全天事件区，与下方日期列对齐（扣除竖向滚动条宽度） */}
+      {/* 全天事件区，与下方日期列对齐 */}
       <div
         className={cls('scheduler-allday-lane-content')}
-        style={{ flex: 1, minWidth: 0, marginRight: scrollbarWidth }}
+        style={
+          gridPixelWidth
+            ? { width: `${gridPixelWidth}px`, flexShrink: 0 }
+            : { flex: 1, minWidth: 0, marginRight: scrollbarWidth }
+        }
       >
         <AlldayRow uiModels={uiModels} />
       </div>

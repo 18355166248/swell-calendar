@@ -154,7 +154,7 @@ const CALENDAR_THEME = {
       nameColor: 'var(--text-1)',
     },
     grid: {
-      rowBorderBottom: '1px solid var(--grid-line-soft)',
+      rowBorderBottom: '1px solid var(--grid-line)',
       cellBorderRight: '1px solid var(--grid-line)',
       weekendBackgroundColor: 'var(--weekend-bg)',
       todayBackgroundColor: 'transparent',
@@ -391,6 +391,7 @@ export default function App({ view }: AppProps) {
         resources: calendarResources,
         hourStart: 8,
         hourEnd: 20,
+        columnWidth: 120,
       },
       timeline: {
         resources: calendarResources,

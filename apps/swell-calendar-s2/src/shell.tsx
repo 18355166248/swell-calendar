@@ -30,7 +30,7 @@ export function Sidebar({ view, setView, openCreate, currentDate, onDateChange }
     { id: 'day', label: '日视图', icon: Ic.day },
     { id: 'week', label: '周视图', icon: Ic.week },
     { id: 'month', label: '月视图', icon: Ic.month },
-    { id: 'scheduler', label: '资源调度', icon: Ic.sched, badge: '6' },
+    { id: 'scheduler', label: '资源调度', icon: Ic.sched, badge: '10' },
     { id: 'timeline', label: '时间线', icon: Ic.timeline },
   ];
   return (

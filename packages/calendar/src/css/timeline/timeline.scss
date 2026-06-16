@@ -19,6 +19,7 @@
   flex: 1;
   overflow: auto;
   min-height: 0;
+  min-width: 0;
 }
 
 .scheduler-inner {
@@ -233,6 +234,8 @@
 
 .scheduler-view {
   height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .scheduler-header {

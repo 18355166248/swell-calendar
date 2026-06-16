@@ -179,7 +179,8 @@ export function getVisibleResources(
 
 export function createSchedulerColumnsData(
   datesOfWeek: DayjsTZDate[],
-  resources: ResourceInfo[]
+  resources: ResourceInfo[],
+  columnWidth?: number
 ): CommonGridColumn[] {
   const visibleResources = getVisibleResources(resources);
 
@@ -188,7 +189,8 @@ export function createSchedulerColumnsData(
   }
 
   const totalColumns = visibleResources.length * datesOfWeek.length;
-  const width = 100 / totalColumns;
+  // 固定列宽模式：使用像素宽度；百分比模式：均分 100%
+  const width = columnWidth ?? 100 / totalColumns;
   const result: CommonGridColumn[] = [];
 
   datesOfWeek.forEach((date) => {
@@ -215,6 +217,7 @@ export function createSchedulerTimeGridData(
     hourStart: number;
     hourEnd: number;
     hourDivision: HourDivision;
+    columnWidth?: number;
   }
 ): TimeGridData {
   const baseGridData = createTimeGridData(datesOfWeek, {
@@ -226,7 +229,7 @@ export function createSchedulerTimeGridData(
 
   return {
     rows: baseGridData.rows,
-    columns: createSchedulerColumnsData(datesOfWeek, resources),
+    columns: createSchedulerColumnsData(datesOfWeek, resources, options.columnWidth),
   };
 }
 

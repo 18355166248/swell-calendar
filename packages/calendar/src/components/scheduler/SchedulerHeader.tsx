@@ -12,6 +12,8 @@ interface SchedulerHeaderProps {
   resources: ResourceInfo[];
   timeGridLeftWidth: number | string;
   scrollbarWidth?: number;
+  /** 固定列宽（像素），设置后使用像素宽度而非百分比 */
+  columnWidth?: number;
 }
 
 export function SchedulerHeader({
@@ -19,13 +21,18 @@ export function SchedulerHeader({
   resources,
   timeGridLeftWidth,
   scrollbarWidth = 0,
+  columnWidth,
 }: SchedulerHeaderProps) {
   const schedulerHeaderTheme = useThemeStore((state) => state.timeline.schedulerHeader);
   const schedulerResourceCellTheme = useThemeStore((state) => state.timeline.schedulerResourceCell);
   const totalCols = weekDates.length * resources.length;
-  const dayWidthPct = `${100 / weekDates.length}%`;
-  const colWidthPct = `${100 / totalCols}%`;
-  const rightOffset = scrollbarWidth > 0 ? ` - ${scrollbarWidth}px` : '';
+  // 固定列宽模式：天标签 = columnWidth × 资源数 px；资源单元格 = columnWidth px
+  // 百分比模式：天标签 = 100/天数 %；资源单元格 = 100/总列数 %
+  const dayWidth = columnWidth
+    ? `${columnWidth * resources.length}px`
+    : `${100 / weekDates.length}%`;
+  const colWidth = columnWidth ? `${columnWidth}px` : `${100 / totalCols}%`;
+  const rightOffset = !columnWidth && scrollbarWidth > 0 ? ` - ${scrollbarWidth}px` : '';
 
   return (
     <div
@@ -54,7 +61,7 @@ export function SchedulerHeader({
               key={date.toString()}
               className={cls('scheduler-header-day-label')}
               style={{
-                flex: `0 0 ${dayWidthPct}`,
+                flex: `0 0 ${dayWidth}`,
                 color: schedulerHeaderTheme.dayLabelColor,
                 borderRight: schedulerHeaderTheme.dayLabelBorderRight,
               }}
@@ -82,7 +89,7 @@ export function SchedulerHeader({
               key={`${date.toString()}-${resource.id}`}
               className={cls('scheduler-header-resource-cell')}
               style={{
-                flex: `0 0 ${colWidthPct}`,
+                flex: `0 0 ${colWidth}`,
                 color: schedulerResourceCellTheme.nameColor,
                 borderRight:
                   resIdx === resources.length - 1
