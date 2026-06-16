@@ -144,6 +144,7 @@ interface CalendarOptions {
     resources?: ResourceInfo[];
     hourStart?: number;
     hourEnd?: number;
+    workweek?: boolean;
     invalid?: BlockedTimeRange[];
     blockedTimes?: BlockedTimeRange[];
     colors?: ColoredRange[];

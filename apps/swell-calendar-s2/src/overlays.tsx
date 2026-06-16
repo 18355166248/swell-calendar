@@ -467,12 +467,15 @@ export const FILTER_CATS: Cat[] = SUBBAR_CATS.map((c) => c.c);
 export function SubBar({
   showWknd,
   setShowWknd,
+  showWeekendToggle,
   activeCats,
   onToggleCat,
   onShowAll,
 }: {
   showWknd: boolean;
   setShowWknd: (v: boolean) => void;
+  /** 仅在能切换周末列的视图（周视图 / 资源调度）显示「显示周末」开关；日/月/时间线无意义。 */
+  showWeekendToggle: boolean;
   activeCats: Set<Cat>;
   onToggleCat: (c: Cat) => void;
   onShowAll: () => void;
@@ -498,9 +501,11 @@ export function SubBar({
         ))}
       </div>
       <div className="tb-spacer" />
-      <label className="mini-toggle" onClick={() => setShowWknd(!showWknd)}>
-        显示周末 <span className={'switch' + (showWknd ? ' on' : '')} />
-      </label>
+      {showWeekendToggle && (
+        <label className="mini-toggle" onClick={() => setShowWknd(!showWknd)}>
+          显示周末 <span className={'switch' + (showWknd ? ' on' : '')} />
+        </label>
+      )}
     </div>
   );
 }

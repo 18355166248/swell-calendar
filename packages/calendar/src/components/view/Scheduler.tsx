@@ -90,10 +90,12 @@ export function Scheduler() {
   const hourStart = schedulerOptions?.hourStart ?? weekOptions?.hourStart ?? 0;
   const hourEnd = schedulerOptions?.hourEnd ?? weekOptions?.hourEnd ?? 24;
   const hourDivision = weekOptions?.hourDivision ?? 2;
+  // 工作日模式：scheduler 可独立覆盖，缺省回退 week.workweek（与 hourStart/hourEnd 一致的回退）。
+  const workweek = schedulerOptions?.workweek ?? weekOptions?.workweek;
 
   const weekDates = useMemo(
-    () => getWeekDates(renderDate, weekOptions ?? {}),
-    [renderDate, weekOptions]
+    () => getWeekDates(renderDate, { ...(weekOptions ?? {}), workweek }),
+    [renderDate, weekOptions, workweek]
   );
 
   const { weekStart, weekEnd } = useMemo(() => {

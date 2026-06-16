@@ -384,6 +384,8 @@ export default function App() {
             <SubBar
               showWknd={showWknd}
               setShowWknd={setShowWknd}
+              // 仅周视图 / 资源调度真正支持隐藏周末列（引擎 week.workweek）；日/月视图下无意义
+              showWeekendToggle={view === 'week' || view === 'scheduler'}
               activeCats={activeCats}
               onToggleCat={toggleCat}
               onShowAll={() => setActiveCats(new Set(FILTER_CATS))}

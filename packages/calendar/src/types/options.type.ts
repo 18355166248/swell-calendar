@@ -100,6 +100,9 @@ export interface SchedulerOptions {
   resources?: ResourceInfo[];
   hourStart?: number;
   hourEnd?: number;
+  // 是否为工作日模式，只显示工作日（周一到周五），隐藏周末列。
+  // 缺省时回退到 week.workweek（与 hourStart/hourEnd 一致的「scheduler 覆盖 week」回退）。
+  workweek?: boolean;
   invalid?: InvalidRange[];
   blockedTimes?: BlockedTimeRange[];
   colors?: ColoredRange[];
