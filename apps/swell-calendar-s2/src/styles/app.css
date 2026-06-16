@@ -207,21 +207,6 @@ button {
   padding: 1px 8px;
 }
 
-.nav-cal-dot {
-  width: 11px;
-  height: 11px;
-  border-radius: 4px;
-  transition:
-    background 0.12s,
-    opacity 0.12s;
-}
-.nav-cal.off {
-  opacity: 0.45;
-}
-.nav-cal.off .lbl {
-  text-decoration: line-through;
-}
-
 /* mini calendar */
 .mini {
   margin: 8px 18px 16px;

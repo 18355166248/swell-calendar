@@ -11,9 +11,7 @@ import {
   SegmentedControlItem,
 } from '@react-spectrum/s2';
 
-import { CAT_COLORS, type Cat } from './data';
 import { Ic } from './icons';
-import { SUBBAR_CATS } from './overlays';
 
 export type ViewId = 'day' | 'week' | 'month' | 'scheduler' | 'timeline';
 export type Sidebar = 'full' | 'rail' | 'hidden';
@@ -23,21 +21,11 @@ interface SidebarProps {
   view: ViewId;
   setView: (v: ViewId) => void;
   openCreate: () => void;
-  activeCats: Set<Cat>;
-  onToggleCat: (c: Cat) => void;
   currentDate: Date;
   onDateChange: (d: Date) => void;
 }
 
-export function Sidebar({
-  view,
-  setView,
-  openCreate,
-  activeCats,
-  onToggleCat,
-  currentDate,
-  onDateChange,
-}: SidebarProps) {
+export function Sidebar({ view, setView, openCreate, currentDate, onDateChange }: SidebarProps) {
   const navMain: { id: ViewId; label: string; icon: () => JSX.Element; badge?: string }[] = [
     { id: 'day', label: '日视图', icon: Ic.day },
     { id: 'week', label: '周视图', icon: Ic.week },
@@ -45,8 +33,6 @@ export function Sidebar({
     { id: 'scheduler', label: '资源调度', icon: Ic.sched, badge: '6' },
     { id: 'timeline', label: '时间线', icon: Ic.timeline },
   ];
-  // 「我的日历」分类复用 SubBar 同一份分类集合（含「面试·招聘」），与顶栏 chips 共用 activeCats 状态。
-  const navCal = SUBBAR_CATS;
   return (
     <aside className="sidebar">
       <div className="brand">
@@ -78,26 +64,6 @@ export function Sidebar({
             {n.badge && <span className="badge">{n.badge}</span>}
           </button>
         ))}
-        <div className="nav-label">我的日历</div>
-        {navCal.map((n) => {
-          const on = activeCats.has(n.c);
-          return (
-            <button
-              key={n.c}
-              className={'nav-item nav-cal' + (on ? '' : ' off')}
-              onClick={() => onToggleCat(n.c)}
-              aria-pressed={on}
-            >
-              <span style={{ width: 18, display: 'grid', placeItems: 'center' }}>
-                <span
-                  className="nav-cal-dot"
-                  style={{ background: on ? CAT_COLORS[n.c] : 'var(--text-disabled)' }}
-                />
-              </span>
-              <span className="lbl">{n.label}</span>
-            </button>
-          );
-        })}
       </nav>
       <MiniCalendar currentDate={currentDate} onDateChange={onDateChange} />
       <div className="side-foot">

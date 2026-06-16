@@ -177,6 +177,17 @@ function isSameDay(a: Date, b: Date): boolean {
   );
 }
 
+// 引擎不向 onEventClick 回传被点卡片的 DOM 节点，但各视图都给事件卡打了带 id 的 data-testid。
+// 据此按 id 定位真实卡片元素，供详情弹层锚定（替代不可靠的 document.activeElement）。
+const EVENT_CARD_TESTID_PREFIXES = ['event-card', 'month-event', 'timeline-event'];
+function findEventAnchor(id: string): HTMLElement | null {
+  for (const prefix of EVENT_CARD_TESTID_PREFIXES) {
+    const el = document.querySelector<HTMLElement>(`[data-testid="${prefix}-${id}"]`);
+    if (el) return el;
+  }
+  return null;
+}
+
 function loadJSON<T>(key: string, fallback: T): T {
   try {
     const raw = localStorage.getItem(key);
@@ -361,8 +372,6 @@ export default function App() {
           view={view}
           setView={setView}
           openCreate={() => setCreating(true)}
-          activeCats={activeCats}
-          onToggleCat={toggleCat}
           currentDate={currentDate}
           onDateChange={goToDate}
         />
@@ -440,9 +449,12 @@ export default function App() {
                 }}
                 callbacks={{
                   onEventClick: ({ event }) => {
+                    // 锚定到真实被点卡片；极少数找不到时退回 activeElement，避免弹层不可见
+                    const anchor =
+                      findEventAnchor(event.id) ?? (document.activeElement as HTMLElement);
                     setPick({
                       ev: toPickEvent(event),
-                      anchor: document.activeElement as HTMLElement,
+                      anchor,
                     });
                   },
                   // P7b: 滑动新建 / 单元格点击 → 预填对话框
