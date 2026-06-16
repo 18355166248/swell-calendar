@@ -109,6 +109,17 @@ function startOfWeekMonday(d: Date): Date {
   return s;
 }
 
+function getWeekStripMonthLabel(currentDate: Date): string {
+  const weekStart = startOfWeekMonday(currentDate);
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekEnd.getDate() + 6);
+
+  const startMonth = weekStart.getMonth() + 1;
+  const endMonth = weekEnd.getMonth() + 1;
+
+  return startMonth === endMonth ? `${startMonth}月` : `${startMonth}月 / ${endMonth}月`;
+}
+
 function MiniCalendar({ currentDate, onDateChange }: MiniCalendarProps) {
   // 显示月份：默认跟随 currentDate 所在月；左右箭头独立翻月。
   // currentDate 跨月变化时（顶栏翻页 / 点日期）useEffect 把 displayMonth 拉回同步。
@@ -176,6 +187,48 @@ function MiniCalendar({ currentDate, onDateChange }: MiniCalendarProps) {
             {c.date.getDate()}
           </button>
         ))}
+      </div>
+    </div>
+  );
+}
+
+interface DayWeekStripProps {
+  currentDate: Date;
+  onDateChange: (d: Date) => void;
+}
+
+export function DayWeekStrip({ currentDate, onDateChange }: DayWeekStripProps) {
+  const today = new Date();
+  const weekStart = startOfWeekMonday(currentDate);
+  const days = Array.from({ length: 7 }, (_, index) => {
+    const date = new Date(weekStart);
+    date.setDate(weekStart.getDate() + index);
+    return date;
+  });
+
+  return (
+    <div className="day-week-strip">
+      <div className="day-week-strip__month">{getWeekStripMonthLabel(currentDate)}</div>
+      <div className="day-week-strip__days">
+        {days.map((date) => {
+          const active = isSameDay(date, currentDate);
+          const isTodayDate = isSameDay(date, today);
+
+          return (
+            <button
+              key={date.toISOString()}
+              type="button"
+              className={
+                'day-week-chip' + (active ? ' active' : '') + (isTodayDate ? ' today' : '')
+              }
+              onClick={() => onDateChange(date)}
+              aria-pressed={active}
+            >
+              <span className="day-week-chip__dow">{MINI_DOW[mondayIndex(date)]}</span>
+              <span className="day-week-chip__date">{date.getDate()}</span>
+            </button>
+          );
+        })}
       </div>
     </div>
   );

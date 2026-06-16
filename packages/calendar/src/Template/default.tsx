@@ -29,8 +29,8 @@ export const templates: Template = {
   },
 
   weekDayName(model: TemplateWeekDayName) {
-    const classDate = cls('day-name__date');
-    const className = cls('day-name__name');
+    const classDate = cls('day-name__date', { 'day-name__date--today': model.isToday });
+    const className = cls('day-name__name', { 'day-name__name--today': model.isToday });
 
     return (
       <Fragment>

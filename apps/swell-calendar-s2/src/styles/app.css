@@ -287,6 +287,20 @@ button {
   font-weight: 700;
 }
 
+.swell-calendar-day-name__date--today {
+  background: var(--accent-bg);
+  color: var(--accent-contrast);
+}
+
+.swell-calendar-day-name__name--today {
+  color: var(--accent-text);
+}
+
+/* 主日历只保留当天日期标题高亮，不再给整个月格铺底色。 */
+.swell-calendar-month-cell-today {
+  background: inherit;
+}
+
 .side-foot {
   margin-top: auto;
   padding: 12px 16px;
@@ -525,6 +539,124 @@ button {
   .tb-spacer {
     flex-basis: 0;
     min-width: 0;
+  }
+}
+
+.day-week-strip {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px var(--topbar-pad-x) 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-layer);
+}
+
+.day-week-strip__month {
+  flex: 0 0 auto;
+  min-width: 54px;
+  padding: 0 12px;
+  height: 36px;
+  border-radius: 999px;
+  background: var(--bg-sunken);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-2);
+}
+
+.day-week-strip__days {
+  min-width: 0;
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.day-week-chip {
+  appearance: none;
+  border: none;
+  background: transparent;
+  min-width: 0;
+  padding: 2px 0 0;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-2);
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.day-week-chip:hover {
+  background: var(--bg-hover);
+}
+
+.day-week-chip__dow {
+  font-size: 11px;
+  line-height: 1;
+  color: var(--text-3);
+}
+
+.day-week-chip__date {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.day-week-chip.today .day-week-chip__date {
+  box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--accent-bg) 42%, transparent);
+  color: var(--accent-text);
+}
+
+.day-week-chip.active {
+  color: var(--text-1);
+}
+
+.day-week-chip.active .day-week-chip__dow {
+  color: var(--accent-text);
+}
+
+.day-week-chip.active .day-week-chip__date {
+  background: var(--accent-bg);
+  color: var(--accent-contrast);
+}
+
+@media (max-width: 1120px) {
+  .day-week-strip {
+    gap: 10px;
+    padding: 8px 16px 10px;
+  }
+
+  .day-week-strip__month {
+    min-width: 46px;
+    padding: 0 10px;
+    height: 32px;
+    font-size: 12px;
+  }
+
+  .day-week-strip__days {
+    gap: 2px;
+  }
+
+  .day-week-chip__dow {
+    font-size: 10px;
+  }
+
+  .day-week-chip__date {
+    width: 28px;
+    height: 28px;
+    font-size: 13px;
   }
 }
 

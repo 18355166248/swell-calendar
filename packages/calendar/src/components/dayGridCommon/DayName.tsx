@@ -12,9 +12,10 @@ interface DayNameProps {
 
 function DayName({ dayName, type, style }: DayNameProps) {
   const templateType = `${type}DayName` as TemplateName;
+  const isToday = 'isToday' in dayName && !!dayName.isToday;
 
   return (
-    <div className={cls('day-name')} style={style}>
+    <div className={cls('day-name', { 'day-name--today': isToday })} style={style}>
       <Template template={templateType} param={dayName} />
     </div>
   );

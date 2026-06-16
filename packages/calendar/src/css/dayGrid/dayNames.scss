@@ -24,8 +24,26 @@
 }
 
 .day-name__date {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   font-size: 26px;
+  min-width: 34px;
+  height: 34px;
+  border-radius: 999px;
 }
+
+.day-name__date--today {
+  background: #1677ff;
+  color: #fff;
+  font-weight: 700;
+}
+
 .day-name__name {
   font-size: 12px;
+}
+
+.day-name__name--today {
+  color: #1677ff;
+  font-weight: 600;
 }

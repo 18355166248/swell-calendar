@@ -21,6 +21,33 @@ interface TimelineRowProps {
   isWeekendDay: (day: DayjsTZDate) => boolean;
 }
 
+function getCellBackground({
+  weekend,
+  isToday,
+  weekendBackgroundColor,
+  todayBackgroundColor,
+}: {
+  weekend: boolean;
+  isToday: boolean;
+  weekendBackgroundColor: string;
+  todayBackgroundColor: string;
+}) {
+  const hasTodayHighlight =
+    todayBackgroundColor !== '' &&
+    todayBackgroundColor !== 'transparent' &&
+    todayBackgroundColor !== 'inherit';
+
+  if (isToday && hasTodayHighlight) {
+    return todayBackgroundColor;
+  }
+
+  if (weekend) {
+    return weekendBackgroundColor;
+  }
+
+  return undefined;
+}
+
 export function TimelineRow({
   row,
   rowIndex,
@@ -53,8 +80,12 @@ export function TimelineRow({
             style={{
               width: cellWidth,
               borderRight: gridTheme.cellBorderRight,
-              ...(weekend ? { background: gridTheme.weekendBackgroundColor } : {}),
-              ...(isToday ? { background: gridTheme.todayBackgroundColor } : {}),
+              background: getCellBackground({
+                weekend,
+                isToday,
+                weekendBackgroundColor: gridTheme.weekendBackgroundColor,
+                todayBackgroundColor: gridTheme.todayBackgroundColor,
+              }),
             }}
           />
         );

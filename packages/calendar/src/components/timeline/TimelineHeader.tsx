@@ -13,6 +13,33 @@ interface TimelineHeaderProps {
   todayIndex: number;
 }
 
+function getDayBackground({
+  weekend,
+  isToday,
+  weekendBackgroundColor,
+  todayBackgroundColor,
+}: {
+  weekend: boolean;
+  isToday: boolean;
+  weekendBackgroundColor: string;
+  todayBackgroundColor: string;
+}) {
+  const hasTodayHighlight =
+    todayBackgroundColor !== '' &&
+    todayBackgroundColor !== 'transparent' &&
+    todayBackgroundColor !== 'inherit';
+
+  if (isToday && hasTodayHighlight) {
+    return todayBackgroundColor;
+  }
+
+  if (weekend) {
+    return weekendBackgroundColor;
+  }
+
+  return undefined;
+}
+
 /**
  * Calendar Timeline 双层表头：
  * - 上层：月份标签，横跨所有天列
@@ -66,8 +93,12 @@ export function TimelineHeader({
                 style={{
                   width: cellWidth,
                   borderRight: theme.dayBorderRight,
-                  ...(weekend ? { background: theme.weekendBackgroundColor } : {}),
-                  ...(isToday ? { background: theme.todayBackgroundColor } : {}),
+                  background: getDayBackground({
+                    weekend,
+                    isToday,
+                    weekendBackgroundColor: theme.weekendBackgroundColor,
+                    todayBackgroundColor: theme.todayBackgroundColor,
+                  }),
                 }}
               >
                 <span

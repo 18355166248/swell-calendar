@@ -40,9 +40,14 @@ function getBackgroundColor({
   const isTodayColumn = isSameDate(today, columnDate);
   // 判断是否为周末
   const isWeekendColumn = isWeekend(columnDate.getDay());
+  const hasTodayHighlight =
+    todayBackgroundColor !== '' &&
+    todayBackgroundColor !== 'transparent' &&
+    todayBackgroundColor !== 'inherit';
 
-  // 优先级：今天 > 周末 > 默认
-  if (isTodayColumn) {
+  // today 背景允许被宿主显式关闭；关闭后继续回退到周末/默认底色，
+  // 避免“今天刚好是周末”时把周末浅染也一起吃掉。
+  if (isTodayColumn && hasTodayHighlight) {
     return todayBackgroundColor;
   }
 

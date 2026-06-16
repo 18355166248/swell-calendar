@@ -7,6 +7,7 @@ import dayjs from 'dayjs';
 import 'dayjs/locale/zh-cn';
 import weekOfYear from 'dayjs/plugin/weekOfYear';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import type { CalendarInstance, EventObject } from 'swell-calendar';
 import Calendar, { useCalendarDataSource } from 'swell-calendar';
@@ -32,7 +33,7 @@ import {
   type NewEventInput,
   type UiPrefs,
 } from './overlays';
-import { Sidebar, Topbar, type ViewId } from './shell';
+import { DayWeekStrip, Sidebar, Topbar, type ViewId } from './shell';
 
 // 事件 CRUD（种子 / 用户新建 / 编辑覆盖 / 删除墓碑四层）已收敛到 dataSource + useCalendarDataSource（P6）。
 // useCalendarDataSource 与 CalendarDataSource 契约已下沉到 swell-calendar 包（宿主侧可选装配件）。
@@ -110,7 +111,7 @@ const CALENDAR_THEME = {
   week: {
     nowIndicatorLabel: { color: 'var(--accent-bg)' },
     gridSelection: { color: 'var(--accent-bg)' },
-    today: { color: 'inherit', backgroundColor: 'var(--accent-tint)' },
+    today: { color: 'inherit', backgroundColor: 'transparent' },
   },
   common: {
     gridSelection: {
@@ -128,7 +129,7 @@ const CALENDAR_THEME = {
       monthBorderBottom: '1px solid var(--border)',
       dayBorderRight: '1px solid var(--grid-line)',
       weekendBackgroundColor: 'var(--weekend-bg)',
-      todayBackgroundColor: 'var(--accent-tint)',
+      todayBackgroundColor: 'transparent',
       todayColor: 'var(--accent-text)',
       weekdayColor: 'var(--text-3)',
       dateColor: 'var(--text-1)',
@@ -156,7 +157,7 @@ const CALENDAR_THEME = {
       rowBorderBottom: '1px solid var(--grid-line-soft)',
       cellBorderRight: '1px solid var(--grid-line)',
       weekendBackgroundColor: 'var(--weekend-bg)',
-      todayBackgroundColor: 'var(--accent-tint)',
+      todayBackgroundColor: 'transparent',
       dragGhostBackgroundColor: 'var(--accent-tint-strong)',
       dragGhostBorder: '1px dashed var(--accent-bg)',
     },
@@ -202,10 +203,16 @@ function loadPrefs(): UiPrefs {
   return { ...UI_DEFAULTS.prefs, ...raw };
 }
 
-export default function App() {
-  const [view, setView] = useState<ViewId>('scheduler');
-  // 主视图当前聚焦日期：MiniCalendar / 顶栏导航 ↔ 引擎双向同步（P8b）
-  const [currentDate, setCurrentDate] = useState<Date>(() => new Date(2025, 2, 21));
+interface AppProps {
+  /** 当前视图，由路由参数派生（唯一真源是 URL）。 */
+  view: ViewId;
+}
+
+export default function App({ view }: AppProps) {
+  // view 的真源是 URL（router.tsx）；currentDate 由 App 内部管理 + 引擎 onPageChange 回填。
+  // 刷新回到今天。
+  const navigate = useNavigate();
+  const [currentDate, setCurrentDate] = useState<Date>(() => new Date());
   const [pick, setPick] = useState<{ ev: PickEvent; anchor: HTMLElement } | null>(null);
   const [creating, setCreating] = useState(false);
   const [showWknd, setShowWknd] = useState(true);
@@ -313,9 +320,16 @@ export default function App() {
     updateEvent(info.event.id, draft);
   };
 
-  // ===== P8b: 日期导航双向同步 =====
+  // ===== 日期 / 视图导航 =====
+  // view 的真源是 URL（router.tsx），切视图直接写 URL。
+  // currentDate 由 App 内部管理：用户操作 → calRef 命令式驱动引擎 → onPageChange 回填 state。
 
-  /** 正向：MiniCalendar 点日期 → 同步 state + 引擎 setDate（引擎回填的 onPageChange 同日，不会成环）。 */
+  /** 切视图：写到 URL，日期不变。 */
+  const goToRoute = (nextView: ViewId) => {
+    navigate(`/app/calendar/${nextView}`);
+  };
+
+  /** MiniCalendar 点日期 → 同步 state + 引擎 setDate（引擎回填的 onPageChange 同日，不会成环）。 */
   const goToDate = (d: Date) => {
     setCurrentDate(d);
     calRef.current?.setDate(d);
@@ -327,11 +341,11 @@ export default function App() {
   };
 
   /** 顶栏左右箭头：引擎翻页，日期由 onPageChange 回填 currentDate。 */
-  const navigate = (dir: 'prev' | 'next') => {
+  const goToDir = (dir: 'prev' | 'next') => {
     calRef.current?.navigate(dir);
   };
 
-  /** 反向：引擎翻页（顶栏箭头 / 今天 / setDate）→ 回填 currentDate，仅在跨日时更新避免重渲抖动。 */
+  /** 反向：引擎翻页 / setDate / goToToday → 回填 currentDate，仅在跨日时更新避免重渲抖动。 */
   const handlePageChange = (info: { date: { toDate: () => Date } }) => {
     const next = info.date.toDate();
     setCurrentDate((prev) => (isSameDay(prev, next) ? prev : next));
@@ -359,6 +373,33 @@ export default function App() {
 
   const [title, sub] = useMemo(() => computeViewTitle(view, currentDate), [view, currentDate]);
 
+  // 引擎 options 稳定化：引擎有 effect 监听 options.defaultView/initialDate 的引用变化
+  // （packages/calendar Calendar.tsx:60-68），内联对象每次 render 新引用会让它与 onPageChange 成环。
+  // useMemo 让引用仅在 view / currentDate / 周末开关 / 密度变化时改变，其余 render 复用旧引用。
+  const calendarOptions = useMemo(
+    () => ({
+      defaultView: view,
+      // 动态兜底：即便发生重挂载也落在当前导航日期
+      initialDate: currentDate,
+      week: {
+        startDayOfWeek: 1,
+        hourStart: 8,
+        hourEnd: 20,
+        workweek: !showWknd,
+      },
+      scheduler: {
+        resources: calendarResources,
+        hourStart: 8,
+        hourEnd: 20,
+      },
+      timeline: {
+        resources: calendarResources,
+        rowHeight: timelineRowHeight,
+      },
+    }),
+    [view, currentDate, showWknd, timelineRowHeight]
+  );
+
   return (
     <Provider colorScheme={prefs.theme}>
       <ToastContainer />
@@ -370,7 +411,7 @@ export default function App() {
       >
         <Sidebar
           view={view}
-          setView={setView}
+          setView={goToRoute}
           openCreate={() => setCreating(true)}
           currentDate={currentDate}
           onDateChange={goToDate}
@@ -378,7 +419,7 @@ export default function App() {
         <div className="main">
           <Topbar
             view={view}
-            setView={setView}
+            setView={goToRoute}
             toolbar={UI_DEFAULTS.toolbar}
             toggleRail={() => setSidebar(sidebar === 'full' ? 'rail' : 'full')}
             title={title}
@@ -387,8 +428,9 @@ export default function App() {
             setQuery={setQuery}
             openSettings={openSettings}
             onToday={goToToday}
-            onNavigate={navigate}
+            onNavigate={goToDir}
           />
+          {view === 'day' && <DayWeekStrip currentDate={currentDate} onDateChange={goToDate} />}
           {(view === 'week' || view === 'day' || view === 'scheduler' || view === 'month') && (
             <SubBar
               showWknd={showWknd}
@@ -427,26 +469,7 @@ export default function App() {
                 events={calendarEvents}
                 calendars={calendarCalendars}
                 theme={CALENDAR_THEME}
-                options={{
-                  defaultView: view,
-                  // 动态兜底：即便发生重挂载也落在当前导航日期
-                  initialDate: currentDate,
-                  week: {
-                    startDayOfWeek: 1,
-                    hourStart: 8,
-                    hourEnd: 20,
-                    workweek: !showWknd,
-                  },
-                  scheduler: {
-                    resources: calendarResources,
-                    hourStart: 8,
-                    hourEnd: 20,
-                  },
-                  timeline: {
-                    resources: calendarResources,
-                    rowHeight: timelineRowHeight,
-                  },
-                }}
+                options={calendarOptions}
                 callbacks={{
                   onEventClick: ({ event }) => {
                     // 锚定到真实被点卡片；极少数找不到时退回 activeElement，避免弹层不可见
