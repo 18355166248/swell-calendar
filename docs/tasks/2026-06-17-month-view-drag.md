@@ -29,7 +29,7 @@
 - 代码：
   - 新增 `controller/month-interaction.ts`（纯函数：命中测试 + move/resize/create 改写）
   - 新增 `controller/month-validation.ts`（开关 + per-event + onValidateEventChange 校验）
-  - 新增 `components/month/MonthInteractionContext.tsx`（finder / commit / 预览 setter）
+  - 新增 `components/month/MonthInteractionContext.tsx`（finder / commit / 预览 setter）✅ 已完成（move-only：MonthDragPreview / MonthGridPositionResult / MonthInteractionValue + Provider/useMonthInteraction；resize/create 后续扩展）
   - 新增 `hooks/month/useMonthEventDrag.ts`（基于 `useDrag` 的 per-event 交互）
   - 改 `components/month/MonthGrid.tsx`（gridRef + 幽灵预览条 + Provider）
   - 改 `components/month/MonthEvent.tsx`（move 手柄 onMouseDown；step2 加 resize 手柄）
