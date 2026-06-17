@@ -129,11 +129,23 @@ export function computeResizePreviewRange({
   return { startFlat: srcStartFlat, endFlat: clamp(srcEndFlat + dayDelta, srcStartFlat, lastCell) };
 }
 
+/** 由每列宽度百分比求每列左边界百分比（累计） */
+function toColumnLefts(colWidths: number[]): number[] {
+  const lefts: number[] = [];
+  let accumulated = 0;
+  for (const width of colWidths) {
+    lefts.push(accumulated);
+    accumulated += width;
+  }
+  return lefts;
+}
+
 /**
  * 由网格内偏移坐标求 { weekIndex, colIndex, flatOffset }。
  *
- * 首版按等宽近似（width/colCount、height/weekCount）；narrowWeekend
- * 默认关闭，开启后的不等列宽精确命中留待后续增量（见任务文档风险项）。
+ * 行高恒为等分（月视图周行等高）；列宽默认等分，传入 `colWidths`
+ * （每列宽度百分比，来自 `getRowStyleInfo`）时按不等列宽精确命中，
+ * 以支持 `narrowWeekend` 下周末列减半的命中测试。
  */
 export function getMonthGridPositionFromPoint({
   offsetX,
@@ -142,6 +154,7 @@ export function getMonthGridPositionFromPoint({
   height,
   weekCount,
   colCount,
+  colWidths,
 }: {
   offsetX: number;
   offsetY: number;
@@ -149,15 +162,69 @@ export function getMonthGridPositionFromPoint({
   height: number;
   weekCount: number;
   colCount: number;
+  /** 每列宽度百分比（总和约 100）；缺省或长度不符时退回等宽命中 */
+  colWidths?: number[];
 }): MonthGridPosition {
   if (colCount <= 0 || weekCount <= 0 || width <= 0 || height <= 0) {
     return { weekIndex: 0, colIndex: 0, flatOffset: 0 };
   }
-  const colWidth = width / colCount;
   const rowHeight = height / weekCount;
-  const colIndex = clamp(Math.floor(offsetX / colWidth), 0, colCount - 1);
   const weekIndex = clamp(Math.floor(offsetY / rowHeight), 0, weekCount - 1);
+
+  let colIndex: number;
+  if (colWidths && colWidths.length === colCount) {
+    // 把 offsetX 归一化为 [0,100] 百分比，落在最后一个 left <= 该值的列
+    const ratioX = clamp(offsetX / width, 0, 1) * 100;
+    const lefts = toColumnLefts(colWidths);
+    let found = 0;
+    for (let i = 0; i < colCount; i += 1) {
+      if (ratioX >= lefts[i]) {
+        found = i;
+      }
+    }
+    colIndex = clamp(found, 0, colCount - 1);
+  } else {
+    const colWidth = width / colCount;
+    colIndex = clamp(Math.floor(offsetX / colWidth), 0, colCount - 1);
+  }
+
   return { weekIndex, colIndex, flatOffset: weekIndex * colCount + colIndex };
+}
+
+/**
+ * 由起始列与跨列数求绝对定位条的 left/width 百分比。
+ *
+ * 默认按等分列宽（startCol/colCount）；传入 `colWidths` 时按不等列宽
+ * 累计，使事件条 / 幽灵条与 `narrowWeekend` 下的单元格列对齐。
+ */
+export function getMonthColumnSpanStyle({
+  startCol,
+  colspan,
+  colCount,
+  colWidths,
+}: {
+  startCol: number;
+  colspan: number;
+  colCount: number;
+  colWidths?: number[];
+}): { leftPercent: number; widthPercent: number } {
+  if (colCount <= 0) {
+    return { leftPercent: 0, widthPercent: 0 };
+  }
+  if (colWidths && colWidths.length === colCount) {
+    const lefts = toColumnLefts(colWidths);
+    const safeStart = clamp(startCol, 0, colCount - 1);
+    const endCol = clamp(startCol + colspan - 1, safeStart, colCount - 1);
+    let widthPercent = 0;
+    for (let i = safeStart; i <= endCol; i += 1) {
+      widthPercent += colWidths[i];
+    }
+    return { leftPercent: lefts[safeStart], widthPercent };
+  }
+  return {
+    leftPercent: (startCol / colCount) * 100,
+    widthPercent: (colspan / colCount) * 100,
+  };
 }
 
 /**

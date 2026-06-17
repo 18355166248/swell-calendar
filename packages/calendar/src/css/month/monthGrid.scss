@@ -119,8 +119,9 @@
   position: absolute;
   font-size: 11px;
   color: #888;
-  left: 4px;
+  padding-left: 4px;
   cursor: pointer;
+  pointer-events: auto;
 
   &:hover {
     color: #333;

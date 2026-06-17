@@ -7,6 +7,7 @@ import {
   buildCreatedMonthEvent,
   computeMovedMonthEvent,
   computeResizedMonthEvent,
+  getMonthColumnSpanStyle,
   getMonthGridPositionFromPoint,
   splitFlatRangeIntoWeekSegments,
 } from '@/controller/month-interaction';
@@ -35,6 +36,8 @@ interface MonthGridProps {
   visibleEventCount: number;
   /** 每周的列数，默认为 7（周日—周六） */
   totalCols?: number;
+  /** 每列宽度百分比（来自 getRowStyleInfo），用于 narrowWeekend 不等列宽对齐 */
+  colWidths?: number[];
 }
 
 function isSameDay(a: DayjsTZDate, b: DayjsTZDate) {
@@ -61,6 +64,7 @@ export function MonthGrid({
   renderDate,
   visibleEventCount,
   totalCols = 7,
+  colWidths,
 }: MonthGridProps) {
   const weekCount = weeks.length;
   const rowHeightPercent = 100 / weekCount;
@@ -84,9 +88,10 @@ export function MonthGrid({
         height: rect.height,
         weekCount,
         colCount: totalCols,
+        colWidths,
       });
     },
-    [weekCount, totalCols]
+    [weekCount, totalCols, colWidths]
   );
 
   const commitMove = useCallback(
@@ -164,6 +169,19 @@ export function MonthGrid({
     commitCreate,
   });
 
+  const handleMoreClick = useCallback(
+    (date: DayjsTZDate, overflowModels: EventUIModel[]) => {
+      if (!callbacks?.onMoreEventsClick || overflowModels.length === 0) {
+        return;
+      }
+      callbacks.onMoreEventsClick({
+        date,
+        events: overflowModels.map((m) => m.model.toEventObject()),
+      });
+    },
+    [callbacks]
+  );
+
   const interactionValue = useMemo<MonthInteractionValue>(
     () => ({
       weekCount,
@@ -193,7 +211,11 @@ export function MonthGrid({
     <MonthInteractionProvider value={interactionValue}>
       <div className={cls('month-grid')} ref={gridRef}>
         {weeks.map((week, weekIndex) => {
-          const { rows, overflowByCol } = eventRows[weekIndex] ?? { rows: [], overflowByCol: [] };
+          const { rows, overflowByCol, overflowEventsByCol } = eventRows[weekIndex] ?? {
+            rows: [],
+            overflowByCol: [],
+            overflowEventsByCol: [],
+          };
           // 把拖拽预览的压平区间切到当前周，跨周时每周各渲染一段
           const ghost = dragPreview
             ? ghostSegments.find((seg) => seg.weekIndex === weekIndex) ?? null
@@ -211,7 +233,6 @@ export function MonthGrid({
               {week.map((date, colIndex) => {
                 const today = isToday(date);
                 const currentMonth = isCurrentMonth(date, renderDate);
-                const overflow = overflowByCol[colIndex] ?? 0;
 
                 return (
                   <div
@@ -220,20 +241,13 @@ export function MonthGrid({
                       'month-cell-today': today,
                       'month-cell-other-month': !currentMonth,
                     })}
+                    style={colWidths ? { flex: `0 0 ${colWidths[colIndex]}%` } : undefined}
                   >
                     <div className={cls('month-cell-header')}>
                       <span className={cls('month-cell-date', { 'month-cell-date-today': today })}>
                         {date.getDate()}
                       </span>
                     </div>
-                    {overflow > 0 && (
-                      <div
-                        className={cls('month-more')}
-                        style={{ top: CELL_HEADER_HEIGHT + visibleEventCount * CELL_EVENT_HEIGHT }}
-                      >
-                        +{overflow} 更多
-                      </div>
-                    )}
                   </div>
                 );
               })}
@@ -249,6 +263,7 @@ export function MonthGrid({
                     cellEventHeight={CELL_EVENT_HEIGHT}
                     cellHeaderHeight={CELL_HEADER_HEIGHT}
                     totalCols={totalCols}
+                    colWidths={colWidths}
                     weekIndex={weekIndex}
                     canResizeStartHandle={
                       uiModel.getStarts().getTime() >= weekStart.getTime() &&
@@ -261,23 +276,68 @@ export function MonthGrid({
                   />
                 ))}
 
-                {ghost && (
-                  <div
-                    className={cls('month-event-ghost')}
-                    style={{
-                      position: 'absolute',
-                      left: `${(ghost.startCol / totalCols) * 100}%`,
-                      width: `calc(${(ghost.colspan / totalCols) * 100}% - 4px)`,
-                      top: CELL_HEADER_HEIGHT,
-                      height: CELL_EVENT_HEIGHT - 2,
-                      borderRadius: 3,
-                      border: '1px dashed #1677ff',
-                      background: 'rgba(22,119,255,0.12)',
-                      pointerEvents: 'none',
-                      boxSizing: 'border-box',
-                    }}
-                  />
-                )}
+                {ghost &&
+                  (() => {
+                    const { leftPercent, widthPercent } = getMonthColumnSpanStyle({
+                      startCol: ghost.startCol,
+                      colspan: ghost.colspan,
+                      colCount: totalCols,
+                      colWidths,
+                    });
+                    return (
+                      <div
+                        className={cls('month-event-ghost')}
+                        style={{
+                          position: 'absolute',
+                          left: `${leftPercent}%`,
+                          width: `calc(${widthPercent}% - 4px)`,
+                          top: CELL_HEADER_HEIGHT,
+                          height: CELL_EVENT_HEIGHT - 2,
+                          borderRadius: 3,
+                          border: '1px dashed #1677ff',
+                          background: 'rgba(22,119,255,0.12)',
+                          pointerEvents: 'none',
+                          boxSizing: 'border-box',
+                        }}
+                      />
+                    );
+                  })()}
+
+                {overflowByCol.map((overflow, colIndex) => {
+                  if (overflow <= 0) return null;
+                  const overflowModels = overflowEventsByCol[colIndex] ?? [];
+                  const date = week[colIndex];
+                  const leftPercent = colWidths
+                    ? colWidths.slice(0, colIndex).reduce((a, b) => a + b, 0)
+                    : (colIndex / totalCols) * 100;
+                  const widthPercent = colWidths ? colWidths[colIndex] : 100 / totalCols;
+                  return (
+                    <div
+                      key={`more-${colIndex}`}
+                      className={cls('month-more')}
+                      role="button"
+                      tabIndex={0}
+                      style={{
+                        top: CELL_HEADER_HEIGHT + visibleEventCount * CELL_EVENT_HEIGHT,
+                        left: `${leftPercent}%`,
+                        width: `${widthPercent}%`,
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleMoreClick(date, overflowModels);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleMoreClick(date, overflowModels);
+                        }
+                      }}
+                    >
+                      +{overflow} 更多
+                    </div>
+                  );
+                })}
               </div>
             </div>
           );

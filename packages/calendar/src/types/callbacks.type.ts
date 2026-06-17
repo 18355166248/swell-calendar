@@ -154,6 +154,14 @@ export interface CalendarCrossInstanceDropInfo {
   resourceName?: string;
 }
 
+/** 月视图「+N 更多」按钮点击时传出的信息 */
+export interface CalendarMoreEventsClickInfo {
+  /** 被点击的日期 */
+  date: DayjsTZDate;
+  /** 该日所有事件（含可见与溢出） */
+  events: EventObject[];
+}
+
 export interface CalendarCallbacks {
   onEventClick?: (info: CalendarEventClickInfo) => void;
   onCellClick?: (info: CalendarCellClickInfo) => void;
@@ -170,4 +178,6 @@ export interface CalendarCallbacks {
   onExternalDropFailed?: (info: CalendarExternalDropFailedInfo) => void;
   onCrossInstanceDragEnd?: (info: CalendarCrossInstanceDragEndInfo) => void;
   onCrossInstanceDrop?: (info: CalendarCrossInstanceDropInfo) => void;
+  /** 月视图「+N 更多」按钮被点击时触发 */
+  onMoreEventsClick?: (info: CalendarMoreEventsClickInfo) => void;
 }

@@ -160,5 +160,19 @@ dragToCreate?: boolean;
   - `node scripts/check-docs.mjs` 与 `node scripts/check-arch.mjs` 通过。
   - Storybook 交互用例 `MonthDragMove` / `MonthDragResize` 已补齐；浏览器侧实测 `MonthDragMove` 与 `MonthDragResize` 均能完成回调断言，其中 `MonthDragResize` 已修正为跨周真实落点（06-12 → 06-14）。
 - 剩余问题：
-  - `narrowWeekend` 仍使用等宽列命中测试，尚未接入 `rowStyleInfo` 做精确列宽命中。
+  - ~~`narrowWeekend` 仍使用等宽列命中测试~~ 已修复（见下）。
   - 仓库全量 Storybook runner 仍有月视图之外的既有失败（`Scheduler.Interactions` / `Scheduler.Regression`），本次未顺手处理。
+
+### narrowWeekend 精确列宽对齐（2026-06-17 追加）
+
+此前月视图 grid body（`.month-cell { flex: 1 }`、事件条 / 幽灵条 `startCol/totalCols * 100%`、命中测试 `width/colCount`）整体按等分列宽渲染，完全未消费 `narrowWeekend`；只有表头（`GridHeader` 经 `rowStyleInfo`）走窄周末，导致 `narrowWeekend: true` 时表头与网格主体错位、命中测试偏移。
+
+改为以单一列几何（`rowStyleInfo` 的每列 `width` 百分比）贯穿单元格宽度、事件条 / 幽灵条定位与命中测试：
+
+- `controller/month-interaction.ts`：
+  - `getMonthGridPositionFromPoint` 新增可选 `colWidths`，提供时按累计列宽（百分比左界）做精确列命中，缺省退回等宽。
+  - 新增纯函数 `getMonthColumnSpanStyle({ startCol, colspan, colCount, colWidths })`，按列宽累计求绝对定位条的 `left/width` 百分比，缺省退回等宽。
+- `components/view/Month.tsx`：把 `rowStyleInfo.map(s => s.width)` 作为 `colWidths` 传入 `MonthGrid`。
+- `components/month/MonthGrid.tsx`：单元格用 `flex: 0 0 <width>%` 取代 `flex: 1`，`gridPositionFinder` 与幽灵条、`MonthEvent` 均改用 `colWidths` / `getMonthColumnSpanStyle`，表头与主体列宽一致。
+- `components/month/MonthEvent.tsx`：事件条定位改用 `getMonthColumnSpanStyle`。
+- 测试：`month-interaction.spec.ts` 补 narrowWeekend 命中（4 条）与 `getMonthColumnSpanStyle`（4 条）共 8 条；全量 `pnpm --filter swell-calendar test` 340 条通过，`tsc --noEmit` / `eslint` / `check-docs` / `check-arch` 均通过。

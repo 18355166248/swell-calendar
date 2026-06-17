@@ -32,6 +32,8 @@ export function useMonthCreate({
   commitCreate,
 }: UseMonthCreateParams) {
   const startFlatRef = useRef<number | null>(null);
+  /** 标记本次交互是否经历了真正的拖拽（越过 MINIMUM_DRAG_MOUSE_DISTANCE） */
+  const hasDraggedRef = useRef(false);
 
   const previewOf = (startFlat: number, endFlat: number, e: MouseEvent): MonthDragPreview => ({
     kind: 'create',
@@ -43,8 +45,12 @@ export function useMonthCreate({
 
   return useDrag(DRAGGING_TYPE_CREATE.gridSelection('timeGrid'), {
     onInit: (e) => {
+      hasDraggedRef.current = false;
       const pos = gridPositionFinder(e.clientX, e.clientY);
       startFlatRef.current = pos ? pos.flatOffset : null;
+    },
+    onDragStart: () => {
+      hasDraggedRef.current = true;
     },
     onDrag: (e) => {
       const pos = gridPositionFinder(e.clientX, e.clientY);
@@ -57,8 +63,10 @@ export function useMonthCreate({
       const pos = gridPositionFinder(e.clientX, e.clientY);
       setDragPreview(null);
       const startFlat = startFlatRef.current;
+      const didDrag = hasDraggedRef.current;
       startFlatRef.current = null;
-      if (!pos || startFlat === null) {
+      hasDraggedRef.current = false;
+      if (!pos || startFlat === null || !didDrag) {
         return;
       }
       commitCreate(Math.min(startFlat, pos.flatOffset), Math.max(startFlat, pos.flatOffset));

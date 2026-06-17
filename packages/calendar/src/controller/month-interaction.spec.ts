@@ -9,6 +9,7 @@ import {
   computeMovePreviewRange,
   computeResizedMonthEvent,
   computeResizePreviewRange,
+  getMonthColumnSpanStyle,
   getMonthGridPositionFromPoint,
   splitFlatRangeIntoWeekSegments,
 } from './month-interaction';
@@ -36,6 +37,70 @@ describe('month-interaction', () => {
     it('负坐标 clamp 到 0', () => {
       const pos = getMonthGridPositionFromPoint({ ...base, offsetX: -50, offsetY: -50 });
       expect(pos).toEqual({ weekIndex: 0, colIndex: 0, flatOffset: 0 });
+    });
+  });
+
+  describe('getMonthGridPositionFromPoint（narrowWeekend 不等列宽）', () => {
+    // 周末列窄(10%)、工作日列宽(16%)，6 周 × 7 列，网格宽度=100（1px≈1%）
+    const colWidths = [10, 16, 16, 16, 16, 16, 10];
+    const base = { width: 100, height: 600, weekCount: 6, colCount: 7, colWidths };
+
+    it('窄周末边界按累计列宽命中（等宽近似会误判到相邻列）', () => {
+      // 列左界 [0,10,26,42,58,74,90]；offsetX=12 落在 Mon(col1)，等宽(14.28)会误判 col0
+      const pos = getMonthGridPositionFromPoint({ ...base, offsetX: 12, offsetY: 10 });
+      expect(pos).toEqual({ weekIndex: 0, colIndex: 1, flatOffset: 1 });
+    });
+
+    it('末尾工作日列命中 col5 而非窄周末 col6', () => {
+      // offsetX=88 落在 Fri(74..90)，等宽(85.71)会误判 col6
+      const pos = getMonthGridPositionFromPoint({ ...base, offsetX: 88, offsetY: 110 });
+      expect(pos).toEqual({ weekIndex: 1, colIndex: 5, flatOffset: 12 });
+    });
+
+    it('最后一列窄周末命中 col6', () => {
+      const pos = getMonthGridPositionFromPoint({ ...base, offsetX: 95, offsetY: 10 });
+      expect(pos).toEqual({ weekIndex: 0, colIndex: 6, flatOffset: 6 });
+    });
+
+    it('colWidths 长度与列数不符时退回等宽命中', () => {
+      const pos = getMonthGridPositionFromPoint({
+        ...base,
+        colWidths: [50, 50],
+        offsetX: 88,
+        offsetY: 10,
+      });
+      // 等宽：floor(88 / (100/7)) = 6
+      expect(pos.colIndex).toBe(6);
+    });
+  });
+
+  describe('getMonthColumnSpanStyle', () => {
+    const colWidths = [10, 16, 16, 16, 16, 16, 10]; // 左界 [0,10,26,42,58,74,90]
+
+    it('无 colWidths 时按 startCol/colCount 等宽计算', () => {
+      const style = getMonthColumnSpanStyle({ startCol: 1, colspan: 2, colCount: 7 });
+      expect(style.leftPercent).toBeCloseTo((1 / 7) * 100);
+      expect(style.widthPercent).toBeCloseTo((2 / 7) * 100);
+    });
+
+    it('窄周末按累计列宽求 left/width', () => {
+      // col0→col1：left=0，width=10+16=26
+      const style = getMonthColumnSpanStyle({ startCol: 0, colspan: 2, colCount: 7, colWidths });
+      expect(style.leftPercent).toBe(0);
+      expect(style.widthPercent).toBe(26);
+    });
+
+    it('跨工作日与周末时累加各列实际宽度', () => {
+      // col4 起跨 3 列(col4,5,6)：left=58，width=16+16+10=42
+      const style = getMonthColumnSpanStyle({ startCol: 4, colspan: 3, colCount: 7, colWidths });
+      expect(style.leftPercent).toBe(58);
+      expect(style.widthPercent).toBe(42);
+    });
+
+    it('越界跨度夹紧到末列', () => {
+      const style = getMonthColumnSpanStyle({ startCol: 6, colspan: 5, colCount: 7, colWidths });
+      expect(style.leftPercent).toBe(90);
+      expect(style.widthPercent).toBe(10);
     });
   });
 

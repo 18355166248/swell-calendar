@@ -27,6 +27,7 @@ import { dataSource } from './dataSource';
 import {
   CreateDialog,
   FILTER_CATS,
+  MoreEventsPopover,
   Popover,
   SettingsPanel,
   SubBar,
@@ -214,6 +215,11 @@ export default function App({ view }: AppProps) {
   const navigate = useNavigate();
   const [currentDate, setCurrentDate] = useState<Date>(() => new Date());
   const [pick, setPick] = useState<{ ev: PickEvent; anchor: HTMLElement } | null>(null);
+  const [morePick, setMorePick] = useState<{
+    date: Date;
+    events: EventObject[];
+    anchor: HTMLElement;
+  } | null>(null);
   const [creating, setCreating] = useState(false);
   const [showWknd, setShowWknd] = useState(true);
   const [sidebar, setSidebar] = useState(UI_DEFAULTS.sidebar);
@@ -498,6 +504,11 @@ export default function App({ view }: AppProps) {
                   },
                   // P8b: 引擎翻页 → 回填 currentDate，联动 MiniCalendar 高亮
                   onPageChange: handlePageChange,
+                  // 月视图「+N 更多」点击 → 弹出该日所有事件列表
+                  onMoreEventsClick: ({ date, events }) => {
+                    const anchor = document.activeElement as HTMLElement;
+                    setMorePick({ date: date as unknown as Date, events, anchor });
+                  },
                 }}
               />
             )}
@@ -512,6 +523,22 @@ export default function App({ view }: AppProps) {
             variant={UI_DEFAULTS.popover}
             onEdit={openEdit}
             onDelete={handleDelete}
+          />
+        )}
+        {morePick && (
+          <MoreEventsPopover
+            date={morePick.date}
+            events={morePick.events}
+            anchor={morePick.anchor}
+            onClose={() => setMorePick(null)}
+            onEventClick={(eventId) => {
+              const ev = morePick.events.find((e) => e.id === eventId);
+              if (ev) {
+                const anchor = findEventAnchor(eventId) ?? (document.activeElement as HTMLElement);
+                setPick({ ev: toPickEvent(ev as EventObject), anchor });
+              }
+              setMorePick(null);
+            }}
           />
         )}
         {(creating || editing) && (

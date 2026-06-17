@@ -20,6 +20,7 @@ export type { CalendarCallbacks } from '@/types/callbacks.type';
 export type {
   CalendarEventDeleteInfo,
   CalendarEventUpdateInfo,
+  CalendarMoreEventsClickInfo,
   CalendarRecurrenceEditScope,
   CalendarRecurrenceInstanceInfo,
 } from '@/types/callbacks.type';

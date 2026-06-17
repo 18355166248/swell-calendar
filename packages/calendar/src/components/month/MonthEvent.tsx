@@ -3,6 +3,7 @@ import type { CSSProperties, KeyboardEvent } from 'react';
 import { KEY } from '@/constants/keyboard';
 import { useCalendarCallbacks } from '@/contexts/calendarCallbacks';
 import { useCalendarStore } from '@/contexts/calendarStore';
+import { getMonthColumnSpanStyle } from '@/controller/month-interaction';
 import { cls } from '@/helpers/css';
 import { useMonthEventDrag } from '@/hooks/month/useMonthEventDrag';
 import { EventUIModel } from '@/model/eventUIModel';
@@ -15,6 +16,8 @@ interface MonthEventProps {
   cellEventHeight: number;
   cellHeaderHeight: number;
   totalCols: number;
+  /** 每列宽度百分比（narrowWeekend 不等列宽时用于对齐定位） */
+  colWidths?: number[];
   /** 事件所在周行索引，用于拖拽落点计算 */
   weekIndex: number;
   /** 当前分段是否命中事件真实开始日 */
@@ -31,6 +34,7 @@ export function MonthEvent({
   cellEventHeight,
   cellHeaderHeight,
   totalCols,
+  colWidths,
   weekIndex,
   canResizeStartHandle,
   canResizeEndHandle,
@@ -44,8 +48,12 @@ export function MonthEvent({
     startCol,
     colspan,
   });
-  const leftPercent = (startCol / totalCols) * 100;
-  const widthPercent = (colspan / totalCols) * 100;
+  const { leftPercent, widthPercent } = getMonthColumnSpanStyle({
+    startCol,
+    colspan,
+    colCount: totalCols,
+    colWidths,
+  });
   const top = cellHeaderHeight + slotIndex * cellEventHeight;
   const canResize =
     options.isReadOnly !== true &&

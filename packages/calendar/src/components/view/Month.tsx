@@ -67,6 +67,7 @@ export function Month() {
           renderDate={renderDate}
           visibleEventCount={VISIBLE_EVENT_COUNT}
           totalCols={dayNames.length}
+          colWidths={rowStyleInfo.map((style) => style.width)}
         />
       </Panel>
     </Layout>

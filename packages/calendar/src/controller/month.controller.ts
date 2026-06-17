@@ -16,6 +16,8 @@ export interface MonthEventRowInfo {
 export interface MonthWeekEventData {
   rows: MonthEventRowInfo[];
   overflowByCol: number[];
+  /** 每列溢出的事件 UI 模型（与 overflowByCol 对应，用于「+N 更多」点击回调） */
+  overflowEventsByCol: EventUIModel[][];
 }
 
 export function getMonthDayNames(options: Options) {
@@ -103,6 +105,7 @@ export function getMonthEventRows(
 
     const slotEndCol: number[] = new Array(visibleEventCount).fill(0);
     const overflowByCol: number[] = new Array(week.length).fill(0);
+    const overflowEventsByCol: EventUIModel[][] = Array.from({ length: week.length }, () => []);
     const rows: MonthEventRowInfo[] = [];
 
     weekModels.forEach((uiModel) => {
@@ -139,6 +142,7 @@ export function getMonthEventRows(
       if (slotIndex === -1) {
         for (let c = sc; c < sc + colspan; c++) {
           overflowByCol[c] = (overflowByCol[c] ?? 0) + 1;
+          overflowEventsByCol[c].push(uiModel);
         }
         return;
       }
@@ -146,6 +150,6 @@ export function getMonthEventRows(
       rows.push({ uiModel, startCol: sc, colspan, slotIndex });
     });
 
-    return { rows, overflowByCol };
+    return { rows, overflowByCol, overflowEventsByCol };
   });
 }

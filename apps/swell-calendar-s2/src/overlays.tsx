@@ -1,6 +1,8 @@
 // ===== Overlays: 事件弹窗 + 新建对话框 + 设置面板 + 子栏 =====（移植自设计稿 overlays.jsx）
 import { useLayoutEffect, useRef, useState } from 'react';
 
+import type { EventObject } from 'swell-calendar';
+
 import { CAT_COLORS, type Cat, type PickEvent, resources } from './data';
 import { Ic } from './icons';
 
@@ -158,6 +160,86 @@ export function Popover({
               </button>
             </div>
           )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** 「+N 更多」浮层：列出某日所有事件，点击单个事件可转发到详情 Popover。 */
+export function MoreEventsPopover({
+  date,
+  events,
+  anchor,
+  onClose,
+  onEventClick,
+}: {
+  date: Date;
+  events: EventObject[];
+  anchor: HTMLElement | null;
+  onClose: () => void;
+  onEventClick?: (eventId: string) => void;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [pos, setPos] = useState({ top: -999, left: -999 });
+  useLayoutEffect(() => {
+    if (!anchor || !ref.current) return;
+    const a = anchor.getBoundingClientRect();
+    const p = ref.current.getBoundingClientRect();
+    let left = a.left;
+    let top = a.bottom + 6;
+    if (left + p.width > window.innerWidth - 12) left = window.innerWidth - p.width - 12;
+    if (left < 12) left = 12;
+    if (top + p.height > window.innerHeight - 12) top = a.top - p.height - 6;
+    if (top < 12) top = 12;
+    setPos({ top, left });
+  }, [anchor, date]);
+
+  const dateLabel = `${date.getMonth() + 1}月${date.getDate()}日`;
+
+  return (
+    <div className="pop-layer" onMouseDown={onClose}>
+      <div
+        ref={ref}
+        className="pop more-events-pop"
+        style={{ top: pos.top, left: pos.left, opacity: pos.top > -900 ? 1 : 0 }}
+        onMouseDown={(e) => e.stopPropagation()}
+      >
+        <div className="pop-body">
+          <div className="pop-top">
+            <div className="pop-title">{dateLabel}</div>
+            <button className="pop-x" onClick={onClose}>
+              ✕
+            </button>
+          </div>
+          <div className="more-events-list">
+            {events.map((ev) => (
+              <div
+                key={ev.id ?? ev.title}
+                className="more-event-row"
+                role="button"
+                tabIndex={0}
+                onClick={() => ev.id && onEventClick?.(ev.id)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    ev.id && onEventClick?.(ev.id);
+                  }
+                }}
+              >
+                <span
+                  className="more-event-bar"
+                  style={{ backgroundColor: (ev.backgroundColor as string) || '#1677ff' }}
+                />
+                <span className="more-event-title">{ev.title}</span>
+                <span className="more-event-time muted">
+                  {ev.allDay
+                    ? '全天'
+                    : `${(ev.start as Date).getHours()}:${String((ev.start as Date).getMinutes()).padStart(2, '0')}`}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>

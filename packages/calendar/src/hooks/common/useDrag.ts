@@ -1,5 +1,5 @@
 import { isNil } from 'lodash-es';
-import { MouseEvent, useCallback, useEffect, useRef, useState } from 'react';
+import { MouseEvent, useCallback, useEffect, useRef } from 'react';
 
 import { MINIMUM_DRAG_MOUSE_DISTANCE } from '@/constants/mouse.const';
 import { useCalendarStore } from '@/contexts/calendarStore';
@@ -11,9 +11,6 @@ import { isLeftMouseButton } from '@/utils/mouse';
 import useLatest from './useLatest';
 
 type MouseListener = (e: MouseEvent, dnd: DndState) => void;
-
-// 空函数，用于默认返回值
-const noop = () => {};
 
 /**
  * 判断鼠标是否移动了足够距离
@@ -55,10 +52,28 @@ export function useDrag(
 
   const dndSliceRef = useLatest(dnd);
 
-  const [isStarted, setIsStarted] = useState(false);
+  // 「拖拽进行中」用 ref 而非 state 跟踪：handleMouseUp 的守卫需要同步读到最新值，
+  // 用 state 会读到旧闭包值，导致快速点击时 mouseup 被守卫挡掉。
+  const isStartedRef = useRef(false);
 
   const handleMouseMoveRef = useRef<MouseEventListener | null>(null);
   const handleMouseUpRef = useRef<MouseEventListener | null>(null);
+
+  // 全局监听器用稳定的包装函数注册，包装函数转发到最新的 ref 处理器，
+  // 这样 add/removeEventListener 引用一致，且始终调用到最新逻辑。
+  const wrappedMoveRef = useRef((e: globalThis.MouseEvent) =>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    handleMouseMoveRef.current?.(e as any)
+  );
+  const wrappedUpRef = useRef((e: globalThis.MouseEvent) =>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    handleMouseUpRef.current?.(e as any)
+  );
+
+  const detachListeners = useCallback(() => {
+    document.removeEventListener('mousemove', wrappedMoveRef.current);
+    document.removeEventListener('mouseup', wrappedUpRef.current);
+  }, []);
 
   // 鼠标按下
   const handleMouseDown = useCallback<MouseEventListener>(
@@ -69,7 +84,12 @@ export function useDrag(
       // 阻止默认行为
       e.preventDefault();
 
-      setIsStarted(true);
+      // 同步挂载全局监听器，而不是等 useEffect（passive，paint 后才执行）。
+      // 否则极快的点击/拖拽其 mouseup 会先于监听器注册而丢失，表现为「完全没反应」。
+      isStartedRef.current = true;
+      document.addEventListener('mousemove', wrappedMoveRef.current);
+      document.addEventListener('mouseup', wrappedUpRef.current);
+
       initDrag({
         draggingItemType: draggingType,
         initX: e.clientX,
@@ -127,13 +147,14 @@ export function useDrag(
     (e) => {
       e.stopPropagation();
 
-      if (isStarted) {
-        setIsStarted(false);
+      if (isStartedRef.current) {
+        isStartedRef.current = false;
+        detachListeners();
         onMouseUp?.(e, dndSliceRef.current);
         reset();
       }
     },
-    [isStarted, onMouseUp, reset, dndSliceRef]
+    [detachListeners, onMouseUp, reset, dndSliceRef]
   );
 
   useEffect(() => {
@@ -141,29 +162,8 @@ export function useDrag(
     handleMouseUpRef.current = handleMouseUp;
   }, [handleMouseMove, handleMouseUp]);
 
-  // 根据拖拽状态添加/移除全局事件监听器
-  useEffect(() => {
-    const wrappedHandleMouseMove = (e: globalThis.MouseEvent) =>
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      handleMouseMoveRef.current?.(e as any);
-    const wrappedHandleMouseUp = (e: globalThis.MouseEvent) =>
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      handleMouseUpRef.current?.(e as any);
-
-    if (isStarted) {
-      // 拖拽开始时添加全局事件监听器
-      document.addEventListener('mousemove', wrappedHandleMouseMove);
-      document.addEventListener('mouseup', wrappedHandleMouseUp);
-
-      return () => {
-        // 清理事件监听器
-        document.removeEventListener('mousemove', wrappedHandleMouseMove);
-        document.removeEventListener('mouseup', wrappedHandleMouseUp);
-      };
-    }
-
-    return noop;
-  }, [isStarted]);
+  // 卸载时兜底清理：避免拖拽进行中组件被卸载导致监听器泄漏
+  useEffect(() => detachListeners, [detachListeners]);
 
   return handleMouseDown;
 }

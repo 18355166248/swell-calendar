@@ -141,6 +141,50 @@
   background: var(--accent-bg-hover);
 }
 
+/* ---------- MORE EVENTS POPOVER ---------- */
+.more-events-pop {
+  width: 280px;
+}
+.more-events-list {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 280px;
+  overflow-y: auto;
+}
+.more-event-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 4px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13.5px;
+  color: var(--text-1);
+}
+.more-event-row:hover {
+  background: var(--bg-hover);
+}
+.more-event-bar {
+  width: 4px;
+  height: 20px;
+  border-radius: 2px;
+  flex: none;
+}
+.more-event-title {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+.more-event-time {
+  flex: none;
+  font-size: 12px;
+  color: var(--text-3);
+}
+
 /* ---------- DIALOG (create) ---------- */
 .scrim {
   position: fixed;
