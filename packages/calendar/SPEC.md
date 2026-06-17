@@ -139,6 +139,12 @@ interface CalendarOptions {
   month?: {
     startDayOfWeek?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
     isAlways6Rows?: boolean;
+    /** 允许拖动事件改期（换天）。默认 true；isReadOnly 时强制 false */
+    dragToMove?: boolean;
+    /** 允许拖动事件两端 resize（改跨天天数）。默认 true；isReadOnly 时强制 false */
+    dragToResize?: boolean;
+    /** 允许空白格子拖拽创建事件。默认 true；isReadOnly 时强制 false */
+    dragToCreate?: boolean;
   };
   scheduler?: {
     resources?: ResourceInfo[];

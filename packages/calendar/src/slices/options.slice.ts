@@ -46,7 +46,10 @@ function initializeWeekOptions(weekOptions: Options['week'] = {}): CalendarWeekO
   return week;
 }
 
-function initializeMonthOptions(monthOptions: Options['month'] = {}): Required<MonthOptions> {
+function initializeMonthOptions(
+  monthOptions: Options['month'] = {},
+  isReadOnly = false
+): Required<MonthOptions> {
   const month: Required<MonthOptions> = {
     startDayOfWeek: Day.SUN,
     dayNames: [],
@@ -55,10 +58,19 @@ function initializeMonthOptions(monthOptions: Options['month'] = {}): Required<M
     isAlways6Weeks: true,
     visibleWeeksCount: 0,
     visibleEventCount: 6,
+    dragToMove: true,
+    dragToResize: true,
+    dragToCreate: true,
     ...monthOptions,
   };
   if (!month.dayNames || month.dayNames.length === 0) {
     month.dayNames = DEFAULT_DAY_NAMES.slice() as Required<MonthOptions>['dayNames'];
+  }
+
+  if (isReadOnly) {
+    month.dragToMove = false;
+    month.dragToResize = false;
+    month.dragToCreate = false;
   }
 
   return month;
@@ -118,7 +130,7 @@ export function createOptionsSlice(options: Options = {}) {
       isReadOnly: options.isReadOnly ?? false,
       views: initializeEnabledViews(options),
       week: initializeWeekOptions(options.week),
-      month: initializeMonthOptions(options.month),
+      month: initializeMonthOptions(options.month, options.isReadOnly ?? false),
       calendars: options.calendars ?? [],
       scheduler: initializeSchedulerOptions(options.scheduler),
       timeline: initializeTimelineOptions(options.timeline),
@@ -126,7 +138,10 @@ export function createOptionsSlice(options: Options = {}) {
         set(
           produce((state: CalendarStore) => {
             state.options.week = initializeWeekOptions(options.week);
-            state.options.month = initializeMonthOptions(options.month);
+            state.options.month = initializeMonthOptions(
+              options.month,
+              options.isReadOnly ?? false
+            );
             state.options.calendars = options.calendars ?? [];
             state.options.views = initializeEnabledViews(options);
             state.options.defaultView = options.defaultView ?? 'week';

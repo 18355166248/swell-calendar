@@ -94,6 +94,12 @@ export interface MonthOptions {
   visibleWeeksCount?: number;
   // 每天可见的事件数量
   visibleEventCount?: number;
+  /** 允许拖动事件改期（换天）。默认 true；isReadOnly 时强制 false */
+  dragToMove?: boolean;
+  /** 允许拖动事件两端 resize（改跨天天数）。默认 true；isReadOnly 时强制 false */
+  dragToResize?: boolean;
+  /** 允许空白格子拖拽创建事件。默认 true；isReadOnly 时强制 false */
+  dragToCreate?: boolean;
 }
 
 export interface SchedulerOptions {

@@ -105,7 +105,8 @@ dragToCreate?: boolean;
 
 ## 文档变更
 
-- [ ] 更新 `packages/calendar/SPEC.md`（月视图能力行升级；拖拽测试覆盖表新增 Month 行；`MonthOptions` 新增三个开关）
+- [ ] 更新 `packages/calendar/SPEC.md`（月视图能力行升级；拖拽测试覆盖表新增 Month 行）
+- [x] `packages/calendar/SPEC.md` `month?:` 选项块新增 `dragToMove/dragToResize/dragToCreate` 三个开关（Step 1 已落地）
 - [ ] 更新 `docs/ARCHITECTURE.md`（如新增 controller/hooks 落点需登记则补；否则标注无结构变更）
 - [ ] 新增或更新 ADR（无需）
 - [x] 补任务记录（本文件，设计阶段已建）

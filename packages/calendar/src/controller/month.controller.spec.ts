@@ -16,6 +16,9 @@ function createMonthOptions(overrides: Partial<MonthOptions> = {}): Required<Mon
     isAlways6Weeks: true,
     visibleWeeksCount: 0,
     visibleEventCount: 4,
+    dragToMove: true,
+    dragToResize: true,
+    dragToCreate: true,
     ...overrides,
   };
 }
