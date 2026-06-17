@@ -16,6 +16,8 @@ interface UseMonthEventDragParams {
   colspan: number;
 }
 
+type ResizeEdge = 'start' | 'end';
+
 function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
 }
@@ -32,7 +34,7 @@ export function useMonthEventDrag({
   startCol,
   colspan,
 }: UseMonthEventDragParams) {
-  const { weekCount, colCount, gridPositionFinder, setDragPreview, commitMove } =
+  const { weekCount, colCount, gridPositionFinder, setDragPreview, commitMove, commitResize } =
     useMonthInteraction();
 
   const dayDeltaOf = (e: MouseEvent, dnd: DndState): number => {
@@ -60,7 +62,43 @@ export function useMonthEventDrag({
     };
   };
 
+  const resizePreviewOf = (edge: ResizeEdge, dayDelta: number, e: MouseEvent): MonthDragPreview => {
+    const srcStartFlat = weekIndex * colCount + startCol;
+    const srcEndFlat = srcStartFlat + colspan - 1;
+
+    if (edge === 'start') {
+      const nextStartFlat = clamp(srcStartFlat + dayDelta, 0, srcEndFlat);
+      const nextWeekIndex = Math.floor(nextStartFlat / colCount);
+      const nextStartCol = nextStartFlat % colCount;
+      const nextColspan = clamp(srcEndFlat - nextStartFlat + 1, 1, colCount - nextStartCol);
+      return {
+        kind: 'resize',
+        weekIndex: nextWeekIndex,
+        startCol: nextStartCol,
+        colspan: nextColspan,
+        cursorX: e.clientX,
+        cursorY: e.clientY,
+      };
+    }
+
+    const nextEndFlat = clamp(srcEndFlat + dayDelta, srcStartFlat, weekCount * colCount - 1);
+    const nextWeekIndex = Math.floor(nextEndFlat / colCount);
+    const segmentStartFlat = Math.max(srcStartFlat, nextWeekIndex * colCount);
+    const nextStartCol = segmentStartFlat % colCount;
+    const nextColspan = clamp(nextEndFlat - segmentStartFlat + 1, 1, colCount - nextStartCol);
+    return {
+      kind: 'resize',
+      weekIndex: nextWeekIndex,
+      startCol: nextStartCol,
+      colspan: nextColspan,
+      cursorX: e.clientX,
+      cursorY: e.clientY,
+    };
+  };
+
   const moveType = DRAGGING_TYPE_CREATE.moveEvent('timeGrid', `${uiModel.cid()}`);
+  const resizeStartType = DRAGGING_TYPE_CREATE.resizeEvent('timeGrid', `${uiModel.cid()}`, 'start');
+  const resizeEndType = DRAGGING_TYPE_CREATE.resizeEvent('timeGrid', `${uiModel.cid()}`, 'end');
 
   const onMoveStart = useDrag(moveType, {
     onDrag: (e, dnd) => {
@@ -75,5 +113,21 @@ export function useMonthEventDrag({
     },
   });
 
-  return { onMoveStart };
+  const makeResizeHandlers = (edge: ResizeEdge) => ({
+    onDrag: (e: MouseEvent, dnd: DndState) => {
+      setDragPreview(resizePreviewOf(edge, dayDeltaOf(e, dnd), e));
+    },
+    onMouseUp: (e: MouseEvent, dnd: DndState) => {
+      const dayDelta = dayDeltaOf(e, dnd);
+      setDragPreview(null);
+      if (dayDelta !== 0) {
+        commitResize(uiModel, edge, dayDelta);
+      }
+    },
+  });
+
+  const onResizeStartStart = useDrag(resizeStartType, makeResizeHandlers('start'));
+  const onResizeEndStart = useDrag(resizeEndType, makeResizeHandlers('end'));
+
+  return { onMoveStart, onResizeStartStart, onResizeEndStart };
 }

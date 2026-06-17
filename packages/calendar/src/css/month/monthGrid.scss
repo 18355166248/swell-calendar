@@ -99,6 +99,22 @@
   }
 }
 
+.month-event-resize-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 8px;
+  cursor: ew-resize;
+
+  &--start {
+    left: -2px;
+  }
+
+  &--end {
+    right: -2px;
+  }
+}
+
 .month-more {
   position: absolute;
   font-size: 11px;

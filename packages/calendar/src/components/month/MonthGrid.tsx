@@ -5,11 +5,13 @@ import { useCalendarStore } from '@/contexts/calendarStore';
 import { MonthWeekEventData } from '@/controller/month.controller';
 import {
   computeMovedMonthEvent,
+  computeResizedMonthEvent,
   getMonthGridPositionFromPoint,
 } from '@/controller/month-interaction';
 import { shouldAcceptMonthEventChange } from '@/controller/month-validation';
 import { cls } from '@/helpers/css';
 import { EventUIModel } from '@/model/eventUIModel';
+import { toEndOfDay, toStartOfDay } from '@/time/datetime';
 import DayjsTZDate from '@/time/dayjs-tzdate';
 import { EventObjectWithDefaultValues } from '@/types/events.type';
 
@@ -104,6 +106,26 @@ export function MonthGrid({
     [options, callbacks]
   );
 
+  const commitResize = useCallback(
+    (uiModel: EventUIModel, edge: 'start' | 'end', dayDelta: number) => {
+      const prev = uiModel.model.toEventObject();
+      const next = computeResizedMonthEvent(prev, edge, dayDelta);
+      const accepted = shouldAcceptMonthEventChange(options, callbacks, {
+        action: 'resize',
+        event: next,
+        previousEvent: prev as EventObjectWithDefaultValues,
+      });
+      if (!accepted) {
+        return;
+      }
+      callbacks?.onEventUpdate?.({
+        event: next,
+        previousEvent: prev as EventObjectWithDefaultValues,
+      });
+    },
+    [options, callbacks]
+  );
+
   const interactionValue = useMemo<MonthInteractionValue>(
     () => ({
       weekCount,
@@ -111,8 +133,9 @@ export function MonthGrid({
       gridPositionFinder,
       setDragPreview,
       commitMove,
+      commitResize,
     }),
-    [weekCount, totalCols, gridPositionFinder, commitMove]
+    [weekCount, totalCols, gridPositionFinder, commitMove, commitResize]
   );
 
   return (
@@ -121,6 +144,8 @@ export function MonthGrid({
         {weeks.map((week, weekIndex) => {
           const { rows, overflowByCol } = eventRows[weekIndex] ?? { rows: [], overflowByCol: [] };
           const ghost = dragPreview?.weekIndex === weekIndex ? dragPreview : null;
+          const weekStart = toStartOfDay(week[0]);
+          const weekEnd = toEndOfDay(week[week.length - 1]);
 
           return (
             <div
@@ -170,6 +195,14 @@ export function MonthGrid({
                     cellHeaderHeight={CELL_HEADER_HEIGHT}
                     totalCols={totalCols}
                     weekIndex={weekIndex}
+                    canResizeStartHandle={
+                      uiModel.getStarts().getTime() >= weekStart.getTime() &&
+                      uiModel.getStarts().getTime() <= weekEnd.getTime()
+                    }
+                    canResizeEndHandle={
+                      uiModel.getEnds().getTime() >= weekStart.getTime() &&
+                      uiModel.getEnds().getTime() <= weekEnd.getTime()
+                    }
                   />
                 ))}
 

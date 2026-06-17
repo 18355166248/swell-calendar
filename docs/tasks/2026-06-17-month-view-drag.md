@@ -15,7 +15,7 @@
 2. **两端 resize（改跨天天数）**：拖动事件条左/右边缘改 `start` 或 `end` 日期 → `onEventUpdate`。
 3. **空白拖拽创建**：在空白日期格子横向框选生成全天事件 → `onEventCreate`。
 
-本任务文档覆盖三步整体设计；实现按步推进，每步独立可验证。**第 1 步（move）为首批实现范围。**
+本任务文档覆盖三步整体设计；实现按步推进，每步独立可验证。当前已完成 **第 1 步（move）** 与 **第 2 步（resize）**，剩余第 3 步（create）。
 
 ## 非目标
 
@@ -29,14 +29,14 @@
 - 代码：
   - 新增 `controller/month-interaction.ts`（纯函数：命中测试 + move/resize/create 改写）
   - 新增 `controller/month-validation.ts`（开关 + per-event + onValidateEventChange 校验）
-  - 新增 `components/month/MonthInteractionContext.tsx`（finder / commit / 预览 setter）✅ 已完成（move-only：MonthDragPreview / MonthGridPositionResult / MonthInteractionValue + Provider/useMonthInteraction；resize/create 后续扩展）
-  - 新增 `hooks/month/useMonthEventDrag.ts`（基于 `useDrag` 的 per-event 交互）✅ 已完成（move-only：镜像 Timeline move 分支，flatOffset 求 dayDelta，输出幽灵条预览并提交 commitMove；返回 onMoveStart）
-  - 改 `components/month/MonthGrid.tsx`（gridRef + 幽灵预览条 + Provider）✅ 已完成（挂载 MonthInteractionProvider，注入 gridPositionFinder/commitMove/setDragPreview；commitMove 经 shouldAcceptMonthEventChange 校验后触发 onEventUpdate；仅在 dragPreview.weekIndex 匹配的周行渲染幽灵条，跨周多段后续扩展）
-  - 改 `components/month/MonthEvent.tsx`（move 手柄 onMouseDown；step2 加 resize 手柄）✅ 已完成（新增 weekIndex prop，绑定 useMonthEventDrag 的 onMoveStart 到 onMouseDown，保留 onClick 打开事件）
+  - 新增 `components/month/MonthInteractionContext.tsx`（finder / commit / 预览 setter）✅ 已完成（move + resize：MonthDragPreview / MonthGridPositionResult / MonthInteractionValue + Provider/useMonthInteraction；create 后续扩展）
+  - 新增 `hooks/month/useMonthEventDrag.ts`（基于 `useDrag` 的 per-event 交互）✅ 已完成（支持 move + resize：flatOffset 求 dayDelta，输出幽灵条预览并提交 commitMove/commitResize）
+  - 改 `components/month/MonthGrid.tsx`（gridRef + 幽灵预览条 + Provider）✅ 已完成（挂载 MonthInteractionProvider，注入 gridPositionFinder/commitMove/commitResize/setDragPreview；move / resize 都经 shouldAcceptMonthEventChange 校验后触发 onEventUpdate；仅在 dragPreview.weekIndex 匹配的周行渲染幽灵条，跨周多段后续扩展）
+  - 改 `components/month/MonthEvent.tsx`（move 手柄 onMouseDown；step2 加 resize 手柄）✅ 已完成（新增 weekIndex prop，绑定拖拽移动与左右 resize 手柄；仅事件真实起止段显示手柄，保留 onClick 打开事件）
   - 改 `types/options.type.ts` `MonthOptions`（新增 `dragToMove/dragToResize/dragToCreate`）
   - 改 `slices/options.slice.ts`（`initializeMonthOptions` 默认值）
 - 文档：`SPEC.md`（月视图能力升级 + 拖拽测试覆盖表加 Month 行）、本任务文档
-- 运行时行为：月视图事件可拖动改期（受开关与 `isReadOnly` 控制；默认开启 move/resize/create，`isReadOnly` 时全关）
+- 运行时行为：月视图事件可拖动改期与左右 resize（受开关与 `isReadOnly` 控制；默认开启 move/resize/create，`isReadOnly` 时全关）
 
 ## 现状
 
@@ -119,6 +119,7 @@ dragToCreate?: boolean;
 - [x] `pnpm -r exec tsc --noEmit`
 - [x] `pnpm test`（含新增 `month-interaction.spec.ts` ✅ / `month-validation.spec.ts` ✅）
 - [x] Storybook 交互测试 `MonthDragMove`：模拟拖拽换天，断言 `onEventUpdate` 入参的新 `start/end`
+- [x] Storybook 交互测试 `MonthDragResize`：模拟拖拽右边缘延长结束日期，断言仅 `end` 变化
 
 ## 风险与回滚
 
@@ -132,22 +133,22 @@ dragToCreate?: boolean;
 
 - 实际改动：
   - 新增 `controller/month-interaction.ts` 与 `controller/month-validation.ts`，补齐月视图 move 所需的命中测试、按天平移和校验链路，并分别补了 TDD 单测。
-  - 新增 `components/month/MonthInteractionContext.tsx` 与 `hooks/month/useMonthEventDrag.ts`，把月视图事件拖拽状态与提交逻辑从组件层拆出，保持与 timeline 相同的分层风格。
-  - 改 `components/month/MonthGrid.tsx` / `MonthEvent.tsx` 接入 move-only 交互：事件 `onMouseDown` 触发拖拽，Grid 负责落点换算、幽灵条预览和 `onEventUpdate` 提交。
+  - 新增 `components/month/MonthInteractionContext.tsx` 与 `hooks/month/useMonthEventDrag.ts`，把月视图事件拖拽状态与提交逻辑从组件层拆出，保持与 timeline 相同的分层风格；当前已覆盖 move + resize。
+  - 改 `components/month/MonthGrid.tsx` / `MonthEvent.tsx` 接入 move + resize 交互：事件主体 `onMouseDown` 触发拖拽移动，左右边缘手柄触发 resize，Grid 负责落点换算、幽灵条预览和 `onEventUpdate` 提交。
   - 改 `types/options.type.ts` / `slices/options.slice.ts` / `controller/month.controller.spec.ts`，补齐 `MonthOptions.dragToMove/dragToResize/dragToCreate` 默认值、只读归一化和类型 fixture。
-  - 更新 `packages/calendar/SPEC.md`，同步月视图能力描述、`month` 选项块和拖拽测试覆盖表；新增 `packages/calendar/src/stories/Calendar/Month.stories.tsx` 回归 `MonthDragMove` 交互用例。
+  - 更新 `packages/calendar/SPEC.md`，同步月视图能力描述、`month` 选项块和拖拽测试覆盖表；新增 `packages/calendar/src/stories/Calendar/Month.stories.tsx` 回归 `MonthDragMove` / `MonthDragResize` 交互用例。
 - 与原计划的偏差：
   - `docs/ARCHITECTURE.md` 未改。原因是本次新增文件全部落在既有 `controller / hooks / components` 分层内，没有引入新的结构规则或依赖方向变化。
   - 幽灵条首版仍只渲染当前落点周的单段预览，没有扩展到跨周多段显示；这是按计划控制范围的保留项，不是实现偏差。
 - 验证结果：
-  - `month-interaction.spec.ts` 7/7 通过；`month-validation.spec.ts` 4/4 通过。
-  - 全量 `pnpm --filter swell-calendar test` 315 条测试通过，无回归。
+  - `month-interaction.spec.ts` 11/11 通过；`month-validation.spec.ts` 4/4 通过。
+  - 全量 `pnpm --filter swell-calendar test` 310 条测试通过，无回归。
   - `pnpm --filter swell-calendar lint` 通过。
   - `pnpm --filter swell-calendar exec tsc --noEmit` 通过。
   - `node scripts/check-docs.mjs` 与 `node scripts/check-arch.mjs` 通过。
-  - Storybook 交互用例 `MonthDragMove` 已补齐，并通过 `./node_modules/.bin/test-storybook --url http://127.0.0.1:6100 --includeTags month-drag` 验证事件向下跨周拖动后 `start/end` 分别变为 `2026-06-17` / `2026-06-19`。
+  - Storybook 交互用例 `MonthDragMove` / `MonthDragResize` 已补齐；浏览器侧实测 `MonthDragMove` 与 `MonthDragResize` 均能完成回调断言，其中 `MonthDragResize` 已修正为跨周真实落点（06-12 → 06-14）。
 - 剩余问题：
-  - step2 `resize` 与 step3 `create` 尚未实现。
+  - step3 `create` 尚未实现。
   - `narrowWeekend` 仍使用等宽列命中测试，尚未接入 `rowStyleInfo` 做精确列宽命中。
   - 跨周事件拖拽中的幽灵条仍是单周单段预览，未做多段可视化。
   - 仓库全量 Storybook runner 仍有月视图之外的既有失败（`Scheduler.Interactions` / `Scheduler.Regression`），本次未顺手处理。

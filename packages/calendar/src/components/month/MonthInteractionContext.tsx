@@ -30,6 +30,8 @@ export interface MonthInteractionValue {
   setDragPreview: (preview: MonthDragPreview | null) => void;
   /** 提交移动：按天平移 dayDelta 天 */
   commitMove: (uiModel: EventUIModel, dayDelta: number) => void;
+  /** 提交 resize：调整 start / end 一侧的日期 */
+  commitResize: (uiModel: EventUIModel, edge: 'start' | 'end', dayDelta: number) => void;
 }
 
 const MonthInteractionContext = createContext<MonthInteractionValue | null>(null);

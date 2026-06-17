@@ -3,7 +3,11 @@ import { describe, expect, it } from 'vitest';
 import DayjsTZDate from '@/time/dayjs-tzdate';
 import { EventObject } from '@/types/events.type';
 
-import { computeMovedMonthEvent, getMonthGridPositionFromPoint } from './month-interaction';
+import {
+  computeMovedMonthEvent,
+  computeResizedMonthEvent,
+  getMonthGridPositionFromPoint,
+} from './month-interaction';
 
 describe('month-interaction', () => {
   describe('getMonthGridPositionFromPoint', () => {
@@ -57,6 +61,40 @@ describe('month-interaction', () => {
     it('不修改原对象', () => {
       computeMovedMonthEvent(prev, 3);
       expect((prev.start as DayjsTZDate).dayjs.date()).toBe(10);
+    });
+  });
+
+  describe('computeResizedMonthEvent', () => {
+    const prev: EventObject = {
+      id: '2',
+      calendarId: 'c1',
+      title: 'resize',
+      start: new DayjsTZDate('2026-06-10T09:00:00'),
+      end: new DayjsTZDate('2026-06-12T10:00:00'),
+    } as EventObject;
+
+    it('start 边左拖 -2 天，只改开始日期', () => {
+      const next = computeResizedMonthEvent(prev, 'start', -2);
+      expect((next.start as DayjsTZDate).dayjs.format('YYYY-MM-DD HH:mm')).toBe('2026-06-08 09:00');
+      expect((next.end as DayjsTZDate).dayjs.format('YYYY-MM-DD HH:mm')).toBe('2026-06-12 10:00');
+    });
+
+    it('end 边右拖 +3 天，只改结束日期', () => {
+      const next = computeResizedMonthEvent(prev, 'end', 3);
+      expect((next.start as DayjsTZDate).dayjs.format('YYYY-MM-DD HH:mm')).toBe('2026-06-10 09:00');
+      expect((next.end as DayjsTZDate).dayjs.format('YYYY-MM-DD HH:mm')).toBe('2026-06-15 10:00');
+    });
+
+    it('start 拖过 end 时夹紧到 end 当天', () => {
+      const next = computeResizedMonthEvent(prev, 'start', 5);
+      expect((next.start as DayjsTZDate).dayjs.format('YYYY-MM-DD HH:mm')).toBe('2026-06-12 10:00');
+      expect((next.end as DayjsTZDate).dayjs.format('YYYY-MM-DD HH:mm')).toBe('2026-06-12 10:00');
+    });
+
+    it('end 拖到 start 之前时夹紧到 start 当天', () => {
+      const next = computeResizedMonthEvent(prev, 'end', -5);
+      expect((next.start as DayjsTZDate).dayjs.format('YYYY-MM-DD HH:mm')).toBe('2026-06-10 09:00');
+      expect((next.end as DayjsTZDate).dayjs.format('YYYY-MM-DD HH:mm')).toBe('2026-06-10 09:00');
     });
   });
 });

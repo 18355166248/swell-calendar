@@ -60,3 +60,35 @@ export function computeMovedMonthEvent(prev: EventObject, dayDelta: number): Eve
   const end = new DayjsTZDate(prev.end).addDate(dayDelta);
   return { ...prev, start, end };
 }
+
+/**
+ * 按天调整事件边界：仅改一侧日期，保留另一侧与 time-of-day。
+ *
+ * 月视图 resize 是日粒度操作，因此最小跨度收敛为「不允许 start 晚于 end」：
+ * - 拖 start 超过 end：夹紧到 end 当天
+ * - 拖 end 早于 start：夹紧到 start 当天
+ */
+export function computeResizedMonthEvent(
+  prev: EventObject,
+  edge: 'start' | 'end',
+  dayDelta: number
+): EventObject {
+  const prevStart = new DayjsTZDate(prev.start);
+  const prevEnd = new DayjsTZDate(prev.end);
+
+  if (edge === 'start') {
+    const nextStart = prevStart.addDate(dayDelta);
+    return {
+      ...prev,
+      start: nextStart.getTime() <= prevEnd.getTime() ? nextStart : prevEnd,
+      end: prevEnd,
+    };
+  }
+
+  const nextEnd = prevEnd.addDate(dayDelta);
+  return {
+    ...prev,
+    start: prevStart,
+    end: nextEnd.getTime() >= prevStart.getTime() ? nextEnd : prevStart,
+  };
+}
