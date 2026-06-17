@@ -117,7 +117,7 @@ dragToCreate?: boolean;
 - [ ] `node scripts/check-arch.mjs`
 - [ ] `pnpm lint`
 - [ ] `pnpm -r exec tsc --noEmit`
-- [ ] `pnpm test`（含新增 `month-interaction.spec.ts` ✅ / `month-validation.spec.ts`）
+- [ ] `pnpm test`（含新增 `month-interaction.spec.ts` ✅ / `month-validation.spec.ts` ✅）
 - [ ] Storybook 交互测试 `MonthDragMove`：模拟拖拽换天，断言 `onEventUpdate` 入参的新 `start/end`
 
 ## 风险与回滚
