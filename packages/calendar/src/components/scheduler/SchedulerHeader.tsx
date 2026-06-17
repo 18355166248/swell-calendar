@@ -55,14 +55,17 @@ export function SchedulerHeader({
         {weekDates.map((date) => {
           const month = date.dayjs.month() + 1;
           const day = date.dayjs.date();
+          const isToday = date.dayjs.isSame(new DayjsTZDate().dayjs, 'day');
 
           return (
             <div
               key={date.toString()}
-              className={cls('scheduler-header-day-label')}
+              className={cls('scheduler-header-day-label', {
+                'scheduler-header-day-label-today': isToday,
+              })}
               style={{
                 flex: `0 0 ${dayWidth}`,
-                color: schedulerHeaderTheme.dayLabelColor,
+                color: isToday ? undefined : schedulerHeaderTheme.dayLabelColor,
                 borderRight: schedulerHeaderTheme.dayLabelBorderRight,
               }}
             >
@@ -74,7 +77,7 @@ export function SchedulerHeader({
                   day: date.dayjs.day(),
                   dayName: DAY_NAMES[date.dayjs.day()],
                   month,
-                  isToday: date.dayjs.isSame(new DayjsTZDate().dayjs, 'day'),
+                  isToday,
                   dateInstance: date,
                 }}
               />

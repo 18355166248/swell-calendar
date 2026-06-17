@@ -80,6 +80,22 @@ export function createLayoutSlice() {
           })
         );
       },
+      pruneDayGridRows: (validRows: string[]) => {
+        set(
+          produce((state: CalendarStore) => {
+            // 切换视图时，dayGridRows 会残留上一个视图的面板（如 scheduler-header /
+            // week-view-day-names），这些陈旧高度会被 getRestPanelHeight 从 time 面板里
+            // 扣掉，导致网格高度被吃光。这里按当前视图实际存在的面板做一次裁剪。
+            const valid = new Set(validRows);
+            const { dayGridRows } = state.layout.weekViewLayout;
+            Object.keys(dayGridRows).forEach((row) => {
+              if (!valid.has(row)) {
+                delete dayGridRows[row];
+              }
+            });
+          })
+        );
+      },
     },
   });
 }

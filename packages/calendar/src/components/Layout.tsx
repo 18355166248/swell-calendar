@@ -31,7 +31,7 @@ const Layout = ({ children, className, width, height, backgroundColor }: LayoutP
   const [container, setContainer] = useDOMNode<HTMLDivElement>();
 
   const {
-    layout: { updateLayoutHeight, setLastPanelType },
+    layout: { updateLayoutHeight, setLastPanelType, pruneDayGridRows },
   } = useCalendarStore();
   const containerClassName = useMemo(() => cls('layout', className), [className]);
 
@@ -50,6 +50,18 @@ const Layout = ({ children, className, width, height, backgroundColor }: LayoutP
   useLayoutEffect(() => {
     if (container) {
       const childArray = Children.toArray(children);
+
+      // 先按当前视图实际渲染的面板裁剪掉切换视图后残留的陈旧面板高度，
+      // 否则 getRestPanelHeight 会把上一个视图的面板高度从 time 面板里扣掉，导致网格塌缩。
+      const panelNames = childArray
+        .filter(
+          (child): child is ReactElement<{ name?: string }, string> =>
+            !isString(child) && !isNumber(child) && !isNil(child)
+        )
+        .map((child) => child.props.name)
+        .filter((name): name is string => Boolean(name));
+      pruneDayGridRows(panelNames);
+
       const lastChild = childArray[childArray.length - 1];
 
       if (lastChild && !isString(lastChild) && !isNumber(lastChild) && !isNil(lastChild)) {

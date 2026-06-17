@@ -266,6 +266,7 @@ export function Scheduler() {
                     timeGridData={timeGridData}
                     events={timeEvents}
                     columnWidth={columnWidth}
+                    hideGutter
                   />
                 </div>
               </div>

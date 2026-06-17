@@ -13,6 +13,8 @@ export type WeekViewLayoutSlice = {
   setLastPanelType: (lastPanelType: string) => void;
   updateLayoutHeight: (layout: number) => void;
   updateDayGridRowHeight: (row: WeekGridRows, height: number) => void;
+  /** 仅保留当前视图实际存在的面板，清除切换视图后残留的陈旧面板高度 */
+  pruneDayGridRows: (validRows: string[]) => void;
 };
 
 export type OptionsSlice = {

@@ -304,6 +304,12 @@
   // color, border-right: driven by timeline.schedulerHeader theme
 }
 
+// 今天的日期标签高亮（与月/日视图 today 装饰色一致）
+.scheduler-header-day-label-today {
+  color: #135de6;
+  font-weight: 600;
+}
+
 .scheduler-header-resource-row {
   display: flex;
   min-height: 32px;

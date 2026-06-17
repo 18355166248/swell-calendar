@@ -48,6 +48,12 @@ export interface TimeGridProps {
   events: EventUIModel[]; // 需要在网格中显示的事件数组
   /** 固定列宽（像素），由 scheduler 视图传入以启用水平滚动 */
   columnWidth?: number;
+  /**
+   * 隐藏内部左侧时间轴（gutter）。
+   * scheduler 固定列宽模式下，外层已渲染独立的 sticky 时间轴，
+   * 此时 TimeGrid 不应再渲染自己的时间轴，否则会出现双时间轴且网格与表头错位。
+   */
+  hideGutter?: boolean;
 }
 
 function isSameResourceColumn(column: CommonGridColumn, uiModel: EventUIModel) {
@@ -61,7 +67,7 @@ function isSameResourceColumn(column: CommonGridColumn, uiModel: EventUIModel) {
   return resourceId === column.resourceId || resourceIds.includes(column.resourceId);
 }
 
-export function TimeGrid({ timeGridData, events, columnWidth }: TimeGridProps) {
+export function TimeGrid({ timeGridData, events, columnWidth, hideGutter }: TimeGridProps) {
   const { columns } = timeGridData;
 
   // 获取列容器的 DOM 节点引用
@@ -83,12 +89,18 @@ export function TimeGrid({ timeGridData, events, columnWidth }: TimeGridProps) {
   const primaryTimezone =
     currentView === 'scheduler' ? options.scheduler?.displayTimezone : undefined;
   const baseGutterWidth = parseInt(`${timeGridLeft.width}`, 10) || 72;
-  const gutterWidth =
-    timezones.length > 0 ? `${baseGutterWidth * (timezones.length + 1)}px` : timeGridLeft.width;
+  const gutterWidth = hideGutter
+    ? '0'
+    : timezones.length > 0
+      ? `${baseGutterWidth * (timezones.length + 1)}px`
+      : timeGridLeft.width;
 
   // 固定列宽模式：计算网格总像素宽度，用于 .time-columns 和 .time-grid-scroll-area 的显式宽度
-  const gutterWidthPx =
-    timezones.length > 0 ? baseGutterWidth * (timezones.length + 1) : baseGutterWidth;
+  const gutterWidthPx = hideGutter
+    ? 0
+    : timezones.length > 0
+      ? baseGutterWidth * (timezones.length + 1)
+      : baseGutterWidth;
   const gridPixelWidth = columnWidth ? columns.length * columnWidth : undefined;
   const scrollAreaWidth = gridPixelWidth ? `${gutterWidthPx + gridPixelWidth}px` : undefined;
 
@@ -356,15 +368,18 @@ export function TimeGrid({ timeGridData, events, columnWidth }: TimeGridProps) {
         className={classNames.scrollArea}
         style={scrollAreaWidth ? { width: scrollAreaWidth } : undefined}
       >
-        {/* 左侧时间轴 — 固定列宽模式下 sticky 固定在可视区左侧 */}
-        <TimeColumn
-          timeGridRows={timeGridData.rows}
-          nowIndicatorState={nowIndicatorState}
-          timezones={timezones}
-          primaryTimezone={primaryTimezone}
-          width={gutterWidth}
-          style={columnWidth ? { position: 'sticky', left: 0, zIndex: 2 } : undefined}
-        />
+        {/* 左侧时间轴 — 固定列宽模式下 sticky 固定在可视区左侧；
+            hideGutter 时由外层渲染独立时间轴，这里不再重复渲染 */}
+        {hideGutter ? null : (
+          <TimeColumn
+            timeGridRows={timeGridData.rows}
+            nowIndicatorState={nowIndicatorState}
+            timezones={timezones}
+            primaryTimezone={primaryTimezone}
+            width={gutterWidth}
+            style={columnWidth ? { position: 'sticky', left: 0, zIndex: 2 } : undefined}
+          />
+        )}
         {/* 右侧时间轴 */}
         <div
           className={cls('time-columns')}
