@@ -27,7 +27,12 @@ function MovingEventShadow(props: MovingEventShadowProps) {
 
   return (
     <>
-      <TimeEvent uiModel={movingEvent} nextStartTime={nextStartTime} nextEndTime={nextEndTime} />
+      <TimeEvent
+        uiModel={movingEvent}
+        nextStartTime={nextStartTime}
+        nextEndTime={nextEndTime}
+        isGuideEvent={true}
+      />
       <DragTimeTooltip uiModel={movingEvent} start={nextStartTime} end={nextEndTime} />
     </>
   );

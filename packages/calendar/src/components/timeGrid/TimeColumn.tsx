@@ -117,6 +117,8 @@ interface TimeColumnProps {
   primaryTimezone?: string;
   /** gutter 总宽度覆盖（多时区时由宿主视图按轴数计算） */
   width?: string;
+  /** 额外内联样式（scheduler 固定列宽模式下用于 sticky 定位） */
+  style?: React.CSSProperties;
 }
 
 function TimeColumn({
@@ -125,6 +127,7 @@ function TimeColumn({
   timezones = [],
   primaryTimezone,
   width: widthOverride,
+  style: styleOverride,
 }: TimeColumnProps) {
   const { week } = useThemeStore();
   const { timeGridLeft, showNowIndicator } = week;
@@ -177,7 +180,7 @@ function TimeColumn({
   const axisWidth = 100 / axisCount;
 
   return (
-    <div className={classNames.timeColumn} style={{ width, display: 'flex' }}>
+    <div className={classNames.timeColumn} style={{ width, display: 'flex', ...styleOverride }}>
       {/* 副时区轴：依配置顺序排在主轴左侧 */}
       {timezones.map((tz) => (
         <HourRows

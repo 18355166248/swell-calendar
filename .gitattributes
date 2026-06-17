@@ -1,0 +1,15 @@
+# 统一以 LF 存储文本文件，避免编辑器在 Windows 上把整文件翻成 CRLF
+# 而污染 diff / git blame（参见 theme.type.ts 的 CRLF→LF 翻转）。
+* text=auto eol=lf
+
+# 二进制资源不做换行符处理
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary
+*.webp binary
+*.woff  binary
+*.woff2 binary
+*.ttf   binary
+*.eot   binary

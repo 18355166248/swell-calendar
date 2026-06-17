@@ -1,0 +1,36 @@
+{
+  "name": "swell-calendar-s2",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "predev": "pnpm --filter swell-calendar build",
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "check:types": "tsc --noEmit",
+    "test": "node ../../packages/calendar/node_modules/vitest/vitest.mjs run",
+    "lint": "echo \"(no lint configured yet)\""
+  },
+  "dependencies": {
+    "@react-spectrum/s2": "^1.4.0",
+    "axios": "^1.18.0",
+    "dayjs": "^1.11.13",
+    "mockjs": "^1.1.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^7.17.0",
+    "swell-calendar": "workspace:*",
+    "zustand": "^5.0.4"
+  },
+  "devDependencies": {
+    "@repo/typescript-config": "workspace:*",
+    "@types/mockjs": "^1.0.10",
+    "@types/react": "^18.2.61",
+    "@types/react-dom": "^18.2.19",
+    "@vitejs/plugin-react": "^4.2.1",
+    "typescript": "5.5.4",
+    "unplugin-parcel-macros": "^0.2.0",
+    "vite": "^5.1.0"
+  }
+}

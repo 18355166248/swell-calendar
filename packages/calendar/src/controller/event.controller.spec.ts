@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { EventModel } from '@/model/eventModel';
+import { EventUIModel } from '@/model/eventUIModel';
 import { CalendarData } from '@/types/calendar.type';
 import { EventObject } from '@/types/events.type';
 
@@ -8,6 +9,8 @@ import {
   applyOptimisticEventUpdate,
   createEventCollection,
   createEvents,
+  filterByCategory,
+  isAllday,
 } from './event.controller';
 
 function makeCalendarData(events: EventObject[]): CalendarData {
@@ -54,6 +57,51 @@ function cidById(calendarData: CalendarData) {
   });
   return map;
 }
+
+describe('isAllday / filterByCategory · 跨天定时事件不再塌进全天条', () => {
+  const model = (event: ConstructorParameters<typeof EventModel>[0]) => new EventModel(event);
+
+  it('跨天（>24h）time 事件 isAllday 为 false（核心回归）', () => {
+    expect(
+      isAllday(
+        model({
+          category: 'time',
+          start: new Date('2025-03-18T08:00:00'),
+          end: new Date('2025-03-20T10:00:00'), // 约 50h
+        })
+      )
+    ).toBe(false);
+  });
+
+  it('显式 allDay / isAllday 仍为 true', () => {
+    expect(
+      isAllday(
+        model({ category: 'allday', start: new Date('2025-03-18'), end: new Date('2025-03-18') })
+      )
+    ).toBe(true);
+    expect(
+      isAllday(
+        model({
+          category: 'time',
+          isAllday: true,
+          start: new Date('2025-03-18T08:00:00'),
+          end: new Date('2025-03-18T09:00:00'),
+        })
+      )
+    ).toBe(true);
+  });
+
+  it('跨天 time 事件被 filterByCategory 归到 time 面板（而非 allday）', () => {
+    const uiModel = new EventUIModel(
+      model({
+        category: 'time',
+        start: new Date('2025-03-18T08:00:00'),
+        end: new Date('2025-03-20T10:00:00'),
+      })
+    );
+    expect(filterByCategory(uiModel)).toBe('time');
+  });
+});
 
 describe('applyOptimisticEventUpdate', () => {
   it('preserves the cid of EVERY event, including the updated one (race-free optimistic update)', () => {

@@ -11,6 +11,7 @@
 | `packages/calendar/` | 日历组件库主体 |
 | `packages/eslint-config/` | 共享 lint 规则 |
 | `packages/typescript-config/` | 共享 tsconfig |
+| `apps/swell-calendar-s2/` | 宿主演示应用（Spectrum 2 风格），消费 `packages/calendar` |
 | `scripts/` | 机械化检查与本地开发脚本 |
 | `.githooks/` | 提交前门控 |
 | `.github/workflows/` | CI 流水线 |
@@ -33,6 +34,13 @@ types
 → Template
 → components
 ```
+
+### 宿主应用（`apps/swell-calendar-s2/`）
+
+宿主应用消费 `packages/calendar`，本身不受组件库分层约束（`check-arch.mjs` 不扫 `apps/`）。其内部结构要点：
+
+- 路由层（`src/router.tsx`）：路由 `/app/calendar/:view`，`view` 的唯一真源是 URL；非法参数重定向到默认视图（`scheduler`）。日期（`currentDate`）由 App 内部 `useState` 管理，不走 URL。为后续跨页面（`/app/tasks` 等）预留一级应用区。
+- 主应用（`src/App.tsx`）：`view` 从路由 props 接收，`currentDate` 由内部 state + 引擎 `onPageChange` 回填；通过命令式 `calRef` 驱动引擎（详见 ADR-2026-06-s2-router）。
 
 ## 各层职责
 

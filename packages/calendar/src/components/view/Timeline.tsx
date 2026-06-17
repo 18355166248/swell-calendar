@@ -6,6 +6,7 @@ import {
   TIMELINE_RESOURCE_LIST_WIDTH,
 } from '@/constants/timeline-const';
 import { useCalendarStore } from '@/contexts/calendarStore';
+import { useThemeStore } from '@/contexts/themeStore';
 import { getCalendarTimelineDays, getCalendarTimelineRow } from '@/controller/timeline-calendar';
 import { cls } from '@/helpers/css';
 import { getVisibleResources } from '@/helpers/grid';
@@ -18,6 +19,7 @@ import { TimelineHeader } from '../timeline/TimelineHeader';
 
 export function Timeline() {
   const { options, calendar, view } = useCalendarStore();
+  const emptyColor = useThemeStore((s) => s.timeline.emptyColor);
   const { renderDate } = view;
   const timelineOptions = options.timeline;
   const schedulerOptions = options.scheduler;
@@ -72,7 +74,7 @@ export function Timeline() {
 
   if (resources.length === 0) {
     return (
-      <div className={cls('scheduler-empty')}>
+      <div className={cls('scheduler-empty')} style={{ color: emptyColor }}>
         <p>暂无资源配置，请通过 timeline.resources（或 scheduler.resources）传入资源列表</p>
       </div>
     );

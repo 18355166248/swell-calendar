@@ -35,11 +35,12 @@
 
 | 文档 | 作用 |
 |------|------|
-| [tasks/2026-05-07-scheduler-mobiscroll-parity-roadmap.md](./tasks/2026-05-07-scheduler-mobiscroll-parity-roadmap.md) | scheduler 对齐主任务 |
-| [tasks/2026-06-04-scheduler-scope-freeze.md](./tasks/2026-06-04-scheduler-scope-freeze.md) | scheduler 能力边界收敛 |
-| [tasks/2026-06-07-scheduler-mobiscroll-parity-polish.md](./tasks/2026-06-07-scheduler-mobiscroll-parity-polish.md) | scheduler 对标差异收口（当前时间线 / all-day 标签 / 副时区轴 / hover / 跨实例策略） |
-| [tasks/2026-06-04-docs-information-architecture-cleanup.md](./tasks/2026-06-04-docs-information-architecture-cleanup.md) | 文档信息架构清理 |
-| [adrs/ADR-2026-05-scheduler-parity-scope.md](./adrs/ADR-2026-05-scheduler-parity-scope.md) | scheduler 范围与设计原则 ADR |
+| [tasks/2026-06-12-s2-next-plan.md](./tasks/2026-06-12-s2-next-plan.md) | S2 外壳 P7–P8 后续规划（全视图引擎化 + 侧栏交互） |
+| [archive/tasks/2026-05-07-scheduler-mobiscroll-parity-roadmap.md](./archive/tasks/2026-05-07-scheduler-mobiscroll-parity-roadmap.md) | scheduler 对齐 epic 路线图（已完成，结论沉淀在 `SPEC` / `agent-plan/plan.md`） |
+| [archive/tasks/2026-06-10-s2-app-roadmap.md](./archive/tasks/2026-06-10-s2-app-roadmap.md) | swell-calendar-s2 外壳路线图与进度真源（P0–P6 完成，P7–P8 规划中） |
+| [adrs/ADR-2026-05-scheduler-parity-scope.md](./adrs/ADR-2026-05-scheduler-parity-scope.md) | scheduler 范围与设计原则 ADR（一级原则记录，保留） |
+
+> scheduler 与 S2 的历史 closure / feature / 切片任务单（scope-freeze、parity-polish、各 DnD/resize/timezone/storybook 收口、S2 P3–P6 等）均已迁入 [archive/tasks/](./archive/tasks/)，结论沉淀在 `SPEC` / `agent-plan/plan.md`。
 
 ## 模板与归档
 
@@ -55,7 +56,7 @@
 - https://demo.mobiscroll.com/react/scheduler/desktop-week-view
 - 主计划：[agent-plan/plan.md](./agent-plan/plan.md)
 - 实施索引（执行附件）：[agent-plan/implementation-steps.md](./agent-plan/implementation-steps.md)
-- 任务文档：[tasks/2026-05-07-scheduler-mobiscroll-parity-roadmap.md](./tasks/2026-05-07-scheduler-mobiscroll-parity-roadmap.md)
+- 任务文档（已归档）：[archive/tasks/2026-05-07-scheduler-mobiscroll-parity-roadmap.md](./archive/tasks/2026-05-07-scheduler-mobiscroll-parity-roadmap.md)
 
 ## 文档分层
 

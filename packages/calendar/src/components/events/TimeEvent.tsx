@@ -14,6 +14,7 @@ import { useCalendarColor } from '@/hooks/calendar/useCalendarColor';
 import { useDrag } from '@/hooks/common/useDrag';
 import { useTransientUpdatesCalendar } from '@/hooks/common/useTransientUpdatesCalendar';
 import { EventUIModel } from '@/model/eventUIModel';
+import { isSameDate } from '@/time/datetime';
 import DayjsTZDate from '@/time/dayjs-tzdate';
 import { CalendarColor } from '@/types/calendar.type';
 import { DraggingState } from '@/types/dnd.type';
@@ -75,7 +76,9 @@ function getStyles({
     borderRadius,
     borderLeft: `3px solid ${borderColor}`, // 边框颜色
     color, // 文字颜色
-    opacity: isDraggingTarget && !isResizingEvent ? 0.5 : 1, // 透明度（拖拽时半透明）
+    // 拖拽目标半透明；其余情况不写内联 opacity，交由 CSS 控制
+    // （静置略带透明、hover 时恢复不透明，见 events/time.scss）
+    opacity: isDraggingTarget && !isResizingEvent ? 0.5 : undefined,
     zIndex: hasNextStartTime ? 1 : 0, // 层级（重叠事件时调整）
   };
 
@@ -129,6 +132,11 @@ export interface TimeEventProps {
   nextEndTime?: DayjsTZDate | null;
   /** 是否为调整大小事件 */
   isResizingEvent?: boolean;
+  /** 是否为拖拽/resize 过程中的引导阴影卡片。 */
+  isGuideEvent?: boolean;
+  /** 当前事件所在列的日期（time-grid 按列渲染）。用于跨天事件分段时间标签：
+   *  起始列显示开始时间、结束列显示结束时间、中间列不显示时间。 */
+  columnDate?: DayjsTZDate;
 }
 
 /**
@@ -185,6 +193,8 @@ export function TimeEvent({
   nextStartTime,
   nextEndTime,
   isResizingEvent,
+  isGuideEvent = false,
+  columnDate,
 }: TimeEventProps) {
   // 获取事件的日历颜色配置
   const calendarColor = useCalendarColor(uiModel.model);
@@ -198,6 +208,11 @@ export function TimeEvent({
   // 当前事件是否为拖拽目标的状态
   const [isDraggingTarget, setIsDraggingTarget] = useState<boolean>(false);
   const { model } = uiModel;
+
+  // 跨天事件多段联动高亮：悬浮任一段时，同一事件 id 的所有段一起加深。
+  // 用布尔 selector 订阅 —— 仅当“是否为当前悬浮事件”翻转的段才重渲染。
+  const setHoveredEventId = useCalendarStore((state) => state.hover.setHoveredEventId);
+  const isHovered = useCalendarStore((state) => state.hover.hoveredEventId === model.id);
 
   // 获取布局容器引用，用于添加拖拽样式
   const layoutContainer = useLayoutContainer();
@@ -336,6 +351,7 @@ export function TimeEvent({
   };
 
   const handleMouseEnter = () => {
+    setHoveredEventId(model.id);
     callbacks?.onEventHover?.({
       event: model.toEventObject(),
       hovering: true,
@@ -343,6 +359,7 @@ export function TimeEvent({
   };
 
   const handleMouseLeave = () => {
+    setHoveredEventId(null);
     callbacks?.onEventHover?.({
       event: model.toEventObject(),
       hovering: false,
@@ -379,9 +396,27 @@ export function TimeEvent({
 
   const templateName = currentView === 'scheduler' && !hasNextStartTime ? 'schedulerTime' : 'time';
 
+  // 跨天事件按列分段时间标签：起始列→开始时间、结束列→结束时间、中间列→不显示时间。
+  // 仅在非拖拽渲染、且该事件跨天（开始/结束不在同一日历日）时计算；单日事件不附角色。
+  const segmentRole =
+    !hasNextStartTime &&
+    columnDate &&
+    model.start &&
+    model.end &&
+    !isSameDate(model.start, model.end)
+      ? isSameDate(columnDate, model.start)
+        ? 'start'
+        : isSameDate(columnDate, model.end)
+          ? 'end'
+          : 'middle'
+      : undefined;
+
   return (
     <div
-      className={classNames.time}
+      className={cls('event-time', {
+        'event-time--hovered': isHovered,
+        'event-time--guide': isGuideEvent,
+      })}
       style={containerStyle}
       data-testid={`event-card-${model.id}`}
       tabIndex={0}
@@ -398,6 +433,7 @@ export function TimeEvent({
             ...model.toEventObject(),
             start: hasNextStartTime ? nextStartTime : model.start,
             end: hasNextStartTime ? nextEndTime : model.end,
+            segmentRole,
           }}
         />
       </div>

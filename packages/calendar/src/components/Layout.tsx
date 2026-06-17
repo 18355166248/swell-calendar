@@ -1,5 +1,5 @@
 import { isNil, isNumber, isString } from 'lodash-es';
-import { Children, ReactElement, useEffect, useMemo } from 'react';
+import { Children, ReactElement, useEffect, useLayoutEffect, useMemo } from 'react';
 
 import { useCalendarStore } from '@/contexts/calendarStore';
 import { LayoutContainerProvider } from '@/contexts/layoutContainer';
@@ -47,18 +47,20 @@ const Layout = ({ children, className, width, height, backgroundColor }: LayoutP
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [container]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (container) {
       const childArray = Children.toArray(children);
       const lastChild = childArray[childArray.length - 1];
 
       if (lastChild && !isString(lastChild) && !isNumber(lastChild) && !isNil(lastChild)) {
+        // time / scheduler 等多 panel 视图依赖最后一个 panel 吃掉剩余高度。
+        // 这里要等子 panel 完成注册后再同步写入 store，避免最后一行退回默认 72px。
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         setLastPanelType((lastChild as unknown as ReactElement<any, string>).props.name);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [container]);
+  }, [container, children]);
 
   return (
     <LayoutContainerProvider value={container}>

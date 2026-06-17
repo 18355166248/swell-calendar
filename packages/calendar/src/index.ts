@@ -9,6 +9,11 @@ export {
   getRecurrenceParentId,
   isRecurrenceInstance,
 } from '@/controller/recurrence-edit-scope';
+export type {
+  CalendarDataStatus,
+  UseCalendarDataSourceResult,
+} from '@/hooks/data/useCalendarDataSource';
+export { useCalendarDataSource } from '@/hooks/data/useCalendarDataSource';
 export type { CalendarInstance, EventCalendarProps } from '@/types/api.type';
 export type { CalendarInfo } from '@/types/calendar.type';
 export type { CalendarCallbacks } from '@/types/callbacks.type';
@@ -18,6 +23,7 @@ export type {
   CalendarRecurrenceEditScope,
   CalendarRecurrenceInstanceInfo,
 } from '@/types/callbacks.type';
+export type { CalendarDataSource } from '@/types/dataSource.type';
 export type {
   EventObject,
   EventObjectWithDefaultValues,
@@ -34,3 +40,4 @@ export type {
   ViewType,
   WeekOptions,
 } from '@/types/options.type';
+export type { ThemeState } from '@/types/theme.type';

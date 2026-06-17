@@ -41,6 +41,9 @@ export function createLayoutSlice() {
             state.layout.weekViewLayout.lastPanelType = type;
 
             if (type) {
+              // 最后一行面板（通常是 time panel）可能在严格模式下晚于容器 effect 注册；
+              // 这里先兜底初始化，保证“剩余高度”计算不会因为缺行而失效。
+              state.layout.weekViewLayout.dayGridRows[type] ??= { height: 0 };
               state.layout.weekViewLayout.dayGridRows[type].height = getRestPanelHeight(
                 state.layout.weekViewLayout.dayGridRows,
                 type,
@@ -58,6 +61,7 @@ export function createLayoutSlice() {
             const { lastPanelType } = state.layout.weekViewLayout;
 
             if (lastPanelType) {
+              state.layout.weekViewLayout.dayGridRows[lastPanelType] ??= { height: 0 };
               state.layout.weekViewLayout.dayGridRows[lastPanelType].height = getRestPanelHeight(
                 state.layout.weekViewLayout.dayGridRows,
                 lastPanelType,

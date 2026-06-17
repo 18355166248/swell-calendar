@@ -29,8 +29,8 @@ export const templates: Template = {
   },
 
   weekDayName(model: TemplateWeekDayName) {
-    const classDate = cls('day-name__date');
-    const className = cls('day-name__name');
+    const classDate = cls('day-name__date', { 'day-name__date--today': model.isToday });
+    const className = cls('day-name__name', { 'day-name__name--today': model.isToday });
 
     return (
       <Fragment>
@@ -53,18 +53,42 @@ export const templates: Template = {
   },
 
   time(model: EventObjectWithDefaultValues) {
-    const { start, title } = model;
+    const { start, end, title } = model;
+    // 跨天分段角色（由 TimeEvent 按列日期注入）：
+    //   start  → 起始列，显示开始时间
+    //   end    → 结束列，显示结束时间
+    //   middle → 中间整天列，显示「全天」
+    //   undefined → 单日事件，时间行显示开始时间
+    const segmentRole = (model as { segmentRole?: 'start' | 'middle' | 'end' }).segmentRole;
 
-    if (start) {
-      return (
-        <span>
-          <strong>{start.dayjs.format('HH:mm')}</strong>&nbsp;
-          <span>{stripTags(title)}</span>
-        </span>
-      );
+    // 无开始时间：仅显示标题
+    if (!start) {
+      return <span>{stripTags(title)}</span>;
     }
 
-    return stripTags(title);
+    // 时间行内容：
+    //   起始列 → `开始 -`（右侧 `-` 表示向后延续到次日）
+    //   结束列 → `- 结束`（左侧 `-` 表示从前一日延续而来）
+    //   中间整天列 → 「全天」
+    //   单日 → 仅开始时间（无 `-`）
+    let subLabel: string | null;
+    if (segmentRole === 'start') {
+      subLabel = `${start.dayjs.format('HH:mm')} -`;
+    } else if (segmentRole === 'end') {
+      subLabel = end ? `- ${end.dayjs.format('HH:mm')}` : null;
+    } else if (segmentRole === 'middle') {
+      subLabel = '全天';
+    } else {
+      subLabel = start.dayjs.format('HH:mm');
+    }
+
+    // 两行布局（单日与跨天统一）：第一行标题，第二行时间/「全天」。
+    return (
+      <span className={cls('event-time-stack')}>
+        <span className={cls('event-time-stack-title')}>{stripTags(title)}</span>
+        {subLabel ? <strong className={cls('event-time-stack-sub')}>{subLabel}</strong> : null}
+      </span>
+    );
   },
 
   schedulerTime(model: EventObjectWithDefaultValues) {

@@ -76,5 +76,5 @@ https://demo.mobiscroll.com/react/scheduler/desktop-week-view
 
 - 同步更新 `packages/calendar/SPEC.md`
 - 同步更新 `docs/ARCHITECTURE.md`
-- 新增 `docs/tasks/2026-05-07-scheduler-mobiscroll-parity-roadmap.md`
+- 新增 `docs/archive/tasks/2026-05-07-scheduler-mobiscroll-parity-roadmap.md`（已归档）
 - 新增并维护 `docs/MIGRATION.md`

@@ -100,6 +100,14 @@ export interface SchedulerOptions {
   resources?: ResourceInfo[];
   hourStart?: number;
   hourEnd?: number;
+  // 是否为工作日模式，只显示工作日（周一到周五），隐藏周末列。
+  // 缺省时回退到 week.workweek（与 hourStart/hourEnd 一致的「scheduler 覆盖 week」回退）。
+  workweek?: boolean;
+  /**
+   * 固定列宽（像素）。设置后 scheduler 视图启用水平滚动，
+   * 每个 "日期×资源" 列宽度固定为此值，超出视口部分可横向滚动查看。
+   */
+  columnWidth?: number;
   invalid?: InvalidRange[];
   blockedTimes?: BlockedTimeRange[];
   colors?: ColoredRange[];

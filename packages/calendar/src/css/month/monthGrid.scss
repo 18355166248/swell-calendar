@@ -83,6 +83,18 @@
 
 .month-event {
   position: absolute;
+
+  &:hover {
+    opacity: 1 !important;
+    box-shadow: 0 1px 6px rgba(15, 23, 42, 0.18);
+    filter: brightness(1.03);
+  }
+
+  &:focus-visible {
+    opacity: 1 !important;
+    outline: 2px solid rgba(81, 92, 230, 0.95);
+    outline-offset: -1px;
+  }
 }
 
 .month-more {

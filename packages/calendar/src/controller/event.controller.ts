@@ -24,11 +24,10 @@ export function createEventCollection<T extends EventModel | EventUIModel>(...in
  * @returns {boolean} 是否为全天事件
  */
 export function isAllday(event: EventModel) {
-  return (
-    event.allDay ||
-    event.isAllday ||
-    (event.category === 'time' && Number(event.end) - Number(event.start) > MS_PER_DAY)
-  );
+  // 仅按显式标记判定全天。
+  // 注意：不再因「time 事件时长 > 24h」就归类为全天——跨天定时事件应在时间网格内
+  // 按天分段渲染（每列裁剪到当天可见范围），而非塌进顶部全天条。
+  return event.allDay || event.isAllday;
 }
 
 /**

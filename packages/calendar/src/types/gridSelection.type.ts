@@ -11,6 +11,14 @@ export interface GridSelectionData {
   startColumnIndex: number;
   /** 结束列索引 */
   endColumnIndex: number;
+  /**
+   * 允许显示选中效果的列索引列表（可选）
+   *
+   * 当设置时，只有在此列表中的列才会渲染选中高亮，
+   * 用于 scheduler 视图中跨天同资源拖拽时，跳过中间不同资源的列。
+   * 未设置时，startColumnIndex 到 endColumnIndex 之间的所有列都会显示选中效果（默认行为）。
+   */
+  allowedColumnIndices?: number[];
 }
 
 /**

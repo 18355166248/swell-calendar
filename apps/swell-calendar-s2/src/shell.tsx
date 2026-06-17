@@ -1,0 +1,346 @@
+// ===== App shell: sidebar + topbar =====
+// P3: 外围控件已替换为 @react-spectrum/s2 真实组件（Button / ActionButton / SearchField / SegmentedControl）。
+// 侧栏导航项保留 CSS 版（S2 无直接等价物，强行替换会偏离像素）。
+import { useEffect, useRef, useState, type Key } from 'react';
+
+import {
+  ActionButton,
+  Button,
+  SearchField,
+  SegmentedControl,
+  SegmentedControlItem,
+} from '@react-spectrum/s2';
+
+import { Ic } from './icons';
+
+export type ViewId = 'day' | 'week' | 'month' | 'scheduler' | 'timeline';
+export type Sidebar = 'full' | 'rail' | 'hidden';
+export type Toolbar = 'segmented' | 'boxed' | 'tabs' | 'minimal';
+
+interface SidebarProps {
+  view: ViewId;
+  setView: (v: ViewId) => void;
+  openCreate: () => void;
+  currentDate: Date;
+  onDateChange: (d: Date) => void;
+}
+
+export function Sidebar({ view, setView, openCreate, currentDate, onDateChange }: SidebarProps) {
+  const navMain: { id: ViewId; label: string; icon: () => JSX.Element; badge?: string }[] = [
+    { id: 'day', label: '日视图', icon: Ic.day },
+    { id: 'week', label: '周视图', icon: Ic.week },
+    { id: 'month', label: '月视图', icon: Ic.month },
+    { id: 'scheduler', label: '资源调度', icon: Ic.sched, badge: '10' },
+    { id: 'timeline', label: '时间线', icon: Ic.timeline },
+  ];
+  return (
+    <aside className="sidebar">
+      <div className="brand">
+        <div className="brand-mark">
+          <Ic.swell />
+        </div>
+        <div className="brand-text">
+          <div className="brand-name">swell</div>
+          <div className="brand-sub">日程调度</div>
+        </div>
+      </div>
+      {/* P3: S2 Button variant="accent" 替换原生 button */}
+      <div className="side-cta-wrap">
+        <Button variant="accent" onPress={openCreate} UNSAFE_className="s2-seafoam-cta">
+          <Ic.plus />
+          <span className="lbl">新建日程</span>
+        </Button>
+      </div>
+      <nav className="nav">
+        <div className="nav-label">视图</div>
+        {navMain.map((n) => (
+          <button
+            key={n.id}
+            className={'nav-item' + (view === n.id ? ' active' : '')}
+            onClick={() => setView(n.id)}
+          >
+            <n.icon />
+            <span className="lbl">{n.label}</span>
+            {n.badge && <span className="badge">{n.badge}</span>}
+          </button>
+        ))}
+      </nav>
+      <MiniCalendar currentDate={currentDate} onDateChange={onDateChange} />
+      <div className="side-foot">
+        <div className="user-chip">
+          <div className="avatar" style={{ background: 'var(--cat-magenta-line)' }}>
+            陈
+          </div>
+          <div className="user-meta">
+            <div className="user-name">陈伊一</div>
+            <div className="user-role">运营 · 管理员</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+  );
+}
+
+interface MiniCalendarProps {
+  /** 主视图当前聚焦日期：高亮其所在周，并随顶栏导航反向联动翻月。 */
+  currentDate: Date;
+  /** 点击某日 → 主视图跳转到该日。 */
+  onDateChange: (d: Date) => void;
+}
+
+const MINI_DOW = ['一', '二', '三', '四', '五', '六', '日'];
+
+/** 周一为一周起点：返回 0=周一 … 6=周日。 */
+function mondayIndex(d: Date): number {
+  return (d.getDay() + 6) % 7;
+}
+
+function isSameDay(a: Date, b: Date): boolean {
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  );
+}
+
+function startOfWeekMonday(d: Date): Date {
+  const s = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  s.setDate(s.getDate() - mondayIndex(s));
+  return s;
+}
+
+function getWeekStripMonthLabel(currentDate: Date): string {
+  const weekStart = startOfWeekMonday(currentDate);
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekEnd.getDate() + 6);
+
+  const startMonth = weekStart.getMonth() + 1;
+  const endMonth = weekEnd.getMonth() + 1;
+
+  return startMonth === endMonth ? `${startMonth}月` : `${startMonth}月 / ${endMonth}月`;
+}
+
+function MiniCalendar({ currentDate, onDateChange }: MiniCalendarProps) {
+  // 显示月份：默认跟随 currentDate 所在月；左右箭头独立翻月。
+  // currentDate 跨月变化时（顶栏翻页 / 点日期）useEffect 把 displayMonth 拉回同步。
+  const [displayMonth, setDisplayMonth] = useState(
+    () => new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
+  );
+  useEffect(() => {
+    setDisplayMonth(new Date(currentDate.getFullYear(), currentDate.getMonth(), 1));
+  }, [currentDate]);
+
+  const today = new Date();
+  const weekStart = startOfWeekMonday(currentDate);
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekEnd.getDate() + 6);
+
+  // 网格首格：displayMonth 当月 1 号所在周的周一
+  const gridStart = startOfWeekMonday(displayMonth);
+  const cells: { date: Date; inMonth: boolean; inWeek: boolean; today: boolean }[] = [];
+  for (let i = 0; i < 42; i++) {
+    const date = new Date(gridStart);
+    date.setDate(date.getDate() + i);
+    cells.push({
+      date,
+      inMonth: date.getMonth() === displayMonth.getMonth(),
+      inWeek: date >= weekStart && date <= weekEnd,
+      today: isSameDay(date, today),
+    });
+  }
+
+  const shiftMonth = (delta: number) =>
+    setDisplayMonth((m) => new Date(m.getFullYear(), m.getMonth() + delta, 1));
+
+  return (
+    <div className="mini">
+      <div className="mini-hd">
+        <div className="mini-title">
+          {displayMonth.getFullYear()}年{displayMonth.getMonth() + 1}月
+        </div>
+        <div className="mini-nav">
+          <button onClick={() => shiftMonth(-1)} aria-label="上个月">
+            <Ic.chevL />
+          </button>
+          <button onClick={() => shiftMonth(1)} aria-label="下个月">
+            <Ic.chevR />
+          </button>
+        </div>
+      </div>
+      <div className="mini-grid">
+        {MINI_DOW.map((d) => (
+          <div key={d} className="mini-dow">
+            {d}
+          </div>
+        ))}
+        {cells.map((c, i) => (
+          <button
+            key={i}
+            type="button"
+            className={
+              'mini-day' +
+              (c.inMonth ? '' : ' dim') +
+              (isSameDay(c.date, currentDate) ? ' today' : c.inWeek ? ' in-week' : '')
+            }
+            onClick={() => onDateChange(c.date)}
+          >
+            {c.date.getDate()}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+interface DayWeekStripProps {
+  currentDate: Date;
+  onDateChange: (d: Date) => void;
+}
+
+export function DayWeekStrip({ currentDate, onDateChange }: DayWeekStripProps) {
+  const today = new Date();
+  const weekStart = startOfWeekMonday(currentDate);
+  const days = Array.from({ length: 7 }, (_, index) => {
+    const date = new Date(weekStart);
+    date.setDate(weekStart.getDate() + index);
+    return date;
+  });
+
+  return (
+    <div className="day-week-strip">
+      <div className="day-week-strip__month">{getWeekStripMonthLabel(currentDate)}</div>
+      <div className="day-week-strip__days">
+        {days.map((date) => {
+          const active = isSameDay(date, currentDate);
+          const isTodayDate = isSameDay(date, today);
+
+          return (
+            <button
+              key={date.toISOString()}
+              type="button"
+              className={
+                'day-week-chip' + (active ? ' active' : '') + (isTodayDate ? ' today' : '')
+              }
+              onClick={() => onDateChange(date)}
+              aria-pressed={active}
+            >
+              <span className="day-week-chip__dow">{MINI_DOW[mondayIndex(date)]}</span>
+              <span className="day-week-chip__date">{date.getDate()}</span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+interface TopbarProps {
+  view: ViewId;
+  setView: (v: ViewId) => void;
+  toolbar: Toolbar;
+  toggleRail: () => void;
+  title: string;
+  sub: string;
+  query: string;
+  setQuery: (v: string) => void;
+  openSettings: (anchor: HTMLElement) => void;
+  onToday: () => void;
+  onNavigate: (dir: 'prev' | 'next') => void;
+}
+
+export function Topbar({
+  view,
+  setView,
+  toolbar,
+  toggleRail,
+  title,
+  sub,
+  query,
+  setQuery,
+  openSettings,
+  onToday,
+  onNavigate,
+}: TopbarProps) {
+  const settingsAnchorRef = useRef<HTMLSpanElement>(null);
+  const views: { id: ViewId; label: string; icon: () => JSX.Element }[] = [
+    { id: 'day', label: '日', icon: Ic.day },
+    { id: 'week', label: '周', icon: Ic.week },
+    { id: 'month', label: '月', icon: Ic.month },
+    { id: 'scheduler', label: '调度', icon: Ic.sched },
+    { id: 'timeline', label: '时间线', icon: Ic.timeline },
+  ];
+  return (
+    <header className="topbar">
+      {/* P3: S2 ActionButton (quiet) */}
+      <ActionButton isQuiet onPress={toggleRail} aria-label="切换侧栏" UNSAFE_className="s2-sf">
+        <Ic.sidebar />
+      </ActionButton>
+      <div className="tb-date">
+        <div className="tb-title">{title}</div>
+        <div className="tb-sub">{sub}</div>
+      </div>
+      <div className="tb-nav">
+        <button className="tb-arrow" onClick={() => onNavigate('prev')} aria-label="上一期">
+          <Ic.chevL />
+        </button>
+        <button className="tb-today" onClick={onToday}>
+          今天
+        </button>
+        <button className="tb-arrow" onClick={() => onNavigate('next')} aria-label="下一期">
+          <Ic.chevR />
+        </button>
+      </div>
+      <div className="tb-spacer" />
+      {/* P3: S2 SearchField */}
+      {toolbar !== 'minimal' && (
+        <div className="tb-search-wrap">
+          <SearchField
+            placeholder="搜索日程、与会人…"
+            size="S"
+            aria-label="搜索"
+            value={query}
+            onChange={setQuery}
+            UNSAFE_className="s2-sf"
+          />
+        </div>
+      )}
+      {/* P3: S2 SegmentedControl */}
+      {toolbar !== 'minimal' && (
+        <SegmentedControl
+          selectedKey={view}
+          onSelectionChange={(k: Key) => setView(k as ViewId)}
+          aria-label="视图切换"
+          UNSAFE_className="s2-ss"
+        >
+          {views.map((v) => (
+            <SegmentedControlItem key={v.id} id={v.id}>
+              <v.icon />
+              <span>{v.label}</span>
+            </SegmentedControlItem>
+          ))}
+        </SegmentedControl>
+      )}
+      {/* P3: S2 ActionButton (quiet) + notification dot */}
+      <span className="tb-icon-wrap">
+        <ActionButton isQuiet aria-label="通知" UNSAFE_className="s2-sf">
+          <Ic.bell />
+        </ActionButton>
+        <span className="s2-dot" />
+      </span>
+      <span className="tb-icon-wrap" ref={settingsAnchorRef}>
+        <ActionButton
+          isQuiet
+          aria-label="设置"
+          UNSAFE_className="s2-sf"
+          onPress={() => {
+            if (settingsAnchorRef.current) {
+              openSettings(settingsAnchorRef.current);
+            }
+          }}
+        >
+          <Ic.settings />
+        </ActionButton>
+      </span>
+    </header>
+  );
+}

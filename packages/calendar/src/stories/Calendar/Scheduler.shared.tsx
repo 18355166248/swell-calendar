@@ -15,8 +15,6 @@ const RESOURCES = [
   { id: 'r1', name: '会议室 A', backgroundColor: '#3b82f6', color: '#fff' },
   { id: 'r2', name: '会议室 B', backgroundColor: '#10b981', color: '#fff' },
   { id: 'r3', name: '张三', backgroundColor: '#f59e0b', color: '#fff' },
-  { id: 'r4', name: '李四', backgroundColor: '#ef4444', color: '#fff' },
-  { id: 'r5', name: '王五', backgroundColor: '#8b5cf6', color: '#fff' },
 ];
 
 const SCHEDULER_STORY_MIN_WIDTH = 1360;

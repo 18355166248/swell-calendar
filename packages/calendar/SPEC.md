@@ -25,7 +25,7 @@ swell-calendar 是一个**可嵌入的 React 日历组件库**，面向需要在
 1. **零副作用样式**：所有 CSS 类名带 `swell-calendar-` 前缀，不污染宿主页面
 2. **多实例隔离**：同一页面可挂载多个独立日历实例，Store 互不干扰
 3. **纯组件库**：不包含数据获取逻辑，事件数据由宿主应用注入
-4. **主题可替换**：通过 ThemeStore 配置颜色，不依赖 CSS 变量注入
+4. **主题可替换**：通过 ThemeStore 配置颜色（含 timeline 视图），不依赖 CSS 变量注入
 5. **模板可定制**：通过 `options.template` 替换任意渲染函数
 
 ## 功能规范
@@ -55,9 +55,13 @@ swell-calendar 是一个**可嵌入的 React 日历组件库**，面向需要在
 | `colors` 背景区段（scheduler） | ✅   | scheduler/timeline time-grid 背景时段，`invalid` 视觉层级在上 |
 | all-day lane（scheduler）      | ✅   | scheduler 顶部全天事件栏                                      |
 | 多日事件分段（scheduler）      | ✅   | scheduler time 事件按日期切分到资源列                         |
+| 多日 time 事件分段（day/week） | ✅   | 跨天（>24h）的 `time` 事件在日/周时间网格内按天分段渲染（起始日起点→当日底、中间日整列、结束日顶→终点），**不再**因时长超 24h 塌进顶部全天条；仅显式 `allDay` / `isAllday` 进全天栏。分段标签两行布局（第一行标题、第二行时间）：起始列第二行显示「开始 -」（右侧 `-` 表示向后延续）、结束列显示「- 结束」（左侧 `-` 表示从前一日延续）、中间整天列显示「全天」。单日事件同样为两行布局（第一行标题、第二行开始时间，无延续标记）。新建框选预览：起始列显示 `开始 - 结束` 完整区间、结束列显示结束时间、中间列留空。详见下方说明 |
 | overlap policy                 | ✅   | scheduler 全局 `eventOverlap` 与 per-event `overlap` 均已接入 |
 | 删除事件（scheduler）          | ✅   | 聚焦事件卡片后支持 `Delete/Backspace` 删除                    |
 | failed callbacks               | ✅   | `onEventCreateFailed` / `onEventUpdateFailed` 已接入          |
+| 拖拽时间提示（time-grid）      | ✅   | 移动/缩放事件时跟随光标显示 `HH:mm - HH:mm` 浮层（`DragTimeTooltip`），day/week/scheduler 全部生效（此前仅 scheduler）；新建框选则在选区内直接显示起止时间 |
+| 事件卡片透明度                 | ✅   | day/week time-grid 与 month 事件卡片静置时 `opacity: 0.9`（更轻、与网格/重叠融合），hover 恢复 `1`；time-grid 拖拽目标仍 `0.5`，move/resize 引导阴影为半透明。time-grid 由 `events/time.scss` 控制，month 由 `MonthEvent` + `monthGrid.scss` 控制 |
+| 事件悬浮高亮 / 跨天联动        | ✅   | 鼠标经过事件卡片加深（恢复不透明 + 投影 + 提亮）。跨天事件按列拆成多段时，悬浮任一段会让同一事件（按 `hover` slice 的 `hoveredEventId` 匹配）的所有段一起加深，离开同步还原 |
 | 资源显隐                       | ✅   | `visibleResourceIds` 可控制 scheduler/timeline 可见资源       |
 | 资源分组 / 折叠                | ✅   | `children` / `collapsed` 支持树形资源与折叠显示               |
 | shared events                  | ✅   | `resourceIds` 可让事件出现在多个资源列，资源级策略按命中的所有资源共同判定 |
@@ -140,6 +144,9 @@ interface CalendarOptions {
     resources?: ResourceInfo[];
     hourStart?: number;
     hourEnd?: number;
+    workweek?: boolean;
+    /** 固定列宽（px）。设置后 scheduler 启用水平滚动，每列宽度固定为此值 */
+    columnWidth?: number;
     invalid?: BlockedTimeRange[];
     blockedTimes?: BlockedTimeRange[];
     colors?: ColoredRange[];
@@ -239,6 +246,7 @@ interface RecurringException {
 > `scheduler.timezones` 已于 2026-06-07 接入：在主时间轴左侧叠加副时区刻度轴，按配置顺序向左排列，刻度由主显示时区（`displayTimezone`，缺省为浏览器本地时区）换算到各副时区。
 > 全天事件采用业内通行的 floating（时区无关）语义：对齐 Google Calendar / RFC 5545 floating time，全天事件锚定在其日历日期上，**不**随 `displayTimezone` 平移边界；只有定时事件参与数据→显示时区换算。
 > 编辑作用域（`single` / `following` / `all`）已于 2026-06-06 落地，`applyRecurrenceEditScope` 工具函数与回调 `recurrenceInstance` 信息已接入。
+> 跨天定时事件的归类规则（2026-06-13 调整）：`category: 'time'` 事件**不再**因「时长 > 24h」被归为全天。`isAllday` 仅按显式 `allDay` / `isAllday` 判定，`isTimeEvent` 不再排除 `hasMultiDates`。后果：日/周视图中跨天定时事件在时间网格内按天分段渲染（每列经 `setRenderInfo` 裁剪到当天可见范围），与 scheduler 的多日分段行为对齐；顶部全天栏只保留显式全天事件。此前的「>24h time 事件 → 全天条」为继承自 toast-ui 的旧默认，已移除。
 
 ### 重复事件编辑作用域 API
 
@@ -440,6 +448,42 @@ interface CalendarInstance {
   getEvents(): EventObjectWithDefaultValues[];
 }
 ```
+
+### 宿主侧数据装配（可选）
+
+引擎本体只消费 `EventObject` props，数据获取/持久化是宿主职责。为减少"把 Calendar 接到异步数据源"的重复样板，包额外暴露一对**可选**宿主侧装配件，不参与渲染/交互引擎本体：
+
+```ts
+// 异步事件数据源契约；任意实现（HTTP / IndexedDB / localStorage）皆可
+interface CalendarDataSource<TEvent, TDraft = Omit<TEvent, 'id'>> {
+  list(): Promise<TEvent[]>;
+  create(draft: TDraft): Promise<TEvent>;
+  update(id: string, patch: TDraft): Promise<TEvent>;
+  remove(id: string): Promise<void>;
+}
+
+type CalendarDataStatus = 'loading' | 'ready' | 'error';
+
+// 托管数据源的三态与 CRUD；StrictMode 安全，mutation 后静默重拉列表
+function useCalendarDataSource<TEvent, TDraft>(
+  source: CalendarDataSource<TEvent, TDraft>
+): {
+  events: TEvent[];
+  status: CalendarDataStatus;
+  error: string | null;
+  reload: () => void;
+  createEvent: (draft: TDraft) => Promise<void>;
+  updateEvent: (id: string, patch: TDraft) => Promise<void>;
+  deleteEvent: (id: string) => Promise<void>;
+};
+```
+
+约定：
+
+- `TEvent` 是宿主领域事件类型；宿主自行把它转换为 `EventObject` 再传给 `Calendar`，hook 不做转换
+- `TDraft` 默认 `Omit<TEvent, 'id'>`，`id` 由数据源（后端职责）分配
+- `list()` 返回完整列表；`status='loading'` 仅首屏/`reload()` 出现，mutation 走静默重拉不闪 loading
+- 失败时 `status='error'` 且 `error` 取 `Error.message`，无 message 时回退中性英文兜底
 
 ## 测试体系
 

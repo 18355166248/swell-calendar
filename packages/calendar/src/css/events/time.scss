@@ -3,14 +3,28 @@
   overflow: hidden;
   cursor: pointer;
   white-space: nowrap;
+  // 静置时略带透明，卡片更轻、与网格/重叠更融合；hover 时恢复不透明并加深
+  opacity: 0.9;
   transition:
+    opacity 0.12s ease,
     box-shadow 0.12s ease,
     filter 0.12s ease;
 
-  // hover 提亮 + 投影，给出“可交互”反馈（对齐 mobiscroll 事件 hover 表现）
-  &:hover {
+  // hover 提亮 + 投影 + 恢复不透明，给出“可交互”反馈（对齐 mobiscroll 事件 hover 表现）。
+  // `--hovered` 由 JS 驱动：跨天事件按列拆成多段，悬浮任一段时同一事件的所有段
+  // 一起加上该类，实现整组联动高亮（CSS :hover 只能命中鼠标直接经过的那一段）。
+  &:hover,
+  &--hovered {
+    opacity: 1;
     box-shadow: 0 1px 6px rgba(15, 23, 42, 0.28);
-    filter: brightness(1.05);
+    filter: brightness(1.04);
+  }
+
+  // 拖拽 / resize 过程中的引导阴影卡片保留一定透明度，避免压过原网格内容。
+  &--guide,
+  &--guide:hover,
+  &--guide#{&}--hovered {
+    opacity: 0.72;
   }
 
   // 键盘聚焦时给出清晰的焦点环
@@ -24,6 +38,26 @@
     overflow: hidden;
     padding: 1px 0 0 3px;
     text-overflow: ellipsis;
+  }
+
+  // 两行布局（单日与跨天分段统一）：第一行标题，第二行时间/「全天」
+  &-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    line-height: 1.25;
+    white-space: normal;
+
+    &-title {
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    &-sub {
+      font-size: 11px;
+      opacity: 0.85;
+    }
   }
 
   // resize 抓取区高度：2px 在真实鼠标下几乎抓不到（对齐 mobiscroll 的可抓取手柄，约 7px）

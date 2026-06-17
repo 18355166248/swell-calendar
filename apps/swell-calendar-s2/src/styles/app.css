@@ -1,0 +1,1212 @@
+/* ===== swell-calendar app — Spectrum 2 styled ===== */
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+  height: 100%;
+}
+body {
+  font-family: var(--sp-font);
+  background: var(--bg-app);
+  color: var(--text-1);
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+button {
+  font-family: inherit;
+}
+
+:root,
+[data-density='regular'] {
+  --topbar-gap: 14px;
+  --topbar-pad-y: 14px;
+  --topbar-pad-x: 22px;
+  --subbar-pad-y: 10px;
+  --subbar-pad-x: 22px;
+  --nav-item-h: 38px;
+  --chip-h: 28px;
+  --engine-time-grid-min-height: 900px;
+}
+
+[data-density='compact'] {
+  --topbar-gap: 10px;
+  --topbar-pad-y: 10px;
+  --topbar-pad-x: 18px;
+  --subbar-pad-y: 8px;
+  --subbar-pad-x: 18px;
+  --nav-item-h: 34px;
+  --chip-h: 26px;
+  --engine-time-grid-min-height: 760px;
+}
+
+[data-density='comfy'] {
+  --topbar-gap: 16px;
+  --topbar-pad-y: 16px;
+  --topbar-pad-x: 24px;
+  --subbar-pad-y: 12px;
+  --subbar-pad-x: 24px;
+  --nav-item-h: 42px;
+  --chip-h: 30px;
+  --engine-time-grid-min-height: 1040px;
+}
+
+.app {
+  display: grid;
+  grid-template-columns: var(--rail, 248px) 1fr;
+  height: 100vh;
+  min-height: 0;
+  transition: grid-template-columns 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.app[data-sidebar='rail'] {
+  --rail: 72px;
+}
+.app[data-sidebar='hidden'] {
+  --rail: 0px;
+}
+
+/* ---------- SIDEBAR ---------- */
+.sidebar {
+  background: var(--bg-layer);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 18px 18px 14px;
+  min-width: 0;
+}
+.brand-mark {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: var(--accent-bg);
+  display: grid;
+  place-items: center;
+  color: var(--accent-contrast);
+  flex: none;
+  box-shadow: var(--shadow-sm);
+}
+.brand-mark svg {
+  width: 18px;
+  height: 18px;
+}
+.brand-name {
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+.brand-sub {
+  font-size: 11px;
+  color: var(--text-3);
+  white-space: nowrap;
+  margin-top: 1px;
+}
+.app[data-sidebar='rail'] .brand-text {
+  display: none;
+}
+
+/* P3: S2 Button variant="accent" 容器 */
+.side-cta-wrap {
+  margin: 4px 14px 14px;
+}
+.side-cta-wrap > button {
+  width: 100%;
+  justify-content: center;
+  align-items: center !important; /* 覆盖 S2 control() 的 baseline（wrap 模式下默认 baseline） */
+}
+.side-cta-wrap svg {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  display: block; /* 消除 inline SVG 基线偏移 */
+}
+.app[data-sidebar='rail'] .side-cta-wrap .lbl {
+  display: none;
+}
+
+.nav {
+  padding: 4px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.nav-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  padding: 14px 10px 6px;
+}
+.app[data-sidebar='rail'] .nav-label {
+  opacity: 0;
+  height: 14px;
+  padding: 6px 0;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  height: var(--nav-item-h);
+  padding: 0 11px;
+  border-radius: var(--r-100);
+  color: var(--text-2);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  white-space: nowrap;
+  transition:
+    background 0.12s,
+    color 0.12s;
+}
+.nav-item svg {
+  width: 18px;
+  height: 18px;
+  flex: none;
+}
+.nav-item:hover {
+  background: var(--bg-hover);
+  color: var(--text-1);
+}
+.nav-item.active {
+  background: var(--accent-tint);
+  color: var(--accent-text);
+  font-weight: 600;
+}
+.nav-item.active svg {
+  color: var(--accent-text);
+}
+.app[data-sidebar='rail'] .nav-item {
+  justify-content: center;
+  padding: 0;
+}
+.app[data-sidebar='rail'] .nav-item .lbl,
+.app[data-sidebar='rail'] .nav-item .badge {
+  display: none;
+}
+.nav-item .badge {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--bg-sunken);
+  color: var(--text-2);
+  border-radius: var(--r-full);
+  padding: 1px 8px;
+}
+
+/* mini calendar */
+.mini {
+  margin: 8px 18px 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+.app[data-sidebar='rail'] .mini {
+  display: none;
+}
+.mini-hd {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.mini-title {
+  font-size: 13px;
+  font-weight: 600;
+}
+.mini-nav {
+  display: flex;
+  gap: 2px;
+}
+.mini-nav button {
+  width: 22px;
+  height: 22px;
+  border: none;
+  background: none;
+  border-radius: 6px;
+  color: var(--text-3);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+.mini-nav button:hover {
+  background: var(--bg-hover);
+  color: var(--text-1);
+}
+.mini-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1px;
+}
+.mini-dow {
+  font-size: 10px;
+  color: var(--text-3);
+  text-align: center;
+  padding: 2px 0;
+  font-weight: 600;
+}
+.mini-day {
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  font-size: 11.5px;
+  color: var(--text-2);
+  border: none;
+  background: none;
+  padding: 0;
+  border-radius: 7px;
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+}
+.mini-day:hover {
+  background: var(--bg-hover);
+}
+.mini-day.dim {
+  color: var(--text-disabled);
+}
+.mini-day.in-week {
+  background: var(--accent-tint);
+  color: var(--accent-text);
+  font-weight: 600;
+}
+.mini-day.today {
+  background: var(--accent-bg);
+  color: var(--accent-contrast);
+  font-weight: 700;
+}
+
+.swell-calendar-day-name__date--today {
+  background: var(--accent-bg);
+  color: var(--accent-contrast);
+}
+
+.swell-calendar-day-name__name--today {
+  color: var(--accent-text);
+}
+
+/* 主日历只保留当天日期标题高亮，不再给整个月格铺底色。 */
+.swell-calendar-month-cell-today {
+  background: inherit;
+}
+
+.side-foot {
+  margin-top: auto;
+  padding: 12px 16px;
+  border-top: 1px solid var(--border);
+}
+.user-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-full);
+  flex: none;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 13px;
+  color: #fff;
+}
+.user-meta {
+  min-width: 0;
+}
+.app[data-sidebar='rail'] .user-meta {
+  display: none;
+}
+.user-name {
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.user-role {
+  font-size: 11px;
+  color: var(--text-3);
+}
+
+/* ---------- MAIN ---------- */
+.main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  background: var(--bg-app);
+}
+
+/* P3: topbar 现在混用 S2 组件（ActionButton / Button / SearchField / SegmentedControl）。
+   以下样式主要处理布局与 S2 组件外层微调，S2 内部视觉由组件自行管理。 */
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: var(--topbar-gap);
+  padding: var(--topbar-pad-y) var(--topbar-pad-x);
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-layer);
+  min-width: 0;
+}
+
+.tb-date {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 260px;
+  overflow: hidden;
+}
+.tb-title {
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text-1);
+}
+.tb-sub {
+  font-size: 12px;
+  color: var(--text-3);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: 0.01em;
+}
+
+.tb-nav {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+  margin-left: -6px; /* 紧贴左侧标题区域 */
+  /* 轻量分组容器 */
+  background: var(--bg-sunken);
+  border-radius: 8px;
+  padding: 2px;
+}
+
+/* === 「今天」按钮 === */
+.tb-today {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--accent-text);
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  height: 28px;
+  padding: 0 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  letter-spacing: 0.01em;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+.tb-today:hover {
+  background: var(--accent-tint);
+}
+.tb-today:active {
+  background: var(--accent-tint-strong);
+}
+
+/* === 左右箭头 === */
+.tb-arrow {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--text-3);
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-radius: 6px;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+.tb-arrow svg {
+  width: 15px;
+  height: 15px;
+}
+.tb-arrow:hover {
+  background: var(--bg-hover);
+  color: var(--text-1);
+}
+.tb-arrow:active {
+  background: var(--bg-down);
+}
+
+.tb-spacer {
+  flex: 1 1 16px;
+  min-width: 8px;
+}
+
+/* P3: S2 SearchField 容器 — 自适应宽度 + 最大宽度 */
+.tb-search-wrap {
+  flex: 1 1 0;
+  min-width: 120px;
+  max-width: 320px;
+  position: relative;
+}
+.tb-search-wrap > [role='search'] {
+  width: 100%;
+  border-radius: 8px !important;
+  background: var(--bg-sunken) !important;
+  border: 1px solid transparent !important;
+  box-shadow: none !important;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+.tb-search-wrap > [role='search']:hover {
+  border-color: var(--border) !important;
+}
+.tb-search-wrap > [role='search']:focus-within {
+  border-color: var(--accent-bg) !important;
+  background: var(--bg-layer-2) !important;
+}
+
+/* P3: S2 ActionButton + 通知圆点 */
+.tb-icon-wrap {
+  position: relative;
+  display: inline-flex;
+}
+.tb-icon-wrap svg {
+  width: 16px;
+  height: 16px;
+  flex: none;
+}
+.s2-dot {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 7px;
+  height: 7px;
+  background: var(--cat-magenta-line);
+  border-radius: 50%;
+  border: 1.5px solid var(--bg-layer);
+  pointer-events: none;
+  z-index: 1;
+}
+
+@media (max-width: 1120px) {
+  .topbar {
+    gap: 10px;
+    padding: 12px 16px;
+  }
+
+  .tb-date {
+    flex: 1 1 160px;
+    min-width: 140px;
+  }
+
+  .tb-nav {
+    margin-left: -4px;
+  }
+
+  .tb-title {
+    font-size: 18px;
+  }
+
+  .tb-sub {
+    display: none;
+  }
+
+  .tb-search-wrap {
+    display: none;
+  }
+
+  .tb-spacer {
+    flex-basis: 0;
+    min-width: 0;
+  }
+}
+
+.day-week-strip {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px var(--topbar-pad-x) 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-layer);
+}
+
+.day-week-strip__month {
+  flex: 0 0 auto;
+  min-width: 54px;
+  padding: 0 12px;
+  height: 36px;
+  border-radius: 999px;
+  background: var(--bg-sunken);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-2);
+}
+
+.day-week-strip__days {
+  min-width: 0;
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.day-week-chip {
+  appearance: none;
+  border: none;
+  background: transparent;
+  min-width: 0;
+  padding: 2px 0 0;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-2);
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.day-week-chip:hover {
+  background: var(--bg-hover);
+}
+
+.day-week-chip__dow {
+  font-size: 11px;
+  line-height: 1;
+  color: var(--text-3);
+}
+
+.day-week-chip__date {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.day-week-chip.today .day-week-chip__date {
+  box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--accent-bg) 42%, transparent);
+  color: var(--accent-text);
+}
+
+.day-week-chip.active {
+  color: var(--text-1);
+}
+
+.day-week-chip.active .day-week-chip__dow {
+  color: var(--accent-text);
+}
+
+.day-week-chip.active .day-week-chip__date {
+  background: var(--accent-bg);
+  color: var(--accent-contrast);
+}
+
+@media (max-width: 1120px) {
+  .day-week-strip {
+    gap: 10px;
+    padding: 8px 16px 10px;
+  }
+
+  .day-week-strip__month {
+    min-width: 46px;
+    padding: 0 10px;
+    height: 32px;
+    font-size: 12px;
+  }
+
+  .day-week-strip__days {
+    gap: 2px;
+  }
+
+  .day-week-chip__dow {
+    font-size: 10px;
+  }
+
+  .day-week-chip__date {
+    width: 28px;
+    height: 28px;
+    font-size: 13px;
+  }
+}
+
+/* ---------- P3-2: S2 SEAFOAM ACCENT OVERRIDES ----------
+   S2 variant="accent" 默认渲染 Spectrum blue（#3b63fb），
+   这里用 !important 覆盖为我们的 seafoam。
+
+   Button 组件使用 CSS 变量 --g 控制背景色，只需覆盖该变量即可。
+   文字色为 #fff（px131 类），不受 --g 影响。
+   焦点环使用 outline-color: light-dark(#4b75ff, #4069fd)，需单独覆盖。
+
+   s2-seafoam-cta  → CTA Button（accent fill）
+   s2-sf           → ActionButton / SearchField（焦点环）
+   s2-ss           → SegmentedControl（焦点环） */
+
+/* CTA Button — seafoam fill（覆盖 S2 的 --g 变量） */
+.s2-seafoam-cta {
+  --g: var(--accent-bg) !important;
+}
+.s2-seafoam-cta:hover,
+.s2-seafoam-cta:active,
+.s2-seafoam-cta[data-pressed] {
+  --g: var(--accent-bg-hover) !important;
+}
+.s2-seafoam-cta:focus-visible,
+.s2-seafoam-cta[data-focus-visible] {
+  outline-color: var(--accent-bg) !important;
+}
+
+/* ActionButton / SearchField — seafoam focus ring */
+.s2-sf:focus-visible,
+.s2-sf[data-focus-visible],
+.s2-sf [data-focus-visible] {
+  outline-color: var(--accent-bg) !important;
+}
+.s2-sf:focus-within {
+  outline-color: var(--accent-bg) !important;
+}
+
+/* SegmentedControl — 极简强调色风格
+   S2 内部结构：每个 button 内有一个 position:absolute 的 slider div 作为选中指示器，
+   默认是白色底 + 2px 深色边框，视觉上太重。
+   我们的方案：把 slider 改为主题强调色实心底 + 去边框，按钮文字选中时反白。 */
+.s2-ss {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 0;
+  padding: 3px !important;
+  border: none !important;
+  border-radius: 10px !important;
+  background: var(--bg-sunken) !important;
+  box-shadow: none !important;
+  outline: none !important;
+  white-space: nowrap;
+  overflow: visible;
+}
+
+/* === 按钮本体 === */
+.s2-ss button {
+  min-width: 0 !important;
+  height: 28px !important;
+  padding: 0 13px !important;
+  border: none !important;
+  border-radius: 7px !important;
+  background: transparent !important;
+  color: var(--text-3) !important;
+  font-size: 12.5px !important;
+  font-weight: 500 !important;
+  box-shadow: none !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 5px !important;
+  line-height: 1 !important;
+  letter-spacing: 0.01em;
+  flex-shrink: 0 !important;
+  flex-grow: 0 !important;
+  position: relative !important;
+  overflow: hidden !important;
+  transition: color 0.18s ease;
+}
+
+/* === S2 slider div：绝对定位在每个 button 内部，选中时显示 === */
+.s2-ss button > div:first-child {
+  border: none !important;
+  border-width: 0 !important;
+  border-color: transparent !important;
+  background: transparent !important;
+  border-radius: 7px !important;
+  box-shadow: none !important;
+  transition:
+    background 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+/* 选中态 slider：强调色实心底 */
+.s2-ss button[aria-pressed='true'] > div:first-child,
+.s2-ss button[aria-checked='true'] > div:first-child,
+.s2-ss button[data-selected] > div:first-child {
+  background: var(--accent-bg) !important;
+  border: none !important;
+  border-width: 0 !important;
+  box-shadow: 0 1px 4px color-mix(in oklch, var(--accent-bg) 35%, transparent) !important;
+}
+
+/* 选中态按钮：白字 */
+.s2-ss button[aria-pressed='true'],
+.s2-ss button[aria-checked='true'],
+.s2-ss button[data-selected] {
+  color: var(--accent-contrast) !important;
+  font-weight: 600 !important;
+}
+
+/* 选中态图标 */
+.s2-ss button[aria-pressed='true'] svg,
+.s2-ss button[aria-checked='true'] svg,
+.s2-ss button[data-selected] svg {
+  color: var(--accent-contrast);
+  opacity: 1;
+}
+
+/* 未选中态 hover */
+.s2-ss button:hover {
+  color: var(--text-1) !important;
+}
+
+/* 图标基础样式 */
+.s2-ss button svg {
+  width: 14px !important;
+  height: 14px !important;
+  flex: none !important;
+  display: block !important;
+  opacity: 0.65;
+  transition: opacity 0.18s ease;
+}
+
+.s2-ss button:hover svg {
+  opacity: 0.85;
+}
+
+/* 文字 span */
+.s2-ss button span {
+  line-height: 1 !important;
+}
+
+/* 隐藏可能的 S2 内部文字溢出包裹层 */
+.s2-ss button > div:nth-child(2) {
+  overflow: visible !important;
+  text-overflow: unset !important;
+}
+
+/* Focus */
+.s2-ss button:focus-visible,
+.s2-ss button[data-focus-visible] {
+  outline-color: var(--accent-bg) !important;
+  outline-offset: -2px !important;
+}
+
+/* P3: 视图切换现为 S2 SegmentedControl，原生样式由组件管理。
+   保留 .seg 类名以防其它 toolbar 模式需要。 */
+.seg {
+  display: inline-flex;
+  background: var(--bg-sunken);
+  border-radius: var(--r-full);
+  padding: 3px;
+  gap: 2px;
+  border: 1px solid var(--border);
+}
+.seg.boxed {
+  border-radius: var(--r-100);
+}
+.seg-btn {
+  height: 28px;
+  padding: 0 14px;
+  border: none;
+  background: none;
+  border-radius: var(--r-full);
+  color: var(--text-2);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 0.12s;
+}
+.seg.boxed .seg-btn {
+  border-radius: var(--r-75);
+}
+.seg-btn svg {
+  width: 15px;
+  height: 15px;
+}
+.seg-btn:hover {
+  color: var(--text-1);
+}
+.seg-btn.active {
+  background: var(--bg-layer-2);
+  color: var(--accent-text);
+  box-shadow: var(--shadow-sm);
+}
+.seg.tabs {
+  background: none;
+  border: none;
+  padding: 0;
+  gap: 4px;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+}
+.seg.tabs .seg-btn {
+  border-radius: 0;
+  height: 34px;
+  position: relative;
+  color: var(--text-2);
+}
+.seg.tabs .seg-btn.active {
+  background: none;
+  box-shadow: none;
+  color: var(--accent-text);
+}
+.seg.tabs .seg-btn.active::after {
+  content: '';
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: -1px;
+  height: 2px;
+  background: var(--accent-bg);
+  border-radius: 2px;
+}
+
+.subbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: var(--subbar-pad-y) var(--subbar-pad-x);
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-layer);
+}
+.chips {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: var(--chip-h);
+  padding: 0 12px;
+  border-radius: var(--r-full);
+  /* 默认即「未选中」态：弱边框 + 弱文字，与 .on 形成明显对比 */
+  border: 1px solid var(--border);
+  background: var(--bg-layer-2);
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text-3);
+  cursor: pointer;
+  white-space: nowrap;
+  flex: none;
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+.chip:hover {
+  background: var(--bg-hover);
+  color: var(--text-2);
+}
+.chip .swatch {
+  width: 9px;
+  height: 9px;
+  border-radius: 3px;
+  flex: none;
+  /* 未选中：色块去饱和、淡化，让选中态的彩色更突出 */
+  opacity: 0.4;
+  filter: grayscale(0.5);
+  /* 文字墨迹在行盒内偏上约 1px（CJK 字体度量），色块/图标同步上移 1px 做视觉对齐 */
+  transform: translateY(-1px);
+  transition:
+    opacity 0.15s ease,
+    filter 0.15s ease;
+}
+.chip > svg {
+  transform: translateY(-1px);
+}
+.chip.on {
+  color: var(--text-1);
+  font-weight: 600;
+  border-color: var(--border-strong);
+  background: var(--bg-hover);
+}
+.chip.on .swatch {
+  opacity: 1;
+  filter: none;
+}
+.chip.off {
+  opacity: 0.45;
+}
+.subbar .tb-spacer {
+  flex: 1;
+}
+.mini-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12.5px;
+  color: var(--text-2);
+  cursor: pointer;
+  user-select: none;
+}
+.switch {
+  width: 34px;
+  height: 20px;
+  border-radius: var(--r-full);
+  background: var(--border-strong);
+  position: relative;
+  transition: background 0.15s;
+  flex: none;
+}
+.switch.on {
+  background: var(--accent-bg);
+}
+.switch::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.15s;
+  box-shadow: var(--shadow-sm);
+}
+.switch.on::after {
+  transform: translateX(14px);
+}
+
+/* ---------- CANVAS / SCROLL ---------- */
+.canvas {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  position: relative;
+  overscroll-behavior: contain;
+}
+.canvas::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+.canvas::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 8px;
+  border: 3px solid var(--bg-app);
+}
+.canvas::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ─── P4: swell-calendar 引擎集成 ─────────────────────────────────────────── */
+
+/* 隐藏日历组件自带的工具栏（S2 外壳已有自定义 Topbar） */
+.canvas .swell-calendar-toolbar {
+  display: none;
+}
+
+.app[data-density='compact'] .canvas .time-grid {
+  min-height: var(--engine-time-grid-min-height);
+}
+
+.app[data-density='regular'] .canvas .time-grid {
+  min-height: var(--engine-time-grid-min-height);
+}
+
+.app[data-density='comfy'] .canvas .time-grid {
+  min-height: var(--engine-time-grid-min-height);
+}
+
+/* ---------- SETTINGS PANEL ---------- */
+.settings-panel {
+  position: fixed;
+  width: 320px;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  background: var(--bg-layer-2);
+  box-shadow: var(--shadow-lg);
+  padding: 16px;
+  z-index: 30;
+}
+
+.settings-hd {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.settings-title {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.settings-sub {
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--text-3);
+}
+
+.settings-group {
+  margin-top: 16px;
+}
+
+.settings-label {
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-2);
+}
+
+.settings-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.settings-pill,
+.settings-accent {
+  border: 1px solid var(--border);
+  background: var(--bg-layer);
+  color: var(--text-2);
+  cursor: pointer;
+  transition:
+    border-color 0.12s,
+    background 0.12s,
+    color 0.12s;
+}
+
+.settings-pill {
+  min-width: 84px;
+  height: 34px;
+  border-radius: 999px;
+  padding: 0 14px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.settings-pill:hover,
+.settings-accent:hover {
+  background: var(--bg-hover);
+  color: var(--text-1);
+}
+
+.settings-pill.active,
+.settings-accent.active {
+  border-color: var(--accent-bg);
+  background: var(--accent-tint);
+  color: var(--accent-text);
+}
+
+.settings-accent-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.settings-accent {
+  height: 42px;
+  border-radius: 12px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.settings-accent-swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 5px;
+  flex: none;
+}
+
+.settings-accent-swatch[data-accent='seafoam'] {
+  background: oklch(0.58 0.085 192);
+}
+
+.settings-accent-swatch[data-accent='blue'] {
+  background: oklch(0.56 0.16 256);
+}
+
+.settings-accent-swatch[data-accent='indigo'] {
+  background: oklch(0.52 0.17 282);
+}
+
+.settings-accent-swatch[data-accent='magenta'] {
+  background: oklch(0.55 0.2 348);
+}
+
+/* ===== P6 数据状态态：loading / error / empty ===== */
+.data-state {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  color: var(--text-2);
+}
+
+.data-state-msg {
+  margin: 0;
+  font-size: 14px;
+}
+
+.data-state--error .data-state-msg {
+  color: var(--cat-magenta-line, #c0367a);
+}
+
+.data-state-spinner {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent-bg);
+  animation: data-state-spin 0.8s linear infinite;
+}
+
+@keyframes data-state-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.data-state-btn {
+  appearance: none;
+  border: 1px solid var(--accent-bg);
+  background: var(--accent-bg);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 7px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.data-state-btn:hover {
+  filter: brightness(1.05);
+}

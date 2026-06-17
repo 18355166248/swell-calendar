@@ -14,3 +14,6 @@ storybook-static/
 
 *storybook.log
 .gstack/
+
+# Claude Design handoff bundle (设计参考，本地保留不入库)
+swell-video-download-remix/

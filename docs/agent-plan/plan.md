@@ -156,7 +156,7 @@ PLAN4 相对 PLAN3 的主要修订：
 - ~~本轮不为 `timeline` 新增 parity 目标~~（2026-06-07 修订）：应用户要求，`timeline` 升级为对标
   **Mobiscroll React Timeline - Calendar timeline**（<https://demo.mobiscroll.com/react/timeline/calendar-timeline>）
   的日粒度资源排程视图——按天列（当月）+ 资源行 + 跨天事件横条 + 同行车道堆叠。详见任务
-  `docs/tasks/2026-06-07-timeline-calendar-rebuild.md`
+  `docs/archive/tasks/2026-06-07-timeline-calendar-rebuild.md`（已归档）
 
 **不退化保障细则**（新增）：
 
@@ -431,7 +431,7 @@ components/scheduler/
 #### 交付物
 
 - `docs/agent-plan/PLAN4-claude-code.md`（本文件）
-- `docs/tasks/2026-05-07-scheduler-mobiscroll-parity-roadmap.md`
+- `docs/archive/tasks/2026-05-07-scheduler-mobiscroll-parity-roadmap.md`（已归档）
 - `packages/calendar/SPEC.md` 重写
 - `docs/ARCHITECTURE.md` 补 scheduler 子系统分层
 - `docs/adrs/ADR-2026-05-scheduler-parity-scope.md`
@@ -741,7 +741,7 @@ https://demo.mobiscroll.com/react/scheduler/desktop-week-view
 至少要出现在：
 
 - `docs/agent-plan/PLAN4-claude-code.md`
-- `docs/tasks/2026-05-07-scheduler-mobiscroll-parity-roadmap.md`
+- `docs/archive/tasks/2026-05-07-scheduler-mobiscroll-parity-roadmap.md`（已归档）
 - `packages/calendar/SPEC.md`
 - `docs/adrs/ADR-2026-05-scheduler-parity-scope.md`
 - `docs/README.md`
