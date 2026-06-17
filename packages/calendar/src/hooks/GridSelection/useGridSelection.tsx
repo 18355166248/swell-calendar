@@ -122,11 +122,6 @@ export function useGridSelection({
         onMouseup(e, false);
       }
     },
-    // ESC 取消：清空网格选择，不触发 onClickSelection / onSelectionEnd
-    onPressESCKey: () => {
-      clearAll();
-      setInitGridPosition(null);
-    },
   });
 
   return onMouseDown;

@@ -4,7 +4,6 @@ import { Calendar } from '@/components/Calendar';
 
 import {
   Delete,
-  DragCancelByEsc,
   DragResize,
   DragVertical,
   InteractionCallbacks,
@@ -38,11 +37,6 @@ export const VerticalDragDemo: Story = {
 export const ResizeByDragDemo: Story = {
   ...DragResize,
   name: '拖拽调整时长',
-};
-
-export const CancelByEscDemo: Story = {
-  ...DragCancelByEsc,
-  name: 'ESC 取消拖拽',
 };
 
 export const KeyboardNavigationDemo: Story = {

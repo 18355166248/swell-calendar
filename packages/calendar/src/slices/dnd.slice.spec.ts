@@ -141,56 +141,6 @@ describe('dnd.slice', () => {
     });
   });
 
-  describe('cancelDrag', () => {
-    it('DRAGGING → CANCELED 状态转换', () => {
-      const store = createCalendarStore();
-
-      store.getState().dnd.initDrag({
-        draggingItemType: 'event/timeGrid/move/c1',
-        initX: 10,
-        initY: 20,
-      });
-      store.getState().dnd.setDragging({ x: 100, y: 200 });
-      store.getState().dnd.cancelDrag();
-
-      expect(store.getState().dnd.draggingState).toBe(DraggingState.CANCELED);
-    });
-
-    it('INIT 状态下直接取消（未开始拖拽就取消）', () => {
-      const store = createCalendarStore();
-
-      store.getState().dnd.initDrag({
-        draggingItemType: 'event/timeGrid/move/c2',
-        initX: 30,
-        initY: 40,
-      });
-      store.getState().dnd.cancelDrag();
-
-      expect(store.getState().dnd.draggingState).toBe(DraggingState.CANCELED);
-    });
-
-    it('取消时保留其他字段值', () => {
-      const store = createCalendarStore();
-
-      store.getState().dnd.initDrag({
-        draggingItemType: 'event/timeGrid/resize/c3',
-        initX: 55,
-        initY: 65,
-      });
-      store.getState().dnd.setDragging({ x: 155, y: 265 });
-      store.getState().dnd.cancelDrag();
-
-      const { dnd } = store.getState();
-      expect(dnd.draggingState).toBe(DraggingState.CANCELED);
-      // 其他字段应该保留
-      expect(dnd.draggingItemType).toBe('event/timeGrid/resize/c3');
-      expect(dnd.initX).toBe(55);
-      expect(dnd.initY).toBe(65);
-      expect(dnd.x).toBe(155);
-      expect(dnd.y).toBe(265);
-    });
-  });
-
   describe('reset', () => {
     it('DRAGGING → IDLE，所有字段恢复默认值', () => {
       const store = createCalendarStore();
@@ -211,24 +161,6 @@ describe('dnd.slice', () => {
       expect(dnd.x).toBeNull();
       expect(dnd.y).toBeNull();
       expect(dnd.draggingEventUIModel).toBeNull();
-    });
-
-    it('CANCELED → IDLE，所有字段恢复默认值', () => {
-      const store = createCalendarStore();
-
-      store.getState().dnd.initDrag({
-        draggingItemType: 'event/timeGrid/move/r2',
-        initX: 10,
-        initY: 20,
-      });
-      store.getState().dnd.setDragging({ x: 30, y: 40 });
-      store.getState().dnd.cancelDrag();
-      store.getState().dnd.reset();
-
-      const { dnd } = store.getState();
-      expect(dnd.draggingState).toBe(DraggingState.IDLE);
-      expect(dnd.x).toBeNull();
-      expect(dnd.y).toBeNull();
     });
 
     it('完整生命周期: IDLE → INIT → DRAGGING → IDLE', () => {

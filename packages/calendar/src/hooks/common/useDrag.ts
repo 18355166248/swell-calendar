@@ -1,7 +1,6 @@
 import { isNil } from 'lodash-es';
-import { KeyboardEvent, MouseEvent, useCallback, useEffect, useRef, useState } from 'react';
+import { MouseEvent, useCallback, useEffect, useRef, useState } from 'react';
 
-import { KEY } from '@/constants/keyboard';
 import { MINIMUM_DRAG_MOUSE_DISTANCE } from '@/constants/mouse.const';
 import { useCalendarStore } from '@/contexts/calendarStore';
 import { DndState, DraggingState } from '@/types/dnd.type';
@@ -12,8 +11,6 @@ import { isLeftMouseButton } from '@/utils/mouse';
 import useLatest from './useLatest';
 
 type MouseListener = (e: MouseEvent, dnd: DndState) => void;
-type KeyboardListener = (e: KeyboardEvent, dnd: DndState) => void;
-type KeyboardEventListener = (e: globalThis.KeyboardEvent) => void;
 
 // 空函数，用于默认返回值
 const noop = () => {};
@@ -47,16 +44,14 @@ export interface DragListeners {
   onDrag?: MouseListener;
   /** 鼠标释放时触发，结束拖拽操作 */
   onMouseUp?: MouseListener;
-  /** 按下 ESC 键时触发，用于取消拖拽操作 */
-  onPressESCKey?: KeyboardListener;
 }
 
 export function useDrag(
   draggingType: DraggingTypes,
-  { onInit, onDragStart, onDrag, onMouseUp, onPressESCKey }: DragListeners
+  { onInit, onDragStart, onDrag, onMouseUp }: DragListeners
 ) {
   const { dnd } = useCalendarStore();
-  const { initDrag, setDragging, cancelDrag, reset } = dnd;
+  const { initDrag, setDragging, reset } = dnd;
 
   const dndSliceRef = useLatest(dnd);
 
@@ -64,7 +59,6 @@ export function useDrag(
 
   const handleMouseMoveRef = useRef<MouseEventListener | null>(null);
   const handleMouseUpRef = useRef<MouseEventListener | null>(null);
-  const handleKeyDownRef = useRef<KeyboardEventListener | null>(null);
 
   // 鼠标按下
   const handleMouseDown = useCallback<MouseEventListener>(
@@ -142,32 +136,10 @@ export function useDrag(
     [isStarted, onMouseUp, reset, dndSliceRef]
   );
 
-  /**
-   * 键盘事件处理函数
-   * 拖拽进行中按 ESC 取消本次拖拽：先结束监听阻断后续 mouseup 提交，
-   * 再让消费方清理自身预览/视觉，最后把状态置 CANCELED 使提交方跳过提交。
-   *
-   * 注意：这里只 cancelDrag()，不 reset()。`useDraggingEvent` 在 IDLE 分支会把
-   * isDraggingCanceled 重写为 false，若同步 reset 会让 CANCELED 被覆盖、误判为正常结束。
-   * CANCELED 作为终态，由下一次 initDrag 自然复位。
-   */
-  const handleKeyDown = useCallback<KeyboardEventListener>(
-    (e) => {
-      if (e.key !== KEY.ESCAPE) return;
-
-      setIsStarted(false);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      onPressESCKey?.(e as any, dndSliceRef.current);
-      cancelDrag();
-    },
-    [onPressESCKey, cancelDrag, dndSliceRef]
-  );
-
   useEffect(() => {
     handleMouseMoveRef.current = handleMouseMove;
     handleMouseUpRef.current = handleMouseUp;
-    handleKeyDownRef.current = handleKeyDown;
-  }, [handleMouseMove, handleMouseUp, handleKeyDown]);
+  }, [handleMouseMove, handleMouseUp]);
 
   // 根据拖拽状态添加/移除全局事件监听器
   useEffect(() => {
@@ -177,19 +149,16 @@ export function useDrag(
     const wrappedHandleMouseUp = (e: globalThis.MouseEvent) =>
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       handleMouseUpRef.current?.(e as any);
-    const wrappedHandleKeyDown = (e: globalThis.KeyboardEvent) => handleKeyDownRef.current?.(e);
 
     if (isStarted) {
       // 拖拽开始时添加全局事件监听器
       document.addEventListener('mousemove', wrappedHandleMouseMove);
       document.addEventListener('mouseup', wrappedHandleMouseUp);
-      document.addEventListener('keydown', wrappedHandleKeyDown);
 
       return () => {
         // 清理事件监听器
         document.removeEventListener('mousemove', wrappedHandleMouseMove);
         document.removeEventListener('mouseup', wrappedHandleMouseUp);
-        document.removeEventListener('keydown', wrappedHandleKeyDown);
       };
     }
 

@@ -5,12 +5,9 @@ import { CalendarStore } from '@/types/store.type';
 
 function initializeDndOptions(): Omit<
   DndState,
-  'initDrag' | 'setDragging' | 'cancelDrag' | 'reset' | 'setDraggingEventUIModel'
+  'initDrag' | 'setDragging' | 'reset' | 'setDraggingEventUIModel'
 > {
-  const dnd: Omit<
-    DndState,
-    'initDrag' | 'setDragging' | 'cancelDrag' | 'reset' | 'setDraggingEventUIModel'
-  > = {
+  const dnd: Omit<DndState, 'initDrag' | 'setDragging' | 'reset' | 'setDraggingEventUIModel'> = {
     draggingItemType: null,
     draggingState: DraggingState.IDLE,
     initX: null,
@@ -57,18 +54,6 @@ export function createDndSlice() {
               ...newState,
               draggingState: DraggingState.DRAGGING,
             };
-          })
-        );
-      },
-
-      /**
-       * 取消拖拽操作
-       * 将状态设置为 CANCELED
-       */
-      cancelDrag: () => {
-        set(
-          produce((state: CalendarStore) => {
-            state.dnd.draggingState = DraggingState.CANCELED;
           })
         );
       },

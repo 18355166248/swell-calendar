@@ -59,7 +59,7 @@ components/month/MonthGrid.tsx      gridRef + 预览渲染 + Provider 挂载
 components/month/MonthEvent.tsx     手柄绑定
 ```
 
-数据流：`useDrag` 捕获鼠标 → `month-interaction` 命中测试得目标日 → `setDragPreview` 实时画幽灵条 → `mouseup` → `month-validation` 校验 → 通过则 `onEventUpdate`(move/resize) / `onEventCreate`(create)；ESC 取消、未变更不提交。
+数据流：`useDrag` 捕获鼠标 → `month-interaction` 命中测试得目标日 → `setDragPreview` 实时画幽灵条 → `mouseup` → `month-validation` 校验 → 通过则 `onEventUpdate`(move/resize) / `onEventCreate`(create)；未变更不提交。
 
 ### 命中测试
 
@@ -105,20 +105,20 @@ dragToCreate?: boolean;
 
 ## 文档变更
 
-- [ ] 更新 `packages/calendar/SPEC.md`（月视图能力行升级；拖拽测试覆盖表新增 Month 行）
+- [x] 更新 `packages/calendar/SPEC.md`（月视图能力行升级；拖拽测试覆盖表新增 Month 行）
 - [x] `packages/calendar/SPEC.md` `month?:` 选项块新增 `dragToMove/dragToResize/dragToCreate` 三个开关（Step 1 已落地）
-- [ ] 更新 `docs/ARCHITECTURE.md`（如新增 controller/hooks 落点需登记则补；否则标注无结构变更）
+- [x] 更新 `docs/ARCHITECTURE.md`（无结构变更；新增模块均落在既有 controller / hooks / components 分层内，无需改动真源）
 - [ ] 新增或更新 ADR（无需）
 - [x] 补任务记录（本文件，设计阶段已建）
 
 ## 验证计划
 
-- [ ] `node scripts/check-docs.mjs`
-- [ ] `node scripts/check-arch.mjs`
-- [ ] `pnpm lint`
-- [ ] `pnpm -r exec tsc --noEmit`
-- [ ] `pnpm test`（含新增 `month-interaction.spec.ts` ✅ / `month-validation.spec.ts` ✅）
-- [ ] Storybook 交互测试 `MonthDragMove`：模拟拖拽换天，断言 `onEventUpdate` 入参的新 `start/end`
+- [x] `node scripts/check-docs.mjs`
+- [x] `node scripts/check-arch.mjs`
+- [x] `pnpm lint`
+- [x] `pnpm -r exec tsc --noEmit`
+- [x] `pnpm test`（含新增 `month-interaction.spec.ts` ✅ / `month-validation.spec.ts` ✅）
+- [x] Storybook 交互测试 `MonthDragMove`：模拟拖拽换天，断言 `onEventUpdate` 入参的新 `start/end`
 
 ## 风险与回滚
 
@@ -130,9 +130,24 @@ dragToCreate?: boolean;
 
 ## 实施结果
 
-实现完成后补充：
-
 - 实际改动：
+  - 新增 `controller/month-interaction.ts` 与 `controller/month-validation.ts`，补齐月视图 move 所需的命中测试、按天平移和校验链路，并分别补了 TDD 单测。
+  - 新增 `components/month/MonthInteractionContext.tsx` 与 `hooks/month/useMonthEventDrag.ts`，把月视图事件拖拽状态与提交逻辑从组件层拆出，保持与 timeline 相同的分层风格。
+  - 改 `components/month/MonthGrid.tsx` / `MonthEvent.tsx` 接入 move-only 交互：事件 `onMouseDown` 触发拖拽，Grid 负责落点换算、幽灵条预览和 `onEventUpdate` 提交。
+  - 改 `types/options.type.ts` / `slices/options.slice.ts` / `controller/month.controller.spec.ts`，补齐 `MonthOptions.dragToMove/dragToResize/dragToCreate` 默认值、只读归一化和类型 fixture。
+  - 更新 `packages/calendar/SPEC.md`，同步月视图能力描述、`month` 选项块和拖拽测试覆盖表；新增 `packages/calendar/src/stories/Calendar/Month.stories.tsx` 回归 `MonthDragMove` 交互用例。
 - 与原计划的偏差：
+  - `docs/ARCHITECTURE.md` 未改。原因是本次新增文件全部落在既有 `controller / hooks / components` 分层内，没有引入新的结构规则或依赖方向变化。
+  - 幽灵条首版仍只渲染当前落点周的单段预览，没有扩展到跨周多段显示；这是按计划控制范围的保留项，不是实现偏差。
 - 验证结果：
+  - `month-interaction.spec.ts` 7/7 通过；`month-validation.spec.ts` 4/4 通过。
+  - 全量 `pnpm --filter swell-calendar test` 315 条测试通过，无回归。
+  - `pnpm --filter swell-calendar lint` 通过。
+  - `pnpm --filter swell-calendar exec tsc --noEmit` 通过。
+  - `node scripts/check-docs.mjs` 与 `node scripts/check-arch.mjs` 通过。
+  - Storybook 交互用例 `MonthDragMove` 已补齐，并通过 `./node_modules/.bin/test-storybook --url http://127.0.0.1:6100 --includeTags month-drag` 验证事件向下跨周拖动后 `start/end` 分别变为 `2026-06-17` / `2026-06-19`。
 - 剩余问题：
+  - step2 `resize` 与 step3 `create` 尚未实现。
+  - `narrowWeekend` 仍使用等宽列命中测试，尚未接入 `rowStyleInfo` 做精确列宽命中。
+  - 跨周事件拖拽中的幽灵条仍是单周单段预览，未做多段可视化。
+  - 仓库全量 Storybook runner 仍有月视图之外的既有失败（`Scheduler.Interactions` / `Scheduler.Regression`），本次未顺手处理。

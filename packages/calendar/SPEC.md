@@ -501,13 +501,13 @@ function useCalendarDataSource<TEvent, TDraft>(
 
 ### 拖拽测试覆盖
 
-| 视图      | 拖拽移动            | 拖拽调整          | ESC 取消 | 跨天/跨资源         | 键盘交互              |
-| --------- | ------------------- | ----------------- | -------- | ------------------- | --------------------- |
-| Scheduler | ✅ DragVertical     | ✅ DragResize     | ✅       | ✅ OverlapPolicy    | ✅ KeyboardNavigation |
-| Day       | ✅ DayDragVertical  | ✅ DayDragResize  | ✅       | —                   | ✅ Enter/Space        |
-| Week      | ✅ WeekDragVertical | ✅ WeekDragResize | ✅       | ✅ WeekDragCrossDay | ✅ Enter/Space        |
-| Timeline  | —                   | —                 | —        | —                   | ✅ Enter/Space        |
-| Month     | ✅ MonthDragMove    | — (后续)          | ✅       | ✅ 跨周平移         | ✅ Enter/Space        |
+| 视图      | 拖拽移动            | 拖拽调整          | 跨天/跨资源         | 键盘交互              |
+| --------- | ------------------- | ----------------- | ------------------- | --------------------- |
+| Scheduler | ✅ DragVertical     | ✅ DragResize     | ✅ OverlapPolicy    | ✅ KeyboardNavigation |
+| Day       | ✅ DayDragVertical  | ✅ DayDragResize  | —                   | ✅ Enter/Space        |
+| Week      | ✅ WeekDragVertical | ✅ WeekDragResize | ✅ WeekDragCrossDay | ✅ Enter/Space        |
+| Timeline  | —                   | —                 | —                   | ✅ Enter/Space        |
+| Month     | ✅ MonthDragMove    | — (后续)          | ✅ 跨周平移         | ✅ Enter/Space        |
 
 测试文件位于 `src/slices/dnd.slice.spec.ts`（DnD 状态机）和 `src/stories/Calendar/`（各个视图的故事文件，含 Timeline）。
 
@@ -524,7 +524,7 @@ function useCalendarDataSource<TEvent, TDraft>(
 ## 待开发功能（Backlog）
 
 - [x] Timeline 拖拽交互（移动 / resize / 拖拽创建 / 日期 tooltip）— 见下方「Timeline 交互」
-- [ ] Timeline 交互后续增量：overlap/invalid 校验、ESC 取消、external/cross-instance DnD、shared events 跨资源行语义
+- [ ] Timeline 交互后续增量：overlap/invalid 校验、external/cross-instance DnD、shared events 跨资源行语义
 - [ ] agenda 视图
 - [ ] 月视图 workweek 支持
 - [ ] 顶边 resize（Scheduler 事件顶边调整开始时间）

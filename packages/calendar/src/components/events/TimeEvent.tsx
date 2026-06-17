@@ -315,20 +315,16 @@ export function TimeEvent({
         callbacks?.onEventClick?.({ event: model.toEventObject() });
       }
     },
-    // ESC 取消：清理拖拽样式类（状态置 CANCELED 由 useDrag 统一处理，提交方会跳过提交）
-    onPressESCKey: () => endDragEvent(classNames.moveEvent),
   });
 
   const onResizeTopStart = useDrag(resizeTopType, {
     onDragStart: () => startDragEvent(classNames.resizeEvent),
     onMouseUp: () => endDragEvent(classNames.resizeEvent),
-    onPressESCKey: () => endDragEvent(classNames.resizeEvent),
   });
 
   const onResizeBottomStart = useDrag(resizeBottomType, {
     onDragStart: () => startDragEvent(classNames.resizeEvent),
     onMouseUp: () => endDragEvent(classNames.resizeEvent),
-    onPressESCKey: () => endDragEvent(classNames.resizeEvent),
   });
 
   /**

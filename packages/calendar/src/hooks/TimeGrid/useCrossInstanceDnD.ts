@@ -86,7 +86,7 @@ export function useCrossInstanceDnD({
       // 跨实例只接管「移动」：resize / create 是实例内行为，不捕获，从而后续
       // preview 与 IDLE 落点逻辑对它们自然 no-op，避免 resize 拖到容器外被误判为跨实例拖出。
       // 注意：reset() 会把 draggingItemType 与 draggingState 一并清空，所以类型判定只放在
-      // 捕获阶段，cleanup（IDLE / CANCELED）仍依赖 wasDraggingRef，不能用提前 return 跳过。
+      // 捕获阶段，cleanup 仍依赖 wasDraggingRef，不能用提前 return 跳过。
       if (
         draggingState === DraggingState.DRAGGING &&
         draggingEventUIModel &&
@@ -113,14 +113,6 @@ export function useCrossInstanceDnD({
           cursorY: lastCursorRef.current.y,
           sourceContainer: containerElRef.current,
         });
-      }
-
-      if (wasDraggingRef.current && draggingState === DraggingState.CANCELED) {
-        wasDraggingRef.current = false;
-        draggingModelRef.current = null;
-        lastCursorRef.current = null;
-        publishClear();
-        return;
       }
 
       // 检测 DRAGGING → IDLE 转变

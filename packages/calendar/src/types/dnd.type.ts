@@ -10,7 +10,6 @@ export enum DraggingState {
   IDLE, // 空闲状态 - 未进行任何拖拽操作
   INIT, // 初始化状态 - 拖拽开始初始化
   DRAGGING, // 拖拽中状态 - 正在执行拖拽操作
-  CANCELED, // 已取消状态 - 拖拽操作被取消
 }
 
 export type DndState = {
@@ -24,7 +23,6 @@ export type DndState = {
 
   initDrag: (initState: Pick<DndState, 'draggingItemType' | 'initX' | 'initY'>) => void;
   setDragging: (state: Partial<DndState>) => void;
-  cancelDrag: () => void;
   reset: () => void;
   setDraggingEventUIModel: (uiModel: EventUIModel | null) => void;
 };

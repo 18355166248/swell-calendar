@@ -45,8 +45,6 @@ export const matchEventDraggingType = (
 export function useDraggingEvent(area: EventDraggingArea, behavior: EventDraggingBehavior) {
   // 拖拽结束
   const [isDraggingEnd, setIsDraggingEnd] = useState(false);
-  // 拖拽取消
-  const [isDraggingCanceled, setIsDraggingCanceled] = useState(false);
   // 拖拽中事件
   const [draggingEvent, setDraggingEvent] = useState<EventUIModel | null>(null);
   // resize 方向（仅 behavior === 'resize' 有意义，默认 'end' 底边）
@@ -65,7 +63,6 @@ export function useDraggingEvent(area: EventDraggingArea, behavior: EventDraggin
       const matched = matchEventDraggingType(draggingItemType, area, behavior);
       const hasMatchingTargetEvent = Number(matched?.id) === draggingEventUIModel?.cid();
       const isIdle = draggingState === DraggingState.IDLE;
-      const isCanceled = draggingState === DraggingState.CANCELED;
       if (!startedRef.current && hasMatchingTargetEvent) {
         startedRef.current = true;
         setDraggingEvent(draggingEventUIModel);
@@ -74,9 +71,8 @@ export function useDraggingEvent(area: EventDraggingArea, behavior: EventDraggin
         }
       }
 
-      if (startedRef.current && (isIdle || isCanceled)) {
+      if (startedRef.current && isIdle) {
         setIsDraggingEnd(true);
-        setIsDraggingCanceled(isCanceled);
       }
     }
   );
@@ -85,13 +81,11 @@ export function useDraggingEvent(area: EventDraggingArea, behavior: EventDraggin
     startedRef.current = false;
     setDraggingEvent(null);
     setIsDraggingEnd(false);
-    setIsDraggingCanceled(false);
     setResizeDirection('end');
   };
 
   return {
     isDraggingEnd,
-    isDraggingCanceled,
     draggingEvent,
     resizeDirection,
     clearDraggingEvent,

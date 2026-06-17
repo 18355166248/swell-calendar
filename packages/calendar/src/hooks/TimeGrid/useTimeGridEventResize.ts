@@ -29,7 +29,6 @@ export function useTimeGridEventResize({
   // 使用拖拽事件Hook，专门处理时间网格的调整大小操作
   const {
     isDraggingEnd, // 是否正在结束拖拽
-    isDraggingCanceled, // 是否取消拖拽
     draggingEvent: resizingStartUIModel, // 开始调整大小时的UI模型
     resizeDirection, // resize 方向：'start' 拖顶边改开始 / 'end' 拖底边改结束
     clearDraggingEvent, // 清除拖拽事件的函数
@@ -281,7 +280,6 @@ export function useTimeGridEventResize({
 
     // 判断是否应该更新事件
     const shouldUpdate =
-      !isDraggingCanceled && // 拖拽没有被取消
       !isNil(baseResizingInfo) && // 基础信息存在
       !isNil(currentGridPos) && // 当前网格位置存在
       !isNil(resizingStartUIModel) && // 开始调整大小的UI模型存在

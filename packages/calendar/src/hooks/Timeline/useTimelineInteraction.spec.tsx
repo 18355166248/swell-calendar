@@ -16,9 +16,6 @@ import { useTimelineEventDrag } from './useTimelineEventDrag';
 /**
  * timeline 交互 hooks 的回归测试：
  * - move / resize / create 在 mouseup 经几何计算后提交对应 commit
- * - 拖拽中按 ESC：清除预览（setDragPreview(null)）且不提交，trailing mouseup 也不再提交
- *
- * 锁住此前仅靠浏览器验证的 onPressESCKey 接线，避免共享底座（useDrag）改动悄悄退化。
  */
 
 const CELL_WIDTH = 80;
@@ -104,12 +101,6 @@ describe('timeline interaction hooks', () => {
     act(() => document.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, ...init })));
   }
 
-  function escDoc() {
-    act(() =>
-      document.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: 'Escape' }))
-    );
-  }
-
   // ---- move ----
   function MoveHarness() {
     const { onMoveStart } = useTimelineEventDrag({
@@ -132,19 +123,6 @@ describe('timeline interaction hooks', () => {
       .mock.calls[0];
     expect(dayDelta).toBe(2);
     expect(targetResourceIndex).toBe(0);
-  });
-
-  it('move：ESC 取消 → 清预览、不提交，trailing mouseup 也不提交', () => {
-    mount(<MoveHarness />);
-    down('move', { button: 0, buttons: 1, clientX: 100, clientY: 10 });
-    moveDoc({ button: 0, buttons: 1, clientX: 260, clientY: 10 });
-    escDoc();
-
-    expect(interaction.setDragPreview).toHaveBeenCalledWith(null);
-    expect(interaction.commitMove).not.toHaveBeenCalled();
-
-    upDoc({ button: 0, buttons: 0, clientX: 260, clientY: 10 });
-    expect(interaction.commitMove).not.toHaveBeenCalled();
   });
 
   // ---- resize ----
@@ -170,16 +148,6 @@ describe('timeline interaction hooks', () => {
     expect(dayDelta).toBe(3);
   });
 
-  it('resize：ESC 取消 → 清预览、不提交', () => {
-    mount(<ResizeHarness />);
-    down('resize-end', { button: 0, buttons: 1, clientX: 100, clientY: 10 });
-    moveDoc({ button: 0, buttons: 1, clientX: 340, clientY: 10 });
-    escDoc();
-
-    expect(interaction.setDragPreview).toHaveBeenCalledWith(null);
-    expect(interaction.commitResize).not.toHaveBeenCalled();
-  });
-
   // ---- create ----
   function CreateHarness() {
     const onCreateStart = useTimelineCreate({ resourceIndex: 0 });
@@ -194,18 +162,5 @@ describe('timeline interaction hooks', () => {
 
     expect(interaction.commitCreate).toHaveBeenCalledTimes(1);
     expect(interaction.commitCreate).toHaveBeenCalledWith(0, 1, 4);
-  });
-
-  it('create：ESC 取消 → 清预览、不提交', () => {
-    mount(<CreateHarness />);
-    down('create', { button: 0, buttons: 1, clientX: 80, clientY: 10 });
-    moveDoc({ button: 0, buttons: 1, clientX: 320, clientY: 10 });
-    escDoc();
-
-    expect(interaction.setDragPreview).toHaveBeenCalledWith(null);
-    expect(interaction.commitCreate).not.toHaveBeenCalled();
-
-    upDoc({ button: 0, buttons: 0, clientX: 320, clientY: 10 });
-    expect(interaction.commitCreate).not.toHaveBeenCalled();
   });
 });

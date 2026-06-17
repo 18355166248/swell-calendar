@@ -73,7 +73,6 @@ export function useMonthEventDrag({
         commitMove(uiModel, dayDelta);
       }
     },
-    onPressESCKey: () => setDragPreview(null),
   });
 
   return { onMoveStart };

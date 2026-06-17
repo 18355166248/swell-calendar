@@ -13,7 +13,6 @@ import { useDraggingEvent } from './useDraggingEvent';
 type HookSnapshot = {
   draggingEventCid: number | null;
   isDraggingEnd: boolean;
-  isDraggingCanceled: boolean;
   resizeDirection: EventResizeDirection;
   clearDraggingEvent: () => void;
 };
@@ -59,7 +58,6 @@ describe('useDraggingEvent integration', () => {
     latest = {
       draggingEventCid: null,
       isDraggingEnd: false,
-      isDraggingCanceled: false,
       resizeDirection: 'end',
       clearDraggingEvent: () => {},
     };
@@ -80,7 +78,6 @@ describe('useDraggingEvent integration', () => {
       latest = {
         draggingEventCid: hook.draggingEvent?.cid() ?? null,
         isDraggingEnd: hook.isDraggingEnd,
-        isDraggingCanceled: hook.isDraggingCanceled,
         resizeDirection: hook.resizeDirection,
         clearDraggingEvent: hook.clearDraggingEvent,
       };
@@ -117,7 +114,6 @@ describe('useDraggingEvent integration', () => {
     expect(latest.draggingEventCid).toBe(cid);
     expect(latest.resizeDirection).toBe('start');
     expect(latest.isDraggingEnd).toBe(true);
-    expect(latest.isDraggingCanceled).toBe(false);
 
     act(() => {
       latest.clearDraggingEvent();

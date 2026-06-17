@@ -15,7 +15,6 @@ type DragSnapshot = {
   draggingState: DraggingState;
   onDragStartCalls: number;
   onMouseUpCalls: number;
-  onPressESCKeyCalls: number;
 };
 
 const reactActEnv = globalThis as typeof globalThis & {
@@ -32,7 +31,6 @@ function DragHarness({
   const countersRef = useRef({
     onDragStartCalls: 0,
     onMouseUpCalls: 0,
-    onPressESCKeyCalls: 0,
   });
 
   function Inner() {
@@ -43,9 +41,6 @@ function DragHarness({
       onMouseUp: () => {
         countersRef.current.onMouseUpCalls += 1;
       },
-      onPressESCKey: () => {
-        countersRef.current.onPressESCKeyCalls += 1;
-      },
     });
     const draggingState = useCalendarStore((state) => state.dnd.draggingState);
 
@@ -53,7 +48,6 @@ function DragHarness({
       draggingState,
       onDragStartCalls: countersRef.current.onDragStartCalls,
       onMouseUpCalls: countersRef.current.onMouseUpCalls,
-      onPressESCKeyCalls: countersRef.current.onPressESCKeyCalls,
     });
 
     return <div data-testid="drag-target" onMouseDown={handleMouseDown} />;
@@ -82,7 +76,6 @@ describe('useDrag', () => {
       draggingState: DraggingState.IDLE,
       onDragStartCalls: 0,
       onMouseUpCalls: 0,
-      onPressESCKeyCalls: 0,
     };
   });
 
@@ -121,12 +114,6 @@ describe('useDrag', () => {
   function dispatchToDocument(type: 'mousemove' | 'mouseup', init: MouseEventInit) {
     act(() => {
       document.dispatchEvent(new MouseEvent(type, { bubbles: true, ...init }));
-    });
-  }
-
-  function dispatchKeyToDocument(key: string) {
-    act(() => {
-      document.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key }));
     });
   }
 
@@ -184,41 +171,5 @@ describe('useDrag', () => {
     });
     expect(latest.draggingState).toBe(DraggingState.IDLE);
     expect(latest.onMouseUpCalls).toBe(2);
-  });
-
-  it('cancels the in-progress drag on Escape and skips the trailing mouseup commit', () => {
-    mount();
-
-    dispatchToTarget('mousedown', { button: 0, buttons: 1, clientX: 10, clientY: 10 });
-    dispatchToDocument('mousemove', { button: 0, buttons: 1, clientX: 10, clientY: 30 });
-    expect(latest.draggingState).toBe(DraggingState.DRAGGING);
-
-    // ESC：取消拖拽，状态置 CANCELED，onPressESCKey 触发一次
-    dispatchKeyToDocument('Escape');
-    expect(latest.draggingState).toBe(DraggingState.CANCELED);
-    expect(latest.onPressESCKeyCalls).toBe(1);
-
-    // ESC 后监听已移除：后续 mouseup 不应再触发提交
-    dispatchToDocument('mouseup', { button: 0, buttons: 0, clientX: 10, clientY: 30 });
-    expect(latest.onMouseUpCalls).toBe(0);
-    expect(latest.draggingState).toBe(DraggingState.CANCELED);
-
-    // CANCELED 为终态：下一次拖拽仍能正常开始（initDrag 复位）
-    dispatchToTarget('mousedown', { button: 0, buttons: 1, clientX: 40, clientY: 40 });
-    dispatchToDocument('mousemove', { button: 0, buttons: 1, clientX: 40, clientY: 60 });
-    expect(latest.draggingState).toBe(DraggingState.DRAGGING);
-    expect(latest.onDragStartCalls).toBe(2);
-  });
-
-  it('ignores non-Escape keydown during drag', () => {
-    mount();
-
-    dispatchToTarget('mousedown', { button: 0, buttons: 1, clientX: 10, clientY: 10 });
-    dispatchToDocument('mousemove', { button: 0, buttons: 1, clientX: 10, clientY: 30 });
-    expect(latest.draggingState).toBe(DraggingState.DRAGGING);
-
-    dispatchKeyToDocument('Enter');
-    expect(latest.onPressESCKeyCalls).toBe(0);
-    expect(latest.draggingState).toBe(DraggingState.DRAGGING);
   });
 });

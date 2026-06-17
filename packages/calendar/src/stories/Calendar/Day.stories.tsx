@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import dayjs from 'dayjs';
 import { ReactNode, useMemo, useState } from 'react';
-import { expect, fireEvent, userEvent, within } from 'storybook/test';
+import { expect, fireEvent, within } from 'storybook/test';
 
 import { Calendar } from '@/components/Calendar';
 import DayjsTZDate from '@/time/dayjs-tzdate';
@@ -232,91 +232,5 @@ export const DayDragResize: Story = {
 
     await expect(resizeCard).toBeInTheDocument();
     await expect(resizeHandle).toBeInTheDocument();
-  },
-};
-
-/**
- * DayDragCancel — 日视图 ESC 取消拖拽测试
- */
-export const DayDragCancel: Story = {
-  name: 'ESC 取消拖拽',
-  render: function DayDragCancelStory() {
-    const [events] = useState<EventObject[]>([
-      makeDayEvent(10, {
-        id: 'day-esc-1',
-        title: '按 ESC 取消拖拽',
-        backgroundColor: '#ef4444',
-      }),
-    ]);
-    const [log, setLog] = useState<string[]>(['开始拖拽后按 Escape 取消']);
-    const addLog = (msg: string) => setLog((prev) => [msg, ...prev.slice(0, 6)]);
-
-    const callbacks = useMemo<CalendarCallbacks>(
-      () => ({
-        onEventUpdate: ({ event }) => {
-          addLog(`⚠️ 移动成功（不应触发）: ${event.title}`);
-        },
-      }),
-      []
-    );
-
-    return (
-      <DragStoryFrame>
-        <div
-          style={{
-            position: 'absolute',
-            top: 12,
-            right: 12,
-            zIndex: 10,
-            padding: '10px 14px',
-            borderRadius: 8,
-            background: 'rgba(15, 23, 42, 0.88)',
-            color: '#fff',
-            fontSize: 11,
-            lineHeight: 1.7,
-            maxWidth: 340,
-          }}
-        >
-          <div style={{ marginBottom: 6, fontWeight: 600, fontSize: 12 }}>
-            日视图 — ESC 取消拖拽
-          </div>
-          {log.map((l, i) => (
-            <div key={i}>{l}</div>
-          ))}
-        </div>
-        <Calendar
-          events={events}
-          callbacks={callbacks}
-          options={{
-            defaultView: 'day',
-            week: { hourStart: 8, hourEnd: 20 },
-          }}
-        />
-      </DragStoryFrame>
-    );
-  },
-  play: async ({ canvasElement }) => {
-    await new Promise((r) => setTimeout(r, DEMO_PAUSE));
-    const canvas = within(canvasElement);
-
-    const escCard = canvas.getByTestId('event-card-day-esc-1');
-    await expect(escCard).toBeInTheDocument();
-
-    const rect = escCard.getBoundingClientRect();
-    const cx = rect.left + rect.width / 2;
-    const cy = rect.top + rect.height / 2;
-
-    fireEvent.mouseDown(escCard, { button: 0, clientX: cx, clientY: cy });
-    fireEvent.mouseMove(document, { clientX: cx, clientY: cy + 100 });
-
-    // 按 Escape 取消拖拽
-    await userEvent.keyboard('{Escape}');
-
-    await new Promise((r) => setTimeout(r, 500));
-
-    await expect(escCard).toBeInTheDocument();
-
-    const logText = canvasElement.textContent ?? '';
-    expect(logText).not.toMatch(/移动成功（不应触发）/);
   },
 };

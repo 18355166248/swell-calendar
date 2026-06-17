@@ -124,7 +124,7 @@ export function useTimeGridEventMove({
   const store = useCalendarStoreInternal();
 
   // 获取拖拽事件状态，包括是否正在拖拽、是否取消、拖拽事件对象和清理函数
-  const { isDraggingEnd, isDraggingCanceled, draggingEvent, clearDraggingEvent } = useDraggingEvent(
+  const { isDraggingEnd, draggingEvent, clearDraggingEvent } = useDraggingEvent(
     'timeGrid', // 拖拽类型：时间网格
     'move' // 拖拽模式：移动
   );
@@ -240,7 +240,6 @@ export function useTimeGridEventMove({
   useWhen(() => {
     // 检查是否需要更新移动中的事件对象
     const shouldUpdate =
-      !isDraggingCanceled && // 拖拽未取消
       !isNil(draggingEvent) && // 拖拽事件不为空
       !isNil(currentGridPos) && // 当前网格位置不为空
       !isNil(gridDiff) && // 网格差值不为空
