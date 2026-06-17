@@ -1,8 +1,24 @@
+import { useCallback, useMemo, useRef, useState } from 'react';
+
+import { useCalendarCallbacks } from '@/contexts/calendarCallbacks';
+import { useCalendarStore } from '@/contexts/calendarStore';
 import { MonthWeekEventData } from '@/controller/month.controller';
+import {
+  computeMovedMonthEvent,
+  getMonthGridPositionFromPoint,
+} from '@/controller/month-interaction';
+import { shouldAcceptMonthEventChange } from '@/controller/month-validation';
 import { cls } from '@/helpers/css';
+import { EventUIModel } from '@/model/eventUIModel';
 import DayjsTZDate from '@/time/dayjs-tzdate';
+import { EventObjectWithDefaultValues } from '@/types/events.type';
 
 import { MonthEvent } from './MonthEvent';
+import {
+  MonthDragPreview,
+  MonthInteractionProvider,
+  MonthInteractionValue,
+} from './MonthInteractionContext';
 
 const CELL_EVENT_HEIGHT = 22;
 const CELL_HEADER_HEIGHT = 28;
@@ -44,64 +60,141 @@ export function MonthGrid({
   const weekCount = weeks.length;
   const rowHeightPercent = 100 / weekCount;
 
+  const options = useCalendarStore((state) => state.options);
+  const callbacks = useCalendarCallbacks();
+  const gridRef = useRef<HTMLDivElement>(null);
+  const [dragPreview, setDragPreview] = useState<MonthDragPreview | null>(null);
+
+  const gridPositionFinder = useCallback(
+    (clientX: number, clientY: number) => {
+      const container = gridRef.current;
+      if (!container) {
+        return null;
+      }
+      const rect = container.getBoundingClientRect();
+      return getMonthGridPositionFromPoint({
+        offsetX: clientX - rect.left,
+        offsetY: clientY - rect.top,
+        width: rect.width,
+        height: rect.height,
+        weekCount,
+        colCount: totalCols,
+      });
+    },
+    [weekCount, totalCols]
+  );
+
+  const commitMove = useCallback(
+    (uiModel: EventUIModel, dayDelta: number) => {
+      const prev = uiModel.model.toEventObject();
+      const next = computeMovedMonthEvent(prev, dayDelta);
+      const accepted = shouldAcceptMonthEventChange(options, callbacks, {
+        action: 'move',
+        event: next,
+        previousEvent: prev as EventObjectWithDefaultValues,
+      });
+      if (!accepted) {
+        return;
+      }
+      callbacks?.onEventUpdate?.({
+        event: next,
+        previousEvent: prev as EventObjectWithDefaultValues,
+      });
+    },
+    [options, callbacks]
+  );
+
+  const interactionValue = useMemo<MonthInteractionValue>(
+    () => ({
+      weekCount,
+      colCount: totalCols,
+      gridPositionFinder,
+      setDragPreview,
+      commitMove,
+    }),
+    [weekCount, totalCols, gridPositionFinder, commitMove]
+  );
+
   return (
-    <div className={cls('month-grid')}>
-      {weeks.map((week, weekIndex) => {
-        const { rows, overflowByCol } = eventRows[weekIndex] ?? { rows: [], overflowByCol: [] };
+    <MonthInteractionProvider value={interactionValue}>
+      <div className={cls('month-grid')} ref={gridRef}>
+        {weeks.map((week, weekIndex) => {
+          const { rows, overflowByCol } = eventRows[weekIndex] ?? { rows: [], overflowByCol: [] };
+          const ghost = dragPreview?.weekIndex === weekIndex ? dragPreview : null;
 
-        return (
-          <div
-            key={weekIndex}
-            className={cls('month-week-row')}
-            style={{ height: `${rowHeightPercent}%` }}
-          >
-            {week.map((date, colIndex) => {
-              const today = isToday(date);
-              const currentMonth = isCurrentMonth(date, renderDate);
-              const overflow = overflowByCol[colIndex] ?? 0;
+          return (
+            <div
+              key={weekIndex}
+              className={cls('month-week-row')}
+              style={{ height: `${rowHeightPercent}%` }}
+            >
+              {week.map((date, colIndex) => {
+                const today = isToday(date);
+                const currentMonth = isCurrentMonth(date, renderDate);
+                const overflow = overflowByCol[colIndex] ?? 0;
 
-              return (
-                <div
-                  key={colIndex}
-                  className={cls('month-cell', {
-                    'month-cell-today': today,
-                    'month-cell-other-month': !currentMonth,
-                  })}
-                >
-                  <div className={cls('month-cell-header')}>
-                    <span className={cls('month-cell-date', { 'month-cell-date-today': today })}>
-                      {date.getDate()}
-                    </span>
-                  </div>
-                  {overflow > 0 && (
-                    <div
-                      className={cls('month-more')}
-                      style={{ top: CELL_HEADER_HEIGHT + visibleEventCount * CELL_EVENT_HEIGHT }}
-                    >
-                      +{overflow} 更多
+                return (
+                  <div
+                    key={colIndex}
+                    className={cls('month-cell', {
+                      'month-cell-today': today,
+                      'month-cell-other-month': !currentMonth,
+                    })}
+                  >
+                    <div className={cls('month-cell-header')}>
+                      <span className={cls('month-cell-date', { 'month-cell-date-today': today })}>
+                        {date.getDate()}
+                      </span>
                     </div>
-                  )}
-                </div>
-              );
-            })}
+                    {overflow > 0 && (
+                      <div
+                        className={cls('month-more')}
+                        style={{ top: CELL_HEADER_HEIGHT + visibleEventCount * CELL_EVENT_HEIGHT }}
+                      >
+                        +{overflow} 更多
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
 
-            <div className={cls('month-event-layer')}>
-              {rows.map(({ uiModel, startCol, colspan, slotIndex }, i) => (
-                <MonthEvent
-                  key={i}
-                  uiModel={uiModel}
-                  startCol={startCol}
-                  colspan={colspan}
-                  slotIndex={slotIndex}
-                  cellEventHeight={CELL_EVENT_HEIGHT}
-                  cellHeaderHeight={CELL_HEADER_HEIGHT}
-                  totalCols={totalCols}
-                />
-              ))}
+              <div className={cls('month-event-layer')}>
+                {rows.map(({ uiModel, startCol, colspan, slotIndex }, i) => (
+                  <MonthEvent
+                    key={i}
+                    uiModel={uiModel}
+                    startCol={startCol}
+                    colspan={colspan}
+                    slotIndex={slotIndex}
+                    cellEventHeight={CELL_EVENT_HEIGHT}
+                    cellHeaderHeight={CELL_HEADER_HEIGHT}
+                    totalCols={totalCols}
+                    weekIndex={weekIndex}
+                  />
+                ))}
+
+                {ghost && (
+                  <div
+                    className={cls('month-event-ghost')}
+                    style={{
+                      position: 'absolute',
+                      left: `${(ghost.startCol / totalCols) * 100}%`,
+                      width: `calc(${(ghost.colspan / totalCols) * 100}% - 4px)`,
+                      top: CELL_HEADER_HEIGHT,
+                      height: CELL_EVENT_HEIGHT - 2,
+                      borderRadius: 3,
+                      border: '1px dashed #1677ff',
+                      background: 'rgba(22,119,255,0.12)',
+                      pointerEvents: 'none',
+                      boxSizing: 'border-box',
+                    }}
+                  />
+                )}
+              </div>
             </div>
-          </div>
-        );
-      })}
-    </div>
+          );
+        })}
+      </div>
+    </MonthInteractionProvider>
   );
 }

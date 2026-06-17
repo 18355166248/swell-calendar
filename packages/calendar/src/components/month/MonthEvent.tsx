@@ -3,6 +3,7 @@ import type { CSSProperties, KeyboardEvent } from 'react';
 import { KEY } from '@/constants/keyboard';
 import { useCalendarCallbacks } from '@/contexts/calendarCallbacks';
 import { cls } from '@/helpers/css';
+import { useMonthEventDrag } from '@/hooks/month/useMonthEventDrag';
 import { EventUIModel } from '@/model/eventUIModel';
 
 interface MonthEventProps {
@@ -13,6 +14,8 @@ interface MonthEventProps {
   cellEventHeight: number;
   cellHeaderHeight: number;
   totalCols: number;
+  /** 事件所在周行索引，用于拖拽落点计算 */
+  weekIndex: number;
 }
 
 export function MonthEvent({
@@ -23,9 +26,11 @@ export function MonthEvent({
   cellEventHeight,
   cellHeaderHeight,
   totalCols,
+  weekIndex,
 }: MonthEventProps) {
   const { model } = uiModel;
   const callbacks = useCalendarCallbacks();
+  const { onMoveStart } = useMonthEventDrag({ uiModel, weekIndex, startCol, colspan });
   const leftPercent = (startCol / totalCols) * 100;
   const widthPercent = (colspan / totalCols) * 100;
   const top = cellHeaderHeight + slotIndex * cellEventHeight;
@@ -69,6 +74,7 @@ export function MonthEvent({
       title={model.title}
       tabIndex={0}
       role="button"
+      onMouseDown={onMoveStart}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
       data-testid={`month-event-${model.id}`}

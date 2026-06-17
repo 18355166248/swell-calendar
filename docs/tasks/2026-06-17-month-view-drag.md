@@ -31,8 +31,8 @@
   - 新增 `controller/month-validation.ts`（开关 + per-event + onValidateEventChange 校验）
   - 新增 `components/month/MonthInteractionContext.tsx`（finder / commit / 预览 setter）✅ 已完成（move-only：MonthDragPreview / MonthGridPositionResult / MonthInteractionValue + Provider/useMonthInteraction；resize/create 后续扩展）
   - 新增 `hooks/month/useMonthEventDrag.ts`（基于 `useDrag` 的 per-event 交互）✅ 已完成（move-only：镜像 Timeline move 分支，flatOffset 求 dayDelta，输出幽灵条预览并提交 commitMove；返回 onMoveStart）
-  - 改 `components/month/MonthGrid.tsx`（gridRef + 幽灵预览条 + Provider）
-  - 改 `components/month/MonthEvent.tsx`（move 手柄 onMouseDown；step2 加 resize 手柄）
+  - 改 `components/month/MonthGrid.tsx`（gridRef + 幽灵预览条 + Provider）✅ 已完成（挂载 MonthInteractionProvider，注入 gridPositionFinder/commitMove/setDragPreview；commitMove 经 shouldAcceptMonthEventChange 校验后触发 onEventUpdate；仅在 dragPreview.weekIndex 匹配的周行渲染幽灵条，跨周多段后续扩展）
+  - 改 `components/month/MonthEvent.tsx`（move 手柄 onMouseDown；step2 加 resize 手柄）✅ 已完成（新增 weekIndex prop，绑定 useMonthEventDrag 的 onMoveStart 到 onMouseDown，保留 onClick 打开事件）
   - 改 `types/options.type.ts` `MonthOptions`（新增 `dragToMove/dragToResize/dragToCreate`）
   - 改 `slices/options.slice.ts`（`initializeMonthOptions` 默认值）
 - 文档：`SPEC.md`（月视图能力升级 + 拖拽测试覆盖表加 Month 行）、本任务文档
