@@ -30,7 +30,7 @@
   - 新增 `controller/month-interaction.ts`（纯函数：命中测试 + move/resize/create 改写）
   - 新增 `controller/month-validation.ts`（开关 + per-event + onValidateEventChange 校验）
   - 新增 `components/month/MonthInteractionContext.tsx`（finder / commit / 预览 setter）✅ 已完成（move-only：MonthDragPreview / MonthGridPositionResult / MonthInteractionValue + Provider/useMonthInteraction；resize/create 后续扩展）
-  - 新增 `hooks/month/useMonthEventDrag.ts`（基于 `useDrag` 的 per-event 交互）
+  - 新增 `hooks/month/useMonthEventDrag.ts`（基于 `useDrag` 的 per-event 交互）✅ 已完成（move-only：镜像 Timeline move 分支，flatOffset 求 dayDelta，输出幽灵条预览并提交 commitMove；返回 onMoveStart）
   - 改 `components/month/MonthGrid.tsx`（gridRef + 幽灵预览条 + Provider）
   - 改 `components/month/MonthEvent.tsx`（move 手柄 onMouseDown；step2 加 resize 手柄）
   - 改 `types/options.type.ts` `MonthOptions`（新增 `dragToMove/dragToResize/dragToCreate`）
