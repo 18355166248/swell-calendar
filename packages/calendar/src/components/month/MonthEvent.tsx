@@ -85,6 +85,12 @@ export function MonthEvent({
     }
   };
 
+  const handleMoveStart = (e: React.MouseEvent<HTMLDivElement>) => {
+    // 阻止冒泡到周行的空白创建拖拽，避免拖动事件时误触发 create
+    e.stopPropagation();
+    onMoveStart(e);
+  };
+
   const handleResizeStart = (e: React.MouseEvent<HTMLDivElement>, edge: 'start' | 'end') => {
     e.stopPropagation();
     if (edge === 'start') {
@@ -101,7 +107,7 @@ export function MonthEvent({
       title={model.title}
       tabIndex={0}
       role="button"
-      onMouseDown={onMoveStart}
+      onMouseDown={handleMoveStart}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
       data-testid={`month-event-${model.id}`}

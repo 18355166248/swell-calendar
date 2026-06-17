@@ -15,7 +15,7 @@
 2. **两端 resize（改跨天天数）**：拖动事件条左/右边缘改 `start` 或 `end` 日期 → `onEventUpdate`。
 3. **空白拖拽创建**：在空白日期格子横向框选生成全天事件 → `onEventCreate`。
 
-本任务文档覆盖三步整体设计；实现按步推进，每步独立可验证。当前已完成 **第 1 步（move）** 与 **第 2 步（resize）**，剩余第 3 步（create）。
+本任务文档覆盖三步整体设计；实现按步推进，每步独立可验证。三步（move / resize / create）均已完成。
 
 ## 非目标
 
@@ -117,9 +117,20 @@ dragToCreate?: boolean;
 - [x] `node scripts/check-arch.mjs`
 - [x] `pnpm lint`
 - [x] `pnpm -r exec tsc --noEmit`
-- [x] `pnpm test`（含新增 `month-interaction.spec.ts` ✅ / `month-validation.spec.ts` ✅）
+- [x] `pnpm test`（含新增 `month-interaction.spec.ts` ✅ / `month-validation.spec.ts` ✅ / `month.controller.spec.ts` 布局与溢出 ✅）
 - [x] Storybook 交互测试 `MonthDragMove`：模拟拖拽换天，断言 `onEventUpdate` 入参的新 `start/end`
 - [x] Storybook 交互测试 `MonthDragResize`：模拟拖拽右边缘延长结束日期，断言仅 `end` 变化
+- [x] Storybook 交互测试 `MonthDragCreate`：空白横向框选创建全天事件
+- [x] Storybook 交互测试 `MonthDragCreateCrossWeek`：跨周框选，断言占位阴影分两段且创建跨周事件
+- [x] Storybook 用例 `MonthEventOverflow`：单元格事件占满后折叠为「+N 更多」
+
+### 测试覆盖补强（2026-06-17 追加）
+
+为「不同拖拽 / resize / 新建 / 换行 / 占满展示」补齐分层测试，并把拖拽数学从 hooks 下沉到 `controller/month-interaction.ts` 以便纯函数单测：
+
+- 新增纯函数 `splitFlatRangeIntoWeekSegments`（区间按周切多段，换行渲染核心）、`computeMovePreviewRange`、`computeResizePreviewRange`；`useMonthEventDrag` / `useMonthCreate` / `MonthGrid` 改为复用之，行为不变。
+- `month-interaction.spec.ts`：补 split（同周 / 跨两周 / 跨三周 / 整周占满 / 越界 / 空区间）、move 预览（同周 / 换行 / 末尾夹紧）、resize 预览（左右延长 / 双向夹紧）共 13 条。
+- `month.controller.spec.ts`：补 `getMonthEventRows` 布局（单日 / 同周多日 colspan / 跨周换行分两周裁剪 / slotIndex 堆叠 / 占满溢出 `overflowByCol` / 多列溢出计数）共 6 条。
 
 ## 风险与回滚
 
@@ -132,6 +143,7 @@ dragToCreate?: boolean;
 ## 实施结果
 
 - 实际改动：
+  - 第 3 步（create）：`controller/month-interaction.ts` 新增 `buildCreatedMonthEvent`（横向框选 [startDay,endDay] → 全天事件，自动校正起止顺序），补 3 条单测；新增 `hooks/month/useMonthCreate.ts`（基于 `useDrag` 的网格空白横拖创建，落点用 flatOffset 线性区间表达，预览首版仅渲染起点周行单段）；`MonthGrid.tsx` 增 `commitCreate`（经 `shouldAcceptMonthEventChange('create')` 校验后触发 `onEventCreate`）并把 `useMonthCreate` 绑定到周行 `onMouseDown`；`MonthEvent.tsx` 把事件主体 move 的 `onMouseDown` 包一层 `stopPropagation`，避免拖动事件时误触发空白创建；新增 Storybook 交互用例 `MonthDragCreate`。`useMonthCreate` 因在 Provider 提供方（MonthGrid）层绑定、无法消费自身 context，交互原语以参数注入而非 `useMonthInteraction`。
   - 新增 `controller/month-interaction.ts` 与 `controller/month-validation.ts`，补齐月视图 move 所需的命中测试、按天平移和校验链路，并分别补了 TDD 单测。
   - 新增 `components/month/MonthInteractionContext.tsx` 与 `hooks/month/useMonthEventDrag.ts`，把月视图事件拖拽状态与提交逻辑从组件层拆出，保持与 timeline 相同的分层风格；当前已覆盖 move + resize。
   - 改 `components/month/MonthGrid.tsx` / `MonthEvent.tsx` 接入 move + resize 交互：事件主体 `onMouseDown` 触发拖拽移动，左右边缘手柄触发 resize，Grid 负责落点换算、幽灵条预览和 `onEventUpdate` 提交。
@@ -139,7 +151,7 @@ dragToCreate?: boolean;
   - 更新 `packages/calendar/SPEC.md`，同步月视图能力描述、`month` 选项块和拖拽测试覆盖表；新增 `packages/calendar/src/stories/Calendar/Month.stories.tsx` 回归 `MonthDragMove` / `MonthDragResize` 交互用例。
 - 与原计划的偏差：
   - `docs/ARCHITECTURE.md` 未改。原因是本次新增文件全部落在既有 `controller / hooks / components` 分层内，没有引入新的结构规则或依赖方向变化。
-  - 幽灵条首版仍只渲染当前落点周的单段预览，没有扩展到跨周多段显示；这是按计划控制范围的保留项，不是实现偏差。
+  - 幽灵条已支持跨周多段预览：`MonthDragPreview` 改为携带压平区间 `{ startFlat, endFlat }`，`MonthGrid` 按周切分，move / resize / create 跨周拖拽时每个所在周各渲染一段占位阴影（修复「向下换行拖拽占位阴影缺失」问题）。
 - 验证结果：
   - `month-interaction.spec.ts` 11/11 通过；`month-validation.spec.ts` 4/4 通过。
   - 全量 `pnpm --filter swell-calendar test` 310 条测试通过，无回归。
@@ -148,7 +160,5 @@ dragToCreate?: boolean;
   - `node scripts/check-docs.mjs` 与 `node scripts/check-arch.mjs` 通过。
   - Storybook 交互用例 `MonthDragMove` / `MonthDragResize` 已补齐；浏览器侧实测 `MonthDragMove` 与 `MonthDragResize` 均能完成回调断言，其中 `MonthDragResize` 已修正为跨周真实落点（06-12 → 06-14）。
 - 剩余问题：
-  - step3 `create` 尚未实现。
   - `narrowWeekend` 仍使用等宽列命中测试，尚未接入 `rowStyleInfo` 做精确列宽命中。
-  - 跨周事件拖拽中的幽灵条仍是单周单段预览，未做多段可视化。
   - 仓库全量 Storybook runner 仍有月视图之外的既有失败（`Scheduler.Interactions` / `Scheduler.Regression`），本次未顺手处理。

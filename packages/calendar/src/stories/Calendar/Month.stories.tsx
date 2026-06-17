@@ -25,6 +25,8 @@ const DEMO_PAUSE = 2000;
 const MONTH_INITIAL_DATE = '2026-06-01';
 const onEventUpdateSpy = fn();
 const onResizeUpdateSpy = fn();
+const onEventCreateSpy = fn();
+const onCreateCrossWeekSpy = fn();
 
 function DragStoryFrame({ children }: { children: ReactNode }) {
   return (
@@ -252,6 +254,273 @@ export const MonthDragResize: Story = {
       const payload = onResizeUpdateSpy.mock.calls.at(-1)?.[0];
       expect(dayjs(payload.event.start as Date).format('YYYY-MM-DD')).toBe('2026-06-10');
       expect(dayjs(payload.event.end as Date).format('YYYY-MM-DD')).toBe('2026-06-14');
+    });
+  },
+};
+
+/**
+ * MonthDragCreate — 月视图空白拖拽创建测试
+ *
+ * 验证在空白日期格子横向框选生成跨天全天事件，触发 onEventCreate。
+ */
+export const MonthDragCreate: Story = {
+  name: '空白拖拽创建',
+  tags: ['month-drag'],
+  render: function MonthDragCreateStory() {
+    const [events, setEvents] = useState<EventObject[]>([]);
+    const [log, setLog] = useState<string[]>(['在第一周空白格里横向框选创建事件']);
+    const addLog = (msg: string) => setLog((prev) => [msg, ...prev.slice(0, 6)]);
+
+    const callbacks = useMemo<CalendarCallbacks>(
+      () => ({
+        onEventCreate: (payload) => {
+          const created: EventObject = {
+            id: `month-created-${Date.now()}`,
+            calendarId: 'cal-1',
+            title: '新建事件',
+            backgroundColor: '#16a34a',
+            color: '#fff',
+            ...payload.event,
+          };
+          setEvents((cur) => [...cur, created]);
+          const s = dayjs(payload.event.start as Date).format('MM-DD');
+          const e = dayjs(payload.event.end as Date).format('MM-DD');
+          addLog(`✅ 已创建: ${s} → ${e}`);
+          onEventCreateSpy(payload);
+        },
+      }),
+      []
+    );
+
+    return (
+      <DragStoryFrame>
+        <div
+          style={{
+            position: 'absolute',
+            top: 12,
+            right: 12,
+            zIndex: 10,
+            padding: '10px 14px',
+            borderRadius: 8,
+            background: 'rgba(15, 23, 42, 0.88)',
+            color: '#fff',
+            fontSize: 11,
+            lineHeight: 1.7,
+            maxWidth: 340,
+          }}
+        >
+          <div style={{ marginBottom: 6, fontWeight: 600, fontSize: 12 }}>
+            月视图 — 空白拖拽创建
+          </div>
+          {log.map((entry, index) => (
+            <div key={index}>{entry}</div>
+          ))}
+        </div>
+        <Calendar
+          events={events}
+          callbacks={callbacks}
+          options={{
+            defaultView: 'month',
+            initialDate: MONTH_INITIAL_DATE,
+            month: {
+              dragToCreate: true,
+            },
+          }}
+        />
+      </DragStoryFrame>
+    );
+  },
+  play: async ({ canvasElement, step }) => {
+    onEventCreateSpy.mockClear();
+    await new Promise((resolve) => setTimeout(resolve, DEMO_PAUSE));
+
+    const firstRow = canvasElement.querySelector(
+      '.swell-calendar-month-week-row'
+    ) as HTMLElement | null;
+    await expect(firstRow).not.toBeNull();
+
+    // 首周（2026 年 6 月 1 日所在周）：列 0=5/31 … 列 2=6/2 … 列 4=6/4。
+    const rowRect = firstRow!.getBoundingClientRect();
+    const colWidth = rowRect.width / 7;
+    const startX = rowRect.left + colWidth * 2 + colWidth / 2;
+    const endX = rowRect.left + colWidth * 4 + colWidth / 2;
+    const y = rowRect.top + rowRect.height * 0.7;
+
+    await step('从 6/2 横向框选到 6/4', async () => {
+      fireEvent.mouseDown(firstRow!, { button: 0, clientX: startX, clientY: y });
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      fireEvent.mouseMove(document, { buttons: 1, clientX: startX + 8, clientY: y });
+      await new Promise((resolve) => setTimeout(resolve, 16));
+      fireEvent.mouseMove(document, { buttons: 1, clientX: endX, clientY: y });
+      fireEvent.mouseUp(document, { clientX: endX, clientY: y });
+    });
+
+    await step('断言创建出 6/2–6/4 的全天事件', async () => {
+      await expect(onEventCreateSpy).toHaveBeenCalled();
+      const payload = onEventCreateSpy.mock.calls.at(-1)?.[0];
+      expect(payload.event.allDay).toBe(true);
+      expect(dayjs(payload.event.start as Date).format('YYYY-MM-DD')).toBe('2026-06-02');
+      expect(dayjs(payload.event.end as Date).format('YYYY-MM-DD')).toBe('2026-06-04');
+    });
+  },
+};
+
+/**
+ * MonthDragCreateCrossWeek — 跨周（换行）空白拖拽创建测试
+ *
+ * 从某周末尾向下一周框选，验证：
+ * 1. 拖拽过程中占位阴影按周切成多段（每个所在周各一段）；
+ * 2. mouseup 后创建出跨周的全天事件。
+ */
+export const MonthDragCreateCrossWeek: Story = {
+  name: '跨周空白拖拽创建',
+  tags: ['month-drag'],
+  render: function MonthDragCreateCrossWeekStory() {
+    const [events, setEvents] = useState<EventObject[]>([]);
+    const [log, setLog] = useState<string[]>(['从第三周末尾向第四周框选，跨周创建']);
+    const addLog = (msg: string) => setLog((prev) => [msg, ...prev.slice(0, 6)]);
+
+    const callbacks = useMemo<CalendarCallbacks>(
+      () => ({
+        onEventCreate: (payload) => {
+          const created: EventObject = {
+            id: `month-xweek-${Date.now()}`,
+            calendarId: 'cal-1',
+            title: '跨周事件',
+            backgroundColor: '#16a34a',
+            color: '#fff',
+            ...payload.event,
+          };
+          setEvents((cur) => [...cur, created]);
+          const s = dayjs(payload.event.start as Date).format('MM-DD');
+          const e = dayjs(payload.event.end as Date).format('MM-DD');
+          addLog(`✅ 已创建: ${s} → ${e}`);
+          onCreateCrossWeekSpy(payload);
+        },
+      }),
+      []
+    );
+
+    return (
+      <DragStoryFrame>
+        <div
+          style={{
+            position: 'absolute',
+            top: 12,
+            right: 12,
+            zIndex: 10,
+            padding: '10px 14px',
+            borderRadius: 8,
+            background: 'rgba(15, 23, 42, 0.88)',
+            color: '#fff',
+            fontSize: 11,
+            lineHeight: 1.7,
+            maxWidth: 340,
+          }}
+        >
+          <div style={{ marginBottom: 6, fontWeight: 600, fontSize: 12 }}>月视图 — 跨周创建</div>
+          {log.map((entry, index) => (
+            <div key={index}>{entry}</div>
+          ))}
+        </div>
+        <Calendar
+          events={events}
+          callbacks={callbacks}
+          options={{
+            defaultView: 'month',
+            initialDate: MONTH_INITIAL_DATE,
+            month: { dragToCreate: true },
+          }}
+        />
+      </DragStoryFrame>
+    );
+  },
+  play: async ({ canvasElement, step }) => {
+    onCreateCrossWeekSpy.mockClear();
+    await new Promise((resolve) => setTimeout(resolve, DEMO_PAUSE));
+
+    const rows = canvasElement.querySelectorAll<HTMLElement>('.swell-calendar-month-week-row');
+    await expect(rows.length).toBeGreaterThan(4);
+    // rows[3] = 6/21(日)–6/27(六)，rows[4] = 6/28(日)–7/4(六)
+    const r3 = rows[3].getBoundingClientRect();
+    const r4 = rows[4].getBoundingClientRect();
+    const colW = r3.width / 7;
+    const startX = r3.left + colW * 4 + colW / 2; // 6/25
+    const startY = r3.top + r3.height * 0.6;
+    const endX = r4.left + colW * 1 + colW / 2; // 6/29
+    const endY = r4.top + r4.height * 0.6;
+
+    await step('从 6/25 跨周拖到 6/29，断言占位阴影分两段', async () => {
+      fireEvent.mouseDown(rows[3], { button: 0, clientX: startX, clientY: startY });
+      await new Promise((resolve) => setTimeout(resolve, 60));
+      fireEvent.mouseMove(document, { buttons: 1, clientX: startX + 10, clientY: startY });
+      await new Promise((resolve) => setTimeout(resolve, 40));
+      fireEvent.mouseMove(document, { buttons: 1, clientX: endX, clientY: endY });
+      await new Promise((resolve) => setTimeout(resolve, 40));
+      const ghosts = canvasElement.querySelectorAll('.swell-calendar-month-event-ghost');
+      expect(ghosts.length).toBe(2);
+      fireEvent.mouseUp(document, { clientX: endX, clientY: endY });
+    });
+
+    await step('断言创建出 6/25–6/29 的跨周全天事件', async () => {
+      await expect(onCreateCrossWeekSpy).toHaveBeenCalled();
+      const payload = onCreateCrossWeekSpy.mock.calls.at(-1)?.[0];
+      expect(payload.event.allDay).toBe(true);
+      expect(dayjs(payload.event.start as Date).format('YYYY-MM-DD')).toBe('2026-06-25');
+      expect(dayjs(payload.event.end as Date).format('YYYY-MM-DD')).toBe('2026-06-29');
+    });
+  },
+};
+
+/**
+ * MonthEventOverflow — 单元格事件占满后的溢出展示
+ *
+ * 同一天塞入超过 visibleEventCount 的事件，验证多出的事件折叠为「+N 更多」。
+ */
+export const MonthEventOverflow: Story = {
+  name: '占满后溢出展示',
+  tags: ['month-overflow'],
+  render: function MonthEventOverflowStory() {
+    // 同一天塞 7 个事件；月视图当前每格最多显示 4 个，其余折叠为「+N 更多」
+    const events = useMemo<EventObject[]>(
+      () =>
+        Array.from({ length: 7 }, (_, i) => ({
+          id: `overflow-${i}`,
+          calendarId: 'cal-1',
+          title: `事件 ${i + 1}`,
+          category: 'allday',
+          allDay: true,
+          start: dayjs('2026-06-09T00:00:00').toDate(),
+          end: dayjs('2026-06-09T23:59:59').toDate(),
+          backgroundColor: '#2563eb',
+          color: '#fff',
+        })),
+      []
+    );
+
+    return (
+      <DragStoryFrame>
+        <Calendar
+          events={events}
+          options={{
+            defaultView: 'month',
+            initialDate: MONTH_INITIAL_DATE,
+          }}
+        />
+      </DragStoryFrame>
+    );
+  },
+  play: async ({ canvasElement, step }) => {
+    await new Promise((resolve) => setTimeout(resolve, 300));
+
+    await step('断言可见事件被裁到上限，其余折叠为「+N 更多」', async () => {
+      const cards = canvasElement.querySelectorAll('[data-testid^="month-event-overflow-"]');
+      // 7 个事件、每格最多 4 个 → 显示 4 个，溢出 3 个
+      expect(cards.length).toBe(4);
+      const more = canvasElement.querySelector('.swell-calendar-month-more');
+      await expect(more).not.toBeNull();
+      expect(more!.textContent).toContain('+3');
+      expect(more!.textContent).toContain('更多');
     });
   },
 };

@@ -4,12 +4,15 @@ import { useCalendarCallbacks } from '@/contexts/calendarCallbacks';
 import { useCalendarStore } from '@/contexts/calendarStore';
 import { MonthWeekEventData } from '@/controller/month.controller';
 import {
+  buildCreatedMonthEvent,
   computeMovedMonthEvent,
   computeResizedMonthEvent,
   getMonthGridPositionFromPoint,
+  splitFlatRangeIntoWeekSegments,
 } from '@/controller/month-interaction';
 import { shouldAcceptMonthEventChange } from '@/controller/month-validation';
 import { cls } from '@/helpers/css';
+import { useMonthCreate } from '@/hooks/month/useMonthCreate';
 import { EventUIModel } from '@/model/eventUIModel';
 import { toEndOfDay, toStartOfDay } from '@/time/datetime';
 import DayjsTZDate from '@/time/dayjs-tzdate';
@@ -126,6 +129,41 @@ export function MonthGrid({
     [options, callbacks]
   );
 
+  const flatToDate = useCallback(
+    (flatOffset: number): DayjsTZDate | null => {
+      const weekIndex = Math.floor(flatOffset / totalCols);
+      const colIndex = flatOffset % totalCols;
+      return weeks[weekIndex]?.[colIndex] ?? null;
+    },
+    [weeks, totalCols]
+  );
+
+  const commitCreate = useCallback(
+    (startFlat: number, endFlat: number) => {
+      const startDate = flatToDate(startFlat);
+      const endDate = flatToDate(endFlat);
+      if (!startDate || !endDate) {
+        return;
+      }
+      const next = buildCreatedMonthEvent(startDate, endDate);
+      const accepted = shouldAcceptMonthEventChange(options, callbacks, {
+        action: 'create',
+        event: next,
+      });
+      if (!accepted) {
+        return;
+      }
+      callbacks?.onEventCreate?.({ event: next });
+    },
+    [flatToDate, options, callbacks]
+  );
+
+  const onCreateStart = useMonthCreate({
+    gridPositionFinder,
+    setDragPreview,
+    commitCreate,
+  });
+
   const interactionValue = useMemo<MonthInteractionValue>(
     () => ({
       weekCount,
@@ -138,12 +176,28 @@ export function MonthGrid({
     [weekCount, totalCols, gridPositionFinder, commitMove, commitResize]
   );
 
+  const ghostSegments = useMemo(
+    () =>
+      dragPreview
+        ? splitFlatRangeIntoWeekSegments(
+            dragPreview.startFlat,
+            dragPreview.endFlat,
+            weekCount,
+            totalCols
+          )
+        : [],
+    [dragPreview, weekCount, totalCols]
+  );
+
   return (
     <MonthInteractionProvider value={interactionValue}>
       <div className={cls('month-grid')} ref={gridRef}>
         {weeks.map((week, weekIndex) => {
           const { rows, overflowByCol } = eventRows[weekIndex] ?? { rows: [], overflowByCol: [] };
-          const ghost = dragPreview?.weekIndex === weekIndex ? dragPreview : null;
+          // 把拖拽预览的压平区间切到当前周，跨周时每周各渲染一段
+          const ghost = dragPreview
+            ? ghostSegments.find((seg) => seg.weekIndex === weekIndex) ?? null
+            : null;
           const weekStart = toStartOfDay(week[0]);
           const weekEnd = toEndOfDay(week[week.length - 1]);
 
@@ -152,6 +206,7 @@ export function MonthGrid({
               key={weekIndex}
               className={cls('month-week-row')}
               style={{ height: `${rowHeightPercent}%` }}
+              onMouseDown={onCreateStart}
             >
               {week.map((date, colIndex) => {
                 const today = isToday(date);

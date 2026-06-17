@@ -1,6 +1,7 @@
 import { MouseEvent } from 'react';
 
 import { MonthDragPreview, useMonthInteraction } from '@/components/month/MonthInteractionContext';
+import { computeMovePreviewRange, computeResizePreviewRange } from '@/controller/month-interaction';
 import { DRAGGING_TYPE_CREATE } from '@/helpers/drag';
 import { useDrag } from '@/hooks/common/useDrag';
 import { EventUIModel } from '@/model/eventUIModel';
@@ -17,10 +18,6 @@ interface UseMonthEventDragParams {
 }
 
 type ResizeEdge = 'start' | 'end';
-
-function clamp(value: number, min: number, max: number): number {
-  return Math.min(Math.max(value, min), max);
-}
 
 /**
  * 月视图事件条的移动交互（按天换格）。
@@ -46,55 +43,31 @@ export function useMonthEventDrag({
     return curPos.flatOffset - initPos.flatOffset;
   };
 
-  const previewOf = (dayDelta: number, e: MouseEvent): MonthDragPreview => {
-    const srcFlat = weekIndex * colCount + startCol;
-    const nextFlat = clamp(srcFlat + dayDelta, 0, weekCount * colCount - 1);
-    const nextWeekIndex = Math.floor(nextFlat / colCount);
-    const nextStartCol = nextFlat % colCount;
-    const nextColspan = clamp(colspan, 1, colCount - nextStartCol);
-    return {
-      kind: 'move',
-      weekIndex: nextWeekIndex,
-      startCol: nextStartCol,
-      colspan: nextColspan,
-      cursorX: e.clientX,
-      cursorY: e.clientY,
-    };
-  };
+  const previewOf = (dayDelta: number, e: MouseEvent): MonthDragPreview => ({
+    kind: 'move',
+    ...computeMovePreviewRange({ weekIndex, startCol, colspan, dayDelta, weekCount, colCount }),
+    cursorX: e.clientX,
+    cursorY: e.clientY,
+  });
 
-  const resizePreviewOf = (edge: ResizeEdge, dayDelta: number, e: MouseEvent): MonthDragPreview => {
-    const srcStartFlat = weekIndex * colCount + startCol;
-    const srcEndFlat = srcStartFlat + colspan - 1;
-
-    if (edge === 'start') {
-      const nextStartFlat = clamp(srcStartFlat + dayDelta, 0, srcEndFlat);
-      const nextWeekIndex = Math.floor(nextStartFlat / colCount);
-      const nextStartCol = nextStartFlat % colCount;
-      const nextColspan = clamp(srcEndFlat - nextStartFlat + 1, 1, colCount - nextStartCol);
-      return {
-        kind: 'resize',
-        weekIndex: nextWeekIndex,
-        startCol: nextStartCol,
-        colspan: nextColspan,
-        cursorX: e.clientX,
-        cursorY: e.clientY,
-      };
-    }
-
-    const nextEndFlat = clamp(srcEndFlat + dayDelta, srcStartFlat, weekCount * colCount - 1);
-    const nextWeekIndex = Math.floor(nextEndFlat / colCount);
-    const segmentStartFlat = Math.max(srcStartFlat, nextWeekIndex * colCount);
-    const nextStartCol = segmentStartFlat % colCount;
-    const nextColspan = clamp(nextEndFlat - segmentStartFlat + 1, 1, colCount - nextStartCol);
-    return {
-      kind: 'resize',
-      weekIndex: nextWeekIndex,
-      startCol: nextStartCol,
-      colspan: nextColspan,
-      cursorX: e.clientX,
-      cursorY: e.clientY,
-    };
-  };
+  const resizePreviewOf = (
+    edge: ResizeEdge,
+    dayDelta: number,
+    e: MouseEvent
+  ): MonthDragPreview => ({
+    kind: 'resize',
+    ...computeResizePreviewRange({
+      weekIndex,
+      startCol,
+      colspan,
+      edge,
+      dayDelta,
+      weekCount,
+      colCount,
+    }),
+    cursorX: e.clientX,
+    cursorY: e.clientY,
+  });
 
   const moveType = DRAGGING_TYPE_CREATE.moveEvent('timeGrid', `${uiModel.cid()}`);
   const resizeStartType = DRAGGING_TYPE_CREATE.resizeEvent('timeGrid', `${uiModel.cid()}`, 'start');

@@ -36,7 +36,7 @@ swell-calendar 是一个**可嵌入的 React 日历组件库**，面向需要在
 | ------------------- | ----------- | --------------------------------------------------------------------------- |
 | 日视图（Day）       | ✅ 完成     | 单日时间网格，24 小时展示                                                   |
 | 周视图（Week）      | ✅ 完成     | 7 天时间网格，支持 workweek 模式                                            |
-| 月视图（Month）     | 🟡 事件 + 拖动 | 月历格子 + 事件卡片，支持 `startDayOfWeek` 与 `workweek`；事件支持拖动换天（move，日粒度，保留时长）与左右 resize（改跨天天数），空白创建为后续增量 |
+| 月视图（Month）     | ✅ 事件 + 拖动 | 月历格子 + 事件卡片，支持 `startDayOfWeek` 与 `workweek`；事件支持拖动换天（move，日粒度，保留时长）、左右 resize（改跨天天数）与空白格子横向框选创建全天事件（create） |
 | 时间线（Timeline）  | ✅ 日粒度排程 | 对标 Mobiscroll Calendar timeline：按天列（当月）+ 资源行，事件渲染为跨天横条、同行重叠按车道堆叠、行高自适应，今天列高亮、周末浅染；资源池与 scheduler 共享；支持拖拽移动（含跨资源行）/ 左右 resize / 空白拖拽创建 / 日期 tooltip |
 | 调度器（Scheduler） | 🟡 核心闭环可用 | 垂直时间轴 + 资源列的 time-grid 视图，桌面端核心业务闭环已形成，当前进入 Phase 3 高级体验收口阶段 |
 
@@ -507,7 +507,7 @@ function useCalendarDataSource<TEvent, TDraft>(
 | Day       | ✅ DayDragVertical  | ✅ DayDragResize  | —                   | ✅ Enter/Space        |
 | Week      | ✅ WeekDragVertical | ✅ WeekDragResize | ✅ WeekDragCrossDay | ✅ Enter/Space        |
 | Timeline  | —                   | —                 | —                   | ✅ Enter/Space        |
-| Month     | ✅ MonthDragMove    | ✅ MonthDragResize | ✅ 跨周平移         | ✅ Enter/Space        |
+| Month     | ✅ MonthDragMove    | ✅ MonthDragResize | ✅ 跨周平移 / MonthDragCreate | ✅ Enter/Space        |
 
 测试文件位于 `src/slices/dnd.slice.spec.ts`（DnD 状态机）和 `src/stories/Calendar/`（各个视图的故事文件，含 Timeline）。
 

@@ -3,12 +3,10 @@ import { createContext, useContext } from 'react';
 import { EventUIModel } from '@/model/eventUIModel';
 
 export interface MonthDragPreview {
-  /** 落点周行索引 */
-  weekIndex: number;
-  /** 落点起始列 */
-  startCol: number;
-  /** 跨列数（clamp 在所在周内） */
-  colspan: number;
+  /** 落点起始压平索引（自网格首日起第几天，含） */
+  startFlat: number;
+  /** 落点结束压平索引（含）。跨周时由 MonthGrid 按周切分为多段渲染 */
+  endFlat: number;
   kind: 'move' | 'resize' | 'create';
   /** 光标位置，供 tooltip 跟随（首版可不渲染 tooltip） */
   cursorX: number;
