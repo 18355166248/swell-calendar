@@ -56,3 +56,23 @@
 
 - 风险：低。`pruneDayGridRows` 仅在 Layout effect 中裁剪不存在面板的 key
 - 回滚方式：revert commit
+
+## 实施结果
+
+实现完成后补充：
+
+- 实际改动：
+  - `packages/calendar/src/types/layout.type.ts` / `src/slices/layout.slice.ts` 已新增 `pruneDayGridRows`，并在 `src/components/Layout.tsx` 的 `useLayoutEffect` 中按当前面板集合裁剪陈旧 `dayGridRows`。
+  - `packages/calendar/src/components/timeGrid/TimeGridView.tsx` 已新增 `hideGutter?: boolean`，固定列宽 scheduler 模式下可隐藏内层时间轴。
+  - `packages/calendar/src/components/view/Scheduler.tsx` 已在固定列宽模式下透传 `hideGutter`，并补独立 gutter 时间轴滚动同步。
+  - `packages/calendar/src/components/scheduler/SchedulerHeader.tsx` 与 `src/css/timeline/timeline.scss` 已补 scheduler header 的今天高亮样式 `scheduler-header-day-label-today`。
+- 与原计划的偏差：
+  - `packages/calendar/SPEC.md` 未更新。原因是这组改动属于内部布局与样式修复，不改变任何公开 API。
+  - `docs/ARCHITECTURE.md` 未更新。原因是没有引入新模块或改变分层职责。
+- 验证结果：
+  - `node scripts/check-docs.mjs` 通过。
+  - `node scripts/check-arch.mjs` 通过。
+  - `pnpm --filter swell-calendar exec tsc --noEmit` 通过。
+  - `pnpm --filter swell-calendar test` 通过（35 files, 340 tests）。
+- 剩余问题：
+  - 当前没有专门针对 `pruneDayGridRows` / `hideGutter` 的独立测试用例；本轮主要依赖现有 scheduler / layout 回归集和代码核对。

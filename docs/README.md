@@ -35,12 +35,10 @@
 
 | 文档 | 作用 |
 |------|------|
-| [tasks/2026-06-16-s2-react-router.md](./tasks/2026-06-16-s2-react-router.md) | S2 宿主引入前端路由（`/app/calendar/:view`） |
-| [tasks/2026-06-16-scheduler-workweek.md](./tasks/2026-06-16-scheduler-workweek.md) | scheduler 独立 `workweek` 支持 |
-| [tasks/2026-06-16-scheduler-view-toggle-fix.md](./tasks/2026-06-16-scheduler-view-toggle-fix.md) | scheduler 视图切换塌缩修复与 UX 收口 |
+| 当前无活跃任务单 | `docs/tasks/` 已清空，后续新增任务按 docs-first 规则创建新文档 |
 | [adrs/ADR-2026-05-scheduler-parity-scope.md](./adrs/ADR-2026-05-scheduler-parity-scope.md) | scheduler 范围与设计原则 ADR（一级原则记录，保留） |
 
-> 已完成的 scheduler / month / S2 切片任务单（含 S2 P7–P8、月视图交互、全天语义补齐、demo 收尾等）均已迁入 [archive/tasks/](./archive/tasks/)，结论沉淀在 `SPEC` / `agent-plan/plan.md` 等一级真源。
+> 已完成的 scheduler / month / S2 切片任务单（含路由、workweek、视图切换修复、S2 P7–P8、月视图交互、全天语义补齐、demo 收尾等）均已迁入 [archive/tasks/](./archive/tasks/)，结论沉淀在 `SPEC` / `agent-plan/plan.md` 等一级真源。
 
 ## 模板与归档
 

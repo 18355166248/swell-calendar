@@ -84,3 +84,24 @@ const [currentDate, setCurrentDate] = useState<Date>(() => new Date(2025, 2, 21)
 
 - 风险：低。view 和 currentDate 的驱动逻辑互不干扰，不存在 options effect ↔ onPageChange 循环
 - 回滚方式：改动集中在 `router.tsx`（新增）/ `App.tsx`（view 迁移）/ `main.tsx`（一行）+ 移除依赖；revert commit 即可
+
+## 实施结果
+
+实现完成后补充：
+
+- 实际改动：
+  - `apps/swell-calendar-s2/src/router.tsx` 已新增 `BrowserRouter + Routes`，落地 `/app/calendar/:view` 路由结构，非法 `view` 统一重定向到 `/app/calendar/scheduler`。
+  - `apps/swell-calendar-s2/src/App.tsx` 已改为从路由 props 接收 `view`，并通过 `useNavigate()` 把顶栏 / 侧栏视图切换写回 URL；`currentDate` 继续由宿主 state 管理，经 `calRef` 和 `onPageChange` 双向同步。
+  - `apps/swell-calendar-s2/src/main.tsx` 已改为挂载 `AppRoutes`。
+  - `apps/swell-calendar-s2/package.json` 已接入 `react-router-dom` 依赖。
+  - `docs/ARCHITECTURE.md` 与 `docs/adrs/ADR-2026-06-s2-router.md` 已同步记录宿主路由层。
+- 与原计划的偏差：
+  - `packages/calendar/SPEC.md` 未更新，原因与任务单一致：路由仅发生在宿主应用内部，不涉及组件库公开 API。
+- 验证结果：
+  - `node scripts/check-docs.mjs` 通过。
+  - `node scripts/check-arch.mjs` 通过。
+  - `pnpm --filter swell-calendar exec tsc --noEmit` 通过。
+  - `pnpm --filter swell-calendar-s2 exec tsc --noEmit` 通过。
+  - `pnpm --filter swell-calendar-s2 build` 通过。
+- 剩余问题：
+  - 本轮未在浏览器里逐项回放“前进 / 后退 / 直接访问非法 view”的手工验收，但路由表、参数校验和重定向代码已落地，且构建通过。

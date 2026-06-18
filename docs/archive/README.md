@@ -76,22 +76,25 @@
 | [2026-06-12-s2-p5-theme-switching.md](tasks/2026-06-12-s2-p5-theme-switching.md) | P5 切片 — 明暗 / 强调色 / 密度切换 |
 | [2026-06-12-s2-p6-data-source.md](tasks/2026-06-12-s2-p6-data-source.md) | P6 接真数据（数据源抽象 + 异步 CRUD + 状态态） |
 
-### E · 2026-06 视图与交互收尾（5 篇）
+### E · 2026-06 视图与交互收尾（7 篇）
 
 | 文件 | 摘要 |
 |------|------|
 | [2026-06-16-day-view-week-strip-and-header-highlight.md](tasks/2026-06-16-day-view-week-strip-and-header-highlight.md) | Day 视图周条与标题高亮收口 |
 | [2026-06-16-remove-today-background-highlight.md](tasks/2026-06-16-remove-today-background-highlight.md) | 移除 today 背景高亮 |
 | [2026-06-16-scheduler-fixed-column-width.md](tasks/2026-06-16-scheduler-fixed-column-width.md) | scheduler 固定列宽与滚动同步 |
+| [2026-06-16-scheduler-view-toggle-fix.md](tasks/2026-06-16-scheduler-view-toggle-fix.md) | scheduler 视图切换塌缩修复与 today/header UX 收口 |
+| [2026-06-16-scheduler-workweek.md](tasks/2026-06-16-scheduler-workweek.md) | scheduler 独立 `workweek` 支持 |
 | [2026-06-17-month-view-drag.md](tasks/2026-06-17-month-view-drag.md) | 月视图 move / resize / create 三段交互补齐 |
 | [2026-06-17-remove-drag-esc-cancel.md](tasks/2026-06-17-remove-drag-esc-cancel.md) | 删除拖拽 ESC 取消能力与相关 demo |
 
-### F · S2 P7–P8 与宿主对齐收尾（5 篇）
+### F · S2 P7–P8 与宿主对齐收尾（6 篇）
 
 | 文件 | 摘要 |
 |------|------|
 | [2026-06-12-s2-next-plan.md](tasks/2026-06-12-s2-next-plan.md) | S2 P7–P8 总计划与最终回填 |
 | [2026-06-15-hoist-data-source-hook.md](tasks/2026-06-15-hoist-data-source-hook.md) | 下沉宿主侧异步数据装配 hook 到包内 |
+| [2026-06-16-s2-react-router.md](tasks/2026-06-16-s2-react-router.md) | S2 宿主引入 `/app/calendar/:view` 路由 |
 | [2026-06-18-s2-allday-parity.md](tasks/2026-06-18-s2-allday-parity.md) | S2 全天事件语义补齐与全天行主题化 |
 | [2026-06-18-s2-month-view-parity.md](tasks/2026-06-18-s2-month-view-parity.md) | S2 月视图宿主接线与 `+N 更多` 交互补齐 |
 | [2026-06-18-s2-polish-followups.md](tasks/2026-06-18-s2-polish-followups.md) | 首屏数据、浮层回归与计划笔记收尾 |

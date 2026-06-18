@@ -51,3 +51,23 @@
 
 - 风险：低。纯 additive 变更，不影响既有行为
 - 回滚方式：revert commit
+
+## 实施结果
+
+实现完成后补充：
+
+- 实际改动：
+  - `packages/calendar/src/types/options.type.ts` 已新增 `SchedulerOptions.workweek?: boolean`。
+  - `packages/calendar/src/components/view/Scheduler.tsx` 已按 `schedulerOptions?.workweek ?? weekOptions?.workweek` 读取工作日模式，并透传给 `getWeekDates`。
+  - `apps/swell-calendar-s2/src/App.tsx` / `apps/swell-calendar-s2/src/overlays.tsx` 已补 `showWeekendToggle` 控制，让“显示周末”开关仅在周 / 调度 / 月视图展示，其中 scheduler 可独立消费 `workweek`。
+  - `packages/calendar/SPEC.md` 已补 `scheduler.workweek` 公开选项。
+- 与原计划的偏差：
+  - `docs/ARCHITECTURE.md` 未更新。原因是本次仅增加已有 options 体系中的一个布尔字段，没有新的结构或分层变化。
+- 验证结果：
+  - `node scripts/check-docs.mjs` 通过。
+  - `node scripts/check-arch.mjs` 通过。
+  - `pnpm --filter swell-calendar exec tsc --noEmit` 通过。
+  - `pnpm --filter swell-calendar-s2 exec tsc --noEmit` 通过。
+  - `pnpm --filter swell-calendar test` 通过（35 files, 340 tests）。
+- 剩余问题：
+  - 本轮未补专门覆盖 `scheduler.workweek` 的单测或宿主级交互用例，当前验证以类型、现有回归集和代码核对为主。
