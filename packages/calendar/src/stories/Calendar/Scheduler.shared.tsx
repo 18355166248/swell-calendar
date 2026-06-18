@@ -856,7 +856,7 @@ export const ExternalDnDMock: Story = {
     const callbacks = useMemo<CalendarCallbacks>(
       () => ({
         onExternalDrop: (info) => {
-          const raw = info.dataTransfer.getData('application/json');
+          const raw = info.dataTransfer?.getData('application/json') ?? '';
           let title = '外部事件';
           let color = '#6366f1';
           try {

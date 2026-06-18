@@ -14,12 +14,21 @@ export type {
   UseCalendarDataSourceResult,
 } from '@/hooks/data/useCalendarDataSource';
 export { useCalendarDataSource } from '@/hooks/data/useCalendarDataSource';
-export type { CalendarInstance, EventCalendarProps } from '@/types/api.type';
+export type {
+  CalendarInstance,
+  EventCalendarProps,
+  ExternalDropPosition,
+  ExternalDropResult,
+} from '@/types/api.type';
 export type { CalendarInfo } from '@/types/calendar.type';
 export type { CalendarCallbacks } from '@/types/callbacks.type';
 export type {
   CalendarEventDeleteInfo,
   CalendarEventUpdateInfo,
+  CalendarExternalDropFailedInfo,
+  CalendarExternalDropFailReason,
+  CalendarExternalDropInfo,
+  CalendarExternalDropPolicySource,
   CalendarMoreEventsClickInfo,
   CalendarRecurrenceEditScope,
   CalendarRecurrenceInstanceInfo,

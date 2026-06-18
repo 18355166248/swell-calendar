@@ -1,5 +1,5 @@
 import { isNil, last } from 'lodash-es';
-import { useCallback, useLayoutEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 
 import { addTimeGridPrefix, className } from '@/constants/timeGrid-const';
 import { useCalendarCallbacks } from '@/contexts/calendarCallbacks';
@@ -10,6 +10,7 @@ import {
   createEventFromTimeGridSelection,
   createRangeSelectionInfo,
   getBlockedTimeLayoutsForColumn,
+  resolveExternalDrop,
 } from '@/controller/scheduler.controller';
 import {
   compareSchedulerEventsByOrder,
@@ -345,14 +346,40 @@ export function TimeGrid({ timeGridData, events, columnWidth, hideGutter }: Time
     },
   });
 
+  const externalDropEnabled =
+    currentView === 'scheduler' && !isReadOnly && (options.scheduler?.allowExternalDrop ?? false);
+
   const { handleDragOver, handleDragLeave, handleDrop } = useExternalDrop({
-    enabled:
-      currentView === 'scheduler' && !isReadOnly && (options.scheduler?.allowExternalDrop ?? false),
+    enabled: externalDropEnabled,
     gridPositionFinder,
     timeGridData,
     options,
     onPreviewChange: setDropPreview,
   });
+
+  // 向 store 注册编程式 drop resolver，供 CalendarInstance.externalDrop 调用。
+  // resolver 闭包捕获当前 gridPositionFinder / timeGridData / options，
+  // 依赖变化时重新注册，视图卸载或开关关闭时清空。
+  const setExternalDropResolver = useCalendarStore((state) => state.externalDrop.setResolver);
+  useEffect(() => {
+    if (!externalDropEnabled) {
+      setExternalDropResolver(null);
+
+      return;
+    }
+
+    setExternalDropResolver(({ clientX, clientY, data }) =>
+      resolveExternalDrop({
+        position: { clientX, clientY },
+        gridPositionFinder,
+        timeGridData,
+        options,
+        data,
+      })
+    );
+
+    return () => setExternalDropResolver(null);
+  }, [externalDropEnabled, setExternalDropResolver, gridPositionFinder, timeGridData, options]);
 
   useCrossInstanceDnD({
     enabled: currentView === 'scheduler' && !isReadOnly,

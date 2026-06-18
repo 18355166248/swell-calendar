@@ -100,8 +100,20 @@ export interface CalendarEventDeleteInfo {
 }
 
 export interface CalendarExternalDropInfo {
-  /** 外部拖拽携带的原始 DataTransfer 对象 */
-  dataTransfer: DataTransfer;
+  /**
+   * HTML5 路径：外部拖拽携带的原始 DataTransfer 对象
+   *
+   * 仅在 HTML5 Drag and Drop API 驱动时存在。
+   * 编程式 drop（`CalendarInstance.externalDrop`）时为 undefined。
+   */
+  dataTransfer?: DataTransfer;
+  /**
+   * 编程式 drop：宿主自定义数据
+   *
+   * 仅在通过 `CalendarInstance.externalDrop()` 调用时存在。
+   * 类型为 `unknown`，宿主自行断言。
+   */
+  data?: unknown;
   /** drop 位置对应的日期 */
   date: DayjsTZDate;
   /** drop 位置对应的开始时间 */
@@ -121,7 +133,18 @@ export type CalendarExternalDropPolicySource = 'resource' | 'view';
 export interface CalendarExternalDropFailedInfo {
   reason: CalendarExternalDropFailReason;
   policySource?: CalendarExternalDropPolicySource;
-  dataTransfer: DataTransfer;
+  /**
+   * HTML5 路径：外部拖拽携带的原始 DataTransfer 对象
+   *
+   * 仅在 HTML5 Drag and Drop API 驱动时存在。
+   */
+  dataTransfer?: DataTransfer;
+  /**
+   * 编程式 drop：宿主自定义数据
+   *
+   * 仅在通过 `CalendarInstance.externalDrop()` 调用时存在。
+   */
+  data?: unknown;
   date: DayjsTZDate;
   start: DayjsTZDate;
   end: DayjsTZDate;

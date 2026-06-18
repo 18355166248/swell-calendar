@@ -3,6 +3,7 @@ import { subscribeWithSelector } from 'zustand/middleware';
 
 import { createCalendarSlice } from '@/slices/calendat.slice';
 import { createDndSlice } from '@/slices/dnd.slice';
+import { createExternalDropSlice } from '@/slices/externalDrop.slice';
 import { createGridSelectionSlice } from '@/slices/gridSelection.slice';
 import { createHoverSlice } from '@/slices/hover.slice';
 import { createLayoutSlice } from '@/slices/layout.slice';
@@ -43,6 +44,8 @@ const storeCreator = (options: Options) => (set: SetState) => ({
   ...createResourceSlice()(set),
   // 创建悬浮切片 - 跨天事件多段联动高亮
   ...createHoverSlice()(set),
+  // 创建外部 drop 切片 - 持有 TimeGridView 注册的编程式 drop resolver
+  ...createExternalDropSlice()(set),
 });
 
 export type CalendarStoreContext = ReturnType<typeof createCalendarStore>;

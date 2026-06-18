@@ -31,6 +31,16 @@ function createCalendarInstance(store: CalendarStoreContext): CalendarInstance {
         .getState()
         .calendar.events.toArray()
         .map((event) => event.toEventObject()),
+    externalDrop: (params) => {
+      // resolver 由 scheduler 视图在 allowExternalDrop 开启时注册；
+      // 未激活 / 未开启时为 null，直接拒绝。
+      const resolver = store.getState().externalDrop.resolver;
+      if (!resolver) {
+        return { result: 'rejected' };
+      }
+
+      return resolver(params);
+    },
   };
 }
 

@@ -70,7 +70,7 @@ swell-calendar 是一个**可嵌入的 React 日历组件库**，面向需要在
 | recurrence 展开 + exceptions     | ✅   | scheduler 已接入视口内展开，`recurringExceptions` 跳过/替换与实例编辑链已闭环 |
 | recurrence 编辑作用域             | ✅   | 支持 `single` / `following` / `all` 三种作用域，`applyRecurrenceEditScope` 工具函数已落地，`onEventUpdate` / `onEventDelete` 回调已携带 `recurrenceInstance` 信息 |
 | timezone 转换                     | ✅   | `displayTimezone` + per-event `timezone` 已接入 scheduler 渲染链（数据时区→显示时区）；`timezones` 支持主轴左侧叠加副时区刻度轴；全天事件按业内方案（floating）时区无关、不随时区平移边界 |
-| external DnD                      | 🟡   | `allowExternalDrop` + `onExternalDrop` / `onExternalDropFailed` 与目标格预览阴影已接入 scheduler；第三方库封装仍未接入 |
+| external DnD                      | ✅   | `allowExternalDrop` + `onExternalDrop` / `onExternalDropFailed` 与目标格预览阴影已接入 scheduler（HTML5 路径）；并提供编程式 `CalendarInstance.externalDrop()`，宿主可从任意第三方 DnD 库（dnd-kit、react-beautiful-dnd 等）回调中传入坐标与自定义数据，复用同一套校验与 intent 产出 |
 | 跨实例拖动                         | ✅   | `onCrossInstanceDragEnd` / `onCrossInstanceDrop` 与目标实例实时预览阴影已接入 scheduler；策略钉死为「仅移动」：resize / create 为实例内行为，不参与跨实例桥 |
 
 ### 当前范围基线（2026-06）
@@ -92,12 +92,11 @@ swell-calendar 是一个**可嵌入的 React 日历组件库**，面向需要在
 - 资源级与 per-event 交互限制
 - recurrence 展开 / exceptions / 编辑作用域
 - timezone 数据时区 -> 显示时区转换
-- external DnD（`onExternalDrop` / `onExternalDropFailed`）
+- external DnD（HTML5 `onExternalDrop` / `onExternalDropFailed`，以及编程式 `CalendarInstance.externalDrop()`，兼容第三方 DnD 库）
 - 跨实例拖动（`onCrossInstanceDragEnd` / `onCrossInstanceDrop`）
 
 当前**仍明确后置**的能力：
 
-- external DnD 第三方库封装
 - `agenda`
 - 移动端适配
 - `connections`
@@ -452,6 +451,31 @@ interface CalendarInstance {
   goToToday(): void;
   setEvents(events: EventObject[]): void;
   getEvents(): EventObjectWithDefaultValues[];
+  // 编程式外部 drop：供使用第三方 DnD 库的宿主调用，传入客户端坐标 + 自定义数据，
+  // 复用 HTML5 路径的位置解析与校验链，返回 intent / 拒绝详情（不触发回调）。
+  // 仅在 scheduler 视图且 allowExternalDrop 开启时生效，否则返回 { result: 'rejected' }。
+  externalDrop(params: { clientX: number; clientY: number; data?: unknown }): ExternalDropResult;
+}
+```
+
+`ExternalDropResult` 为：
+
+```ts
+type ExternalDropResult =
+  | { result: 'allowed'; info: CalendarExternalDropInfo; preview: TimeGridDropPreview }
+  | { result: 'rejected'; rejection?: CalendarExternalDropFailedInfo; preview?: TimeGridDropPreview };
+```
+
+`CalendarExternalDropInfo` / `CalendarExternalDropFailedInfo` 的 `dataTransfer` 仅 HTML5 路径携带，`data` 仅编程式路径携带，两者互斥。宿主在 dnd-kit / react-beautiful-dnd 的 drop 回调中调用 `externalDrop`，根据返回值自行创建事件：
+
+```ts
+const result = calendarRef.current.externalDrop({
+  clientX: 500,
+  clientY: 300,
+  data: { taskId: 'abc', title: '需求评审' },
+});
+if (result.result === 'allowed') {
+  // 根据 result.info.start / end / resourceId 创建新事件
 }
 ```
 
