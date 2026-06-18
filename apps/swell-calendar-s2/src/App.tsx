@@ -113,6 +113,12 @@ const CALENDAR_THEME = {
     nowIndicatorLabel: { color: 'var(--accent-bg)' },
     gridSelection: { color: 'var(--accent-bg)' },
     today: { color: 'inherit', backgroundColor: 'transparent' },
+    allday: {
+      backgroundColor: 'var(--bg-sunken)',
+      borderBottom: '1px solid var(--border)',
+      labelColor: 'var(--text-3)',
+      labelBorderRight: '1px solid var(--grid-line)',
+    },
   },
   common: {
     gridSelection: {

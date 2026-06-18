@@ -13,7 +13,7 @@
 
 - 在 `s2` 宿主数据模型中保留 `allDay` 语义。
 - 让显式全天事件在 `packages/calendar` 的 day / week 现有 `allday` 行中展示。
-- 不额外发明宿主层的“全天区”实现，直接复用引擎已有能力。
+- 不额外发明宿主层的"全天区"实现，直接复用引擎已有能力。
 
 ## 非目标
 
@@ -34,7 +34,7 @@
 
 ## 现状
 
-- `packages/calendar` 在 `event.controller.ts` 里只按显式 `allDay/isAllday` 判定全天，不再把“时长超过 24 小时”的 `time` 事件自动归到全天区。
+- `packages/calendar` 在 `event.controller.ts` 里只按显式 `allDay/isAllday` 判定全天，不再把"时长超过 24 小时"的 `time` 事件自动归到全天区。
 - `s2` 的 `toCalendarEvents()` 当前把宿主事件统一映射为 `category: 'time'`，也没有透传 `allDay`。
 - `engineEventToDraft()` / `inputToDraft()` / `engineEventToCreateInput()` 这条链路会把月视图全天事件的 `allDay` 标记丢掉。
 
@@ -87,3 +87,34 @@
   - `pnpm --filter swell-calendar-s2 exec tsc --noEmit` 通过。
 - 剩余问题：
   - 旧 mock 数据里如果已经把原本的全天事件保存成了不带 `allDay` 的历史记录，刷新后仍会按普通时间事件显示；需要重新创建/编辑一次才能带上新语义。
+
+## 追加：全天行主题化（同任务后续）
+
+在 `allDay` 语义补齐后，全天行仍使用硬编码颜色（`#fafafa`、`#e8e8e8`、`#8c8c8c`），不支持宿主主题切换。本轮将全天行样式抽入 `week.allday` 主题。
+
+### 影响范围
+
+- 代码：
+  - `packages/calendar/src/types/theme.type.ts` — 新增 `WeekAlldayTheme` 类型
+  - `packages/calendar/src/slices/theme/theme.week.slice.ts` — 新增 `allday` 默认值
+  - `apps/swell-calendar-s2/src/App.tsx` — 宿主注入 `allday` 主题变量
+  - `packages/calendar/src/components/dayGrid/AlldayRow.tsx` — 全天行接入主题
+  - `packages/calendar/src/components/scheduler/SchedulerAllDayLane.tsx` — scheduler 全天行接入主题
+  - `packages/calendar/src/components/view/Scheduler.tsx` — 固定列宽模式下全天标签放入 gutter 列
+  - `packages/calendar/src/css/dayGrid/allday.scss` — 移除硬编码颜色
+  - `packages/calendar/src/css/timeline/timeline.scss` — 移除硬编码颜色
+
+### 方案
+
+- 新增 `WeekAlldayTheme` 类型，包含 `backgroundColor`、`borderBottom`、`labelColor`、`labelBorderRight` 四个字段。
+- `theme.week.slice.ts` 初始化默认值与原来硬编码一致。
+- `s2` 宿主通过 `App.tsx` 注入 CSS 变量驱动的 `allday` 主题。
+- `AlldayRow` 在 day/week 视图才渲染「全天」标签（有左侧 gutter 时），scheduler 视图不重复渲染。
+- `SchedulerAllDayLane` 在非固定列宽模式渲染自带标签；固定列宽模式标签由 `Scheduler.tsx` 的 gutter 列承载，保证全天事件内容列从 x=0 对齐。
+- SCSS 中移除硬编码颜色，改为 inline style 注入主题值。
+
+### 验证结果
+
+- `node scripts/check-docs.mjs` 通过。
+- `node scripts/check-arch.mjs` 通过。
+- `pnpm --filter swell-calendar-s2 exec tsc --noEmit` 通过。

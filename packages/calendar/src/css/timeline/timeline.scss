@@ -249,14 +249,13 @@
 }
 
 .scheduler-allday-lane-label {
+  // 文字色 / 右边框 / 背景由 week.allday 主题注入（inline style）
   display: flex;
   align-items: center;
   justify-content: flex-end;
   box-sizing: border-box;
   padding-right: 8px;
   font-size: 11px;
-  color: #999;
-  border-right: 1px solid #e8e8e8;
   user-select: none;
 }
 

@@ -14,6 +14,13 @@ export type DayGridTheme = {
   backgroundColor: string;
 };
 
+export type WeekAlldayTheme = {
+  backgroundColor: string;
+  borderBottom: string;
+  labelColor: string;
+  labelBorderRight: string;
+};
+
 export type WeekTheme = {
   dayName: WeekDayNameTheme;
   timeGridLeft: TimeGridLeftTheme;
@@ -37,6 +44,7 @@ export type WeekTheme = {
     color: string;
   };
   dayGrid: DayGridTheme; // 日网格主题
+  allday: WeekAlldayTheme; // 顶部全天行主题
   today: { color: string; backgroundColor: string }; // 今天主题
   weekend: { backgroundColor: string }; // 周末主题
   pastDay: { color: string }; // 过去日期主题

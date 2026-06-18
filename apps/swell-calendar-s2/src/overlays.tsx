@@ -262,7 +262,9 @@ export function MoreEventsPopover({
                   >
                     <span
                       className="more-event-bar"
-                      style={{ backgroundColor: (ev.backgroundColor as string) || '#1677ff' }}
+                      style={{
+                        backgroundColor: (ev.backgroundColor as string) || 'var(--accent-bg)',
+                      }}
                     />
                     <div style={{ minWidth: 0, flex: 1 }}>
                       <div

@@ -1,12 +1,12 @@
 .allday-row {
-  border-bottom: 1px solid #e8e8e8;
-  background: #fafafa;
+  // 背景与下边框由 week.allday 主题注入（inline style），随宿主动态主题切换
   overflow: hidden;
   flex-shrink: 0;
   position: relative;
 }
 
 .allday-row-label {
+  // 文字色 / 背景 / 右边框由 week.allday 主题注入（inline style）
   position: absolute;
   inset: 0 auto 0 0;
   display: flex;
@@ -15,9 +15,6 @@
   padding: 4px 8px 0 0;
   font-size: 12px;
   line-height: 24px;
-  color: #8c8c8c;
-  background: #fafafa;
-  border-right: 1px solid #e8e8e8;
   box-sizing: border-box;
   pointer-events: none;
   z-index: 1;

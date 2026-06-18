@@ -26,7 +26,7 @@ const RESOURCE_SIDEBAR_WIDTH = 120;
 
 export function Scheduler() {
   const { options, calendar, view } = useCalendarStore();
-  const { timeGridLeft } = useThemeStore((state) => state.week);
+  const { timeGridLeft, allday: alldayTheme } = useThemeStore((state) => state.week);
   const { renderDate } = view;
   const schedulerOptions = options.scheduler;
   const weekOptions = options.week;
@@ -210,7 +210,20 @@ export function Scheduler() {
               >
                 <div style={{ height: SCHEDULER_HEADER_HEIGHT, flexShrink: 0 }} />
                 {alldayEvents.length > 0 ? (
-                  <div style={{ height: alldayPanelHeight, flexShrink: 0 }} />
+                  // 固定列宽模式：内容列的全天事件需从 x=0 起与日期列对齐，
+                  // 因此「全天」标签放在 gutter 列里，由 SchedulerAllDayLane 关闭自带标签。
+                  <div
+                    className={cls('scheduler-allday-lane-label')}
+                    style={{
+                      height: alldayPanelHeight,
+                      flexShrink: 0,
+                      color: alldayTheme.labelColor,
+                      borderRight: alldayTheme.labelBorderRight,
+                      background: alldayTheme.backgroundColor,
+                    }}
+                  >
+                    全天
+                  </div>
                 ) : null}
                 <div
                   ref={gutterTimeRef}

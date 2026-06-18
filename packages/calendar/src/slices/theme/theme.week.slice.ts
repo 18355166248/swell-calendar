@@ -31,6 +31,12 @@ function initializeWeekOptions(weekOptions: DeepPartial<WeekTheme> = {}) {
       borderRight: '1px solid #e5e5e5',
       backgroundColor: 'inherit',
     },
+    allday: {
+      backgroundColor: '#fafafa',
+      borderBottom: '1px solid #e8e8e8',
+      labelColor: '#8c8c8c',
+      labelBorderRight: '1px solid #e8e8e8',
+    },
     weekend: {
       backgroundColor: 'inherit',
     },
