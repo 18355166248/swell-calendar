@@ -54,19 +54,20 @@
 
 把后置项按三类收敛：
 
+### 已完成
+
+- external DnD 第三方库封装（原 A 档 P1）
+  - 已于 `5a9549b` 落地：新增 `CalendarInstance.externalDrop()` 编程式 API，与 HTML5 路径共享 `resolveExternalDrop`。
+  - 结论沉淀在 `packages/calendar/SPEC.md`（external DnD 🟡 → ✅）与归档任务单 `docs/archive/tasks/2026-06-18-external-dnd-adapter.md`。
+
 ### A. 近期可启动
 
-1. external DnD 第三方库封装
-   - 优先级：P1
-   - 原因：底层 `onExternalDrop` / `onExternalDropFailed` 已存在，离宿主可直接消费只差一层适配。
-   - 预期落点：`hooks/TimeGrid`、宿主 demo、`SPEC`
-
-2. `onResourceVisibilityChange`
+1. `onResourceVisibilityChange`
    - 优先级：P1
    - 原因：资源显隐能力已存在，但缺少宿主回调闭环，属于低风险 API 收尾。
    - 预期落点：callbacks types、store slice、`SPEC`
 
-3. `maxEventStack`
+2. `maxEventStack`
    - 优先级：P2
    - 原因：month 视图已具备 `+N 更多` 浮层，补堆叠上限配置能进一步产品化，但会牵动多个视图策略。
    - 预期落点：month / scheduler layout controller、`SPEC`

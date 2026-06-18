@@ -32,7 +32,7 @@
 | [2026-06-04-feature-capability-audit.md](tasks/2026-06-04-feature-capability-audit.md) | Feature capability 审计 |
 | [2026-06-04-scheduler-scope-freeze.md](tasks/2026-06-04-scheduler-scope-freeze.md) | Scheduler scope freeze |
 
-### B · Scheduler 对齐 epic — PLAN4（17 篇）
+### B · Scheduler 对齐 epic — PLAN4（18 篇）
 
 | 文件 | 摘要 |
 |------|------|
@@ -53,6 +53,7 @@
 | [2026-06-07-scheduler-phase3-closure.md](tasks/2026-06-07-scheduler-phase3-closure.md) | Scheduler Phase 3 收口 |
 | [2026-06-07-timeline-calendar-rebuild.md](tasks/2026-06-07-timeline-calendar-rebuild.md) | Timeline 重建为日粒度 Calendar Timeline |
 | [2026-06-08-drag-esc-cancel.md](tasks/2026-06-08-drag-esc-cancel.md) | 拖拽 ESC 取消 |
+| [2026-06-18-external-dnd-adapter.md](tasks/2026-06-18-external-dnd-adapter.md) | External DnD 编程式 drop API（适配第三方 DnD 库） |
 
 ### C · Storybook 工具链（4 篇）
 
