@@ -35,12 +35,12 @@
 
 | 文档 | 作用 |
 |------|------|
-| [tasks/2026-06-12-s2-next-plan.md](./tasks/2026-06-12-s2-next-plan.md) | S2 外壳 P7–P8 后续规划（全视图引擎化 + 侧栏交互） |
-| [archive/tasks/2026-05-07-scheduler-mobiscroll-parity-roadmap.md](./archive/tasks/2026-05-07-scheduler-mobiscroll-parity-roadmap.md) | scheduler 对齐 epic 路线图（已完成，结论沉淀在 `SPEC` / `agent-plan/plan.md`） |
-| [archive/tasks/2026-06-10-s2-app-roadmap.md](./archive/tasks/2026-06-10-s2-app-roadmap.md) | swell-calendar-s2 外壳路线图与进度真源（P0–P6 完成，P7–P8 规划中） |
+| [tasks/2026-06-16-s2-react-router.md](./tasks/2026-06-16-s2-react-router.md) | S2 宿主引入前端路由（`/app/calendar/:view`） |
+| [tasks/2026-06-16-scheduler-workweek.md](./tasks/2026-06-16-scheduler-workweek.md) | scheduler 独立 `workweek` 支持 |
+| [tasks/2026-06-16-scheduler-view-toggle-fix.md](./tasks/2026-06-16-scheduler-view-toggle-fix.md) | scheduler 视图切换塌缩修复与 UX 收口 |
 | [adrs/ADR-2026-05-scheduler-parity-scope.md](./adrs/ADR-2026-05-scheduler-parity-scope.md) | scheduler 范围与设计原则 ADR（一级原则记录，保留） |
 
-> scheduler 与 S2 的历史 closure / feature / 切片任务单（scope-freeze、parity-polish、各 DnD/resize/timezone/storybook 收口、S2 P3–P6 等）均已迁入 [archive/tasks/](./archive/tasks/)，结论沉淀在 `SPEC` / `agent-plan/plan.md`。
+> 已完成的 scheduler / month / S2 切片任务单（含 S2 P7–P8、月视图交互、全天语义补齐、demo 收尾等）均已迁入 [archive/tasks/](./archive/tasks/)，结论沉淀在 `SPEC` / `agent-plan/plan.md` 等一级真源。
 
 ## 模板与归档
 
