@@ -15,6 +15,41 @@ const fmtH = (h: number) => {
 /** 事件时间区间标签，如 `9:00 – 10:30`。 */
 const evRange = (e: { start: number; end: number }) => `${fmtH(e.start)} – ${fmtH(e.end)}`;
 
+/**
+ * 取折叠事件（月视图 `+N 更多` 浮层）的参与人 / 地点摘要。
+ * 优先读引擎透传的 `meta.pickMeta`，回退到原始宿主事件 `raw`。
+ */
+export function pickEventMeta(event: EventObject): { who?: string; loc?: string } {
+  const raw =
+    typeof event.raw === 'object' && event.raw !== null
+      ? (event.raw as { who?: string; loc?: string })
+      : undefined;
+  const pickMeta =
+    typeof event.meta === 'object' && event.meta && 'pickMeta' in event.meta
+      ? (event.meta.pickMeta as { who?: string; loc?: string } | undefined)
+      : undefined;
+
+  return {
+    who: pickMeta?.who || raw?.who,
+    loc: pickMeta?.loc || raw?.loc,
+  };
+}
+
+/**
+ * 折叠事件的时间标签：全天 → 「全天」，否则 `H:mm - H:mm`。
+ */
+export function formatEventTimeLabel(event: EventObject): string {
+  if (event.allDay) {
+    return '全天';
+  }
+
+  const start = event.start as Date;
+  const end = event.end as Date;
+  const startLabel = `${start.getHours()}:${String(start.getMinutes()).padStart(2, '0')}`;
+  const endLabel = `${end.getHours()}:${String(end.getMinutes()).padStart(2, '0')}`;
+  return `${startLabel} - ${endLabel}`;
+}
+
 export type PopoverVariant = 'rich' | 'default' | 'minimal';
 export type ThemeMode = 'light' | 'dark';
 export type AccentPreset = 'seafoam' | 'blue' | 'indigo' | 'magenta';
@@ -199,33 +234,8 @@ export function MoreEventsPopover({
 
   const dateLabel = `${date.getMonth() + 1}月${date.getDate()}日`;
 
-  const getEventMeta = (event: EventObject) => {
-    const raw =
-      typeof event.raw === 'object' && event.raw !== null
-        ? (event.raw as { who?: string; loc?: string })
-        : undefined;
-    const pickMeta =
-      typeof event.meta === 'object' && event.meta && 'pickMeta' in event.meta
-        ? (event.meta.pickMeta as { who?: string; loc?: string } | undefined)
-        : undefined;
-
-    return {
-      who: pickMeta?.who || raw?.who,
-      loc: pickMeta?.loc || raw?.loc,
-    };
-  };
-
-  const getTimeLabel = (event: EventObject) => {
-    if (event.allDay) {
-      return '全天';
-    }
-
-    const start = event.start as Date;
-    const end = event.end as Date;
-    const startLabel = `${start.getHours()}:${String(start.getMinutes()).padStart(2, '0')}`;
-    const endLabel = `${end.getHours()}:${String(end.getMinutes()).padStart(2, '0')}`;
-    return `${startLabel} - ${endLabel}`;
-  };
+  const getEventMeta = pickEventMeta;
+  const getTimeLabel = formatEventTimeLabel;
 
   return (
     <div className="pop-layer" onMouseDown={onClose}>

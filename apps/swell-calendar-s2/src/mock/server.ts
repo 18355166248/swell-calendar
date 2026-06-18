@@ -6,20 +6,34 @@
 
 import Mock from 'mockjs';
 
+import { rebaseEventsToCurrentWeek } from '../calendarData';
 import { type CalEvent, events as SEED_EVENTS } from '../data';
 
 const DB_KEY = 'swell-calendar-s2:mock-db';
+const DB_VERSION_KEY = 'swell-calendar-s2:mock-db-version';
+// 锚定语义 / schema 变化时递增：
+// v2 起种子事件按「当前周」锚定（修复首屏空日历），并借版本升级一次性重置旧的
+// 停留在 2025 周 / 早期丢失 allDay 语义的历史 demo 数据。
+const DB_VERSION = '2';
+
+/** 写入一份锚定到当前周的全新种子，并打上当前版本号。 */
+function seedDB(): CalEvent[] {
+  const seeded = rebaseEventsToCurrentWeek(SEED_EVENTS);
+  writeDB(seeded);
+  localStorage.setItem(DB_VERSION_KEY, DB_VERSION);
+  return seeded;
+}
 
 function readDB(): CalEvent[] {
   try {
+    const version = localStorage.getItem(DB_VERSION_KEY);
     const raw = localStorage.getItem(DB_KEY);
-    if (raw) return JSON.parse(raw) as CalEvent[];
+    // 仅当版本匹配时复用既有数据；否则视为首次 / 旧版本，重置为当前周种子
+    if (raw && version === DB_VERSION) return JSON.parse(raw) as CalEvent[];
   } catch {
     // 解析失败时退回种子
   }
-  // 首次初始化：写入种子
-  writeDB(SEED_EVENTS);
-  return [...SEED_EVENTS];
+  return seedDB();
 }
 
 function writeDB(events: CalEvent[]): void {

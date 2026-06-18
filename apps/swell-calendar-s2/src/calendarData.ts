@@ -54,6 +54,34 @@ export function decimalHourToTime(decimalHours: number): string {
 }
 
 /**
+ * 返回「当前周起始日（周一，与 week startDayOfWeek=1 对齐）」相对 BASE_DATE 的天偏移。
+ * 用于把周内索引（0–6）语义的种子事件平移到 demo 打开时的当前周。
+ */
+export function currentWeekStartDayIndex(now: Date = new Date()): number {
+  const dow = now.getDay(); // 0=周日 .. 6=周六
+  const backToMonday = dow === 0 ? 6 : dow - 1;
+  const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - backToMonday);
+  const iso = `${monday.getFullYear()}-${String(monday.getMonth() + 1).padStart(2, '0')}-${String(
+    monday.getDate()
+  ).padStart(2, '0')}`;
+  return dateToDayIndex(iso);
+}
+
+/**
+ * 把周内索引（0–6）语义的种子事件整体平移到当前周，使 demo 首屏即有数据。
+ * `BASE_DATE` 保持不变，仅偏移每条事件的 `day` / `endDay`，不触碰其余字段。
+ */
+export function rebaseEventsToCurrentWeek<T extends CalEvent>(events: T[], now?: Date): T[] {
+  const offset = currentWeekStartDayIndex(now);
+  if (offset === 0) return events;
+  return events.map((e) => ({
+    ...e,
+    day: e.day + offset,
+    ...(e.endDay !== undefined ? { endDay: e.endDay + offset } : {}),
+  }));
+}
+
+/**
  * 兼容旧版 mock 数据：
  * 早期宿主没有保存 `allDay`，月视图创建出的全天事件会以 `00:00-23:59`
  * 的普通 time 事件落库。这里按整天时间窗兜底识别，保证 day/week 能回到顶部全天行。
