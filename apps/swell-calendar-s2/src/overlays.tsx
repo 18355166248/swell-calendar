@@ -173,12 +173,14 @@ export function MoreEventsPopover({
   anchor,
   onClose,
   onEventClick,
+  onEventEdit,
 }: {
   date: Date;
   events: EventObject[];
   anchor: HTMLElement | null;
   onClose: () => void;
-  onEventClick?: (eventId: string) => void;
+  onEventClick?: (eventId: string, anchor: HTMLElement | null) => void;
+  onEventEdit?: (eventId: string) => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState({ top: -999, left: -999 });
@@ -197,6 +199,34 @@ export function MoreEventsPopover({
 
   const dateLabel = `${date.getMonth() + 1}月${date.getDate()}日`;
 
+  const getEventMeta = (event: EventObject) => {
+    const raw =
+      typeof event.raw === 'object' && event.raw !== null
+        ? (event.raw as { who?: string; loc?: string })
+        : undefined;
+    const pickMeta =
+      typeof event.meta === 'object' && event.meta && 'pickMeta' in event.meta
+        ? (event.meta.pickMeta as { who?: string; loc?: string } | undefined)
+        : undefined;
+
+    return {
+      who: pickMeta?.who || raw?.who,
+      loc: pickMeta?.loc || raw?.loc,
+    };
+  };
+
+  const getTimeLabel = (event: EventObject) => {
+    if (event.allDay) {
+      return '全天';
+    }
+
+    const start = event.start as Date;
+    const end = event.end as Date;
+    const startLabel = `${start.getHours()}:${String(start.getMinutes()).padStart(2, '0')}`;
+    const endLabel = `${end.getHours()}:${String(end.getMinutes()).padStart(2, '0')}`;
+    return `${startLabel} - ${endLabel}`;
+  };
+
   return (
     <div className="pop-layer" onMouseDown={onClose}>
       <div
@@ -213,32 +243,72 @@ export function MoreEventsPopover({
             </button>
           </div>
           <div className="more-events-list">
-            {events.map((ev) => (
-              <div
-                key={ev.id ?? ev.title}
-                className="more-event-row"
-                role="button"
-                tabIndex={0}
-                onClick={() => ev.id && onEventClick?.(ev.id)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    ev.id && onEventClick?.(ev.id);
-                  }
-                }}
-              >
-                <span
-                  className="more-event-bar"
-                  style={{ backgroundColor: (ev.backgroundColor as string) || '#1677ff' }}
-                />
-                <span className="more-event-title">{ev.title}</span>
-                <span className="more-event-time muted">
-                  {ev.allDay
-                    ? '全天'
-                    : `${(ev.start as Date).getHours()}:${String((ev.start as Date).getMinutes()).padStart(2, '0')}`}
-                </span>
-              </div>
-            ))}
+            {events.map((ev) =>
+              (() => {
+                const meta = getEventMeta(ev);
+                return (
+                  <div
+                    key={ev.id ?? ev.title}
+                    className="more-event-row"
+                    role="button"
+                    tabIndex={0}
+                    onClick={(e) => ev.id && onEventClick?.(ev.id, e.currentTarget as HTMLElement)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        ev.id && onEventClick?.(ev.id, e.currentTarget as HTMLElement);
+                      }
+                    }}
+                  >
+                    <span
+                      className="more-event-bar"
+                      style={{ backgroundColor: (ev.backgroundColor as string) || '#1677ff' }}
+                    />
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          gap: 8,
+                        }}
+                      >
+                        <span className="more-event-title">{ev.title}</span>
+                        <span className="more-event-time muted">{getTimeLabel(ev)}</span>
+                      </div>
+                      {(meta.who || meta.loc) && (
+                        <div
+                          className="muted"
+                          style={{
+                            marginTop: 4,
+                            display: 'flex',
+                            gap: 10,
+                            flexWrap: 'wrap',
+                            fontSize: 12,
+                          }}
+                        >
+                          {meta.who && <span>{meta.who}</span>}
+                          {meta.loc && <span>{meta.loc}</span>}
+                        </div>
+                      )}
+                    </div>
+                    {ev.id && onEventEdit && (
+                      <button
+                        type="button"
+                        className="pbtn"
+                        style={{ flex: 'none', padding: '6px 10px' }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onEventEdit(ev.id as string);
+                        }}
+                      >
+                        编辑
+                      </button>
+                    )}
+                  </div>
+                );
+              })()
+            )}
           </div>
         </div>
       </div>
@@ -255,6 +325,7 @@ export interface NewEventInput {
   start: string; // HH:mm
   end: string; // HH:mm
   cat: Cat;
+  allDay?: boolean;
 }
 
 export function CreateDialog({
@@ -297,7 +368,7 @@ export function CreateDialog({
       setErr('结束时间需晚于开始时间');
       return;
     }
-    onCreate({ title: title.trim(), res, date, endDate, start, end, cat });
+    onCreate({ title: title.trim(), res, date, endDate, start, end, cat, allDay: initial?.allDay });
     onClose();
   };
 
@@ -550,14 +621,21 @@ export function SubBar({
   showWknd,
   setShowWknd,
   showWeekendToggle,
+  showMonthNarrowWeekendToggle,
+  monthNarrowWeekend,
+  setMonthNarrowWeekend,
   activeCats,
   onToggleCat,
   onShowAll,
 }: {
   showWknd: boolean;
   setShowWknd: (v: boolean) => void;
-  /** 仅在能切换周末列的视图（周视图 / 资源调度）显示「显示周末」开关；日/月/时间线无意义。 */
+  /** 仅在能切换周末列的视图显示「显示周末」开关。 */
   showWeekendToggle: boolean;
+  /** 月视图专用：窄周末列宽。 */
+  showMonthNarrowWeekendToggle: boolean;
+  monthNarrowWeekend: boolean;
+  setMonthNarrowWeekend: (v: boolean) => void;
   activeCats: Set<Cat>;
   onToggleCat: (c: Cat) => void;
   onShowAll: () => void;
@@ -586,6 +664,11 @@ export function SubBar({
       {showWeekendToggle && (
         <label className="mini-toggle" onClick={() => setShowWknd(!showWknd)}>
           显示周末 <span className={'switch' + (showWknd ? ' on' : '')} />
+        </label>
+      )}
+      {showMonthNarrowWeekendToggle && (
+        <label className="mini-toggle" onClick={() => setMonthNarrowWeekend(!monthNarrowWeekend)}>
+          窄周末 <span className={'switch' + (monthNarrowWeekend ? ' on' : '')} />
         </label>
       )}
     </div>

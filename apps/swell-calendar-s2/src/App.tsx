@@ -222,6 +222,7 @@ export default function App({ view }: AppProps) {
   } | null>(null);
   const [creating, setCreating] = useState(false);
   const [showWknd, setShowWknd] = useState(true);
+  const [monthNarrowWeekend, setMonthNarrowWeekend] = useState(false);
   const [sidebar, setSidebar] = useState(UI_DEFAULTS.sidebar);
   const [prefs, setPrefs] = useState<UiPrefs>(loadPrefs);
   const {
@@ -240,6 +241,7 @@ export default function App({ view }: AppProps) {
   // 引擎滑动新建 / 单元格点击预填的新建对话框初始值（P7b）
   const [createInitial, setCreateInitial] = useState<NewEventInput | null>(null);
   const calRef = useRef<CalendarInstance>(null);
+  const monthMoreAnchorRef = useRef<HTMLElement | null>(null);
 
   const toggleCat = (c: Cat) =>
     setActiveCats((prev) => {
@@ -357,6 +359,40 @@ export default function App({ view }: AppProps) {
     setCurrentDate((prev) => (isSameDay(prev, next) ? prev : next));
   };
 
+  /**
+   * 月视图的 overflow 行没有真实事件卡片 DOM，详情弹层需要允许锚定到浮层内点击的行，
+   * 否则只能退回 document.activeElement，位置会漂移。
+   */
+  const openEventDetails = (event: EventObject, anchor?: HTMLElement | null) => {
+    const fallbackAnchor = event.id ? findEventAnchor(event.id) : null;
+    setPick({
+      ev: toPickEvent(event),
+      anchor: anchor ?? fallbackAnchor ?? (document.activeElement as HTMLElement),
+    });
+  };
+
+  /** 从任意入口（含 +N 更多 浮层）直接进入编辑。 */
+  const openEventEditById = (eventId: string) => {
+    const original = allEvents.find((event) => event.id === eventId);
+    if (!original) {
+      return;
+    }
+
+    setMorePick(null);
+    setPick(null);
+    setEditing(original);
+  };
+
+  /** 月视图 `+N 更多` 不会把触发元素透传给宿主，需在捕获阶段记住真实按钮节点作为浮层锚点。 */
+  const rememberMonthMoreAnchor = (target: EventTarget | null) => {
+    if (!(target instanceof HTMLElement)) {
+      return;
+    }
+
+    const trigger = target.closest('.swell-calendar-month-more');
+    monthMoreAnchorRef.current = trigger instanceof HTMLElement ? trigger : null;
+  };
+
   // 当视图切换时，同步 Calendar 内部视图
   useEffect(() => {
     if (
@@ -393,6 +429,14 @@ export default function App({ view }: AppProps) {
         hourEnd: 20,
         workweek: !showWknd,
       },
+      month: {
+        startDayOfWeek: 1,
+        workweek: !showWknd,
+        narrowWeekend: monthNarrowWeekend,
+        dragToMove: true,
+        dragToResize: true,
+        dragToCreate: true,
+      },
       scheduler: {
         resources: calendarResources,
         hourStart: 8,
@@ -404,7 +448,7 @@ export default function App({ view }: AppProps) {
         rowHeight: timelineRowHeight,
       },
     }),
-    [view, currentDate, showWknd, timelineRowHeight]
+    [view, currentDate, showWknd, monthNarrowWeekend, timelineRowHeight]
   );
 
   return (
@@ -442,15 +486,22 @@ export default function App({ view }: AppProps) {
             <SubBar
               showWknd={showWknd}
               setShowWknd={setShowWknd}
-              // 仅周视图 / 资源调度真正支持隐藏周末列（引擎 week.workweek）；日/月视图下无意义
-              showWeekendToggle={view === 'week' || view === 'scheduler'}
+              // 周 / 月 / 资源调度都支持按宿主开关控制周末显隐。
+              showWeekendToggle={view === 'week' || view === 'scheduler' || view === 'month'}
+              showMonthNarrowWeekendToggle={view === 'month'}
+              monthNarrowWeekend={monthNarrowWeekend}
+              setMonthNarrowWeekend={setMonthNarrowWeekend}
               activeCats={activeCats}
               onToggleCat={toggleCat}
               onShowAll={() => setActiveCats(new Set(FILTER_CATS))}
             />
           )}
           {/* P8b: 去掉 key={view}，改纯 setView 驱动，避免切视图重挂载重置已导航日期 */}
-          <div className="canvas">
+          <div
+            className="canvas"
+            onMouseDownCapture={(e) => rememberMonthMoreAnchor(e.target)}
+            onKeyDownCapture={(e) => rememberMonthMoreAnchor(e.target)}
+          >
             {status === 'loading' ? (
               <div className="data-state" role="status" aria-live="polite">
                 <div className="data-state-spinner" aria-hidden />
@@ -479,13 +530,7 @@ export default function App({ view }: AppProps) {
                 options={calendarOptions}
                 callbacks={{
                   onEventClick: ({ event }) => {
-                    // 锚定到真实被点卡片；极少数找不到时退回 activeElement，避免弹层不可见
-                    const anchor =
-                      findEventAnchor(event.id) ?? (document.activeElement as HTMLElement);
-                    setPick({
-                      ev: toPickEvent(event),
-                      anchor,
-                    });
+                    openEventDetails(event);
                   },
                   // P7b: 滑动新建 / 单元格点击 → 预填对话框
                   onEventCreate: handleEngineCreate,
@@ -506,7 +551,8 @@ export default function App({ view }: AppProps) {
                   onPageChange: handlePageChange,
                   // 月视图「+N 更多」点击 → 弹出该日所有事件列表
                   onMoreEventsClick: ({ date, events }) => {
-                    const anchor = document.activeElement as HTMLElement;
+                    const anchor =
+                      monthMoreAnchorRef.current ?? (document.activeElement as HTMLElement);
                     setMorePick({ date: date as unknown as Date, events, anchor });
                   },
                 }}
@@ -531,14 +577,14 @@ export default function App({ view }: AppProps) {
             events={morePick.events}
             anchor={morePick.anchor}
             onClose={() => setMorePick(null)}
-            onEventClick={(eventId) => {
+            onEventClick={(eventId, anchor) => {
               const ev = morePick.events.find((e) => e.id === eventId);
               if (ev) {
-                const anchor = findEventAnchor(eventId) ?? (document.activeElement as HTMLElement);
-                setPick({ ev: toPickEvent(ev as EventObject), anchor });
+                openEventDetails(ev as EventObject, anchor);
               }
               setMorePick(null);
             }}
+            onEventEdit={openEventEditById}
           />
         )}
         {(creating || editing) && (

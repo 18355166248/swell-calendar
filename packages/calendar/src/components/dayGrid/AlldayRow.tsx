@@ -19,6 +19,9 @@ export function AlldayRow({ uiModels, marginLeft = '0' }: AlldayRowProps) {
 
   return (
     <div className={cls('allday-row')} style={{ position: 'relative', height: containerHeight }}>
+      <div className={cls('allday-row-label')} style={{ width: marginLeft }}>
+        全天
+      </div>
       <div
         className={cls('allday-row-events')}
         style={{ position: 'absolute', inset: 0, marginLeft }}

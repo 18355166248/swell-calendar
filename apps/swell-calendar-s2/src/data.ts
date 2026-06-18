@@ -38,6 +38,8 @@ export interface CalEvent {
   /** 十进制小时，如 9.5 = 9:30 */
   start: number;
   end: number;
+  /** 宿主层显式全天语义；为 true 时在引擎中进入顶部 allday 行。 */
+  allDay?: boolean;
   title: string;
   cat: Cat;
   who?: string;

@@ -53,10 +53,24 @@ export function decimalHourToTime(decimalHours: number): string {
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 }
 
+/**
+ * 兼容旧版 mock 数据：
+ * 早期宿主没有保存 `allDay`，月视图创建出的全天事件会以 `00:00-23:59`
+ * 的普通 time 事件落库。这里按整天时间窗兜底识别，保证 day/week 能回到顶部全天行。
+ */
+function inferAllDay(event: Pick<CalEvent, 'allDay' | 'start' | 'end'>) {
+  if (event.allDay === true) {
+    return true;
+  }
+
+  return event.start === 0 && Math.abs(event.end - 23.983333333333334) < 0.001;
+}
+
 /** 将 S2 mock CalEvent 转换为 swell-calendar EventObject */
 export function toCalendarEvents(evts: CalEvent[]): EventObject[] {
   return evts.map((e) => {
     const colors = CAT_COLOR_STYLES[e.cat];
+    const allDay = inferAllDay(e);
     const pickMeta = {
       cat: e.cat,
       who: e.who,
@@ -72,7 +86,8 @@ export function toCalendarEvents(evts: CalEvent[]): EventObject[] {
       // 跨天事件结束落在 endDay；endDay 省略时等同 day（单日事件）
       end: makeDate(e.endDay ?? e.day, e.end),
       resourceId: e.res,
-      category: 'time' as const,
+      allDay,
+      category: allDay ? ('allday' as const) : ('time' as const),
       backgroundColor: colors.fill,
       color: colors.text,
       borderColor: colors.line,
@@ -175,12 +190,13 @@ export function engineEventToDraft(event: EventObject): EventDraft {
   // 跨天拖拽：结束落在不同天 → endDay > day。单日时 endDay === day。
   const endDay = endDate ? dateToDayIndex(formatISODate(endDate)) : day;
   const res = (event.resourceId as string) || raw?.res || resources[0]?.id || '';
+  const allDay = event.allDay ?? inferAllDay(raw ?? { start, end, allDay: false });
 
   if (raw) {
     // 更新路径：以原事件为底，只覆盖时间/资源（排除 id，保持 EventDraft = Omit<CalEvent, 'id'>）
     // endDay 必须显式覆盖，否则旧值会盖掉本次拖拽产生的跨天跨度
     const { id: _, ...rest } = raw;
-    return { ...rest, day, endDay, start, end, res };
+    return { ...rest, day, endDay, start, end, res, allDay };
   }
 
   // 新建路径：从引擎字段构建
@@ -192,6 +208,7 @@ export function engineEventToDraft(event: EventObject): EventDraft {
     start,
     end,
     res,
+    allDay,
   };
 }
 
@@ -203,6 +220,7 @@ export function engineEventToDraft(event: EventObject): EventDraft {
 
 /** 对话框输入 → 事件草稿；编辑时传入原事件以保留 who/desc 等对话框不编辑的字段。 */
 export function inputToDraft(input: NewEventInput, base?: CalEvent): EventDraft {
+  const allDay = input.allDay === true && input.start === '00:00' && input.end === '23:59';
   return {
     ...base,
     res: input.res,
@@ -212,6 +230,7 @@ export function inputToDraft(input: NewEventInput, base?: CalEvent): EventDraft 
     end: timeToDecimalHour(input.end),
     title: input.title,
     cat: input.cat,
+    allDay,
   };
 }
 
@@ -225,6 +244,7 @@ export function calEventToInput(e: CalEvent): NewEventInput {
     start: decimalHourToTime(e.start),
     end: decimalHourToTime(e.end),
     cat: e.cat,
+    allDay: e.allDay,
   };
 }
 
@@ -239,6 +259,7 @@ export function engineEventToCreateInput(event: EventObject): NewEventInput {
     start: decimalHourToTime(draft.start),
     end: decimalHourToTime(draft.end),
     cat: draft.cat,
+    allDay: draft.allDay,
   };
 }
 
