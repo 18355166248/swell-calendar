@@ -9,74 +9,74 @@ import {
 
 <Meta title="Swell Calendar/概览" />
 
-<div className="sb-showcase-docs">
-  <section className="sb-showcase-hero">
-    <div className="sb-showcase-kicker">Brand Showcase · React Calendar System</div>
-    <h1 className="sb-showcase-title">Swell Calendar</h1>
-    <p className="sb-showcase-lead">
+<div className="swell-calendar-sb-showcase-docs">
+  <section className="swell-calendar-sb-showcase-hero">
+    <div className="swell-calendar-sb-showcase-kicker">Brand Showcase · React Calendar System</div>
+    <h1 className="swell-calendar-sb-showcase-title">Swell Calendar</h1>
+    <p className="swell-calendar-sb-showcase-lead">
       一套以宿主受控为核心、面向产品级排程体验的 React 日历组件库。这里不是默认的开发
       workbench，而是一座可以直接用于演示、评审和对外展示的品牌展厅。
     </p>
 
-    <div className="sb-showcase-hero-grid">
+    <div className="swell-calendar-sb-showcase-hero-grid">
       {showcaseSignals.map((signal) => (
-        <div className="sb-showcase-stat" key={signal.label}>
-          <div className="sb-showcase-stat-value">{signal.value}</div>
-          <div className="sb-showcase-stat-label">{signal.label}</div>
-          <div className="sb-showcase-stat-desc">{signal.description}</div>
+        <div className="swell-calendar-sb-showcase-stat" key={signal.label}>
+          <div className="swell-calendar-sb-showcase-stat-value">{signal.value}</div>
+          <div className="swell-calendar-sb-showcase-stat-label">{signal.label}</div>
+          <div className="swell-calendar-sb-showcase-stat-desc">{signal.description}</div>
         </div>
       ))}
     </div>
   </section>
 
-  <section className="sb-showcase-section">
+  <section className="swell-calendar-sb-showcase-section">
     <h2>从五视图快速建立心智模型</h2>
-    <p className="sb-showcase-section-copy">
+    <p className="swell-calendar-sb-showcase-section-copy">
       先建立“这个库能覆盖哪些典型排程场景”的第一印象，再回头深入 Scheduler
       的高级能力与回归场景，会比直接扎进左侧树状导航更高效。
     </p>
-    <div className="sb-showcase-card-grid">
+    <div className="swell-calendar-sb-showcase-card-grid">
       {showcaseViewCards.map((card) => (
-        <article className="sb-showcase-card" key={card.title}>
-          <div className="sb-showcase-card-eyebrow">{card.eyebrow}</div>
-          <h3 className="sb-showcase-card-title">{card.title}</h3>
-          <div className="sb-showcase-card-desc">{card.description}</div>
-          <div className="sb-showcase-card-path">{card.menuPath}</div>
+        <article className="swell-calendar-sb-showcase-card" key={card.title}>
+          <div className="swell-calendar-sb-showcase-card-eyebrow">{card.eyebrow}</div>
+          <h3 className="swell-calendar-sb-showcase-card-title">{card.title}</h3>
+          <div className="swell-calendar-sb-showcase-card-desc">{card.description}</div>
+          <div className="swell-calendar-sb-showcase-card-path">{card.menuPath}</div>
         </article>
       ))}
     </div>
   </section>
 
-  <section className="sb-showcase-section">
+  <section className="swell-calendar-sb-showcase-section">
     <h2>调度器是旗舰能力，不只是一个 Story 分组</h2>
-    <p className="sb-showcase-section-copy">
+    <p className="swell-calendar-sb-showcase-section-copy">
       Scheduler 承载最完整的业务闭环：资源列、受控增删改、shared events、recurrence、
       timezone、外部拖入和跨实例拖拽。建议把它作为品牌展厅里的旗舰能力来浏览，而不是单纯测试入口。
     </p>
-    <div className="sb-showcase-pill-grid">
+    <div className="swell-calendar-sb-showcase-pill-grid">
       {showcaseCapabilityPillars.map((capability) => (
-        <div className="sb-showcase-pill" key={capability}>
+        <div className="swell-calendar-sb-showcase-pill" key={capability}>
           {capability}
         </div>
       ))}
     </div>
   </section>
 
-  <section className="sb-showcase-section">
+  <section className="swell-calendar-sb-showcase-section">
     <h2>推荐浏览路径</h2>
-    <p className="sb-showcase-section-copy">
+    <p className="swell-calendar-sb-showcase-section-copy">
       首页负责建立价值感，视图 stories 负责建立能力感，回归 stories 负责建立工程信任感。
     </p>
-    <div className="sb-showcase-step-grid">
+    <div className="swell-calendar-sb-showcase-step-grid">
       {showcaseJourney.map((step, index) => (
-        <article className="sb-showcase-step" key={step.title}>
-          <div className="sb-showcase-card-eyebrow">Step {index + 1}</div>
-          <h3 className="sb-showcase-step-title">{step.title}</h3>
-          <div className="sb-showcase-step-desc">{step.description}</div>
+        <article className="swell-calendar-sb-showcase-step" key={step.title}>
+          <div className="swell-calendar-sb-showcase-card-eyebrow">Step {index + 1}</div>
+          <h3 className="swell-calendar-sb-showcase-step-title">{step.title}</h3>
+          <div className="swell-calendar-sb-showcase-step-desc">{step.description}</div>
         </article>
       ))}
     </div>
-    <div className="sb-showcase-footer">
+    <div className="swell-calendar-sb-showcase-footer">
       对齐参考：Mobiscroll React Scheduler Desktop Week View。
       真正的能力边界、公开 API 与行为约束仍以仓库内的
       <code> packages/calendar/SPEC.md </code> 为准。

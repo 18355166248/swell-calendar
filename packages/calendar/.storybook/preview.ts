@@ -4,6 +4,7 @@ import '../src/stories/showcase.css';
 import type { Preview } from '@storybook/react-vite';
 import { createElement, type CSSProperties } from 'react';
 
+import { cls } from '../src/helpers/css';
 import { storybookTheme } from '../src/stories/showcase';
 
 function getWorkbenchStyles(title?: string) {
@@ -80,7 +81,11 @@ const preview: Preview = {
   decorators: [
     (Story, context) => {
       if (context.viewMode === 'docs') {
-        return createElement('div', { className: 'sb-showcase-docs-shell' }, createElement(Story));
+        return createElement(
+          'div',
+          { className: cls('sb-showcase-docs-shell') },
+          createElement(Story)
+        );
       }
 
       const { shell, stage } = getWorkbenchStyles(context.title);

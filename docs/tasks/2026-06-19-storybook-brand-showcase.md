@@ -121,6 +121,7 @@
   - 重写 `packages/calendar/src/stories/Overview.mdx`：从说明页升级为品牌首页，加入 Hero、五视图矩阵、Scheduler 旗舰能力区和推荐浏览路径。
   - 重写 `packages/calendar/.storybook/preview.ts` 的展示壳层：引入品牌化顶部信息条、按 story 分类切换舞台语义，并为 docs 模式单独包裹 branded shell。
   - 重写 `packages/calendar/.storybook/manager.ts` 主题：从紫色深色工具风格切到更成熟的暖中性色 + 铜棕强调色体系，统一品牌 logo、背景和交互控件质感。
+  - 后续人工验收发现 docs 首页样式未生效，根因是展示层 CSS 通过 `cls()` 自动附加了 `swell-calendar-` 前缀，但 `Overview.mdx` 与 docs decorator 仍使用未加前缀的 `sb-showcase-*` 类名；现已统一修正，首页卡片、Hero 和 section 样式恢复命中。
 - 与原计划的偏差：
   - 未修改既有 story 的 `meta.title` 真源，只通过排序、首页和装饰器壳层升级导航体验，优先规避 story id 变化对回归脚本的影响。
   - 未补 `docs/ARCHITECTURE.md` / `SPEC.md` / ADR：本次仅影响 Storybook 展示层，不涉及公开 API、运行时架构或长期工程机制变化。
