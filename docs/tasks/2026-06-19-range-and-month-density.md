@@ -120,6 +120,11 @@
   - 新增 `time/view-range.ts`，统一连续日期窗口收集、workweek 跳过周末、前后页起点计算与窗口文案格式化
   - `Scheduler.tsx` 接入 `scheduler.range`
   - `Timeline.tsx` / `timeline-calendar.ts` 接入 `timeline.range`
+  - `apps/swell-calendar-s2` 已显式消费这 3 个能力：
+    - month: `visibleEventCount=3`
+    - scheduler: `range=3`
+    - timeline: `range=5`
+    - 顶栏标题同步按真实可见窗口输出，而不是沿用旧的单日 / 本周文案
   - 新增 Storybook 演示：
     - `Scheduler.Basic.stories.tsx` → `自定义日期窗口`
     - `Timeline.stories.tsx` → `自定义日期窗口`

@@ -13,6 +13,10 @@ import type { CalendarInstance, EventObject } from 'swell-calendar';
 import Calendar, { useCalendarDataSource } from 'swell-calendar';
 
 import {
+  buildCalendarOptions,
+  computeViewTitle,
+} from './appCalendarConfig';
+import {
   calEventToInput,
   calendarCalendars,
   calendarResources,
@@ -62,49 +66,6 @@ const DENSITY_TIMELINE_ROW_HEIGHT: Record<UiPrefs['density'], number> = {
 // dayjs 初始化
 dayjs.extend(weekOfYear);
 dayjs.locale('zh-cn');
-
-const DOW_SHORT = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
-
-/** 根据 view + currentDate 动态生成顶栏标题和副标题 */
-function computeViewTitle(view: ViewId, d: Date): [string, string] {
-  const dj = dayjs(d);
-  const year = dj.year();
-  const week = dj.week();
-  const month = dj.month() + 1;
-  const date = dj.date();
-  const dow = DOW_SHORT[dj.day()];
-  const weekSub = `${year}年 · 第${week}周`;
-
-  switch (view) {
-    case 'day':
-      return [`${dow} · ${month}月${date}日`, weekSub];
-    case 'week': {
-      // dayjs zh-cn locale: startOf('week') = 周一
-      const start = dj.startOf('week');
-      const end = start.add(6, 'day');
-      const sMonth = start.month() + 1;
-      const sDate = start.date();
-      const eDate = end.date();
-      return [`${sMonth}月${sDate}日 – ${eDate}日`, weekSub];
-    }
-    case 'month': {
-      const daysInMonth = dj.daysInMonth();
-      return [`${year}年 ${month}月`, `${daysInMonth}天`];
-    }
-    case 'scheduler':
-      return [`${dow} · ${month}月${date}日`, `${calendarResources.length}项资源`];
-    case 'timeline': {
-      const start = dj.startOf('week');
-      const end = start.add(6, 'day');
-      const sMonth = start.month() + 1;
-      const sDate = start.date();
-      const eDate = end.date();
-      return ['本周日程', `${sMonth}月${sDate}日 – ${eDate}日 · 议程视图`];
-    }
-    default:
-      return [`${month}月${date}日`, weekSub];
-  }
-}
 
 // 主题值全部指向 CSS 变量。
 // 这样 root 上的 data-theme / data-accent 改变后，日历引擎无需维护多份硬编码 theme object。
@@ -419,43 +380,40 @@ export default function App({ view }: AppProps) {
 
   const closePop = () => setPick(null);
 
-  const [title, sub] = useMemo(() => computeViewTitle(view, currentDate), [view, currentDate]);
+  const [title, sub] = useMemo(
+    () =>
+      computeViewTitle(view, currentDate, {
+        resourceCount: calendarResources.length,
+        showWeekend: showWknd,
+      }),
+    [view, currentDate, showWknd]
+  );
 
   // 引擎 options 稳定化：引擎有 effect 监听 options.defaultView/initialDate 的引用变化
   // （packages/calendar Calendar.tsx:60-68），内联对象每次 render 新引用会让它与 onPageChange 成环。
   // useMemo 让引用仅在 view / currentDate / 周末开关 / 密度变化时改变，其余 render 复用旧引用。
-  const calendarOptions = useMemo(
-    () => ({
-      defaultView: view,
-      // 动态兜底：即便发生重挂载也落在当前导航日期
-      initialDate: currentDate,
-      week: {
-        startDayOfWeek: 1,
-        hourStart: 8,
-        hourEnd: 20,
-        workweek: !showWknd,
-      },
-      month: {
-        startDayOfWeek: 1,
-        workweek: !showWknd,
-        narrowWeekend: monthNarrowWeekend,
-        dragToMove: true,
-        dragToResize: true,
-        dragToCreate: true,
-      },
+  const calendarOptions = useMemo(() => {
+    const options = buildCalendarOptions({
+      view,
+      currentDate,
+      showWeekend: showWknd,
+      monthNarrowWeekend,
+      timelineRowHeight,
+      resourceCount: calendarResources.length,
+    });
+
+    return {
+      ...options,
       scheduler: {
+        ...options.scheduler,
         resources: calendarResources,
-        hourStart: 8,
-        hourEnd: 20,
-        columnWidth: 120,
       },
       timeline: {
+        ...options.timeline,
         resources: calendarResources,
-        rowHeight: timelineRowHeight,
       },
-    }),
-    [view, currentDate, showWknd, monthNarrowWeekend, timelineRowHeight]
-  );
+    };
+  }, [view, currentDate, showWknd, monthNarrowWeekend, timelineRowHeight]);
 
   return (
     <Provider colorScheme={prefs.theme}>
