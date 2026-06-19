@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { classifyStorybookEntry, storybookStorySortOrder, storybookTheme } from './showcase';
+import {
+  classifyStorybookEntry,
+  getStorybookSidebarMeta,
+  storybookStorySortOrder,
+  storybookTheme,
+} from './showcase';
 
 describe('storybook showcase config', () => {
   it('classifies overview as branded docs entry', () => {
@@ -40,5 +45,21 @@ describe('storybook showcase config', () => {
     expect(storybookTheme.colorPrimary).toBe('#c96f3b');
     expect(storybookTheme.appBg).toBe('#f3ede2');
     expect(storybookTheme.fontDisplay).toContain('Baskerville');
+  });
+
+  it('provides branded sidebar metadata for flagship and qa sections', () => {
+    expect(getStorybookSidebarMeta({ name: '调度器', type: 'group', depth: 1 })).toEqual({
+      badge: 'FLAG',
+      caption: 'Resource scheduling',
+      tone: 'brand',
+      emphasized: true,
+    });
+
+    expect(getStorybookSidebarMeta({ name: '回归测试', type: 'group', depth: 2 })).toEqual({
+      badge: 'QA',
+      caption: 'Internal verification',
+      tone: 'qa',
+      emphasized: true,
+    });
   });
 });

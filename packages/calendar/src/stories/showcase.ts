@@ -9,6 +9,19 @@ export interface StorybookShowcaseEntry {
   stageVariant: StorybookStageVariant;
 }
 
+export interface StorybookSidebarItemLike {
+  name: string;
+  type?: string;
+  depth?: number;
+}
+
+export interface StorybookSidebarMeta {
+  badge?: string;
+  caption?: string;
+  tone: 'neutral' | 'brand' | 'feature' | 'qa';
+  emphasized: boolean;
+}
+
 export const storybookTheme = {
   colorPrimary: '#c96f3b',
   colorSecondary: '#204c48',
@@ -99,6 +112,88 @@ export const showcaseJourney = [
   },
 ] as const;
 
+const storybookSidebarMetaMap: Record<string, Omit<StorybookSidebarMeta, 'emphasized'>> = {
+  'Swell Calendar': {
+    badge: 'KIT',
+    caption: 'Brand showcase hub',
+    tone: 'brand',
+  },
+  概览: {
+    badge: 'HOME',
+    caption: '品牌入口与浏览路径',
+    tone: 'brand',
+  },
+  日历: {
+    badge: 'LIB',
+    caption: 'Views and scheduler',
+    tone: 'feature',
+  },
+  视图: {
+    badge: 'CORE',
+    caption: 'Day / Week / Month / Timeline',
+    tone: 'feature',
+  },
+  调度器: {
+    badge: 'FLAG',
+    caption: 'Resource scheduling',
+    tone: 'brand',
+  },
+  应用示例: {
+    badge: 'APP',
+    caption: 'Workbench demo',
+    tone: 'feature',
+  },
+  基础: {
+    badge: 'START',
+    caption: 'Entry scenarios',
+    tone: 'neutral',
+  },
+  交互: {
+    badge: 'FLOW',
+    caption: 'Move / resize / create',
+    tone: 'feature',
+  },
+  高级能力: {
+    badge: 'PRO',
+    caption: 'Timezone / recurrence / DnD',
+    tone: 'brand',
+  },
+  回归测试: {
+    badge: 'QA',
+    caption: 'Internal verification',
+    tone: 'qa',
+  },
+  日视图: {
+    badge: 'DAY',
+    caption: 'Single-day grid',
+    tone: 'neutral',
+  },
+  周视图: {
+    badge: 'WEEK',
+    caption: 'Weekly time grid',
+    tone: 'neutral',
+  },
+  月视图: {
+    badge: 'MONTH',
+    caption: 'Cross-week month board',
+    tone: 'neutral',
+  },
+  时间线: {
+    badge: 'LINE',
+    caption: 'Timeline resource rows',
+    tone: 'neutral',
+  },
+};
+
+const emphasizedSidebarItems = new Set([
+  'Swell Calendar',
+  '概览',
+  '视图',
+  '调度器',
+  '高级能力',
+  '回归测试',
+]);
+
 export function classifyStorybookEntry(title?: string, storyName?: string): StorybookShowcaseEntry {
   const parts = title?.split('/') ?? [];
   const rootLabel = parts[0] ?? 'Swell Calendar';
@@ -135,5 +230,17 @@ export function classifyStorybookEntry(title?: string, storyName?: string): Stor
     audienceLabel: isRegression ? 'Internal QA' : 'Brand Showcase',
     badgeLabel,
     stageVariant,
+  };
+}
+
+export function getStorybookSidebarMeta(item: StorybookSidebarItemLike): StorybookSidebarMeta {
+  const fallbackTone: StorybookSidebarMeta['tone'] = item.type === 'root' ? 'brand' : 'neutral';
+  const mapped = storybookSidebarMetaMap[item.name];
+
+  return {
+    badge: mapped?.badge,
+    caption: mapped?.caption,
+    tone: mapped?.tone ?? fallbackTone,
+    emphasized: emphasizedSidebarItems.has(item.name),
   };
 }

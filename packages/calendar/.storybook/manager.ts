@@ -1,7 +1,10 @@
+import './manager.css';
+
+import { createElement } from 'react';
 import { addons } from 'storybook/manager-api';
 import { create } from 'storybook/theming';
 
-import { storybookTheme } from '../src/stories/showcase';
+import { getStorybookSidebarMeta, storybookTheme } from '../src/stories/showcase';
 
 const logoSvg = `<svg width="170" height="28" viewBox="0 0 170 28" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
@@ -22,6 +25,42 @@ const logoSvg = `<svg width="170" height="28" viewBox="0 0 170 28" fill="none" x
 </svg>`;
 
 const brandImage = `data:image/svg+xml;utf8,${encodeURIComponent(logoSvg)}`;
+
+function renderSidebarLabel(item: { depth?: number; name: string; type?: string }) {
+  const meta = getStorybookSidebarMeta(item);
+  const depth = item.depth ?? 0;
+  const isRoot = item.type === 'root';
+  const isStory = item.type === 'story';
+  const isDeepGroup = item.type === 'group' && depth >= 2;
+  const showBadge = Boolean(meta.badge) && !isStory && (isRoot || meta.emphasized);
+  const showCaption = Boolean(meta.caption) && !isStory && !isDeepGroup;
+
+  return createElement(
+    'span',
+    {
+      className: 'sb-manager-sidebar-label',
+      'data-tone': meta.tone,
+      'data-depth': String(depth),
+      'data-emphasis': meta.emphasized ? 'true' : 'false',
+      'data-type': item.type ?? 'unknown',
+      'data-compact': isStory || isDeepGroup ? 'true' : 'false',
+    },
+    createElement(
+      'span',
+      { className: 'sb-manager-sidebar-label__row' },
+      showBadge
+        ? createElement('span', { className: 'sb-manager-sidebar-label__badge' }, meta.badge)
+        : createElement('span', {
+            className: 'sb-manager-sidebar-label__marker',
+            'aria-hidden': 'true',
+          }),
+      createElement('span', { className: 'sb-manager-sidebar-label__title' }, item.name)
+    ),
+    showCaption
+      ? createElement('span', { className: 'sb-manager-sidebar-label__caption' }, meta.caption)
+      : null
+  );
+}
 
 addons.setConfig({
   showPanel: false,
@@ -55,6 +94,7 @@ addons.setConfig({
   }),
   sidebar: {
     showRoots: true,
+    renderLabel: renderSidebarLabel,
   },
   toolbar: {
     zoom: { hidden: true },
