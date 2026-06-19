@@ -15,6 +15,9 @@ import Calendar, { useCalendarDataSource } from 'swell-calendar';
 import {
   buildCalendarOptions,
   computeViewTitle,
+  DEFAULT_CALENDAR_TUNING,
+  sanitizeCalendarTuning,
+  type CalendarHostTuning,
 } from './appCalendarConfig';
 import {
   calEventToInput,
@@ -44,6 +47,7 @@ import { DayWeekStrip, Sidebar, Topbar, type ViewId } from './shell';
 // useCalendarDataSource 与 CalendarDataSource 契约已下沉到 swell-calendar 包（宿主侧可选装配件）。
 // App 仅持有 UI 偏好的持久化——UI 状态不属于业务数据，不走数据源。
 const UI_PREFS_KEY = 'swell-calendar-s2:ui-prefs';
+const CALENDAR_TUNING_KEY = 'swell-calendar-s2:calendar-tuning';
 
 const UI_DEFAULTS = {
   prefs: {
@@ -171,6 +175,12 @@ function loadPrefs(): UiPrefs {
   return { ...UI_DEFAULTS.prefs, ...raw };
 }
 
+function loadCalendarTuning(): CalendarHostTuning {
+  return sanitizeCalendarTuning(
+    loadJSON<Partial<CalendarHostTuning>>(CALENDAR_TUNING_KEY, DEFAULT_CALENDAR_TUNING)
+  );
+}
+
 interface AppProps {
   /** 当前视图，由路由参数派生（唯一真源是 URL）。 */
   view: ViewId;
@@ -192,6 +202,7 @@ export default function App({ view }: AppProps) {
   const [monthNarrowWeekend, setMonthNarrowWeekend] = useState(false);
   const [sidebar, setSidebar] = useState(UI_DEFAULTS.sidebar);
   const [prefs, setPrefs] = useState<UiPrefs>(loadPrefs);
+  const [calendarTuning, setCalendarTuning] = useState<CalendarHostTuning>(loadCalendarTuning);
   const {
     events: allEvents,
     status,
@@ -236,6 +247,10 @@ export default function App({ view }: AppProps) {
   useEffect(() => {
     localStorage.setItem(UI_PREFS_KEY, JSON.stringify(prefs));
   }, [prefs]);
+
+  useEffect(() => {
+    localStorage.setItem(CALENDAR_TUNING_KEY, JSON.stringify(calendarTuning));
+  }, [calendarTuning]);
 
   // 根节点 data-* 是整套设计 CSS 的总开关；同时 calendar theme 也读取同名 CSS 变量。
   useEffect(() => {
@@ -385,8 +400,9 @@ export default function App({ view }: AppProps) {
       computeViewTitle(view, currentDate, {
         resourceCount: calendarResources.length,
         showWeekend: showWknd,
+        tuning: calendarTuning,
       }),
-    [view, currentDate, showWknd]
+    [view, currentDate, showWknd, calendarTuning]
   );
 
   // 引擎 options 稳定化：引擎有 effect 监听 options.defaultView/initialDate 的引用变化
@@ -400,6 +416,7 @@ export default function App({ view }: AppProps) {
       monthNarrowWeekend,
       timelineRowHeight,
       resourceCount: calendarResources.length,
+      tuning: calendarTuning,
     });
 
     return {
@@ -413,7 +430,7 @@ export default function App({ view }: AppProps) {
         resources: calendarResources,
       },
     };
-  }, [view, currentDate, showWknd, monthNarrowWeekend, timelineRowHeight]);
+  }, [view, currentDate, showWknd, monthNarrowWeekend, timelineRowHeight, calendarTuning]);
 
   return (
     <Provider colorScheme={prefs.theme}>
@@ -562,7 +579,9 @@ export default function App({ view }: AppProps) {
           <SettingsPanel
             anchor={settingsAnchor}
             value={prefs}
+            tuning={calendarTuning}
             onChange={setPrefs}
+            onTuningChange={setCalendarTuning}
             onClose={() => setSettingsAnchor(null)}
           />
         )}

@@ -21,7 +21,7 @@ function createOverflowEvents(): EventObject[] {
   }));
 }
 
-describe('Month view visibleEventCount', () => {
+describe('Month view maxEventStack compatibility', () => {
   let container: HTMLDivElement;
   let root: Root;
 
@@ -40,7 +40,7 @@ describe('Month view visibleEventCount', () => {
     delete reactActEnv.IS_REACT_ACT_ENVIRONMENT;
   });
 
-  it('reads month.visibleEventCount from options instead of using a hard-coded value', () => {
+  it('falls back to month.visibleEventCount when maxEventStack is not configured', () => {
     act(() => {
       root.render(
         <Calendar
@@ -57,6 +57,26 @@ describe('Month view visibleEventCount', () => {
     });
 
     expect(container.textContent).toContain('+5 更多');
+  });
+
+  it('prefers month.maxEventStack over visibleEventCount when both are provided', () => {
+    act(() => {
+      root.render(
+        <Calendar
+          events={createOverflowEvents()}
+          options={{
+            defaultView: 'month',
+            initialDate: '2026-06-01',
+            month: {
+              maxEventStack: 1,
+              visibleEventCount: 2,
+            },
+          }}
+        />
+      );
+    });
+
+    expect(container.textContent).toContain('+6 更多');
   });
 
   it('keeps the month default visibleEventCount at 4 when host does not configure it', () => {

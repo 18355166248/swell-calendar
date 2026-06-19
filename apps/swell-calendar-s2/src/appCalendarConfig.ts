@@ -6,14 +6,52 @@ import type { ViewId } from './shell';
 dayjs.extend(weekOfYear);
 dayjs.locale('zh-cn');
 
-export const APP_MONTH_VISIBLE_EVENT_COUNT = 3;
-export const APP_SCHEDULER_RANGE = 3;
-export const APP_TIMELINE_RANGE = 5;
+export interface CalendarHostTuning {
+  monthMaxEventStack: number;
+  schedulerRange: number;
+  timelineRange: number;
+}
+
+export const DEFAULT_CALENDAR_TUNING: CalendarHostTuning = {
+  monthMaxEventStack: 3,
+  schedulerRange: 3,
+  timelineRange: 5,
+};
 
 const DOW_SHORT = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+const MIN_STACK = 1;
+const MAX_STACK = 6;
+const MIN_RANGE = 1;
+const MAX_RANGE = 14;
 
 function isWeekend(day: number) {
   return day === 0 || day === 6;
+}
+
+function clampInt(value: number, min: number, max: number) {
+  return Math.min(Math.max(Math.round(value), min), max);
+}
+
+export function sanitizeCalendarTuning(
+  tuning: Partial<CalendarHostTuning> | undefined
+): CalendarHostTuning {
+  return {
+    monthMaxEventStack: clampInt(
+      tuning?.monthMaxEventStack ?? DEFAULT_CALENDAR_TUNING.monthMaxEventStack,
+      MIN_STACK,
+      MAX_STACK
+    ),
+    schedulerRange: clampInt(
+      tuning?.schedulerRange ?? DEFAULT_CALENDAR_TUNING.schedulerRange,
+      MIN_RANGE,
+      MAX_RANGE
+    ),
+    timelineRange: clampInt(
+      tuning?.timelineRange ?? DEFAULT_CALENDAR_TUNING.timelineRange,
+      MIN_RANGE,
+      MAX_RANGE
+    ),
+  };
 }
 
 function collectVisibleDates(startDate: Date, range: number, skipWeekends = false): Date[] {
@@ -48,7 +86,7 @@ function formatRangeTitle(start: Date, end: Date) {
 export function computeViewTitle(
   view: ViewId,
   currentDate: Date,
-  context: { resourceCount: number; showWeekend: boolean }
+  context: { resourceCount: number; showWeekend: boolean; tuning: CalendarHostTuning }
 ): [string, string] {
   const dj = dayjs(currentDate);
   const year = dj.year();
@@ -57,6 +95,7 @@ export function computeViewTitle(
   const date = dj.date();
   const dow = DOW_SHORT[dj.day()];
   const weekSub = `${year}年 · 第${week}周`;
+  const tuning = sanitizeCalendarTuning(context.tuning);
 
   switch (view) {
     case 'day':
@@ -68,20 +107,23 @@ export function computeViewTitle(
     }
     case 'month': {
       const daysInMonth = dj.daysInMonth();
-      return [`${year}年 ${month}月`, `${daysInMonth}天`];
+      return [
+        `${year}年 ${month}月`,
+        `${daysInMonth}天 · 每日最多 ${tuning.monthMaxEventStack} 条`,
+      ];
     }
     case 'scheduler': {
-      const dates = collectVisibleDates(currentDate, APP_SCHEDULER_RANGE, !context.showWeekend);
+      const dates = collectVisibleDates(currentDate, tuning.schedulerRange, !context.showWeekend);
       return [
         formatRangeTitle(dates[0], dates[dates.length - 1]),
-        `${context.resourceCount}项资源 · ${APP_SCHEDULER_RANGE}天窗口`,
+        `${context.resourceCount}项资源 · ${tuning.schedulerRange}天窗口`,
       ];
     }
     case 'timeline': {
-      const dates = collectVisibleDates(currentDate, APP_TIMELINE_RANGE);
+      const dates = collectVisibleDates(currentDate, tuning.timelineRange);
       return [
         formatRangeTitle(dates[0], dates[dates.length - 1]),
-        `${context.resourceCount}项资源 · ${APP_TIMELINE_RANGE}天时间线`,
+        `${context.resourceCount}项资源 · ${tuning.timelineRange}天时间线`,
       ];
     }
     default:
@@ -96,8 +138,10 @@ export function buildCalendarOptions(input: {
   monthNarrowWeekend: boolean;
   timelineRowHeight: number;
   resourceCount: number;
+  tuning: CalendarHostTuning;
 }) {
   void input.resourceCount;
+  const tuning = sanitizeCalendarTuning(input.tuning);
 
   return {
     defaultView: input.view,
@@ -112,7 +156,8 @@ export function buildCalendarOptions(input: {
       startDayOfWeek: 1,
       workweek: !input.showWeekend,
       narrowWeekend: input.monthNarrowWeekend,
-      visibleEventCount: APP_MONTH_VISIBLE_EVENT_COUNT,
+      maxEventStack: tuning.monthMaxEventStack,
+      visibleEventCount: tuning.monthMaxEventStack,
       dragToMove: true,
       dragToResize: true,
       dragToCreate: true,
@@ -122,12 +167,12 @@ export function buildCalendarOptions(input: {
       hourStart: 8,
       hourEnd: 20,
       columnWidth: 120,
-      range: APP_SCHEDULER_RANGE,
+      range: tuning.schedulerRange,
     },
     timeline: {
       resources: [],
       rowHeight: input.timelineRowHeight,
-      range: APP_TIMELINE_RANGE,
+      range: tuning.timelineRange,
     },
   };
 }

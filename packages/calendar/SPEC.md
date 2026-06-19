@@ -36,7 +36,7 @@ swell-calendar 是一个**可嵌入的 React 日历组件库**，面向需要在
 | ------------------- | ----------- | --------------------------------------------------------------------------- |
 | 日视图（Day）       | ✅ 完成     | 单日时间网格，24 小时展示                                                   |
 | 周视图（Week）      | ✅ 完成     | 7 天时间网格，支持 workweek 模式                                            |
-| 月视图（Month）     | ✅ 事件 + 拖动 | 月历格子 + 事件卡片，支持 `startDayOfWeek`、`workweek` 与 `visibleEventCount`；事件支持拖动换天（move，日粒度，保留时长）、左右 resize（改跨天天数）与空白格子横向框选创建全天事件（create） |
+| 月视图（Month）     | ✅ 事件 + 拖动 | 月历格子 + 事件卡片，支持 `startDayOfWeek`、`workweek` 与 `maxEventStack`（兼容 `visibleEventCount`）；事件支持拖动换天（move，日粒度，保留时长）、左右 resize（改跨天天数）与空白格子横向框选创建全天事件（create） |
 | 时间线（Timeline）  | ✅ 日粒度排程 | 对标 Mobiscroll Calendar timeline：按天列（当月）+ 资源行，事件渲染为跨天横条、同行重叠按车道堆叠、行高自适应，今天列高亮、周末浅染；资源池与 scheduler 共享；支持拖拽移动（含跨资源行）/ 左右 resize / 空白拖拽创建 / 日期 tooltip |
 | 调度器（Scheduler） | 🟡 核心闭环可用 | 垂直时间轴 + 资源列的 time-grid 视图，桌面端核心业务闭环已形成，当前进入 Phase 3 高级体验收口阶段 |
 
@@ -141,6 +141,8 @@ interface CalendarOptions {
     startDayOfWeek?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
     isAlways6Rows?: boolean;
     /** 每个日期格默认最多直接显示多少条事件；超出走 `+N 更多`。默认 4。 */
+    maxEventStack?: number;
+    /** 兼容别名；运行时等价于 `maxEventStack`，但优先级低于 `maxEventStack`。 */
     visibleEventCount?: number;
     /** 允许拖动事件改期（换天）。默认 true；isReadOnly 时强制 false */
     dragToMove?: boolean;
@@ -589,7 +591,8 @@ function useCalendarDataSource<TEvent, TDraft>(
 - `scheduler` 当前为近期核心
 - `scheduler.range`：若配置为正整数，则 scheduler 显示从 `renderDate` 开始的连续可见日期；`workweek=true` 时跳过周末列；`navigate()` 与 toolbar 文案按实际可见窗口同步步进
 - `timeline.range`：若配置为正整数，则 timeline 显示从 `renderDate` 开始的连续天窗口；若未配置，timeline 保持自然月时间轴，`navigate()` 按整月步进、toolbar 文案显示 `YYYY年M月`
-- `month.visibleEventCount`：月视图每个日期格默认最多直接显示 4 条事件；超出部分继续走 `+N 更多` 与 `onMoreEventsClick`
+- `month.maxEventStack`：月视图每个日期格默认最多直接显示 4 条事件；超出部分继续走 `+N 更多` 与 `onMoreEventsClick`
+- `month.visibleEventCount`：兼容别名；当 `maxEventStack` 未配置时回退读取，行为与 `maxEventStack` 相同
 - 宿主受控是默认数据所有权模型，最终事件数据始终以 `props.events` 为准
 - `scheduler` 当前已向宿主暴露资源化的区间选择创建意图和拖拽移动更新意图
 - `scheduler` 当前已支持 time-grid 内单列事件 resize 后的更新意图回调

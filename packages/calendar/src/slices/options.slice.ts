@@ -50,6 +50,7 @@ function initializeMonthOptions(
   monthOptions: Options['month'] = {},
   isReadOnly = false
 ): Required<MonthOptions> {
+  const normalizedMaxEventStack = monthOptions.maxEventStack ?? monthOptions.visibleEventCount ?? 4;
   const month: Required<MonthOptions> = {
     startDayOfWeek: Day.SUN,
     dayNames: [],
@@ -57,12 +58,16 @@ function initializeMonthOptions(
     workweek: false,
     isAlways6Weeks: true,
     visibleWeeksCount: 0,
-    visibleEventCount: 4,
+    maxEventStack: normalizedMaxEventStack,
+    visibleEventCount: normalizedMaxEventStack,
     dragToMove: true,
     dragToResize: true,
     dragToCreate: true,
     ...monthOptions,
   };
+  month.maxEventStack =
+    monthOptions.maxEventStack ?? month.visibleEventCount ?? normalizedMaxEventStack;
+  month.visibleEventCount = month.maxEventStack;
   if (!month.dayNames || month.dayNames.length === 0) {
     month.dayNames = DEFAULT_DAY_NAMES.slice() as Required<MonthOptions>['dayNames'];
   }

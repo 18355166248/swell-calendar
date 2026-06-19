@@ -1073,6 +1073,35 @@ button {
   margin-top: 16px;
 }
 
+.settings-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.settings-control {
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--bg-layer);
+}
+
+.settings-control__meta {
+  margin-bottom: 10px;
+}
+
+.settings-control__title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-1);
+}
+
+.settings-control__sub {
+  margin-top: 3px;
+  font-size: 12px;
+  color: var(--text-3);
+}
+
 .settings-label {
   margin-bottom: 8px;
   font-size: 12px;

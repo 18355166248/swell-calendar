@@ -195,7 +195,7 @@ PLAN4 相对 PLAN3 的主要修订：
 - `showAllDay`
 - `cellWidth`
 - `resourceGrouping`
-- `connections` / `eventList` / `maxEventStack` / 打印 / 虚拟化 / 按滚动加载
+- `connections` / `eventList` / 打印 / 虚拟化 / 按滚动加载
 
 ### 5.2 `EventObject`
 
@@ -358,6 +358,7 @@ interface CalendarEventChangeFailedInfo {
 ### 7.1 `time/`
 
 - scheduler range 归一化
+- month `maxEventStack` 命名收口（兼容 `visibleEventCount`）
 - hour division 计算
 - recurrence 视口窗口展开（Phase 3）
 - timezone 双层转换（Phase 3）
@@ -468,6 +469,7 @@ https://demo.mobiscroll.com/react/scheduler/desktop-week-view
 
 - 宿主可用 `invalid` / `colors` / `allDay` 替换旧字段
 - 宿主可配置 `showAllDay` / `hourDivision` / `cellWidth` / `range`
+- `apps/swell-calendar-s2` 以设置面板暴露 month 堆叠数、`scheduler.range`、`timeline.range`
 - 旧字段 `blockedTimes` / `isAllday` 仍可用
 
 #### API 范围

@@ -24,6 +24,7 @@ function createMonthOptions(overrides: Partial<MonthOptions> = {}): Required<Mon
     workweek: false,
     isAlways6Weeks: true,
     visibleWeeksCount: 0,
+    maxEventStack: 4,
     visibleEventCount: 4,
     dragToMove: true,
     dragToResize: true,

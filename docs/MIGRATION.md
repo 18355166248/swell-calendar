@@ -125,6 +125,17 @@ const schedulerOptions = {
 
 以下为近期新增的纯增量字段，不影响既有写法，宿主可按需启用：
 
+- `month.maxEventStack?: number`
+  - 用于统一 month 每格直接显示的事件堆叠上限语义
+  - 兼容期内运行时优先读取 `maxEventStack`，未提供时回退到旧字段 `visibleEventCount`
+  - 旧字段 `visibleEventCount` 仍可继续工作，但新的宿主示例与文档将统一使用 `maxEventStack`
+
+  ```ts
+  const monthOptions = {
+    maxEventStack: 3,
+  };
+  ```
+
 - `scheduler.timezones?: { timezone: string; displayLabel?: string }[]`
   - 在主时间轴左侧叠加副时区刻度轴，按配置顺序向左排列
   - 刻度由主显示时区（`displayTimezone`，缺省为浏览器本地时区）换算到各副时区

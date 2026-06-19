@@ -92,7 +92,9 @@ export interface MonthOptions {
   isAlways6Weeks?: boolean;
   // 可见周数
   visibleWeeksCount?: number;
-  // 每天可见的事件数量
+  // 每天可见的事件数量上限
+  maxEventStack?: number;
+  /** @deprecated 兼容别名；优先级低于 `maxEventStack`。 */
   visibleEventCount?: number;
   /** 允许拖动事件改期（换天）。默认 true；isReadOnly 时强制 false */
   dragToMove?: boolean;

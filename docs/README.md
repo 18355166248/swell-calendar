@@ -41,6 +41,7 @@
 | [tasks/2026-06-19-storybook-brand-showcase.md](./tasks/2026-06-19-storybook-brand-showcase.md) | 将 Storybook 首页、preview 与 manager 升级为品牌展厅化展示层 |
 | [tasks/2026-06-19-storybook-sidebar-polish.md](./tasks/2026-06-19-storybook-sidebar-polish.md) | 优化 Storybook 左侧导航语义、badge 与视觉层级，补齐品牌化入口体验 |
 | [tasks/2026-06-19-range-and-month-density.md](./tasks/2026-06-19-range-and-month-density.md) | 收口 month 事件密度配置、scheduler range 与 timeline range / 导航语义 |
+| [tasks/2026-06-19-range-host-controls-and-max-event-stack.md](./tasks/2026-06-19-range-host-controls-and-max-event-stack.md) | 将 range 暴露为宿主可调控件，并把 month 堆叠能力统一到 `maxEventStack` 语义 |
 | [adrs/ADR-2026-05-scheduler-parity-scope.md](./adrs/ADR-2026-05-scheduler-parity-scope.md) | scheduler 范围与设计原则 ADR（一级原则记录，保留） |
 
 > 已完成的 scheduler / month / S2 切片任务单（含路由、workweek、视图切换修复、S2 P7–P8、月视图交互、全天语义补齐、demo 收尾等）均已迁入 [archive/tasks/](./archive/tasks/)，结论沉淀在 `SPEC` / `agent-plan/plan.md` 等一级真源。

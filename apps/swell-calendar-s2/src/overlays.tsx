@@ -3,6 +3,7 @@ import { useLayoutEffect, useRef, useState } from 'react';
 
 import type { EventObject } from 'swell-calendar';
 
+import type { CalendarHostTuning } from './appCalendarConfig';
 import { CAT_COLORS, type Cat, type PickEvent, resources } from './data';
 import { Ic } from './icons';
 
@@ -60,6 +61,9 @@ export interface UiPrefs {
   accent: AccentPreset;
   density: DensityPreset;
 }
+
+const MONTH_STACK_OPTIONS = [2, 3, 4, 5];
+const RANGE_OPTIONS = [3, 5, 7, 10];
 
 export function Popover({
   ev,
@@ -511,12 +515,16 @@ export function CreateDialog({
 export function SettingsPanel({
   anchor,
   value,
+  tuning,
   onChange,
+  onTuningChange,
   onClose,
 }: {
   anchor: HTMLElement | null;
   value: UiPrefs;
+  tuning: CalendarHostTuning;
   onChange: (next: UiPrefs) => void;
+  onTuningChange: (next: CalendarHostTuning) => void;
   onClose: () => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -612,6 +620,69 @@ export function SettingsPanel({
                 {option.label}
               </button>
             ))}
+          </div>
+        </div>
+
+        <div className="settings-group">
+          <div className="settings-label">日历布局</div>
+          <div className="settings-stack">
+            <div className="settings-control">
+              <div className="settings-control__meta">
+                <div className="settings-control__title">月视图堆叠</div>
+                <div className="settings-control__sub">每个日期格默认直接展示的事件条数</div>
+              </div>
+              <div className="settings-row">
+                {MONTH_STACK_OPTIONS.map((option) => (
+                  <button
+                    key={option}
+                    className={
+                      'settings-pill' + (tuning.monthMaxEventStack === option ? ' active' : '')
+                    }
+                    onClick={() => onTuningChange({ ...tuning, monthMaxEventStack: option })}
+                  >
+                    {option} 条
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="settings-control">
+              <div className="settings-control__meta">
+                <div className="settings-control__title">资源调度窗口</div>
+                <div className="settings-control__sub">控制 scheduler 连续显示多少天</div>
+              </div>
+              <div className="settings-row">
+                {RANGE_OPTIONS.map((option) => (
+                  <button
+                    key={option}
+                    className={
+                      'settings-pill' + (tuning.schedulerRange === option ? ' active' : '')
+                    }
+                    onClick={() => onTuningChange({ ...tuning, schedulerRange: option })}
+                  >
+                    {option} 天
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="settings-control">
+              <div className="settings-control__meta">
+                <div className="settings-control__title">时间线窗口</div>
+                <div className="settings-control__sub">控制 timeline 连续显示多少天</div>
+              </div>
+              <div className="settings-row">
+                {RANGE_OPTIONS.map((option) => (
+                  <button
+                    key={option}
+                    className={'settings-pill' + (tuning.timelineRange === option ? ' active' : '')}
+                    onClick={() => onTuningChange({ ...tuning, timelineRange: option })}
+                  >
+                    {option} 天
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </div>

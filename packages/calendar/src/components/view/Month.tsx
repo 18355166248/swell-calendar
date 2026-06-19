@@ -31,7 +31,7 @@ export function Month() {
   const dayNames = getMonthDayNames(options);
   const monthOptions = options.month as Required<MonthOptions>;
   const { narrowWeekend, startDayOfWeek, workweek } = monthOptions;
-  const visibleEventCount = monthOptions.visibleEventCount;
+  const maxEventStack = monthOptions.maxEventStack;
 
   /**
    * 计算月视图的周布局
@@ -44,8 +44,8 @@ export function Month() {
    * 使用 getMonthEventRows 处理碰撞检测和溢出计算
    */
   const eventRows = useMemo(
-    () => getMonthEventRows(calendar, weeks, visibleEventCount),
-    [calendar, visibleEventCount, weeks]
+    () => getMonthEventRows(calendar, weeks, maxEventStack),
+    [calendar, maxEventStack, weeks]
   );
 
   /**
@@ -65,7 +65,7 @@ export function Month() {
           weeks={weeks}
           eventRows={eventRows}
           renderDate={renderDate}
-          visibleEventCount={visibleEventCount}
+          visibleEventCount={maxEventStack}
           totalCols={dayNames.length}
           colWidths={rowStyleInfo.map((style) => style.width)}
         />
