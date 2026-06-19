@@ -155,6 +155,40 @@ export function getFlattenedVisibleResources(
 }
 
 /**
+ * 计算显隐切换后的完整可见资源 id 集合
+ *
+ * 用于资源列头显隐控件的受控回填：
+ * - 先确定「当前可见基线」：若宿主已显式提供 `visibleResourceIds`，直接采用；
+ *   否则由「全量资源（扁平）减去 `hidden`」派生，与 `getFlattenedVisibleResources`
+ *   的 fallback 优先级保持一致。
+ * - 再对 `toggledId` 取反：当前可见则移除，当前隐藏则加入。
+ * - 输出始终是显式 id 数组，宿主回写到 `visibleResourceIds` 主入口即生效。
+ *
+ * 顺序按全量扁平资源的自然顺序归一，避免回填后列序抖动。
+ */
+export function computeNextVisibleResourceIds(
+  resources: ResourceInfo[],
+  visibleResourceIds: string[] | undefined,
+  toggledId: string
+): string[] {
+  const flatMap = flattenResourceTree(normalizeResources(resources));
+  const allIds = Array.from(flatMap.keys());
+
+  const baseline =
+    visibleResourceIds && visibleResourceIds.length > 0
+      ? new Set(visibleResourceIds)
+      : new Set(allIds.filter((id) => !flatMap.get(id)?.hidden));
+
+  if (baseline.has(toggledId)) {
+    baseline.delete(toggledId);
+  } else {
+    baseline.add(toggledId);
+  }
+
+  return allIds.filter((id) => baseline.has(id));
+}
+
+/**
  * 递归搜索资源（支持树形结构）
  */
 export function findResource(resources: ResourceInfo[], id: string): ResourceInfo | null {

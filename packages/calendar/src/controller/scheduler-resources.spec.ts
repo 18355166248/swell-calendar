@@ -4,6 +4,7 @@ import { ResourceInfo } from '@/types/options.type';
 
 import {
   buildTreeFromFlatList,
+  computeNextVisibleResourceIds,
   findResource,
   flattenResourceTree,
   getFlattenedVisibleResources,
@@ -167,6 +168,41 @@ describe('scheduler-resources', () => {
       expect(result.find((r) => r.id === 'r2')).toBeUndefined();
       expect(result.find((r) => r.id === 'r3')).toBeDefined();
       expect(result.find((r) => r.id === 'r4')).toBeDefined();
+    });
+  });
+
+  describe('computeNextVisibleResourceIds', () => {
+    const FLAT = [
+      { id: 'a', name: 'A' },
+      { id: 'b', name: 'B' },
+      { id: 'c', name: 'C' },
+    ];
+
+    it('显式 visibleResourceIds 下应移除被切换的可见资源', () => {
+      const next = computeNextVisibleResourceIds(FLAT, ['a', 'b', 'c'], 'b');
+      expect(next).toEqual(['a', 'c']);
+    });
+
+    it('显式 visibleResourceIds 下应加入被切换的隐藏资源，并按自然顺序归一', () => {
+      const next = computeNextVisibleResourceIds(FLAT, ['a'], 'c');
+      expect(next).toEqual(['a', 'c']);
+    });
+
+    it('无 visibleResourceIds 时应以「全量减 hidden」为基线', () => {
+      const resources = [
+        { id: 'a', name: 'A' },
+        { id: 'b', name: 'B', hidden: true },
+        { id: 'c', name: 'C' },
+      ];
+      // 基线可见 = a, c；切换 a -> 移除
+      expect(computeNextVisibleResourceIds(resources, undefined, 'a')).toEqual(['c']);
+      // 基线可见 = a, c；切换 b（当前隐藏）-> 加入
+      expect(computeNextVisibleResourceIds(resources, undefined, 'b')).toEqual(['a', 'b', 'c']);
+    });
+
+    it('应支持树形资源（按扁平顺序归一）', () => {
+      const next = computeNextVisibleResourceIds(RESOURCES_TREE, undefined, 'r4');
+      expect(next).toEqual(['r1', 'r2', 'r3', 'r5']);
     });
   });
 

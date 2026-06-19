@@ -129,9 +129,10 @@ export const MonthView: Story = {
 
     const panelStyle: React.CSSProperties = {
       position: 'absolute',
-      top: 12,
+      top: 73,
       right: 12,
       zIndex: 10,
+      pointerEvents: 'none',
       padding: '10px 14px',
       borderRadius: 8,
       background: 'rgba(15, 23, 42, 0.88)',

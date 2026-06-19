@@ -14,6 +14,11 @@ interface SchedulerHeaderProps {
   scrollbarWidth?: number;
   /** 固定列宽（像素），设置后使用像素宽度而非百分比 */
   columnWidth?: number;
+  /**
+   * 资源列头显隐控件回调。提供时在每个资源「首日」列头渲染隐藏按钮，
+   * 点击派发隐藏意图（受控，由宿主回写 visibleResourceIds）；不提供则不渲染控件。
+   */
+  onToggleVisibility?: (resourceId: string) => void;
 }
 
 export function SchedulerHeader({
@@ -22,6 +27,7 @@ export function SchedulerHeader({
   timeGridLeftWidth,
   scrollbarWidth = 0,
   columnWidth,
+  onToggleVisibility,
 }: SchedulerHeaderProps) {
   const schedulerHeaderTheme = useThemeStore((state) => state.timeline.schedulerHeader);
   const schedulerResourceCellTheme = useThemeStore((state) => state.timeline.schedulerResourceCell);
@@ -115,6 +121,32 @@ export function SchedulerHeader({
                   isLastResourceOfDay: resIdx === resources.length - 1,
                 }}
               />
+              {/* 显隐控件：仅在每个资源的首日列头出现一次，避免逐日重复 */}
+              {onToggleVisibility && dayIdx === 0 ? (
+                <button
+                  type="button"
+                  className={cls('scheduler-resource-hide-btn')}
+                  title={`隐藏 ${resource.name}`}
+                  aria-label={`隐藏 ${resource.name}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onToggleVisibility(resource.id);
+                  }}
+                  style={{
+                    marginLeft: 4,
+                    padding: 0,
+                    border: 'none',
+                    background: 'transparent',
+                    cursor: 'pointer',
+                    fontSize: 11,
+                    lineHeight: 1,
+                    color: schedulerResourceCellTheme.nameColor,
+                    opacity: 0.55,
+                  }}
+                >
+                  ⊘
+                </button>
+              ) : null}
             </div>
           ))
         )}

@@ -7,11 +7,20 @@ function getWorkbenchStyles(title?: string, storyName?: string) {
   const isCalendarStory = title?.startsWith('日历/') ?? false;
 
   const shell: CSSProperties = {
-    minHeight: '100vh',
     boxSizing: 'border-box',
     padding: isCalendarStory ? '16px' : '32px 20px',
     background:
       'radial-gradient(circle at top, rgba(15, 23, 42, 0.05), transparent 26%), linear-gradient(180deg, #f5f7fb 0%, #edf1f6 100%)',
+    // 日历 story 固定为视口高度并用 flex 列填充，避免 minHeight:100vh + padding
+    // 的尺寸叠加把整页撑出滚动条（与日历自身的时间网格滚动叠成双滚动条）。
+    ...(isCalendarStory
+      ? ({
+          height: '100vh',
+          overflow: 'hidden',
+          display: 'flex',
+          flexDirection: 'column',
+        } as const)
+      : { minHeight: '100vh' }),
   };
 
   const chrome: CSSProperties = isCalendarStory
@@ -55,7 +64,8 @@ function getWorkbenchStyles(title?: string, storyName?: string) {
 
   const stage: CSSProperties = isCalendarStory
     ? {
-        minHeight: 'calc(100vh - 54px)',
+        flex: 1,
+        minHeight: 0,
         borderRadius: 20,
         overflow: 'hidden',
         border: '1px solid rgba(148, 163, 184, 0.18)',
@@ -86,6 +96,12 @@ const preview: Preview = {
       matchers: {
         color: /(background|color)$/i,
         date: /Date$/i,
+      },
+    },
+    // 概览作为首页置顶，其余按「日历」分组自然排序
+    options: {
+      storySort: {
+        order: ['Swell Calendar', ['概览'], '日历'],
       },
     },
   },

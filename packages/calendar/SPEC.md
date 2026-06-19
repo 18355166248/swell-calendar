@@ -62,7 +62,7 @@ swell-calendar 是一个**可嵌入的 React 日历组件库**，面向需要在
 | 拖拽时间提示（time-grid）      | ✅   | 移动/缩放事件时跟随光标显示 `HH:mm - HH:mm` 浮层（`DragTimeTooltip`），day/week/scheduler 全部生效（此前仅 scheduler）；新建框选则在选区内直接显示起止时间 |
 | 事件卡片透明度                 | ✅   | day/week time-grid 与 month 事件卡片静置时 `opacity: 0.9`（更轻、与网格/重叠融合），hover 恢复 `1`；time-grid 拖拽目标仍 `0.5`，move/resize 引导阴影为半透明。time-grid 由 `events/time.scss` 控制，month 由 `MonthEvent` + `monthGrid.scss` 控制 |
 | 事件悬浮高亮 / 跨天联动        | ✅   | 鼠标经过事件卡片加深（恢复不透明 + 投影 + 提亮）。跨天事件按列拆成多段时，悬浮任一段会让同一事件（按 `hover` slice 的 `hoveredEventId` 匹配）的所有段一起加深，离开同步还原 |
-| 资源显隐                       | ✅   | `visibleResourceIds` 可控制 scheduler/timeline 可见资源       |
+| 资源显隐                       | ✅   | `visibleResourceIds` 可控制 scheduler/timeline 可见资源；scheduler 资源列头内置隐藏按钮 + 头部「已隐藏 N」恢复入口，受控派发 `onResourceVisibilityChange`，宿主回写 `visibleResourceIds` 生效 |
 | 资源分组 / 折叠                | ✅   | `children` / `collapsed` 支持树形资源与折叠显示               |
 | shared events                  | ✅   | `resourceIds` 可让事件出现在多个资源列，资源级策略按命中的所有资源共同判定 |
 | 资源级交互限制                 | ✅   | `eventDragInTime` / `eventResize` / `eventOverlap` 已接入     |
@@ -435,6 +435,13 @@ interface CalendarProps {
       end: DayjsTZDate;
       resourceId?: string;
       resourceName?: string;
+    }) => void;
+    // scheduler 资源列头显隐控件被切换时触发。受控：宿主据 visibleResourceIds
+    // 回写 scheduler.visibleResourceIds 后视图才更新（库内不维护独立显隐状态）。
+    onResourceVisibilityChange?: (info: {
+      resourceId: string;
+      visible: boolean;
+      visibleResourceIds: string[];
     }) => void;
   };
 }

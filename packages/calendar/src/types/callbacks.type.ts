@@ -177,6 +177,21 @@ export interface CalendarCrossInstanceDropInfo {
   resourceName?: string;
 }
 
+/** 资源显隐切换时传出的信息 */
+export interface CalendarResourceVisibilityChangeInfo {
+  /** 被切换的资源 id */
+  resourceId: string;
+  /** 切换后该资源是否可见 */
+  visible: boolean;
+  /**
+   * 切换后的完整可见资源 id 集合。
+   *
+   * 宿主应据此回写 `scheduler.visibleResourceIds`（受控模式）：
+   * 本库不维护独立显隐 state，列表是否生效以回写后的 prop 为准。
+   */
+  visibleResourceIds: string[];
+}
+
 /** 月视图「+N 更多」按钮点击时传出的信息 */
 export interface CalendarMoreEventsClickInfo {
   /** 被点击的日期 */
@@ -203,4 +218,11 @@ export interface CalendarCallbacks {
   onCrossInstanceDrop?: (info: CalendarCrossInstanceDropInfo) => void;
   /** 月视图「+N 更多」按钮被点击时触发 */
   onMoreEventsClick?: (info: CalendarMoreEventsClickInfo) => void;
+  /**
+   * scheduler 资源列头显隐控件被切换时触发。
+   *
+   * 受控模式：本库只派发意图，宿主据 `info.visibleResourceIds`
+   * 回写 `scheduler.visibleResourceIds` 后视图才更新。
+   */
+  onResourceVisibilityChange?: (info: CalendarResourceVisibilityChangeInfo) => void;
 }

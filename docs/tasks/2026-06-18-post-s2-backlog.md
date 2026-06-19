@@ -60,14 +60,14 @@
   - 已于 `5a9549b` 落地：新增 `CalendarInstance.externalDrop()` 编程式 API，与 HTML5 路径共享 `resolveExternalDrop`。
   - 结论沉淀在 `packages/calendar/SPEC.md`（external DnD 🟡 → ✅）与归档任务单 `docs/archive/tasks/2026-06-18-external-dnd-adapter.md`。
 
+- `onResourceVisibilityChange`（原 A 档 P1）
+  - 已落地：资源列头隐藏按钮 + 头部「已隐藏 N」恢复入口，受控派发 `onResourceVisibilityChange`，宿主回写 `visibleResourceIds` 生效。
+  - 范围决策：挂载点为资源列头（覆盖平铺 + 分组），本轮不接 timeline、不动分组折叠回调。
+  - 任务单：`docs/tasks/2026-06-18-resource-visibility-change.md`；SPEC 资源显隐行 + callbacks 已同步。
+
 ### A. 近期可启动
 
-1. `onResourceVisibilityChange`
-   - 优先级：P1
-   - 原因：资源显隐能力已存在，但缺少宿主回调闭环，属于低风险 API 收尾。
-   - 预期落点：callbacks types、store slice、`SPEC`
-
-2. `maxEventStack`
+1. `maxEventStack`
    - 优先级：P2
    - 原因：month 视图已具备 `+N 更多` 浮层，补堆叠上限配置能进一步产品化，但会牵动多个视图策略。
    - 预期落点：month / scheduler layout controller、`SPEC`

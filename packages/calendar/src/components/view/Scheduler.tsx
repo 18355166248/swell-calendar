@@ -1,10 +1,16 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { WEEK_DAY_NAME_BORDER, WEEK_DAY_NAME_HEIGHT } from '@/constants/style.const';
+import { useCalendarCallbacks } from '@/contexts/calendarCallbacks';
 import { useCalendarStore } from '@/contexts/calendarStore';
 import { useThemeStore } from '@/contexts/themeStore';
 import { getSchedulerViewEvents } from '@/controller/scheduler-layout';
-import { getFlattenedVisibleResources, normalizeResources } from '@/controller/scheduler-resources';
+import {
+  computeNextVisibleResourceIds,
+  flattenResourceTree,
+  getFlattenedVisibleResources,
+  normalizeResources,
+} from '@/controller/scheduler-resources';
 import { cls } from '@/helpers/css';
 import { createSchedulerTimeGridData, getWeekDates } from '@/helpers/grid';
 import useTimeGridScrollSync from '@/hooks/TimeGrid/useTimeGridScrollSync';
@@ -12,6 +18,7 @@ import { toEndOfDay, toStartOfDay } from '@/time/datetime';
 
 import Layout from '../Layout';
 import Panel from '../Panel';
+import { HiddenResourcesControl } from '../scheduler/HiddenResourcesControl';
 import { ResourceSidebar } from '../scheduler/ResourceSidebar';
 import {
   SCHEDULER_ALLDAY_EVENT_HEIGHT,
@@ -97,6 +104,49 @@ export function Scheduler() {
   );
 
   const sidebarWidth = hasHierarchy ? RESOURCE_SIDEBAR_WIDTH : 0;
+
+  // 资源显隐受控回调：派发意图，由宿主回写 visibleResourceIds
+  const callbacks = useCalendarCallbacks();
+  const onResourceVisibilityChange = callbacks?.onResourceVisibilityChange;
+
+  const handleToggleVisibility = useCallback(
+    (resourceId: string) => {
+      const next = computeNextVisibleResourceIds(
+        schedulerOptions?.resources ?? [],
+        schedulerOptions?.visibleResourceIds,
+        resourceId
+      );
+      onResourceVisibilityChange?.({
+        resourceId,
+        visible: next.includes(resourceId),
+        visibleResourceIds: next,
+      });
+    },
+    [schedulerOptions?.resources, schedulerOptions?.visibleResourceIds, onResourceVisibilityChange]
+  );
+
+  const toggleVisibility = onResourceVisibilityChange ? handleToggleVisibility : undefined;
+
+  // 被「显隐」隐藏的资源（不含因折叠而暂时不可见的子资源），用于头部恢复入口
+  const hiddenResources = useMemo(() => {
+    if (!onResourceVisibilityChange) {
+      return [];
+    }
+    const visibleByVisibility = new Set(
+      getFlattenedVisibleResources(
+        schedulerOptions?.resources ?? [],
+        schedulerOptions?.visibleResourceIds
+      ).map((r) => r.id)
+    );
+    return Array.from(flattenResourceTree(allResources).values()).filter(
+      (r) => !visibleByVisibility.has(r.id)
+    );
+  }, [
+    onResourceVisibilityChange,
+    schedulerOptions?.resources,
+    schedulerOptions?.visibleResourceIds,
+    allResources,
+  ]);
 
   // 副时区轴会加宽左侧 gutter，header / all-day lane 需同步对齐
   const schedulerTimezones = schedulerOptions?.timezones ?? [];
@@ -208,7 +258,15 @@ export function Scheduler() {
                   flexDirection: 'column',
                 }}
               >
-                <div style={{ height: SCHEDULER_HEADER_HEIGHT, flexShrink: 0 }} />
+                <div style={{ height: SCHEDULER_HEADER_HEIGHT, flexShrink: 0 }}>
+                  {toggleVisibility ? (
+                    <HiddenResourcesControl
+                      hiddenResources={hiddenResources}
+                      onShow={handleToggleVisibility}
+                      width={gutterWidth}
+                    />
+                  ) : null}
+                </div>
                 {alldayEvents.length > 0 ? (
                   // 固定列宽模式：内容列的全天事件需从 x=0 起与日期列对齐，
                   // 因此「全天」标签放在 gutter 列里，由 SchedulerAllDayLane 关闭自带标签。
@@ -261,6 +319,7 @@ export function Scheduler() {
                     timeGridLeftWidth={0}
                     scrollbarWidth={0}
                     columnWidth={columnWidth}
+                    onToggleVisibility={toggleVisibility}
                   />
                 </div>
                 {alldayEvents.length > 0 ? (
@@ -293,7 +352,12 @@ export function Scheduler() {
   // ─── 默认模式：Panel 系统驱动高度分配 ───
   return (
     <Layout className={cls('scheduler-view')}>
-      <div className={cls('scheduler-scroll')}>
+      {/*
+        Layout 根节点是 display:block，.scheduler-scroll 的 flex:1 不会生效，
+        需显式 height:100% 才能撑满，否则内部 height:100% 链塌缩到内容高度、
+        time 区域无法铺满。固定列宽分支同样在此处显式给了 height:100%。
+      */}
+      <div className={cls('scheduler-scroll')} style={{ height: '100%' }}>
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
           <div style={{ display: 'flex', flexDirection: 'row', flex: 1, minHeight: 0 }}>
             {/* 资源侧边栏 */}
@@ -317,12 +381,32 @@ export function Scheduler() {
                 }}
               >
                 <Panel name="scheduler-header" initialHeight={SCHEDULER_HEADER_HEIGHT}>
-                  <SchedulerHeader
-                    weekDates={weekDates}
-                    resources={resources}
-                    timeGridLeftWidth={gutterWidth}
-                    scrollbarWidth={scrollbarWidth}
-                  />
+                  <div style={{ position: 'relative', height: '100%' }}>
+                    <SchedulerHeader
+                      weekDates={weekDates}
+                      resources={resources}
+                      timeGridLeftWidth={gutterWidth}
+                      scrollbarWidth={scrollbarWidth}
+                      onToggleVisibility={toggleVisibility}
+                    />
+                    {toggleVisibility ? (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          height: '100%',
+                          width: gutterWidth,
+                        }}
+                      >
+                        <HiddenResourcesControl
+                          hiddenResources={hiddenResources}
+                          onShow={handleToggleVisibility}
+                          width={gutterWidth}
+                        />
+                      </div>
+                    ) : null}
+                  </div>
                 </Panel>
                 {alldayEvents.length > 0 ? (
                   <Panel name="allday" initialHeight={alldayPanelHeight}>
@@ -333,11 +417,15 @@ export function Scheduler() {
                     />
                   </Panel>
                 ) : null}
-                <Panel name="time" ref={timePanelRef}>
-                  <div style={{ height: '100%' }}>
-                    <TimeGrid timeGridData={timeGridData} events={timeEvents} />
-                  </div>
-                </Panel>
+                {/*
+                  时间网格用 flex 填充剩余高度，而非依赖 Panel 的「最后面板吃满」机制：
+                  Layout 只识别其直接子节点中的 Panel，而 scheduler 的 Panel 嵌在
+                  scheduler-scroll / sidebar 等包裹层内，最后面板探测失效，time 面板会退回
+                  默认 72px。固定列宽分支同理用 flex:1 处理。
+                */}
+                <div ref={timePanelRef} style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
+                  <TimeGrid timeGridData={timeGridData} events={timeEvents} />
+                </div>
               </div>
             </div>
           </div>

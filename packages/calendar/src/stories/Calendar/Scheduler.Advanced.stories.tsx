@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { Calendar } from '@/components/Calendar';
 
-import { CrossInstanceDnD, ExternalDnDMock } from './Scheduler.shared';
+import { CrossInstanceDnD, ExternalDnDMock, ResourceVisibility } from './Scheduler.shared';
 
 const meta = {
   title: '日历/调度器/高级能力',
@@ -21,4 +21,9 @@ export const ExternalDnDDemo: Story = {
 export const CrossInstanceDnDDemo: Story = {
   ...CrossInstanceDnD,
   name: '跨实例拖拽',
+};
+
+export const ResourceVisibilityDemo: Story = {
+  ...ResourceVisibility,
+  name: '资源显隐受控闭环',
 };

@@ -4,8 +4,7 @@ import { Calendar } from '@/components/Calendar';
 
 import {
   Delete,
-  DragResize,
-  DragVertical,
+  DragMoveAndResize,
   InteractionCallbacks,
   KeyboardNavigation,
 } from './Scheduler.shared';
@@ -29,14 +28,9 @@ export const DeleteEventDemo: Story = {
   name: '删除事件',
 };
 
-export const VerticalDragDemo: Story = {
-  ...DragVertical,
-  name: '垂直拖拽',
-};
-
-export const ResizeByDragDemo: Story = {
-  ...DragResize,
-  name: '拖拽调整时长',
+export const DragMoveAndResizeDemo: Story = {
+  ...DragMoveAndResize,
+  name: '拖拽移动与调整时长',
 };
 
 export const KeyboardNavigationDemo: Story = {

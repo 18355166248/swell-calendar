@@ -32,6 +32,7 @@ export type {
   CalendarMoreEventsClickInfo,
   CalendarRecurrenceEditScope,
   CalendarRecurrenceInstanceInfo,
+  CalendarResourceVisibilityChangeInfo,
 } from '@/types/callbacks.type';
 export type { CalendarDataSource } from '@/types/dataSource.type';
 export type {

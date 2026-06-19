@@ -266,9 +266,10 @@ export const InteractionCallbacks: Story = {
         <div
           style={{
             position: 'absolute',
-            top: 12,
+            top: 73,
             right: 12,
             zIndex: 10,
+            pointerEvents: 'none',
             padding: '8px 12px',
             borderRadius: 8,
             background: 'rgba(15, 23, 42, 0.82)',
@@ -382,9 +383,10 @@ export const Delete: Story = {
         <div
           style={{
             position: 'absolute',
-            top: 12,
+            top: 73,
             right: 12,
             zIndex: 10,
+            pointerEvents: 'none',
             padding: '10px 14px',
             borderRadius: 8,
             background: 'rgba(15, 23, 42, 0.88)',
@@ -452,19 +454,21 @@ export const Delete: Story = {
 // ============================================================================
 
 /**
- * DragVertical — 垂直拖拽测试
+ * DragMoveAndResize — 拖拽移动与调整时长（合并自原「垂直拖拽」+「拖拽调整时长」）
  *
- * 验证事件在同一个资源列内上下移动，时间改变后 onEventUpdate 回调被触发。
- * 使用 Storybook test-runner 或 headed 模式运行：
- *   pnpm test:storybook          # headless
- *   SLOWMO=5000 pnpm test:storybook:headed  # 可视化
+ * 同一场景演示两类受控交互：
+ * - 事件在资源列内上下拖动改时间（move）
+ * - 拖事件底部边缘改时长（resize）
+ * 两者都通过 onEventUpdate 受控回写。原两个单一交互 demo 已合并到这里，
+ * 综合回归仍由「回归测试」组覆盖。
+ * resize handle 的 data-testid 格式为 resize-handle-bottom-{eventId}。
  */
-export const DragVertical: Story = {
-  render: function DragVerticalStory() {
+export const DragMoveAndResize: Story = {
+  render: function DragMoveAndResizeStory() {
     const today = dayjs().startOf('day');
     const [events, setEvents] = useState<EventObject[]>([
       {
-        id: 'vert-1',
+        id: 'move-1',
         title: '拖我上下移动',
         category: 'time' as const,
         start: today.hour(9).minute(0).toDate(),
@@ -474,7 +478,7 @@ export const DragVertical: Story = {
         color: '#fff',
       },
       {
-        id: 'vert-2',
+        id: 'move-fixed',
         title: '固定事件（勿动）',
         category: 'time' as const,
         start: today.hour(14).minute(0).toDate(),
@@ -484,133 +488,40 @@ export const DragVertical: Story = {
         color: '#fff',
         draggable: false,
       },
-    ]);
-    const [log, setLog] = useState<string[]>(['拖拽事件上下移动']);
-    const addLog = (msg: string) => setLog((prev) => [msg, ...prev.slice(0, 6)]);
-
-    const callbacks = useMemo<CalendarCallbacks>(
-      () => ({
-        onEventUpdate: ({ event }) => {
-          setEvents((cur) => cur.map((e) => (e.id === event.id ? { ...e, ...event } : e)));
-          const newStart = dayjs(getTimeValue(event.start)).format('HH:mm');
-          addLog(`✅ 已移动: ${event.title} → ${newStart}`);
-        },
-      }),
-      []
-    );
-
-    return (
-      <SchedulerStoryFrame>
-        <div
-          style={{
-            position: 'absolute',
-            top: 12,
-            right: 12,
-            zIndex: 10,
-            padding: '10px 14px',
-            borderRadius: 8,
-            background: 'rgba(15, 23, 42, 0.88)',
-            color: '#fff',
-            fontSize: 11,
-            lineHeight: 1.7,
-            maxWidth: 340,
-          }}
-        >
-          <div style={{ marginBottom: 6, fontWeight: 600, fontSize: 12 }}>
-            垂直拖拽 — 同一资源列内上下移动
-          </div>
-          {log.map((l, i) => (
-            <div key={i}>{l}</div>
-          ))}
-        </div>
-        <Calendar
-          events={events}
-          callbacks={callbacks}
-          options={{
-            defaultView: 'scheduler',
-            scheduler: {
-              resources: RESOURCES.slice(0, 2),
-              hourStart: 8,
-              hourEnd: 18,
-            },
-          }}
-        />
-      </SchedulerStoryFrame>
-    );
-  },
-  play: async ({ canvasElement }) => {
-    await new Promise((r) => setTimeout(r, DEMO_PAUSE));
-    const canvas = within(canvasElement);
-
-    // 验证两个事件卡片都存在
-    const dragCard = canvas.getByTestId('event-card-vert-1');
-    const fixedCard = canvas.getByTestId('event-card-vert-2');
-    await expect(dragCard).toBeInTheDocument();
-    await expect(fixedCard).toBeInTheDocument();
-
-    // 获取卡片在页面中的实际坐标
-    const rect = dragCard.getBoundingClientRect();
-    const cx = rect.left + rect.width / 2;
-    const cy = rect.top + rect.height / 2;
-
-    // 使用 fireEvent 派发 MouseEvent（日历组件 useDrag 监听 onMouseDown）
-    fireEvent.mouseDown(dragCard, { button: 0, clientX: cx, clientY: cy });
-    // 移动超过 MINIMUM_DRAG_MOUSE_DISTANCE (3px) 触发 onDragStart
-    fireEvent.mouseMove(document, { clientX: cx, clientY: cy + 10 });
-    // 继续向下移动约 4 个时间槽
-    fireEvent.mouseMove(document, { clientX: cx, clientY: cy + 100 });
-    // 释放鼠标触发 onMouseUp + reset
-    fireEvent.mouseUp(document, { clientX: cx, clientY: cy + 100 });
-
-    // 等待回调触发
-    await new Promise((r) => setTimeout(r, 500));
-
-    // 验证拖拽未导致崩溃，卡片仍存在
-    await expect(dragCard).toBeInTheDocument();
-
-    // 尝试检测日志变化（若回调触发了）
-    const hasLog = canvasElement.textContent?.includes('已移动');
-    if (!hasLog) {
-      // 若 fireEvent 未能触发完整回调链，至少验证 DOM 稳定
-      await expect(fixedCard).toBeInTheDocument();
-    }
-  },
-};
-
-/**
- * DragResize — 事件时长调整测试
- *
- * 验证拖拽事件底部边缘来调整事件时长，onEventUpdate 回调应被触发。
- * resize handle 的 data-testid 格式为 resize-handle-bottom-{eventId}。
- */
-export const DragResize: Story = {
-  render: function DragResizeStory() {
-    const today = dayjs().startOf('day');
-    const [events, setEvents] = useState<EventObject[]>([
       {
         id: 'resize-1',
         title: '拉我边缘改时长',
         category: 'time' as const,
         start: today.hour(10).minute(0).toDate(),
         end: today.hour(11).minute(0).toDate(),
-        resourceId: 'r1',
+        resourceId: 'r2',
         backgroundColor: '#7c3aed',
         color: '#fff',
         resizable: true,
       },
     ]);
-    const [log, setLog] = useState<string[]>(['拖拽底部边缘调整时长']);
+    const [log, setLog] = useState<string[]>(['上下拖动改时间 / 拖底边改时长']);
     const addLog = (msg: string) => setLog((prev) => [msg, ...prev.slice(0, 6)]);
 
     const callbacks = useMemo<CalendarCallbacks>(
       () => ({
-        onEventUpdate: ({ event }) => {
+        onEventUpdate: ({ event, previousEvent }) => {
           setEvents((cur) => cur.map((e) => (e.id === event.id ? { ...e, ...event } : e)));
-          const duration = dayjs(getTimeValue(event.end)).diff(
+          const prevDuration = dayjs(getTimeValue(previousEvent.end)).diff(
+            dayjs(getTimeValue(previousEvent.start)),
+            'minute'
+          );
+          const nextDuration = dayjs(getTimeValue(event.end)).diff(
             dayjs(getTimeValue(event.start)),
             'minute'
           );
-          addLog(`✅ 已调整: ${event.title} → ${duration}分钟`);
+          if (prevDuration === nextDuration) {
+            addLog(
+              `✅ 已移动: ${event.title} → ${dayjs(getTimeValue(event.start)).format('HH:mm')}`
+            );
+          } else {
+            addLog(`✅ 已调整: ${event.title} → ${nextDuration}分钟`);
+          }
         },
       }),
       []
@@ -621,9 +532,10 @@ export const DragResize: Story = {
         <div
           style={{
             position: 'absolute',
-            top: 12,
+            top: 73,
             right: 12,
             zIndex: 10,
+            pointerEvents: 'none',
             padding: '10px 14px',
             borderRadius: 8,
             background: 'rgba(15, 23, 42, 0.88)',
@@ -633,7 +545,7 @@ export const DragResize: Story = {
             maxWidth: 340,
           }}
         >
-          <div style={{ marginBottom: 6, fontWeight: 600, fontSize: 12 }}>拖拽底部边缘调整时长</div>
+          <div style={{ marginBottom: 6, fontWeight: 600, fontSize: 12 }}>拖拽移动与调整时长</div>
           {log.map((l, i) => (
             <div key={i}>{l}</div>
           ))}
@@ -657,31 +569,37 @@ export const DragResize: Story = {
     await new Promise((r) => setTimeout(r, DEMO_PAUSE));
     const canvas = within(canvasElement);
 
-    // 验证事件卡片存在
-    const resizeCard = canvas.getByTestId('event-card-resize-1');
-    await expect(resizeCard).toBeInTheDocument();
+    // ── move：上下拖动可移动事件 ──
+    const moveCard = canvas.getByTestId('event-card-move-1');
+    const fixedCard = canvas.getByTestId('event-card-move-fixed');
+    await expect(moveCard).toBeInTheDocument();
+    await expect(fixedCard).toBeInTheDocument();
 
-    // 找到底部 resize handle
+    const rect = moveCard.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    // 日历组件 useDrag 监听 onMouseDown；移动超过 MINIMUM_DRAG_MOUSE_DISTANCE(3px) 才 onDragStart
+    fireEvent.mouseDown(moveCard, { button: 0, clientX: cx, clientY: cy });
+    fireEvent.mouseMove(document, { clientX: cx, clientY: cy + 10 });
+    fireEvent.mouseMove(document, { clientX: cx, clientY: cy + 100 });
+    fireEvent.mouseUp(document, { clientX: cx, clientY: cy + 100 });
+    await new Promise((r) => setTimeout(r, 500));
+    await expect(moveCard).toBeInTheDocument();
+
+    // ── resize：拖底边改时长 ──
+    const resizeCard = canvas.getByTestId('event-card-resize-1');
     const resizeHandle = canvas.getByTestId('resize-handle-bottom-resize-1');
+    await expect(resizeCard).toBeInTheDocument();
     await expect(resizeHandle).toBeInTheDocument();
 
-    // 获取 handle 在页面中的实际坐标
     const handleRect = resizeHandle.getBoundingClientRect();
     const hx = handleRect.left + handleRect.width / 2;
     const hy = handleRect.top + handleRect.height / 2;
-
-    // 使用 fireEvent 派发 MouseEvent（resize handle 监听 onMouseDown）
     fireEvent.mouseDown(resizeHandle, { button: 0, clientX: hx, clientY: hy });
-    // 向下拖拽约 2 个时间槽（50px）
     fireEvent.mouseMove(document, { clientX: hx, clientY: hy + 10 });
     fireEvent.mouseMove(document, { clientX: hx, clientY: hy + 50 });
-    // 释放鼠标
     fireEvent.mouseUp(document, { clientX: hx, clientY: hy + 50 });
-
-    // 等待回调触发
     await new Promise((r) => setTimeout(r, 500));
-
-    // 验证 resize 未导致崩溃，卡片仍存在
     await expect(resizeCard).toBeInTheDocument();
     await expect(resizeHandle).toBeInTheDocument();
   },
@@ -740,9 +658,10 @@ export const KeyboardNavigation: Story = {
         <div
           style={{
             position: 'absolute',
-            top: 12,
+            top: 73,
             right: 12,
             zIndex: 10,
+            pointerEvents: 'none',
             padding: '10px 14px',
             borderRadius: 8,
             background: 'rgba(15, 23, 42, 0.88)',
@@ -804,6 +723,74 @@ export const KeyboardNavigation: Story = {
 // ============================================================================
 // 资源显隐与分组测试
 // ============================================================================
+
+/**
+ * ResourceVisibility — 资源列头显隐受控闭环
+ *
+ * 验证：
+ * - 资源列头的隐藏按钮派发 onResourceVisibilityChange（携带切换后完整可见集）
+ * - 宿主回写 visibleResourceIds 后该列消失（受控，库内不维护独立状态）
+ * - 头部「已隐藏 N」入口可恢复被隐藏资源
+ */
+export const ResourceVisibility: Story = {
+  render: function ResourceVisibilityStory() {
+    const [events] = useState<EventObject[]>(() => createSchedulerEvents());
+    const [visibleResourceIds, setVisibleResourceIds] = useState<string[] | undefined>(undefined);
+
+    const callbacks = useMemo<CalendarCallbacks>(
+      () => ({
+        onResourceVisibilityChange: ({ visibleResourceIds: next }) => {
+          // 受控回填：组件只发意图，可见集以宿主回写的 prop 为准
+          setVisibleResourceIds(next);
+        },
+      }),
+      []
+    );
+
+    return (
+      <SchedulerStoryFrame>
+        <Calendar
+          events={events}
+          callbacks={callbacks}
+          options={{
+            defaultView: 'scheduler',
+            scheduler: {
+              resources: RESOURCES,
+              visibleResourceIds,
+              hourStart: 8,
+              hourEnd: 20,
+            },
+          }}
+        />
+      </SchedulerStoryFrame>
+    );
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+
+    // 初始三个资源都有隐藏按钮
+    const hideA = await canvas.findByLabelText('隐藏 会议室 A');
+    expect(canvas.getByLabelText('隐藏 会议室 B')).toBeInTheDocument();
+
+    // 隐藏会议室 A → 该列隐藏按钮消失，出现「已隐藏 1」入口
+    await userEvent.click(hideA);
+    await waitFor(() => {
+      expect(canvas.queryByLabelText('隐藏 会议室 A')).not.toBeInTheDocument();
+    });
+    const restoreTrigger = await canvas.findByTitle('显示已隐藏资源');
+    expect(restoreTrigger).toHaveTextContent('已隐藏 1');
+
+    // 打开恢复菜单 → 点击会议室 A 恢复
+    await userEvent.click(restoreTrigger);
+    const menuItem = await canvas.findByText('会议室 A');
+    await userEvent.click(menuItem);
+
+    // 隐藏按钮恢复出现，说明可见集回到全部
+    await waitFor(() => {
+      expect(canvas.getByLabelText('隐藏 会议室 A')).toBeInTheDocument();
+    });
+  },
+};
 
 /**
  * VisibleResourceIds — 资源显隐切换测试
