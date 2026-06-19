@@ -194,7 +194,6 @@ PLAN4 相对 PLAN3 的主要修订：
 
 - `showAllDay`
 - `cellWidth`
-- `range`
 - `resourceGrouping`
 - `connections` / `eventList` / `maxEventStack` / 打印 / 虚拟化 / 按滚动加载
 

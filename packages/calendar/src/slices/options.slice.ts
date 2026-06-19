@@ -57,7 +57,7 @@ function initializeMonthOptions(
     workweek: false,
     isAlways6Weeks: true,
     visibleWeeksCount: 0,
-    visibleEventCount: 6,
+    visibleEventCount: 4,
     dragToMove: true,
     dragToResize: true,
     dragToCreate: true,

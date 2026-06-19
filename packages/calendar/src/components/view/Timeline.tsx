@@ -12,6 +12,7 @@ import { cls } from '@/helpers/css';
 import { getVisibleResources } from '@/helpers/grid';
 import { isSameDate } from '@/time/datetime';
 import DayjsTZDate from '@/time/dayjs-tzdate';
+import { normalizeRange } from '@/time/view-range';
 
 import { ResourceList } from '../timeline/ResourceList';
 import { TimelineGrid } from '../timeline/TimelineGrid';
@@ -50,9 +51,13 @@ export function Timeline() {
 
   const cellWidth = timelineOptions?.cellWidth ?? TIMELINE_DAY_CELL_WIDTH;
   const resourceListWidth = TIMELINE_RESOURCE_LIST_WIDTH;
+  const timelineRange = normalizeRange(timelineOptions?.range);
 
-  // 日粒度时间轴：renderDate 所在自然月的每一天作为列
-  const days = useMemo(() => getCalendarTimelineDays(renderDate), [renderDate]);
+  // 日粒度时间轴：缺省为自然月；配置 range 后切为从 renderDate 开始的连续天窗口
+  const days = useMemo(
+    () => getCalendarTimelineDays(renderDate, timelineRange),
+    [renderDate, timelineRange]
+  );
 
   // 每个资源行的事件布局（含车道数）
   const rows = useMemo(
@@ -68,9 +73,12 @@ export function Timeline() {
   }, [days]);
 
   const monthLabel = useMemo(() => {
+    if (timelineRange) {
+      return '';
+    }
     const d = renderDate.dayjs;
     return `${d.year()}年${d.month() + 1}月`;
-  }, [renderDate]);
+  }, [renderDate, timelineRange]);
 
   if (resources.length === 0) {
     return (

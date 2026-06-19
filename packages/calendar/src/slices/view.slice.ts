@@ -1,6 +1,7 @@
 import { produce } from 'immer';
 
 import DayjsTZDate from '@/time/dayjs-tzdate';
+import { getShiftedDateWindowStart, normalizeRange } from '@/time/view-range';
 import { Options, ViewType } from '@/types/options.type';
 import { CalendarStore } from '@/types/store.type';
 import { NavigateDirection, ViewSlice } from '@/types/view.type';
@@ -36,6 +37,29 @@ export function createViewSlice(
               state.view.renderDate = state.view.renderDate.addDate(step);
             } else if (view === 'month') {
               state.view.renderDate = state.view.renderDate.addMonth(step);
+            } else if (view === 'timeline') {
+              const timelineRange = normalizeRange(state.options.timeline?.range);
+              if (timelineRange) {
+                state.view.renderDate = getShiftedDateWindowStart(
+                  state.view.renderDate,
+                  timelineRange,
+                  direction
+                );
+              } else {
+                state.view.renderDate = state.view.renderDate.addMonth(step);
+              }
+            } else if (view === 'scheduler') {
+              const schedulerRange = normalizeRange(state.options.scheduler?.range);
+              if (schedulerRange) {
+                state.view.renderDate = getShiftedDateWindowStart(
+                  state.view.renderDate,
+                  schedulerRange,
+                  direction,
+                  state.options.scheduler?.workweek ?? state.options.week.workweek
+                );
+              } else {
+                state.view.renderDate = state.view.renderDate.addDate(step * 7);
+              }
             } else {
               state.view.renderDate = state.view.renderDate.addDate(step * 7);
             }

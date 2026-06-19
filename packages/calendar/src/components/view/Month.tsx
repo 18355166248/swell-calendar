@@ -11,7 +11,6 @@ import { MonthGrid } from '../month/MonthGrid';
 import Panel from '../Panel';
 
 const MONTH_DAY_NAME_HEIGHT = 31;
-const VISIBLE_EVENT_COUNT = 4;
 
 function useMonthViewState() {
   const { options, view } = useCalendarStore();
@@ -32,6 +31,7 @@ export function Month() {
   const dayNames = getMonthDayNames(options);
   const monthOptions = options.month as Required<MonthOptions>;
   const { narrowWeekend, startDayOfWeek, workweek } = monthOptions;
+  const visibleEventCount = monthOptions.visibleEventCount;
 
   /**
    * 计算月视图的周布局
@@ -44,8 +44,8 @@ export function Month() {
    * 使用 getMonthEventRows 处理碰撞检测和溢出计算
    */
   const eventRows = useMemo(
-    () => getMonthEventRows(calendar, weeks, VISIBLE_EVENT_COUNT),
-    [calendar, weeks]
+    () => getMonthEventRows(calendar, weeks, visibleEventCount),
+    [calendar, visibleEventCount, weeks]
   );
 
   /**
@@ -65,7 +65,7 @@ export function Month() {
           weeks={weeks}
           eventRows={eventRows}
           renderDate={renderDate}
-          visibleEventCount={VISIBLE_EVENT_COUNT}
+          visibleEventCount={visibleEventCount}
           totalCols={dayNames.length}
           colWidths={rowStyleInfo.map((style) => style.width)}
         />

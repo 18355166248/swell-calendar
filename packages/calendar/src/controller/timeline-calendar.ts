@@ -1,6 +1,7 @@
 import { EventUIModel } from '@/model/eventUIModel';
 import { toEndOfDay, toStartOfDay } from '@/time/datetime';
 import DayjsTZDate from '@/time/dayjs-tzdate';
+import { getVisibleDateWindow, normalizeRange } from '@/time/view-range';
 import { CalendarData } from '@/types/calendar.type';
 import { EventObject } from '@/types/events.type';
 
@@ -37,8 +38,13 @@ export interface CalendarTimelineRow {
   items: CalendarTimelineItem[];
 }
 
-/** 返回 renderDate 所在自然月的每一天（按天列的时间轴）。 */
-export function getCalendarTimelineDays(renderDate: DayjsTZDate): DayjsTZDate[] {
+/** 返回 timeline 可见日期：缺省为 renderDate 所在自然月；配置 range 时返回从 renderDate 开始的连续天窗口。 */
+export function getCalendarTimelineDays(renderDate: DayjsTZDate, range?: number): DayjsTZDate[] {
+  const normalizedRange = normalizeRange(range);
+  if (normalizedRange) {
+    return getVisibleDateWindow(renderDate, normalizedRange);
+  }
+
   const monthStart = toStartOfDay(new DayjsTZDate(renderDate.dayjs.startOf('month').toDate()));
   const daysInMonth = renderDate.dayjs.daysInMonth();
 

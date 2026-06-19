@@ -131,3 +131,55 @@ export const ControlledDragResize: Story = {
     );
   },
 };
+
+const RANGE_EVENTS: EventObject[] = [
+  {
+    id: 'timeline-range-1',
+    title: '设计冲刺',
+    category: 'time',
+    resourceId: 'r1',
+    start: new Date('2026-06-10T09:00:00'),
+    end: new Date('2026-06-12T18:00:00'),
+    backgroundColor: '#3b82f6',
+    color: '#fff',
+  },
+  {
+    id: 'timeline-range-2',
+    title: '联调窗口',
+    category: 'time',
+    resourceId: 'r2',
+    start: new Date('2026-06-11T10:00:00'),
+    end: new Date('2026-06-14T17:00:00'),
+    backgroundColor: '#10b981',
+    color: '#fff',
+  },
+  {
+    id: 'timeline-range-3',
+    title: '验收发布',
+    category: 'time',
+    resourceId: 'r3',
+    start: new Date('2026-06-13T09:00:00'),
+    end: new Date('2026-06-14T12:00:00'),
+    backgroundColor: '#f59e0b',
+    color: '#fff',
+  },
+];
+
+export const RangeWindow: Story = {
+  name: '自定义日期窗口',
+  render: () => (
+    <div style={{ position: 'absolute', inset: 0 }}>
+      <Calendar
+        events={RANGE_EVENTS}
+        options={{
+          defaultView: 'timeline',
+          initialDate: '2026-06-10',
+          timeline: {
+            resources: makeResources(),
+            range: 5,
+          },
+        }}
+      />
+    </div>
+  ),
+};

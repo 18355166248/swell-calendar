@@ -15,6 +15,7 @@ import { cls } from '@/helpers/css';
 import { createSchedulerTimeGridData, getWeekDates } from '@/helpers/grid';
 import useTimeGridScrollSync from '@/hooks/TimeGrid/useTimeGridScrollSync';
 import { toEndOfDay, toStartOfDay } from '@/time/datetime';
+import { getVisibleDateWindow, normalizeRange } from '@/time/view-range';
 
 import Layout from '../Layout';
 import Panel from '../Panel';
@@ -161,10 +162,14 @@ export function Scheduler() {
   const hourDivision = weekOptions?.hourDivision ?? 2;
   // 工作日模式：scheduler 可独立覆盖，缺省回退 week.workweek（与 hourStart/hourEnd 一致的回退）。
   const workweek = schedulerOptions?.workweek ?? weekOptions?.workweek;
+  const schedulerRange = normalizeRange(schedulerOptions?.range);
 
   const weekDates = useMemo(
-    () => getWeekDates(renderDate, { ...(weekOptions ?? {}), workweek }),
-    [renderDate, weekOptions, workweek]
+    () =>
+      schedulerRange
+        ? getVisibleDateWindow(renderDate, schedulerRange, workweek)
+        : getWeekDates(renderDate, { ...(weekOptions ?? {}), workweek }),
+    [renderDate, schedulerRange, weekOptions, workweek]
   );
 
   const { weekStart, weekEnd } = useMemo(() => {

@@ -1,7 +1,8 @@
 import { useCalendarStore } from '@/contexts/calendarStore';
 import { cls } from '@/helpers/css';
 import DayjsTZDate from '@/time/dayjs-tzdate';
-import { ViewType } from '@/types/options.type';
+import { formatDateWindowText, getVisibleDateWindow, normalizeRange } from '@/time/view-range';
+import { Options, ViewType } from '@/types/options.type';
 import { NavigateDirection } from '@/types/view.type';
 
 const VIEW_LABELS: Record<ViewType, string> = {
@@ -14,7 +15,7 @@ const VIEW_LABELS: Record<ViewType, string> = {
 
 const VIEW_ORDER: ViewType[] = ['day', 'week', 'month', 'scheduler', 'timeline'];
 
-function getDateRangeText(view: ViewType, renderDate: DayjsTZDate): string {
+function getDateRangeText(view: ViewType, renderDate: DayjsTZDate, options: Options): string {
   const d = renderDate.dayjs;
   if (view === 'day') {
     return d.format('YYYY年M月D日');
@@ -22,7 +23,26 @@ function getDateRangeText(view: ViewType, renderDate: DayjsTZDate): string {
   if (view === 'month') {
     return d.format('YYYY年M月');
   }
-  // week / scheduler / timeline
+  if (view === 'timeline') {
+    const timelineRange = normalizeRange(options.timeline?.range);
+    if (timelineRange) {
+      return formatDateWindowText(getVisibleDateWindow(renderDate, timelineRange));
+    }
+    return d.format('YYYY年M月');
+  }
+  if (view === 'scheduler') {
+    const schedulerRange = normalizeRange(options.scheduler?.range);
+    if (schedulerRange) {
+      return formatDateWindowText(
+        getVisibleDateWindow(
+          renderDate,
+          schedulerRange,
+          options.scheduler?.workweek ?? options.week?.workweek ?? false
+        )
+      );
+    }
+  }
+  // week / scheduler default
   const startOfWeek = d.startOf('week');
   const endOfWeek = d.endOf('week');
   const sameMonth = startOfWeek.month() === endOfWeek.month();
@@ -36,11 +56,12 @@ export function Toolbar() {
   const currentView = useCalendarStore((s) => s.view.currentView);
   const renderDate = useCalendarStore((s) => s.view.renderDate);
   const visibleViews = useCalendarStore((s) => s.options.views);
+  const options = useCalendarStore((s) => s.options);
   const setView = useCalendarStore((s) => s.view.setView);
   const navigate = useCalendarStore((s) => s.view.navigate);
   const goToToday = useCalendarStore((s) => s.view.goToToday);
 
-  const dateText = getDateRangeText(currentView, renderDate);
+  const dateText = getDateRangeText(currentView, renderDate, options);
 
   const handleNavigate = (dir: NavigateDirection) => () => navigate(dir);
 

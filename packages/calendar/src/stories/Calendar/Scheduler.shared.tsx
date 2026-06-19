@@ -11,7 +11,7 @@ import { EventObject } from '@/types/events.type';
 
 const chance = new Chance();
 
-const RESOURCES = [
+export const RESOURCES = [
   { id: 'r1', name: '会议室 A', backgroundColor: '#3b82f6', color: '#fff' },
   { id: 'r2', name: '会议室 B', backgroundColor: '#10b981', color: '#fff' },
   { id: 'r3', name: '张三', backgroundColor: '#f59e0b', color: '#fff' },
@@ -19,7 +19,7 @@ const RESOURCES = [
 
 const SCHEDULER_STORY_MIN_WIDTH = 1360;
 
-function SchedulerStoryFrame({
+export function SchedulerStoryFrame({
   children,
   minWidth = SCHEDULER_STORY_MIN_WIDTH,
 }: {
