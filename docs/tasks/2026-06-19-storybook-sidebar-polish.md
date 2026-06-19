@@ -90,6 +90,7 @@
 - [x] `pnpm --filter swell-calendar exec tsc --noEmit`
 - [x] `pnpm --filter swell-calendar test -- src/stories/showcase.spec.ts`
 - [x] `pnpm --filter swell-calendar exec storybook build`
+- [x] Storybook 浏览器人工验收：关键 badge/caption、选中态与深层 story 可读性
 
 ## 风险与回滚
 
@@ -112,5 +113,10 @@
   - `pnpm --filter swell-calendar exec tsc --noEmit` 通过
   - `pnpm --filter swell-calendar test -- src/stories/showcase.spec.ts` 通过（5 tests）
   - `pnpm --filter swell-calendar exec storybook build` 通过
+  - 2026-06-19 本地 Storybook 人工验收通过：
+    - 左侧导航的 `HOME / CORE / FLAG / LIB` badge 与 caption 正常显示
+    - 当前选中项高亮、根分组层级和品牌色语义可读性正常
+    - manager 侧栏与 preview 舞台风格一致，未见明显串样
+    - 已补本地浏览器验收记录，结论与机械检查一致
 - 剩余问题：
-  - 仍需在浏览器里做最终观感验收，确认选中态、折叠态和深层 story 项的可读性是否都符合预期。
+  - 侧栏更深层的折叠/展开交互仍主要依赖 Storybook 默认容器行为；后续如继续强化导航体验，可再补针对深层子项的专门 storybook harness 断言。

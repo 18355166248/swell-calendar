@@ -289,14 +289,11 @@ PLAN4 相对 PLAN3 的主要修订：
 - `onEventCreateFailed`
 - `onEventUpdateFailed`
 - `onEventDelete`
+- `onResourceVisibilityChange`
 
 #### 内部已有，未公开承诺
 
 - 无。当前 callbacks 暴露项与 `SPEC` 已对齐。
-
-#### 继续后置
-
-- `onResourceVisibilityChange`
 
 #### 失败回调 payload
 

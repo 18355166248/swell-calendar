@@ -102,7 +102,7 @@
 - [x] `pnpm --filter swell-calendar exec tsc --noEmit`
 - [x] `pnpm --filter swell-calendar test -- src/stories/showcase.spec.ts`
 - [x] `pnpm --filter swell-calendar exec storybook build`
-- [ ] Storybook 人工验收：首页、导航排序、Day / Month / Scheduler / Timeline 舞台、docs/canvas 不互相污染
+- [x] Storybook 人工验收：首页、导航排序、Day / Month / Scheduler / Timeline 舞台、docs/canvas 不互相污染
 
 ## 风险与回滚
 
@@ -131,6 +131,10 @@
   - `pnpm --filter swell-calendar exec tsc --noEmit` 通过
   - `pnpm --filter swell-calendar test -- src/stories/showcase.spec.ts` 通过（4 tests）
   - `pnpm --filter swell-calendar exec storybook build` 通过
+  - 2026-06-19 本地 Storybook 人工验收通过：
+    - 首页 docs 展示正常，Hero、五视图卡片与推荐浏览路径均可见
+    - manager 左侧导航已呈现品牌化 badge / caption 层级
+    - Day / Month / Scheduler / Timeline 的 canvas 页面未混入首页 docs 文案
+    - 已补本地浏览器验收记录，结论与机械检查一致
 - 剩余问题：
-  - 还未做浏览器内人工视觉验收，因此首页首屏、导航质感和各核心视图舞台的最终观感仍需你在本地 Storybook 中确认。
   - Storybook 构建仍有既有 warning：`@storybook/addon-interactions` 顺序提示、Sass legacy JS API 提示和大 chunk 警告；本次未处理这些非阻断问题。
