@@ -63,14 +63,20 @@
 - `onResourceVisibilityChange`（原 A 档 P1）
   - 已落地：资源列头隐藏按钮 + 头部「已隐藏 N」恢复入口，受控派发 `onResourceVisibilityChange`，宿主回写 `visibleResourceIds` 生效。
   - 范围决策：挂载点为资源列头（覆盖平铺 + 分组），本轮不接 timeline、不动分组折叠回调。
-  - 任务单：`docs/tasks/2026-06-18-resource-visibility-change.md`；SPEC 资源显隐行 + callbacks 已同步。
+  - 任务单：`docs/archive/tasks/2026-06-18-resource-visibility-change.md`（已归档）；SPEC 资源显隐行 + callbacks 已同步。
+
+- `range`（原 B 档 P2）
+  - 已落地：`scheduler.range` / `timeline.range` 连续日期窗口 + 导航 / toolbar 文案归一，并暴露为 `apps/swell-calendar-s2` 宿主可调控件。
+  - 任务单：`docs/archive/tasks/2026-06-19-range-and-month-density.md`、`docs/archive/tasks/2026-06-19-range-host-controls-and-max-event-stack.md`（均已归档）；SPEC + MIGRATION 已同步。
+
+- `maxEventStack`（原 A 档 P2）
+  - 已落地：month 事件密度统一到 `month.maxEventStack`（兼容别名 `visibleEventCount`，归一化为 `maxEventStack > visibleEventCount > 默认 4`），并接入 S2 宿主设置面板。
+  - 任务单：`docs/archive/tasks/2026-06-19-range-host-controls-and-max-event-stack.md`（已归档）；SPEC + MIGRATION 已同步。
 
 ### A. 近期可启动
 
-1. `maxEventStack`
-   - 优先级：P2
-   - 原因：month 视图已具备 `+N 更多` 浮层，补堆叠上限配置能进一步产品化，但会牵动多个视图策略。
-   - 预期落点：month / scheduler layout controller、`SPEC`
+- 暂无。原 A 档（`onResourceVisibilityChange` / external DnD / `maxEventStack`）均已收口归档。
+  下一个近期切片需从下方 B 档中选一项并先补 capability task + SPEC 设计后再进入实现。
 
 ### B. 中期能力包
 
@@ -85,10 +91,6 @@
 3. `eventList`
    - 优先级：P2
    - 原因：更偏宿主呈现层，但如果要作为库能力公开，需先定边界。
-
-4. `range`
-   - 优先级：P2
-   - 原因：直接影响 week / scheduler / timeline 的日期窗口生成，应先做规格设计再实现。
 
 ### C. 远期或暂不建议启动
 

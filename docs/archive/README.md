@@ -99,3 +99,14 @@
 | [2026-06-18-s2-allday-parity.md](tasks/2026-06-18-s2-allday-parity.md) | S2 全天事件语义补齐与全天行主题化 |
 | [2026-06-18-s2-month-view-parity.md](tasks/2026-06-18-s2-month-view-parity.md) | S2 月视图宿主接线与 `+N 更多` 交互补齐 |
 | [2026-06-18-s2-polish-followups.md](tasks/2026-06-18-s2-polish-followups.md) | 首屏数据、浮层回归与计划笔记收尾 |
+
+### G · 2026-06 资源显隐 / Range / Storybook 展厅收尾（6 篇）
+
+| 文件 | 摘要 |
+|------|------|
+| [2026-06-18-resource-visibility-change.md](tasks/2026-06-18-resource-visibility-change.md) | 资源显隐受控回调 + 列头控件（`onResourceVisibilityChange`） |
+| [2026-06-19-week-allday-row-overflow.md](tasks/2026-06-19-week-allday-row-overflow.md) | 修复 week/day 全天行宽度溢出与顶部滚动条补偿错位 |
+| [2026-06-19-storybook-brand-showcase.md](tasks/2026-06-19-storybook-brand-showcase.md) | Storybook 首页 / preview / manager 品牌展厅化 |
+| [2026-06-19-storybook-sidebar-polish.md](tasks/2026-06-19-storybook-sidebar-polish.md) | Storybook 侧栏品牌化导航、badge 与语义层级 |
+| [2026-06-19-range-and-month-density.md](tasks/2026-06-19-range-and-month-density.md) | month 事件密度 + scheduler/timeline `range` 与导航语义收口 |
+| [2026-06-19-range-host-controls-and-max-event-stack.md](tasks/2026-06-19-range-host-controls-and-max-event-stack.md) | range 暴露为宿主可调控件，month 堆叠统一到 `maxEventStack` |

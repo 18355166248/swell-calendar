@@ -35,16 +35,10 @@
 
 | 文档 | 作用 |
 |------|------|
-| [tasks/2026-06-18-post-s2-backlog.md](./tasks/2026-06-18-post-s2-backlog.md) | 收敛 `SPEC` / `plan` 中仍明确后置的 backlog，并给出新阶段优先级 |
-| [tasks/2026-06-18-resource-visibility-change.md](./tasks/2026-06-18-resource-visibility-change.md) | 资源显隐回调闭环（`onResourceVisibilityChange` + sidebar 显隐控件，宿主受控），backlog A 档 P1 |
-| [tasks/2026-06-19-week-allday-row-overflow.md](./tasks/2026-06-19-week-allday-row-overflow.md) | 修复 week/day 全天行宽度溢出与顶部滚动条补偿错位，并补最小布局回归测试 |
-| [tasks/2026-06-19-storybook-brand-showcase.md](./tasks/2026-06-19-storybook-brand-showcase.md) | 将 Storybook 首页、preview 与 manager 升级为品牌展厅化展示层 |
-| [tasks/2026-06-19-storybook-sidebar-polish.md](./tasks/2026-06-19-storybook-sidebar-polish.md) | 优化 Storybook 左侧导航语义、badge 与视觉层级，补齐品牌化入口体验 |
-| [tasks/2026-06-19-range-and-month-density.md](./tasks/2026-06-19-range-and-month-density.md) | 收口 month 事件密度配置、scheduler range 与 timeline range / 导航语义 |
-| [tasks/2026-06-19-range-host-controls-and-max-event-stack.md](./tasks/2026-06-19-range-host-controls-and-max-event-stack.md) | 将 range 暴露为宿主可调控件，并把 month 堆叠能力统一到 `maxEventStack` 语义 |
+| [tasks/2026-06-18-post-s2-backlog.md](./tasks/2026-06-18-post-s2-backlog.md) | 收敛 `SPEC` / `plan` 中仍明确后置的 backlog，并给出新阶段优先级（当前唯一活跃收敛点） |
 | [adrs/ADR-2026-05-scheduler-parity-scope.md](./adrs/ADR-2026-05-scheduler-parity-scope.md) | scheduler 范围与设计原则 ADR（一级原则记录，保留） |
 
-> 已完成的 scheduler / month / S2 切片任务单（含路由、workweek、视图切换修复、S2 P7–P8、月视图交互、全天语义补齐、demo 收尾等）均已迁入 [archive/tasks/](./archive/tasks/)，结论沉淀在 `SPEC` / `agent-plan/plan.md` 等一级真源。
+> 已完成的 scheduler / month / S2 切片任务单（含路由、workweek、视图切换修复、S2 P7–P8、月视图交互、全天语义补齐、资源显隐、range/月密度、Storybook 展厅化、demo 收尾等）均已迁入 [archive/tasks/](./archive/tasks/)，结论沉淀在 `SPEC` / `agent-plan/plan.md` 等一级真源。
 
 ## 模板与归档
 
