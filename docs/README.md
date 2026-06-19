@@ -35,7 +35,8 @@
 
 | 文档 | 作用 |
 |------|------|
-| [tasks/2026-06-18-post-s2-backlog.md](./tasks/2026-06-18-post-s2-backlog.md) | 收敛 `SPEC` / `plan` 中仍明确后置的 backlog，并给出新阶段优先级（当前唯一活跃收敛点） |
+| [tasks/2026-06-18-post-s2-backlog.md](./tasks/2026-06-18-post-s2-backlog.md) | 收敛 `SPEC` / `plan` 中仍明确后置的 backlog，并给出新阶段优先级（活跃收敛点） |
+| [tasks/2026-06-19-mobile-adaptation.md](./tasks/2026-06-19-mobile-adaptation.md) | 移动端适配 capability epic（响应式 + 触控），M0 文档已立项，按 M1/M2/M3 推进 |
 | [adrs/ADR-2026-05-scheduler-parity-scope.md](./adrs/ADR-2026-05-scheduler-parity-scope.md) | scheduler 范围与设计原则 ADR（一级原则记录，保留） |
 
 > 已完成的 scheduler / month / S2 切片任务单（含路由、workweek、视图切换修复、S2 P7–P8、月视图交互、全天语义补齐、资源显隐、range/月密度、Storybook 展厅化、demo 收尾等）均已迁入 [archive/tasks/](./archive/tasks/)，结论沉淀在 `SPEC` / `agent-plan/plan.md` 等一级真源。

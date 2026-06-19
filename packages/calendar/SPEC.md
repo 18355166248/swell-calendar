@@ -18,7 +18,8 @@ swell-calendar 是一个**可嵌入的 React 日历组件库**，面向需要在
 
 - 参考的是桌面端 scheduler 的产品行为、布局和交互闭环
 - 不要求与 Mobiscroll 保持同名 API
-- `agenda`、移动端适配、`connections`、`eventList` 不在当前近期范围
+- `connections`、`eventList` 不在当前近期范围
+- 移动端适配（响应式 + 触控 + 四视图）为活跃 capability epic，规划中、尚未落地；视觉对标 iOS 苹果日历设计稿（`docs/assets/*.png`），覆盖 Day/Multi-day/Agenda/Month；`agenda` 视图并入该 epic（M2）。详见 `docs/tasks/2026-06-19-mobile-adaptation.md`
 
 ## 核心约束
 
@@ -99,11 +100,13 @@ swell-calendar 是一个**可嵌入的 React 日历组件库**，面向需要在
 
 当前**仍明确后置**的能力：
 
-- `agenda`
-- 移动端适配
 - `connections`
 - `eventList`
 - 虚拟化、打印、a11y 强化
+
+当前**活跃 epic（规划中，未落地）**：
+
+- 移动端适配（响应式布局 + 触控输入 + 四视图），视觉对标 iOS 苹果日历设计稿（`docs/assets/*.png`）；含新 `agenda` 视图（M2）。详见 `docs/tasks/2026-06-19-mobile-adaptation.md`
 
 shared events 的资源策略固定为：
 
