@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { ALLDAY_EVENT_HEIGHT, AlldayRow } from '@/components/dayGrid/AlldayRow';
 import GridHeader from '@/components/dayGridCommon/GridHeader';
@@ -35,6 +35,7 @@ export function Day(): JSX.Element {
   const activePanels = getActivePanels(taskView, eventView);
 
   const [timeGridRef, setTimeGridRef] = useDOMNode<HTMLDivElement>();
+  const [scrollbarWidth, setScrollbarWidth] = useState(0);
 
   // 创建包含当前渲染日期的数组（日视图只显示一天）
   const days = useMemo(() => [renderDate], [renderDate]);
@@ -74,10 +75,26 @@ export function Day(): JSX.Element {
   // 同步向上向下滚动
   useTimeGridScrollSync(timeGridRef, timeGridData.rows.length);
 
+  useEffect(() => {
+    if (!timeGridRef) return;
+
+    const measure = () => setScrollbarWidth(timeGridRef.offsetWidth - timeGridRef.clientWidth);
+
+    measure();
+
+    if (typeof ResizeObserver === 'undefined') return;
+
+    const ro = new ResizeObserver(measure);
+    ro.observe(timeGridRef);
+
+    return () => ro.disconnect();
+  }, [timeGridRef]);
+
   const alldayModels = dayGridEvents.allday;
   const maxAlldaySlot =
     alldayModels.length > 0 ? Math.max(0, ...alldayModels.map((m) => m.top)) : -1;
   const alldayPanelHeight = maxAlldaySlot >= 0 ? (maxAlldaySlot + 1) * ALLDAY_EVENT_HEIGHT : 0;
+  const rightInset = `${scrollbarWidth}px`;
 
   return (
     <Layout className="day-view">
@@ -85,6 +102,7 @@ export function Day(): JSX.Element {
         <GridHeader
           type="week"
           marginLeft={timeGridLeftWidth}
+          rightInset={rightInset}
           dayNames={dayNames}
           rowStyleInfo={rowStyleInfo}
         />
@@ -92,7 +110,11 @@ export function Day(): JSX.Element {
 
       {activePanels.includes('allday') && alldayModels.length > 0 ? (
         <Panel name="allday" initialHeight={alldayPanelHeight}>
-          <AlldayRow uiModels={alldayModels} marginLeft={timeGridLeftWidth} />
+          <AlldayRow
+            uiModels={alldayModels}
+            marginLeft={timeGridLeftWidth}
+            rightInset={rightInset}
+          />
         </Panel>
       ) : null}
 

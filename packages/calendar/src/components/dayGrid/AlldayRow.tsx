@@ -11,9 +11,10 @@ const ALLDAY_MIN_HEIGHT = ALLDAY_EVENT_HEIGHT;
 interface AlldayRowProps {
   uiModels: EventUIModel[];
   marginLeft?: string;
+  rightInset?: string;
 }
 
-export function AlldayRow({ uiModels, marginLeft = '0' }: AlldayRowProps) {
+export function AlldayRow({ uiModels, marginLeft = '0', rightInset = '0' }: AlldayRowProps) {
   const alldayTheme = useThemeStore((theme: ThemeState) => theme.week.allday);
 
   if (uiModels.length === 0) return null;
@@ -29,7 +30,6 @@ export function AlldayRow({ uiModels, marginLeft = '0' }: AlldayRowProps) {
     <div
       className={cls('allday-row')}
       style={{
-        position: 'relative',
         height: containerHeight,
         backgroundColor: alldayTheme.backgroundColor,
         borderBottom: alldayTheme.borderBottom,
@@ -49,12 +49,16 @@ export function AlldayRow({ uiModels, marginLeft = '0' }: AlldayRowProps) {
         </div>
       )}
       <div
-        className={cls('allday-row-events')}
-        style={{ position: 'absolute', inset: 0, marginLeft }}
+        className={cls('allday-row-content')}
+        style={{
+          marginRight: rightInset,
+        }}
       >
-        {uiModels.map((uiModel, i) => (
-          <AlldayEvent key={i} uiModel={uiModel} height={ALLDAY_EVENT_HEIGHT} />
-        ))}
+        <div className={cls('allday-row-events')}>
+          {uiModels.map((uiModel, i) => (
+            <AlldayEvent key={i} uiModel={uiModel} height={ALLDAY_EVENT_HEIGHT} />
+          ))}
+        </div>
       </div>
     </div>
   );

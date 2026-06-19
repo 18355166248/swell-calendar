@@ -1,92 +1,54 @@
 import '../src/css/index.scss';
+import '../src/stories/showcase.css';
 
 import type { Preview } from '@storybook/react-vite';
 import { createElement, type CSSProperties } from 'react';
 
-function getWorkbenchStyles(title?: string, storyName?: string) {
+import { storybookTheme } from '../src/stories/showcase';
+
+function getWorkbenchStyles(title?: string) {
   const isCalendarStory = title?.startsWith('日历/') ?? false;
 
   const shell: CSSProperties = {
     boxSizing: 'border-box',
-    padding: isCalendarStory ? '16px' : '32px 20px',
+    padding: isCalendarStory ? '18px' : '28px 18px',
     background:
-      'radial-gradient(circle at top, rgba(15, 23, 42, 0.05), transparent 26%), linear-gradient(180deg, #f5f7fb 0%, #edf1f6 100%)',
-    // 日历 story 固定为视口高度并用 flex 列填充，避免 minHeight:100vh + padding
-    // 的尺寸叠加把整页撑出滚动条（与日历自身的时间网格滚动叠成双滚动条）。
+      'radial-gradient(circle at top left, rgba(201, 111, 59, 0.18), transparent 24%), radial-gradient(circle at top right, rgba(32, 76, 72, 0.14), transparent 22%), linear-gradient(180deg, #f5eee2 0%, #ebe1d2 100%)',
     ...(isCalendarStory
       ? ({
           height: '100vh',
           overflow: 'hidden',
           display: 'flex',
-          flexDirection: 'column',
         } as const)
       : { minHeight: '100vh' }),
   };
 
-  const chrome: CSSProperties = isCalendarStory
-    ? {
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        marginBottom: 10,
-        padding: '0 6px',
-      }
-    : {
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        maxWidth: 980,
-        margin: '0 auto',
-        marginBottom: 12,
-        padding: '0 4px',
-      };
-
-  const badge: CSSProperties = {
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: 8,
-    padding: '8px 12px',
-    borderRadius: 999,
-    background: 'rgba(255,255,255,0.82)',
-    border: '1px solid rgba(148, 163, 184, 0.18)',
-    boxShadow: '0 8px 24px rgba(15, 23, 42, 0.06)',
-    color: '#0f172a',
-    fontSize: 12,
-    fontWeight: 600,
-    letterSpacing: '0.02em',
-    backdropFilter: 'blur(10px)',
-  };
-
-  const badgeSubtle: CSSProperties = {
-    color: '#64748b',
-    fontWeight: 500,
-  };
-
   const stage: CSSProperties = isCalendarStory
     ? {
-        flex: 1,
-        minHeight: 0,
-        borderRadius: 20,
+        width: '100%',
+        height: '100%',
+        borderRadius: 28,
         overflow: 'hidden',
-        border: '1px solid rgba(148, 163, 184, 0.18)',
-        background: '#ffffff',
-        boxShadow: '0 18px 40px rgba(15, 23, 42, 0.08)',
+        border: `1px solid ${storybookTheme.borderColor}`,
+        background:
+          'linear-gradient(180deg, rgba(255,252,247,0.95) 0%, rgba(249,243,233,0.88) 100%)',
+        boxShadow: '0 36px 80px rgba(58, 38, 22, 0.14)',
       }
     : {
-        maxWidth: 980,
+        maxWidth: 1180,
         margin: '0 auto',
-        padding: 24,
-        borderRadius: 22,
-        border: '1px solid rgba(148, 163, 184, 0.18)',
+        padding: 28,
+        borderRadius: 28,
+        border: `1px solid ${storybookTheme.borderColor}`,
         background:
-          'linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(249,250,251,0.98) 100%)',
-        boxShadow: '0 18px 40px rgba(15, 23, 42, 0.08)',
+          'linear-gradient(180deg, rgba(255, 252, 247, 0.98) 0%, rgba(248, 240, 229, 0.98) 100%)',
+        boxShadow: '0 32px 72px rgba(58, 38, 22, 0.12)',
       };
 
-  const metaLabel = title?.replace(/^日历\//, '') ?? 'Storybook';
-  const storyLabel = storyName ?? 'Preview';
-
-  return { shell, chrome, badge, badgeSubtle, stage, metaLabel, storyLabel, isCalendarStory };
+  return {
+    shell,
+    stage,
+  };
 }
 
 const preview: Preview = {
@@ -98,47 +60,34 @@ const preview: Preview = {
         date: /Date$/i,
       },
     },
-    // 概览作为首页置顶，其余按「日历」分组自然排序
     options: {
       storySort: {
-        order: ['Swell Calendar', ['概览'], '日历'],
+        order: [
+          'Swell Calendar',
+          ['概览'],
+          '日历',
+          [
+            '视图',
+            ['日视图', '周视图', '月视图', '时间线'],
+            '调度器',
+            ['基础', '交互', '高级能力', '回归测试'],
+            '应用示例',
+          ],
+        ],
       },
     },
   },
   decorators: [
     (Story, context) => {
       if (context.viewMode === 'docs') {
-        return createElement(Story);
+        return createElement('div', { className: 'sb-showcase-docs-shell' }, createElement(Story));
       }
 
-      const { shell, chrome, badge, badgeSubtle, stage, metaLabel, storyLabel, isCalendarStory } =
-        getWorkbenchStyles(context.title, context.name);
+      const { shell, stage } = getWorkbenchStyles(context.title);
 
       return createElement(
         'div',
         { style: shell },
-        createElement(
-          'div',
-          { style: chrome },
-          createElement(
-            'div',
-            { style: badge },
-            createElement('span', null, metaLabel),
-            createElement('span', { style: badgeSubtle }, storyLabel)
-          ),
-          createElement(
-            'div',
-            {
-              style: {
-                ...badge,
-                padding: '6px 10px',
-                fontSize: 11,
-                background: 'rgba(255,255,255,0.7)',
-              },
-            },
-            isCalendarStory ? 'Workbench' : 'Component Preview'
-          )
-        ),
         createElement('div', { style: stage }, createElement(Story))
       );
     },

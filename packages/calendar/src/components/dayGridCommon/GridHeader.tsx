@@ -14,6 +14,7 @@ type TemplateDayNames = (TemplateWeekDayName | TemplateMonthDayName)[];
 interface GridHeaderProps {
   dayNames: TemplateDayNames;
   marginLeft?: string;
+  rightInset?: string;
   type: 'week' | 'month';
   rowStyleInfo: CellStyle[];
 }
@@ -38,6 +39,7 @@ export type DayNameThemes = {
 function GridHeader({
   dayNames,
   marginLeft = DEFAULT_DAY_NAME_MARGIN_LEFT,
+  rightInset = '0',
   type = 'month',
   rowStyleInfo,
 }: GridHeaderProps) {
@@ -107,7 +109,7 @@ function GridHeader({
 
   return (
     <div className={cls('day-names')} style={style}>
-      <div className={cls('day-names-container')} style={{ marginLeft }}>
+      <div className={cls('day-names-container')} style={{ marginLeft, marginRight: rightInset }}>
         {dayNames.map((dayName, index) => (
           <DayName
             key={dayName.day}

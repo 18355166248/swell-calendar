@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { WEEK_DAY_NAME_BORDER, WEEK_DAY_NAME_HEIGHT } from '@/constants/style.const';
 import { useCalendarStore } from '@/contexts/calendarStore';
@@ -59,6 +59,7 @@ export function Week() {
 
   // 时间面板的DOM引用
   const [timePanel, setTimePanelRef] = useDOMNode<HTMLDivElement>();
+  const [scrollbarWidth, setScrollbarWidth] = useState(0);
 
   // 提取周视图选项
   const weekOptions = options.week as Required<WeekOptions>;
@@ -124,10 +125,26 @@ export function Week() {
   // 同步时间网格滚动
   useTimeGridScrollSync(timePanel, timeGridData.rows.length);
 
+  useEffect(() => {
+    if (!timePanel) return;
+
+    const measure = () => setScrollbarWidth(timePanel.offsetWidth - timePanel.clientWidth);
+
+    measure();
+
+    if (typeof ResizeObserver === 'undefined') return;
+
+    const ro = new ResizeObserver(measure);
+    ro.observe(timePanel);
+
+    return () => ro.disconnect();
+  }, [timePanel]);
+
   const alldayModels = dayGridEvents.allday;
   const maxAlldaySlot =
     alldayModels.length > 0 ? Math.max(0, ...alldayModels.map((m) => m.top)) : -1;
   const alldayPanelHeight = maxAlldaySlot >= 0 ? (maxAlldaySlot + 1) * ALLDAY_EVENT_HEIGHT : 0;
+  const rightInset = `${scrollbarWidth}px`;
 
   return (
     <Layout className={cls('week-view')}>
@@ -135,6 +152,7 @@ export function Week() {
         <GridHeader
           type="week"
           marginLeft={timeGridLeftWidth}
+          rightInset={rightInset}
           dayNames={dayNames}
           rowStyleInfo={rowStyleInfo}
         />
@@ -142,7 +160,11 @@ export function Week() {
 
       {activePanels.includes('allday') && alldayModels.length > 0 ? (
         <Panel name="allday" initialHeight={alldayPanelHeight}>
-          <AlldayRow uiModels={alldayModels} marginLeft={timeGridLeftWidth} />
+          <AlldayRow
+            uiModels={alldayModels}
+            marginLeft={timeGridLeftWidth}
+            rightInset={rightInset}
+          />
         </Panel>
       ) : null}
 

@@ -1,85 +1,85 @@
 import { Meta } from "@storybook/addon-docs/blocks";
 
+import {
+  showcaseCapabilityPillars,
+  showcaseJourney,
+  showcaseSignals,
+  showcaseViewCards,
+} from "./showcase";
+
 <Meta title="Swell Calendar/概览" />
 
-# Swell Calendar
+<div className="sb-showcase-docs">
+  <section className="sb-showcase-hero">
+    <div className="sb-showcase-kicker">Brand Showcase · React Calendar System</div>
+    <h1 className="sb-showcase-title">Swell Calendar</h1>
+    <p className="sb-showcase-lead">
+      一套以宿主受控为核心、面向产品级排程体验的 React 日历组件库。这里不是默认的开发
+      workbench，而是一座可以直接用于演示、评审和对外展示的品牌展厅。
+    </p>
 
-<div className="sc-lead">一套以宿主受控为核心的 React 日历组件库：日 / 周 / 月 / 调度器 / 时间线五视图，统一的事件数据模型与受控回调，桌面端调度器对齐 Mobiscroll 交互闭环。</div>
+    <div className="sb-showcase-hero-grid">
+      {showcaseSignals.map((signal) => (
+        <div className="sb-showcase-stat" key={signal.label}>
+          <div className="sb-showcase-stat-value">{signal.value}</div>
+          <div className="sb-showcase-stat-label">{signal.label}</div>
+          <div className="sb-showcase-stat-desc">{signal.description}</div>
+        </div>
+      ))}
+    </div>
+  </section>
 
-## 视图一览
+  <section className="sb-showcase-section">
+    <h2>从五视图快速建立心智模型</h2>
+    <p className="sb-showcase-section-copy">
+      先建立“这个库能覆盖哪些典型排程场景”的第一印象，再回头深入 Scheduler
+      的高级能力与回归场景，会比直接扎进左侧树状导航更高效。
+    </p>
+    <div className="sb-showcase-card-grid">
+      {showcaseViewCards.map((card) => (
+        <article className="sb-showcase-card" key={card.title}>
+          <div className="sb-showcase-card-eyebrow">{card.eyebrow}</div>
+          <h3 className="sb-showcase-card-title">{card.title}</h3>
+          <div className="sb-showcase-card-desc">{card.description}</div>
+          <div className="sb-showcase-card-path">{card.menuPath}</div>
+        </article>
+      ))}
+    </div>
+  </section>
 
-<div className="sc-grid">
-  <div className="sc-card">
-    <h3>日 / 周</h3>
-    <div className="sc-desc">时间网格、全天区、跨天事件、拖拽创建 / 移动 / resize。</div>
-    <small>菜单：日历 / 视图 / 日视图 · 周视图</small>
-  </div>
-  <div className="sc-card">
-    <h3>月</h3>
-    <div className="sc-desc">月网格、跨天事件条、「+N 更多」浮层、move / resize / create 交互。</div>
-    <small>菜单：日历 / 视图 / 月视图</small>
-  </div>
-  <div className="sc-card">
-    <h3>调度器</h3>
-    <div className="sc-desc">资源列布局、资源显隐 / 分组、共享事件、overlap / buffer、失败回调、外部与跨实例拖拽。</div>
-    <small>菜单：日历 / 调度器</small>
-  </div>
-  <div className="sc-card">
-    <h3>时间线</h3>
-    <div className="sc-desc">日粒度资源排程：按天列 + 资源行 + 跨天横条 + 同行车道堆叠。</div>
-    <small>菜单：日历 / 视图 / 时间线</small>
-  </div>
+  <section className="sb-showcase-section">
+    <h2>调度器是旗舰能力，不只是一个 Story 分组</h2>
+    <p className="sb-showcase-section-copy">
+      Scheduler 承载最完整的业务闭环：资源列、受控增删改、shared events、recurrence、
+      timezone、外部拖入和跨实例拖拽。建议把它作为品牌展厅里的旗舰能力来浏览，而不是单纯测试入口。
+    </p>
+    <div className="sb-showcase-pill-grid">
+      {showcaseCapabilityPillars.map((capability) => (
+        <div className="sb-showcase-pill" key={capability}>
+          {capability}
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <section className="sb-showcase-section">
+    <h2>推荐浏览路径</h2>
+    <p className="sb-showcase-section-copy">
+      首页负责建立价值感，视图 stories 负责建立能力感，回归 stories 负责建立工程信任感。
+    </p>
+    <div className="sb-showcase-step-grid">
+      {showcaseJourney.map((step, index) => (
+        <article className="sb-showcase-step" key={step.title}>
+          <div className="sb-showcase-card-eyebrow">Step {index + 1}</div>
+          <h3 className="sb-showcase-step-title">{step.title}</h3>
+          <div className="sb-showcase-step-desc">{step.description}</div>
+        </article>
+      ))}
+    </div>
+    <div className="sb-showcase-footer">
+      对齐参考：Mobiscroll React Scheduler Desktop Week View。
+      真正的能力边界、公开 API 与行为约束仍以仓库内的
+      <code> packages/calendar/SPEC.md </code> 为准。
+    </div>
+  </section>
 </div>
-
-## 核心约定
-
-- **宿主受控**：组件只派发交互意图与校验结果，事件数据始终以 `props.events` 为最终真值；
-  宿主通过回调（`onEventCreate` / `onEventUpdate` / `onResourceVisibilityChange` …）决定是否更新。
-- **统一字段**：`allDay` / `editable` / `resizable` / `resourceId(s)` / `timezone` / `recurrence`
-  等字段贯穿各视图的校验链与渲染链。
-- **失败回调**：`onEventCreateFailed` / `onEventUpdateFailed` 只表示本库同步规则校验失败，
-  携带 `reason` + `policySource`，不代表宿主网络 / 服务端结果。
-
-## 调度器能力速览
-
-<div className="sc-caps">资源显隐（列头控件 + 受控回填）· 资源分组 / 折叠 · 共享事件 · per-event 编辑性 · overlap policy 与 buffer · recurrence 展开与编辑作用域 · timezone 双层转换 · external DnD（HTML5 + 命令式 CalendarInstance.externalDrop()）· 跨实例拖拽。</div>
-
-<div className="sc-note">调度器对齐参考：Mobiscroll React Scheduler Desktop Week View（https://demo.mobiscroll.com/react/scheduler/desktop-week-view）。能力真源见仓库 packages/calendar/SPEC.md。</div>
-
-<style>
-  {`
-  .sc-lead {
-    font-size: 15px;
-    line-height: 1.7;
-    color: #475569;
-    max-width: 760px;
-    margin-bottom: 28px;
-  }
-  .sc-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 14px;
-    margin: 12px 0 8px;
-  }
-  .sc-card {
-    border: 1px solid rgba(148,163,184,0.28);
-    border-radius: 12px;
-    padding: 14px 16px;
-    background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(248,250,252,0.9));
-  }
-  .sc-card h3 { margin: 0 0 6px; font-size: 14px; }
-  .sc-desc { margin: 0 0 8px; font-size: 13px; line-height: 1.6; color: #475569; }
-  .sc-card small { color: #94a3b8; font-size: 11px; }
-  .sc-caps { font-size: 13px; line-height: 1.8; color: #334155; max-width: 820px; }
-  .sc-note {
-    margin-top: 16px;
-    padding: 10px 14px;
-    border-left: 3px solid #cbd5e1;
-    background: rgba(148,163,184,0.08);
-    border-radius: 0 8px 8px 0;
-    font-size: 12px;
-    color: #64748b;
-    line-height: 1.7;
-  }
-  `}
-</style>

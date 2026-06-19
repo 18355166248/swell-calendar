@@ -10,14 +10,17 @@ interface AlldayEventProps {
   height: number;
 }
 
+const ALLDAY_EVENT_LEFT_INSET = 1;
+const ALLDAY_EVENT_RIGHT_GAP = 4;
+
 export function AlldayEvent({ uiModel, height }: AlldayEventProps) {
   const { model, left, width, exceedLeft, exceedRight } = uiModel;
   const callbacks = useCalendarCallbacks();
 
   const style: CSSProperties = {
     position: 'absolute',
-    left: `${left}%`,
-    width: `calc(${width}% - 4px)`,
+    left: `calc(${left}% + ${ALLDAY_EVENT_LEFT_INSET}px)`,
+    width: `calc(${width}% - ${ALLDAY_EVENT_LEFT_INSET + ALLDAY_EVENT_RIGHT_GAP}px)`,
     top: uiModel.top * height,
     height: height - 2,
     backgroundColor: model.backgroundColor ?? '#1677ff',
