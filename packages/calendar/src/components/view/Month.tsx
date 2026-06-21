@@ -2,8 +2,10 @@ import { useMemo } from 'react';
 
 import { useCalendarStore } from '@/contexts/calendarStore';
 import { getMonthDayNames, getMonthEventRows, getMonthWeeks } from '@/controller/month.controller';
+import { useViewportTier } from '@/hooks/common/useViewportTier';
 import { getRowStyleInfo } from '@/time/datetime';
 import { MonthOptions } from '@/types/options.type';
+import { getTierClassName } from '@/utils/viewport';
 
 import GridHeader from '../dayGridCommon/GridHeader';
 import Layout from '../Layout';
@@ -32,6 +34,7 @@ export function Month() {
   const monthOptions = options.month as Required<MonthOptions>;
   const { narrowWeekend, startDayOfWeek, workweek } = monthOptions;
   const maxEventStack = monthOptions.maxEventStack;
+  const [viewportTier, setViewportRef] = useViewportTier();
 
   /**
    * 计算月视图的周布局
@@ -56,7 +59,7 @@ export function Month() {
   }, [dayNames.length, narrowWeekend, startDayOfWeek, workweek]);
 
   return (
-    <Layout className="month-view">
+    <Layout className={getTierClassName('month-view', viewportTier)} rootRef={setViewportRef}>
       <Panel name="month-day-names" initialHeight={MONTH_DAY_NAME_HEIGHT}>
         <GridHeader dayNames={dayNames} type="month" rowStyleInfo={rowStyleInfo} />
       </Panel>

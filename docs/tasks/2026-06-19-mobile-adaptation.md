@@ -137,7 +137,17 @@
 ## 实施结果
 > 按 phase 推进，逐段回填。
 - M0（设计基线 & scope）：完成；scope 变更已同步 plan/SPEC/backlog/README，agenda 纳入 epic。
-- M1：
+- M1：**响应式原语层 + Day/Month tier 接入已落地（桌面零回归）**。
+  - 原语（无 React / DOM 的纯逻辑）：
+    - `types/viewport.type.ts`：`ViewportTier = 'mobile' | 'tablet' | 'desktop'`。
+    - `constants/viewport.const.ts`：断点 `TABLET_MIN_WIDTH=768` / `DESKTOP_MIN_WIDTH=1024`（下界包含、上界排除）。
+    - `utils/viewport.ts`：`getViewportTier(width)`（非有限宽度兜底 `mobile`）+ `getTierClassName(base, tier)`（桌面仅返回基类，其余追加 `${base}--${tier}`）；单测 `utils/viewport.spec.ts`（6 项）。
+  - DOM 读取集中在 hooks 层：
+    - `hooks/common/useContainerWidth.ts`：`ResizeObserver` 观测根容器宽度，初始默认桌面下界 → SSR / 无 RO / 首帧落桌面档，保证零回归。
+    - `hooks/common/useViewportTier.ts`：组合上面两者，返回 `[tier, setRef]`。
+  - 接入：`Layout` 新增可选 `rootRef`（与内部测量 ref 合并）；`view/Day.tsx`、`view/Month.tsx` 用 `useViewportTier` 把 ref 挂到 `Layout` 根容器，并以 `getTierClassName` 切根类名。桌面 tier 输出类名与现状完全一致。
+  - 验证：`tsc --noEmit` 通过；`viewport.spec`（6）+ `Month.spec`（3）绿；`check-arch`（198 文件无违规）/ `check-docs` 通过。
+  - **M1 剩余（下一小步）**：移动 / 平板 tier 的实际 CSS（全天 chip 胶囊化、窄列、month 紧凑 chip）；`apps/swell-calendar-s2` 移动 shell（顶部导航条 + 周条切周）。原语与类名钩子已就位，可直接挂 CSS。
 - M2：
 - M3：
 - M4：

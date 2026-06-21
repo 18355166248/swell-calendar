@@ -1,5 +1,6 @@
 import { isNil, isNumber, isString } from 'lodash-es';
-import { Children, ReactElement, useEffect, useLayoutEffect, useMemo } from 'react';
+import type { RefCallback } from 'react';
+import { Children, ReactElement, useCallback, useEffect, useLayoutEffect, useMemo } from 'react';
 
 import { useCalendarStore } from '@/contexts/calendarStore';
 import { LayoutContainerProvider } from '@/contexts/layoutContainer';
@@ -12,6 +13,11 @@ interface LayoutProps {
   width?: number;
   height?: number;
   backgroundColor?: string;
+  /**
+   * 透传到根容器的额外 ref，与内部测量 ref 合并。
+   * 供视图层挂 viewport 观测 ref（`useViewportTier`）按容器宽度切档。
+   */
+  rootRef?: RefCallback<HTMLDivElement>;
 }
 
 function getLayoutStylesFromInfo(width?: number, height?: number) {
@@ -27,8 +33,17 @@ function getLayoutStylesFromInfo(width?: number, height?: number) {
   return style;
 }
 
-const Layout = ({ children, className, width, height, backgroundColor }: LayoutProps) => {
+const Layout = ({ children, className, width, height, backgroundColor, rootRef }: LayoutProps) => {
   const [container, setContainer] = useDOMNode<HTMLDivElement>();
+
+  // 合并内部测量 ref 与外部透传 ref，挂到同一根 div
+  const setRootRef = useCallback<RefCallback<HTMLDivElement>>(
+    (node) => {
+      setContainer(node);
+      rootRef?.(node);
+    },
+    [setContainer, rootRef]
+  );
 
   const {
     layout: { updateLayoutHeight, setLastPanelType, pruneDayGridRows },
@@ -77,7 +92,7 @@ const Layout = ({ children, className, width, height, backgroundColor }: LayoutP
   return (
     <LayoutContainerProvider value={container}>
       <div
-        ref={setContainer}
+        ref={setRootRef}
         className={containerClassName}
         style={{ ...getLayoutStylesFromInfo(width, height), backgroundColor }}
       >

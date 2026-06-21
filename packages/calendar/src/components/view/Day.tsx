@@ -12,9 +12,11 @@ import { getDayNames } from '@/helpers/dayName';
 import { createTimeGridData, getWeekViewEvents } from '@/helpers/grid';
 import { getActivePanels } from '@/helpers/view';
 import { useDOMNode } from '@/hooks/common/useDOMNode';
+import { useViewportTier } from '@/hooks/common/useViewportTier';
 import useTimeGridScrollSync from '@/hooks/TimeGrid/useTimeGridScrollSync';
 import { getFilterRange, getRowStyleInfo } from '@/time/datetime';
 import { WeekOptions } from '@/types/options.type';
+import { getTierClassName } from '@/utils/viewport';
 
 export function Day(): JSX.Element {
   const { options, view } = useCalendarStore();
@@ -36,6 +38,7 @@ export function Day(): JSX.Element {
 
   const [timeGridRef, setTimeGridRef] = useDOMNode<HTMLDivElement>();
   const [scrollbarWidth, setScrollbarWidth] = useState(0);
+  const [viewportTier, setViewportRef] = useViewportTier();
 
   // 创建包含当前渲染日期的数组（日视图只显示一天）
   const days = useMemo(() => [renderDate], [renderDate]);
@@ -97,7 +100,7 @@ export function Day(): JSX.Element {
   const rightInset = `${scrollbarWidth}px`;
 
   return (
-    <Layout className="day-view">
+    <Layout className={getTierClassName('day-view', viewportTier)} rootRef={setViewportRef}>
       <Panel name="day-view-day-names" initialHeight={WEEK_DAY_NAME_HEIGHT + WEEK_DAY_NAME_BORDER}>
         <GridHeader
           type="week"
