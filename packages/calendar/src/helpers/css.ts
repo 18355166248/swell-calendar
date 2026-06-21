@@ -19,7 +19,13 @@ export function cls(...args: ClassNameValue[]): string {
     }
 
     if (isString(arg)) {
-      result.push(arg);
+      // 单个字符串可能含多个空格分隔的类（如 BEM 基类 + 修饰类），
+      // 拆开逐个入列，确保每个类都被加上 CSS_PREFIX，而非只前缀首个。
+      arg.split(/\s+/).forEach((token) => {
+        if (token) {
+          result.push(token);
+        }
+      });
     } else {
       Object.keys(arg).forEach((className) => {
         if (arg[className]) {

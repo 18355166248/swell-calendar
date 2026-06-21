@@ -22,7 +22,14 @@ export function useContainerWidth(
   useEffect(() => {
     if (!node) return;
 
-    const measure = () => setWidth(node.clientWidth);
+    // clientWidth 为 0 通常意味着容器尚未布局（首帧 / 隐藏 tab / 刚挂载），
+    // 而非真的极窄；此时跳过更新，保留初始桌面兜底，避免瞬时误降级到 mobile。
+    const measure = () => {
+      const next = node.clientWidth;
+      if (next > 0) {
+        setWidth(next);
+      }
+    };
 
     measure();
 

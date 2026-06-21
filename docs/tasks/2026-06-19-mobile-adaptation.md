@@ -147,6 +147,9 @@
     - `hooks/common/useViewportTier.ts`：组合上面两者，返回 `[tier, setRef]`。
   - 接入：`Layout` 新增可选 `rootRef`（与内部测量 ref 合并）；`view/Day.tsx`、`view/Month.tsx` 用 `useViewportTier` 把 ref 挂到 `Layout` 根容器，并以 `getTierClassName` 切根类名。桌面 tier 输出类名与现状完全一致。
   - 验证：`tsc --noEmit` 通过；`viewport.spec`（6）+ `Month.spec`（3）绿；`check-arch`（198 文件无违规）/ `check-docs` 通过。
+  - Storybook 右侧预览验证（日视图 story）：移动 375px → 根类 `swell-calendar-day-view--mobile`；桌面 1280px → 仅 `swell-calendar-day-view`（零回归）。期间发现并修复两处：
+    - `helpers/css.ts` `cls` 对含空格的单字符串只前缀首个 token，导致修饰类拿不到 `swell-calendar-` 前缀，与基类不一致；改为按空格拆分逐个加前缀，补 `helpers/css.spec.ts`。
+    - `useContainerWidth` 在容器 `clientWidth` 为 0（首帧/隐藏 tab/刚挂载）时误降级 mobile；改为忽略 ≤0 宽度，保留初始桌面兜底，强化零回归。
   - **M1 剩余（下一小步）**：移动 / 平板 tier 的实际 CSS（全天 chip 胶囊化、窄列、month 紧凑 chip）；`apps/swell-calendar-s2` 移动 shell（顶部导航条 + 周条切周）。原语与类名钩子已就位，可直接挂 CSS。
 - M2：
 - M3：
