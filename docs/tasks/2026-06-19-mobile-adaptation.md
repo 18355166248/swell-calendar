@@ -119,7 +119,8 @@
 - [x] `packages/calendar/SPEC.md`（移动端 + agenda 改为"规划中/活跃 epic"，不写"已支持"）
 - [x] `docs/tasks/2026-06-18-post-s2-backlog.md`
 - [x] `docs/README.md`
-- [ ] M1–M5 实现时按 phase 回写 SPEC 能力行 + MIGRATION（如有新公开配置 / `agenda` 公开）
+- [x] M1：回写 `SPEC.md`（移动端能力行从"尚未落地"改为"M1 响应式基线已落地，M2–M5 规划中"，列明已落地/未落地边界）。**MIGRATION 无需变更**：viewport 原语 / `useViewportTier` / `useContainerWidth` / `getTierClassName` / `cls` 均未在 `src/index.ts` 公开导出，M1 为纯内部增量 + 桌面零回归，无对外 API / 配置变化。
+- [ ] M2–M5 实现时按 phase 回写 SPEC 能力行 + MIGRATION（`agenda` 公开 / 新公开配置 / 触控行为变更时）
 
 ## 验证计划
 - M0（纯文档）：`node scripts/check-docs.mjs`、`node scripts/check-arch.mjs`
