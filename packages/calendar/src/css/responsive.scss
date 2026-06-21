@@ -1,0 +1,34 @@
+// 移动端 / 平板布局覆盖（M1）
+//
+// 仅在 .day-view--mobile / .month-view--mobile 等修饰类作用域内生效，
+// 修饰类由 useViewportTier 按根容器宽度注入（见 utils/viewport.ts、
+// hooks/common/useViewportTier.ts）。桌面 tier 不带修饰类，故桌面零回归。
+//
+// 视觉对标 iOS 苹果日历移动稿（docs/assets/day1.png、day2.png）。
+// 事件卡片圆角是组件内联 style，纯 CSS 盖不住，故由组件改读 CSS 变量
+// （TimeEvent / AlldayEvent），此处仅在移动作用域内重定义变量值；
+// 其余非内联样式（标签、内容区）直接覆盖。
+// postcss-prefixer 会给每个选择器加 swell-calendar- 前缀，按语义类书写即可。
+
+.day-view--mobile {
+  // 事件圆角变量：限时事件加大圆角、全天事件胶囊化
+  --swell-time-event-radius: 8px;
+  --swell-allday-event-radius: 999px;
+
+  // 限时事件移动化：实心卡片（移动端不做静置半透明）
+  .event-time {
+    opacity: 1;
+  }
+
+  .event-time-content {
+    padding: 3px 8px;
+    font-size: 13px;
+  }
+
+  // 全天行标签「全天」移动端左对齐、字号略增，贴近设计稿
+  .allday-row-label {
+    justify-content: flex-start;
+    padding-left: 12px;
+    font-size: 13px;
+  }
+}

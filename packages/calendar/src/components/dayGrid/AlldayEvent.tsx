@@ -25,7 +25,8 @@ export function AlldayEvent({ uiModel, height }: AlldayEventProps) {
     height: height - 2,
     backgroundColor: model.backgroundColor ?? '#1677ff',
     color: model.color ?? '#fff',
-    borderRadius: 3,
+    // 默认 3px（桌面零回归），移动 tier 经 CSS 变量胶囊化（见 css/responsive.scss）
+    borderRadius: 'var(--swell-allday-event-radius, 3px)',
     padding: '0 4px',
     fontSize: 12,
     lineHeight: `${height - 2}px`,

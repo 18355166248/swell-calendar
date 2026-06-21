@@ -49,8 +49,8 @@ function getStyles({
   // 从UI模型中提取位置和尺寸信息
   const { top, left, width, height, duplicateWidth, duplicateLeft } = uiModel;
 
-  // 边框圆角
-  const borderRadius = 2;
+  // 边框圆角：默认 2px（桌面零回归），移动 tier 经 CSS 变量覆盖（见 css/responsive.scss）
+  const borderRadius = 'var(--swell-time-event-radius, 2px)';
   // 默认底部边距
   const defaultMarginBottom = 1;
 

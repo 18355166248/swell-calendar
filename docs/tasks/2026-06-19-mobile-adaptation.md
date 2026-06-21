@@ -150,7 +150,11 @@
   - Storybook 右侧预览验证（日视图 story）：移动 375px → 根类 `swell-calendar-day-view--mobile`；桌面 1280px → 仅 `swell-calendar-day-view`（零回归）。期间发现并修复两处：
     - `helpers/css.ts` `cls` 对含空格的单字符串只前缀首个 token，导致修饰类拿不到 `swell-calendar-` 前缀，与基类不一致；改为按空格拆分逐个加前缀，补 `helpers/css.spec.ts`。
     - `useContainerWidth` 在容器 `clientWidth` 为 0（首帧/隐藏 tab/刚挂载）时误降级 mobile；改为忽略 ≤0 宽度，保留初始桌面兜底，强化零回归。
-  - **M1 剩余（下一小步）**：移动 / 平板 tier 的实际 CSS（全天 chip 胶囊化、窄列、month 紧凑 chip）；`apps/swell-calendar-s2` 移动 shell（顶部导航条 + 周条切周）。原语与类名钩子已就位，可直接挂 CSS。
+  - **Day 移动样式首批已落地**（`css/responsive.scss`，`index.scss` @use 接入）：
+    - 事件卡片圆角是组件内联 style（postcss 纯 CSS 盖不住），故把 `TimeEvent` / `AlldayEvent` 的 `borderRadius` 改读 CSS 变量（桌面 fallback 保原值 2px/3px → 零回归），在 `.day-view--mobile` 作用域内重定义变量值：限时事件 8px、全天事件胶囊化 999px。
+    - 非内联样式直接覆盖：限时事件移动端实心（`opacity:1`）、内容区字号/内边距、全天标签左对齐。
+    - 预览验证（日视图 story）：移动 375 → `event-time` 圆角 8px / opacity 1；桌面 1280（reload）→ 圆角回 2px / opacity 0.9、根类无修饰（零回归）。
+  - **M1 剩余（下一小步）**：Day 窄列 / 时间 gutter 细化、Month 紧凑 chip + `+N`；`apps/swell-calendar-s2` 移动 shell（顶部导航条 + 周条切周）。CSS 变量 + tier 类名钩子已成型，按此模式扩展即可。
 - M2：
 - M3：
 - M4：
