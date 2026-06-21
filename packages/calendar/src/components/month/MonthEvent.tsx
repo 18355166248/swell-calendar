@@ -69,9 +69,10 @@ export function MonthEvent({
     height: cellEventHeight - 2,
     backgroundColor: model.backgroundColor ?? model.borderColor ?? '#1677ff',
     color: model.color ?? '#fff',
-    borderRadius: 3,
+    // 默认 3px / 12px（桌面零回归），移动 tier 经 CSS 变量紧凑化（见 css/responsive.scss）
+    borderRadius: 'var(--swell-month-event-radius, 3px)',
     padding: '0 4px',
-    fontSize: 12,
+    fontSize: 'var(--swell-month-event-font-size, 12px)',
     lineHeight: `${cellEventHeight - 2}px`,
     overflow: 'hidden',
     whiteSpace: 'nowrap',

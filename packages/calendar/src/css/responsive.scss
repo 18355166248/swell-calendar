@@ -32,3 +32,22 @@
     font-size: 13px;
   }
 }
+
+// 月视图移动布局：高密度紧凑格（对标 docs/assets/month.png）
+.month-view--mobile {
+  // 事件 chip 变量：移动端略圆 + 更小字号，单元格内塞下更多 chip
+  --swell-month-event-radius: 4px;
+  --swell-month-event-font-size: 11px;
+
+  // 日期数字圆圈缩小，贴近原生紧凑格
+  .month-cell-date {
+    width: 22px;
+    height: 22px;
+    font-size: 12px;
+  }
+
+  // +N 溢出标记字号收紧
+  .month-more {
+    font-size: 10px;
+  }
+}

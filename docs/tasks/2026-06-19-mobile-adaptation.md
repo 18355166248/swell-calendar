@@ -155,7 +155,11 @@
     - 事件卡片圆角是组件内联 style（postcss 纯 CSS 盖不住），故把 `TimeEvent` / `AlldayEvent` 的 `borderRadius` 改读 CSS 变量（桌面 fallback 保原值 2px/3px → 零回归），在 `.day-view--mobile` 作用域内重定义变量值：限时事件 8px、全天事件胶囊化 999px。
     - 非内联样式直接覆盖：限时事件移动端实心（`opacity:1`）、内容区字号/内边距、全天标签左对齐。
     - 预览验证（日视图 story）：移动 375 → `event-time` 圆角 8px / opacity 1；桌面 1280（reload）→ 圆角回 2px / opacity 0.9、根类无修饰（零回归）。
-  - **M1 剩余（下一小步）**：Day 窄列 / 时间 gutter 细化、Month 紧凑 chip + `+N`；`apps/swell-calendar-s2` 移动 shell（顶部导航条 + 周条切周）。CSS 变量 + tier 类名钩子已成型，按此模式扩展即可。
+  - **Month 移动紧凑已落地**（`css/responsive.scss` `.month-view--mobile`）：
+    - 同 tier 化模式：`MonthEvent` 的 `borderRadius` / `fontSize` 改读 CSS 变量（桌面 fallback 3px/12px → 零回归），移动作用域内紧凑为 4px/11px。
+    - 非内联样式直接覆盖：日期圆圈 24→22px、字号 13→12px；`+N` 溢出标记 11→10px。
+    - 预览验证（月视图 story）：移动 375 → chip 11px/4px、日期圈 22px/12px；桌面 1280（reload）→ 12px/3px、24px/13px、根类无修饰（零回归）。
+  - **M1 剩余（下一小步）**：Day 窄列 / 时间 gutter 细化；`apps/swell-calendar-s2` 移动 shell（顶部导航条 + 周条切周）。CSS 变量 + tier 类名钩子已成型，按此模式扩展即可。
 - M2：
 - M3：
 - M4：
