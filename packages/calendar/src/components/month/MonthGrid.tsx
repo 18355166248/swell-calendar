@@ -18,7 +18,9 @@ import { EventUIModel } from '@/model/eventUIModel';
 import { toEndOfDay, toStartOfDay } from '@/time/datetime';
 import DayjsTZDate from '@/time/dayjs-tzdate';
 import { EventObjectWithDefaultValues } from '@/types/events.type';
+import { TemplateMonthGrid } from '@/types/template.type';
 
+import { Template } from '../Template';
 import { MonthEvent } from './MonthEvent';
 import {
   MonthDragPreview,
@@ -26,8 +28,8 @@ import {
   MonthInteractionValue,
 } from './MonthInteractionContext';
 
-const CELL_EVENT_HEIGHT = 22;
-const CELL_HEADER_HEIGHT = 28;
+const DEFAULT_CELL_EVENT_HEIGHT = 22;
+const DEFAULT_CELL_HEADER_HEIGHT = 28;
 
 interface MonthGridProps {
   weeks: DayjsTZDate[][];
@@ -38,6 +40,10 @@ interface MonthGridProps {
   totalCols?: number;
   /** 每列宽度百分比（来自 getRowStyleInfo），用于 narrowWeekend 不等列宽对齐 */
   colWidths?: number[];
+  /** 日期头区域高度；移动端有农历第二行，需要和事件起始位置一起抬高。 */
+  cellHeaderHeight?: number;
+  /** 日期格内单条事件高度。默认保持桌面既有 22px。 */
+  cellEventHeight?: number;
 }
 
 function isSameDay(a: DayjsTZDate, b: DayjsTZDate) {
@@ -58,6 +64,11 @@ function isCurrentMonth(date: DayjsTZDate, renderDate: DayjsTZDate) {
   );
 }
 
+function isWeekend(date: DayjsTZDate) {
+  const day = date.dayjs.day();
+  return day === 0 || day === 6;
+}
+
 export function MonthGrid({
   weeks,
   eventRows,
@@ -65,6 +76,8 @@ export function MonthGrid({
   visibleEventCount,
   totalCols = 7,
   colWidths,
+  cellHeaderHeight = DEFAULT_CELL_HEADER_HEIGHT,
+  cellEventHeight = DEFAULT_CELL_EVENT_HEIGHT,
 }: MonthGridProps) {
   const weekCount = weeks.length;
   const rowHeightPercent = 100 / weekCount;
@@ -233,6 +246,16 @@ export function MonthGrid({
               {week.map((date, colIndex) => {
                 const today = isToday(date);
                 const currentMonth = isCurrentMonth(date, renderDate);
+                const ymd = date.format('YYYYMMDD');
+                const templateParams: TemplateMonthGrid = {
+                  date: date.format('YYYY-MM-DD'),
+                  day: date.getDate(),
+                  hiddenEventCount: overflowByCol[colIndex] ?? 0,
+                  isOtherMonth: !currentMonth,
+                  isToday: today,
+                  month: date.getMonth(),
+                  ymd,
+                };
 
                 return (
                   <div
@@ -240,12 +263,13 @@ export function MonthGrid({
                     className={cls('month-cell', {
                       'month-cell-today': today,
                       'month-cell-other-month': !currentMonth,
+                      'month-cell-weekend': isWeekend(date),
                     })}
                     style={colWidths ? { flex: `0 0 ${colWidths[colIndex]}%` } : undefined}
                   >
                     <div className={cls('month-cell-header')}>
                       <span className={cls('month-cell-date', { 'month-cell-date-today': today })}>
-                        {date.getDate()}
+                        <Template template="monthGridHeader" param={templateParams} as="span" />
                       </span>
                     </div>
                   </div>
@@ -260,8 +284,8 @@ export function MonthGrid({
                     startCol={startCol}
                     colspan={colspan}
                     slotIndex={slotIndex}
-                    cellEventHeight={CELL_EVENT_HEIGHT}
-                    cellHeaderHeight={CELL_HEADER_HEIGHT}
+                    cellEventHeight={cellEventHeight}
+                    cellHeaderHeight={cellHeaderHeight}
                     totalCols={totalCols}
                     colWidths={colWidths}
                     weekIndex={weekIndex}
@@ -291,8 +315,8 @@ export function MonthGrid({
                           position: 'absolute',
                           left: `${leftPercent}%`,
                           width: `calc(${widthPercent}% - 4px)`,
-                          top: CELL_HEADER_HEIGHT,
-                          height: CELL_EVENT_HEIGHT - 2,
+                          top: cellHeaderHeight,
+                          height: cellEventHeight - 2,
                           borderRadius: 3,
                           border: '1px dashed #1677ff',
                           background: 'rgba(22,119,255,0.12)',
@@ -318,7 +342,7 @@ export function MonthGrid({
                       role="button"
                       tabIndex={0}
                       style={{
-                        top: CELL_HEADER_HEIGHT + visibleEventCount * CELL_EVENT_HEIGHT,
+                        top: cellHeaderHeight + visibleEventCount * cellEventHeight,
                         left: `${leftPercent}%`,
                         width: `${widthPercent}%`,
                       }}

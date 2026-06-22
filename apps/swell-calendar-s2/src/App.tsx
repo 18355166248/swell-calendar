@@ -564,6 +564,16 @@ export default function App({ view }: AppProps) {
           {mobileView === 'day' && (
             <DayWeekStrip currentDate={currentDate} onDateChange={goToDate} />
           )}
+          {mobileView === 'month' && <div className="m-month-title">{monthLabel}</div>}
+          {mobileView === 'month' && (
+            <div className="m-month-dow" aria-hidden>
+              {['周一', '周二', '周三', '周四', '周五', '周六', '周日'].map((day, index) => (
+                <div key={day} className={index >= 5 ? 'wknd' : undefined}>
+                  {day}
+                </div>
+              ))}
+            </div>
+          )}
           <div
             className="canvas canvas--mobile"
             onMouseDownCapture={(e) => rememberMonthMoreAnchor(e.target)}

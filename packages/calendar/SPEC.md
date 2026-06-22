@@ -372,7 +372,7 @@ interface ColoredRange {
 | `timeMove`                   | 拖拽中的事件卡片内容       |
 | `timeMoveGuide`              | 拖拽时间提示               |
 | `timeGridNowIndicatorLabel`  | 当前时间指示器标签         |
-| `monthGridHeader`            | 月视图日期格头部           |
+| `monthGridHeader`            | 当前 Month 视图日期格头部（含 `date/day/month/ymd/isToday/isOtherMonth/hiddenEventCount`） |
 | `schedulerDayHeader`         | scheduler 顶部日期头       |
 | `schedulerResourceHeader`    | scheduler 资源列头         |
 

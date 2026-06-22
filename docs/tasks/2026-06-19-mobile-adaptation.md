@@ -114,7 +114,7 @@
 - `hooks/common/`：`useContainerWidth` / `useViewportTier`（`ResizeObserver` 读根容器宽度）。
 - `components/view/Day.tsx` / `Month.tsx` + CSS：按 tier 切换布局类名；全天 chip 胶囊化、month chip 紧凑化；桌面 tier 输出与现状完全一致的类名（零回归）。
 - `apps/swell-calendar-s2`：移动 shell（顶部导航条 + segmented「日/多日/月/列表」+ 周条切周 + 事件底部 sheet），复用包内视图与 `lunarLabelOf`。
-- 农历不改引擎：月视图由宿主覆盖 `monthGridHeader` 模板注入日期+农历（`CellHeader` 已走 `Template`，param 带 `date`）；day/多日的农历副标题是宿主 chrome。
+- 农历不改引擎：月视图由宿主覆盖 `monthGridHeader` 模板注入日期+农历；day/多日的农历副标题是宿主 chrome。
 - 不改控制器 / 数据流。
 - **进度**：原语层 + Day/Month tier CSS + 农历 PoC 已落地；剩 Day 窄列/gutter、now 时间旗、卡片 tier、月格细节（`responsive.scss`）+ s2 移动 shell。
 - **验收**：移动 375px 出修饰类、Day/Month 与 remix 稿目视一致、农历/节气正确（节气优先、绿色）、segmented 四视图可切（多日/列表本阶段可降级为占位）、桌面 1280px 零回归。
@@ -211,8 +211,8 @@
   - **now「红色时间旗」已落地（包内 `responsive.scss`，2026-06-22）**：
     - now 指示器颜色经主题以**内联 style** 注入（line/bullet/label 同色，s2 为 accent 绿）。外部 `!important` 可压过「非 important 的内联样式」，故在 `.day-view--mobile` 作用域内把 `now-indicator-line-bar`/`-bullet`/`-label` 重定向到 `--now-line`（红，宿主 token，亮/暗各一份，缺省回退 oklch 红），并把 label 做成白字红底胶囊。
     - 预览验证：375px → now 红线 + 红 bullet(10px) + 白字红底「12:07」旗；1280px（reload）→ now-label 仍透明底/accent 色/无圆角（**桌面零回归**）；`day-view--mobile` tier 类在 s2 正常注入；包单测 374/374 绿、无 console 报错。
-  - **重要发现（修正前述模板注入设想）**：月视图实际由 `components/month/MonthGrid.tsx` 渲染（直接出 `month-cell-date` 数字），**不走 `monthGridHeader` 模板**（该模板仅 `dayGridMonth/CellHeader` 使用，月视图未用）。
-    故「宿主覆盖 `monthGridHeader` 注入月农历」在当前引擎**无效**；月农历需先给 `MonthGrid` 增加一个**可选模板插槽**（公开 API 扩展，docs-first：先改 `SPEC.md` + `template.type.ts`，默认渲染不变以保零回归），列为独立小步。
+  - **重要发现（修正前述模板注入设想）**：月视图实际由 `components/month/MonthGrid.tsx` 渲染（直接出 `month-cell-date` 数字），此前**未接线既有 `monthGridHeader` 模板**（该模板仅旧 `dayGridMonth/CellHeader` 使用）。
+    故「宿主覆盖 `monthGridHeader` 注入月农历」在当前引擎**无效**；后续只需把 MonthGrid 接入既有公开 slot，不需要新增模板 API。
   - **移动周条样式已贴近 remix（s2，2026-06-22）**：
     - `DayWeekStrip` 结构调整：数字 + 农历包进 `day-week-chip__blob`。桌面下 blob 为透明壳（base 样式仅纵向堆叠，间距等同原 chip gap，视觉零变化）；移动端 `.app--mobile` 作用域内把 blob 样式化为 42px 圆，数字+农历同框，选中（primary）整圈实心、今日选中用 accent 实心、今日未选数字用 accent 色；移动端隐藏左侧月份 pill（月份已在顶部导航），7 列占满。
     - 预览验证：375px → 7 列周条、数字+农历同圈、今日(22 初八)accent 实心圈；1280px（reload）→ 月份 pill「6月」在、日期仍 32px 圆 + 农历在下、blob 为透明壳（**桌面零回归**）；`tsc` 通过、无 console 报错。
@@ -227,10 +227,30 @@
   - **Day 移动事件卡 tier 已落地（包内，2026-06-22）**：
     - `TimeEvent` 在默认内联样式外同步暴露 `--swell-event-bg/border/text/drag-bg`，供响应式 CSS 复用事件原始配色；默认桌面样式仍走原内联属性。
     - `responsive.scss` 在 `.day-view--mobile` 下按宿主 `data-card` 支持 `soft`（轻卡片）、`bar`（左色条）、`solid`（实心色块）三档；当前 s2 默认仍为 `soft`。
-    - 预期验证：375px 默认 `soft` 轻卡片命中；临时切换 `data-card=bar/solid` 时卡片视觉变化；1280px 不带 mobile 修饰类，桌面零回归。
+    - 移动窄屏 overlap 兜底：移动端不改时间冲突布局算法（仍按并列列宽避免真实重叠），但收紧 `.event-time-content` padding，并对 title/sub 两行强制 `min-width:0 + overflow:hidden + ellipsis`，防止 2/3 列并排时文字溢出到邻卡造成遮挡。
+    - time-grid 真实遮挡修复：`setRenderInfoOfUIModels` 默认排序从无效的 numeric sorter 改为事件语义排序（开始时间升序、同起点长事件优先）。否则宿主事件乱序时，同一冲突簇会被拆成多个 collision group，后渲染 group 从 left=0 重新开始，短卡会覆盖长卡。新增同起点长短事件乱序单测锁定该行为。
+    - 预期验证：375px 默认 `soft` 轻卡片命中；临时切换 `data-card=bar/solid` 时卡片视觉变化；多事件并排时卡片本体不重叠、文本只在卡内省略；1280px 不带 mobile 修饰类，桌面零回归。
+  - **Month 移动月格细节已落地（包内，2026-06-22）**：
+    - `MonthGrid` 内部补 `month-cell-weekend` class（仅供样式，不改公开 API），移动端周末日期走 now 红色；今日仍由 accent 实心圈承载。
+    - `responsive.scss` 在 `.month-view--mobile` 下弱化格线、非本月背景；今日不再给整格铺底色，仅保留日期 accent 圆点；月事件 chip 胶囊化、取消透明、`+N` 溢出标记加粗收紧。
+    - 预期验证：375px 月视图格线更轻、周末红、今日仅日期 accent 圈、chip 胶囊；1280px 桌面月视图不出现整格 today 背景。
+  - **Month remix 视觉收口首轮已落地（包内 + s2，2026-06-22）**：
+    - s2 移动月视图补大月份标题（`m-month-title`）与固定星期行（`m-month-dow`），贴近 remix 顶部层级；二者属于移动 chrome，不参与月格滚动；日/月/列表 segmented 仍保持当前真实切换。
+    - 移动月视图隐藏引擎内部 `month-day-names`，桌面仍使用包内 GridHeader，避免为了移动 chrome 改公开 API。
+    - 包内 `.month-view--mobile` 对齐 remix mobile 参数：去竖向格线、只保留浅横向周分割；非本月格不再铺灰底；日期+农历使用 38px blob，今日只填充 blob；事件 chip 收敛为 9.5px / 14px / 4px radius，`+N` 居中小字。
+    - `Month.tsx` mobile 日期头 / 事件步进同步为 44px / 16px，保证放大日期 blob 后事件层仍不压日期、不把 `+N` 挤出格底。
+    - 预期验证：375–430px 月视图更接近 remix：大月份标题、弱化格线、日期 blob、紧凑 chip；桌面不受 mobile 修饰类影响。
+  - **月视图农历接入已落地（2026-06-22）**：
+    - docs-first：`SPEC.md` 明确 `monthGridHeader` 是当前 Month 日期格头部 slot，参数含 `date/day/month/ymd/isToday/isOtherMonth/hiddenEventCount`。
+    - MonthGrid 日期头走既有 `Template`；s2 覆盖 `monthGridHeader`，用 `lunarLabelOf` 注入日期 + 农历/节气。桌面隐藏农历保持单数字，移动端显示第二行；节气走绿色。
+    - 预期验证：375px 月视图日期格显示数字+农历/节气；1280px 仍只显示日期数字，桌面零回归。
+  - **月视图矮屏防挤压已落地（包内，2026-06-22）**：
+    - `.month-view--mobile` 增加 `min-height: 680px`，在宽高比异常/高度偏矮时保持 6 行月格的最低可读高度；宿主移动画布已有 `overflow:auto`，因此改为纵向滚动而非继续压缩 chip。
+    - 预期验证：约 539×632 视口下月事件 chip 不再被压扁；1280px 桌面无 mobile 修饰类，不受影响。
+  - **月视图日期头遮挡修复已落地（包内，2026-06-22）**：
+    - `MonthGrid` 支持内部 `cellHeaderHeight/cellEventHeight` 参数；`Month` 在 mobile tier 把日期头高度同步为 30px、事件步进同步为 20px，事件层、ghost、`+N` 均按同一组参数起算。
+    - 修复移动端“数字+农历”日期头被首条事件 chip 覆盖的问题；同时避免 375×667 等矮屏下 `+N 更多` 被三条 chip 挤出单元格底部。桌面仍走默认 28px header / 22px event。
   - **M1 剩余（下一小步）**：
-    - 月视图农历：给 `MonthGrid` 加可选 cell 模板插槽（公开 API，docs-first），宿主用 `lunarLabelOf` 注入；配套 `responsive.scss` 放开 `month-cell-header` 高度。
-    - 包内 `responsive.scss`：月格细节。
     - 多日连接带（随 M3 多日视图）。
     - 实时切换（旋屏/改窗）依赖 `useIsMobile` 的 resize 兜底；CDP 模拟器下 matchMedia change 不稳定，真机/真浏览器正常。
 - M2：

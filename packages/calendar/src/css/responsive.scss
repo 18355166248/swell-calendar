@@ -46,8 +46,35 @@
   }
 
   .event-time-content {
-    padding: 3px 8px;
-    font-size: 13px;
+    min-width: 0;
+    max-width: 100%;
+    padding: 3px 5px;
+    overflow: hidden;
+    font-size: 12px;
+    line-height: 1.2;
+    text-overflow: ellipsis;
+  }
+
+  .event-time-stack {
+    min-width: 0;
+    max-width: 100%;
+    gap: 0;
+    line-height: 1.18;
+    overflow: hidden;
+  }
+
+  .event-time-stack-title,
+  .event-time-stack-sub {
+    display: block;
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .event-time-stack-sub {
+    font-size: 10px;
   }
 
   // 全天行标签「全天」移动端左对齐、字号略增，贴近设计稿
@@ -87,17 +114,86 @@
 .month-view--mobile {
   // 事件 chip 变量：移动端略圆 + 更小字号，单元格内塞下更多 chip
   --swell-month-event-radius: 4px;
-  --swell-month-event-font-size: 11px;
+  --swell-month-event-font-size: 9.5px;
+  // 6 行月格在矮屏/横向比例异常时不能继续压缩，否则日期两行 + 事件 chip 会互相挤压。
+  // 交给宿主移动画布滚动，保证每个日期行仍有最低可读高度。
+  min-height: 680px;
 
-  // 日期数字圆圈缩小，贴近原生紧凑格
-  .month-cell-date {
-    width: 22px;
-    height: 22px;
+  .month-day-names {
+    border-bottom-color: color-mix(in oklch, var(--border, #e8e8e8) 72%, transparent);
+  }
+
+  .month-day-names .day-name {
+    padding: 2px 0 7px;
+    text-align: center;
     font-size: 12px;
+    font-weight: 600;
+    color: var(--text-3, #888);
+  }
+
+  .month-week-row {
+    border-bottom: 0.5px solid color-mix(in oklch, var(--text-1, #222) 8%, transparent);
+  }
+
+  .month-cell {
+    padding: 6px 0 5px;
+    border-right-color: transparent;
+    background: transparent;
+  }
+
+  .month-cell-weekend .month-cell-date {
+    color: var(--now-line, oklch(0.6 0.2 25));
+  }
+
+  .month-cell-other-month {
+    background: transparent;
+  }
+
+  .month-cell-other-month .month-cell-date {
+    color: var(--text-disabled, #bbb);
+  }
+
+  .month-cell-header {
+    height: 44px !important;
+    align-items: flex-start;
+    padding-top: 0;
+  }
+
+  // 数字 + 农历作为同一个 38px blob；今日只填充这个 blob，不铺整格背景。
+  .month-cell-date {
+    width: 38px;
+    min-width: 38px;
+    height: 38px;
+    min-height: 38px;
+    padding: 0;
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 1;
+    color: var(--text-1, #333);
+    flex-direction: column;
+    gap: 1px;
+  }
+
+  .month-cell-date-today {
+    background: var(--accent-bg, #1677ff);
+    color: var(--accent-contrast, #fff) !important;
+  }
+
+  .month-event {
+    opacity: 1 !important;
+    padding: 0 4px !important;
+    font-weight: 600;
+    line-height: 14px !important;
+    box-shadow: none;
   }
 
   // +N 溢出标记字号收紧
   .month-more {
-    font-size: 10px;
+    padding-left: 0;
+    font-size: 9px;
+    font-weight: 600;
+    line-height: 12px;
+    text-align: center;
+    color: var(--text-3, #888);
   }
 }

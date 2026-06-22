@@ -58,7 +58,7 @@ export function setRenderInfoOfUIModels(
   events: EventUIModel[],
   startColumnTime: DayjsTZDate,
   endColumnTime: DayjsTZDate,
-  eventSorter: EventSorter = array.compare.num.asc
+  eventSorter: EventSorter = array.compare.event.asc
 ) {
   // 过滤时间事件并按开始时间排序
   const uiModels = events

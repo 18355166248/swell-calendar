@@ -13,6 +13,8 @@ import { MonthGrid } from '../month/MonthGrid';
 import Panel from '../Panel';
 
 const MONTH_DAY_NAME_HEIGHT = 31;
+const MONTH_MOBILE_CELL_HEADER_HEIGHT = 44;
+const MONTH_MOBILE_CELL_EVENT_HEIGHT = 16;
 
 function useMonthViewState() {
   const { options, view } = useCalendarStore();
@@ -35,6 +37,11 @@ export function Month() {
   const { narrowWeekend, startDayOfWeek, workweek } = monthOptions;
   const maxEventStack = monthOptions.maxEventStack;
   const [viewportTier, setViewportRef] = useViewportTier();
+  // 移动端日期头包含农历第二行，事件层定位必须同步抬高，
+  // 否则事件 chip 会压到日期文本；桌面继续使用 MonthGrid 默认高度。
+  const cellHeaderHeight = viewportTier === 'mobile' ? MONTH_MOBILE_CELL_HEADER_HEIGHT : undefined;
+  // 矮屏月格需要同时收紧事件步进，否则 `+N 更多` 会被 3 条 chip 挤出单元格底部。
+  const cellEventHeight = viewportTier === 'mobile' ? MONTH_MOBILE_CELL_EVENT_HEIGHT : undefined;
 
   /**
    * 计算月视图的周布局
@@ -71,6 +78,8 @@ export function Month() {
           visibleEventCount={maxEventStack}
           totalCols={dayNames.length}
           colWidths={rowStyleInfo.map((style) => style.width)}
+          cellHeaderHeight={cellHeaderHeight}
+          cellEventHeight={cellEventHeight}
         />
       </Panel>
     </Layout>

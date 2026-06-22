@@ -1,6 +1,7 @@
 import dayjs from 'dayjs';
 import weekOfYear from 'dayjs/plugin/weekOfYear';
 
+import { lunarLabelOf } from './lunar';
 import type { ViewId } from './shell';
 
 dayjs.extend(weekOfYear);
@@ -173,6 +174,13 @@ export function buildCalendarOptions(input: {
       resources: [],
       rowHeight: input.timelineRowHeight,
       range: tuning.timelineRange,
+    },
+    template: {
+      monthGridHeader(model: { date: string; day: number }) {
+        const lunar = lunarLabelOf(dayjs(model.date).toDate());
+        const lunarClass = lunar.isTerm ? 's2-month-date-lunar is-term' : 's2-month-date-lunar';
+        return `<span class="s2-month-date-num">${model.day}</span><span class="${lunarClass}">${lunar.text}</span>`;
+      },
     },
   };
 }
