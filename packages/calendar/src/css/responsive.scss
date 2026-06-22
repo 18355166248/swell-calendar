@@ -289,7 +289,7 @@
 }
 
 .agenda-view--mobile {
-  --swell-agenda-bg: var(--bg-app, #fff);
+  --swell-agenda-bg: var(--mobile-calendar-bg, var(--bg-app, #fff));
   --swell-agenda-today: var(--accent-text, #1677ff);
 
   .agenda-scroll {
