@@ -65,6 +65,26 @@
 - 本 epic 不做 connections / eventList / 虚拟化 / 打印 / a11y。
 - 不改公开数据流（宿主受控不变），只新增可选配置、`agenda` 视图与触控输入通道。
 
+## 目标 → 阶段对齐（验收口径）
+
+> 目标 =「支持移动端 + 还原设计稿」。**关键认知：M1 完成 ≠ 目标达成。**
+> 目标拆成两条线，分别由不同 Phase 兜底：
+> - **还原设计稿 = 4 视图**（Day / Multi-day / Agenda / Month）。其中 Multi-day、Agenda 是引擎**不存在的视图**，无法只靠样式还原，必须先建能力（M3 / M2）。M1 只还原 Day + Month 两视图。
+> - **支持移动端 = 可看 + 可用**。M1–M3 给「可看 / 可切 / 可点详情」；**触屏拖拽创建 / 移动 / resize 在 M4**。M4 未完成前移动端是「只读浏览」，非产品级可用。M4 是全 epic 最高风险段（碰核心 `useDrag`）。
+
+| 目标分解 | 兜底 Phase | 达成判据（验收口径） |
+|----------|-----------|----------------------|
+| 响应式基线（断点 / tier / 容器宽度） | M1 | 移动 tier 注入修饰类；桌面零回归 |
+| Day / Month 移动视觉还原 | M1 | 与 remix 稿目视一致（结构+交互路径），桌面零回归 |
+| 移动 chrome（导航 / segmented / 周条 / 农历 / 底部 sheet） | M1（宿主 s2） | 四要素可用；农历/节气经 `chinese-days` 注入 |
+| 还原 **Agenda / 列表** 视图 | M2 | `ViewType='agenda'` 可切换、可点详情；SPEC 同步 |
+| 还原 **Multi-day / 多日** 视图 | M3 | N 列日列可切换；与 `view-range` 语义对齐 |
+| 移动端**可用**（触控 create/move/resize） | **M4** | 触屏可创建/移动/resize；鼠标路径零回归 |
+| 移动交互打磨 | M5 | 长按创建 / 命中区 / 滑动切换 / 浮层适配 |
+
+**推进顺序固定**：M1 →（M2 与 M3 可并行，二者互不依赖）→ M4 → M5。
+其中 M2 / M4 改动公开 API（`agenda` union / 触控行为），**docs-first**：先改 `SPEC.md` 与能力矩阵再实现。
+
 ## 能力矩阵（设计稿 × 现状 × 目标 × Phase）
 
 | 能力 | 设计稿 | 现状 | Phase | 风险 |
@@ -93,26 +113,33 @@
 - `utils/`：无 React 的断点纯函数（`getViewportTier(width)`）。
 - `hooks/common/`：`useContainerWidth` / `useViewportTier`（`ResizeObserver` 读根容器宽度）。
 - `components/view/Day.tsx` / `Month.tsx` + CSS：按 tier 切换布局类名；全天 chip 胶囊化、month chip 紧凑化；桌面 tier 输出与现状完全一致的类名（零回归）。
-- `apps/swell-calendar-s2`：移动 shell（顶部导航条 + 周条切周），复用包内视图。
+- `apps/swell-calendar-s2`：移动 shell（顶部导航条 + segmented「日/多日/月/列表」+ 周条切周 + 事件底部 sheet），复用包内视图与 `lunarLabelOf`。
+- 农历不改引擎：月视图由宿主覆盖 `monthGridHeader` 模板注入日期+农历（`CellHeader` 已走 `Template`，param 带 `date`）；day/多日的农历副标题是宿主 chrome。
 - 不改控制器 / 数据流。
+- **进度**：原语层 + Day/Month tier CSS + 农历 PoC 已落地；剩 Day 窄列/gutter、now 时间旗、卡片 tier、月格细节（`responsive.scss`）+ s2 移动 shell。
+- **验收**：移动 375px 出修饰类、Day/Month 与 remix 稿目视一致、农历/节气正确（节气优先、绿色）、segmented 四视图可切（多日/列表本阶段可降级为占位）、桌面 1280px 零回归。
 
 ### M2 Agenda 视图（新视图）
 - `types/options.type.ts`：`ViewType` 扩展 `'agenda'`，`EnabledViews` 同步。
 - `controller/agenda.controller.ts`（新建）：按天分组、组内排序、全天/限时分行、空日处理（纯函数，可单测）。
 - `components/view/Agenda.tsx`（新建）：分组头（日期 + 农历）+ 事件行（色条 + 标题 + 时间）；tap 行 → `onEventClick`（受控不变）。
 - store / `Toolbar` / 视图路由接线；`SPEC.md` 新增 agenda 能力行 + Storybook `Agenda/Basic`。
+- **验收**：`agenda` 可切换并按天分组渲染、tap 行触发 `onEventClick`、与 remix 列表稿目视一致；`agenda.controller` 单测绿；SPEC 能力行同步；桌面零回归。
 
 ### M3 Multi-day 移动视图
 - 复用 `time/view-range.ts` + Day 链路，支持 N 列日列（默认 2）+ 共享 gutter + 每列全天 lane。
 - 窄屏列宽自适应；与 `scheduler.range` / `workweek` 语义对齐，不新造日期窗口逻辑。
+- **验收**：多日（默认 2 列）可切换、共享 gutter + 每列全天 lane、与 remix 多日稿目视一致；与 `view-range` 语义对齐无新造窗口逻辑；桌面零回归。
 
 ### M4 触控输入核心
 - `hooks/common/useDrag.ts`：`mousedown/move/up` → `pointerdown/move/up`；`isLeftMouseButton` → `e.button===0 || e.pointerType!=='mouse'`；按下 `setPointerCapture`、过滤非主指针；保留"主键松开兜底自恢复"逻辑（改读 pointer 状态）。
 - 事件组件 `onMouseDown` → `onPointerDown`（`TimeEvent` / `MonthEvent` / `TimelineEvent` / `TimeGridView` / `MonthGrid` / `TimelineRow` / `GridSelection`）。
 - 拖拽容器加 `touch-action:none`；单测补 `PointerEvent` 派发，鼠标路径保持绿。
+- **验收**：触屏可创建/移动/resize（`PointerEvent` 单测覆盖）、拖拽期不滚动；**鼠标路径全单测零回归**（最高风险门槛）；SPEC 触控行为行 + MIGRATION 同步。
 
 ### M5 移动交互打磨
 - 长按进入 create、tap 命中区放大、周条/视图滑动切换、移动端浮层底部/全宽适配。视宿主反馈再细化，必要时拆 task。
+- **验收**：长按创建 / 命中区 / 滑动切换 / 浮层移动适配按宿主反馈逐项验收；无回归。
 
 ## 文档变更
 - [x] 重写 `docs/tasks/2026-06-19-mobile-adaptation.md`（本文件）
@@ -175,7 +202,22 @@
   - **农历 PoC 已落地并验证（s2）**：`apps/swell-calendar-s2/src/lunar.ts`（`lunarLabelOf(date)` 节气优先于农历日）；
     `shell.tsx` 的 `DayWeekStrip` 每日 chip 追加农历/节气标签，节气日加绿色 `is-term` 样式（读 `--cat-green-text`）。
     预览验证（s2-app:5180 日视图）：周条显示「初一…初六」，2026-06-21 显示绿色「夏至」；选中日走 accent 覆盖；`tsc --noEmit` 通过、无 console 报错。
-  - **M1 剩余（下一小步）**：Day 窄列 / 时间 gutter 细化；`apps/swell-calendar-s2` 移动 shell（顶部导航条 + segmented + 周条切周 + 事件底部 sheet，复用 `lunarLabelOf`）。CSS 变量 + tier 类名钩子已成型，按此模式扩展即可。
+  - **移动 shell 首批已落地（s2，2026-06-22）**：
+    - `useIsMobile.ts`：matchMedia `(max-width:767px)`（= 包内 `TABLET_MIN_WIDTH-1`）+ window.resize 兜底；SSR/无 matchMedia 落桌面，零回归。
+    - `shell.tsx`：`MobileTopBar`（返回月 + segmented「日/多日/月/列表」+ 搜索）、`MobilePlaceholder`（多日=M3 / 列表=M2 占位）。
+    - `App.tsx`：抽出 `calendarNode` + `overlays` 供桌面/移动共用（引擎接线单一真源）；新增 `engineView`（移动只 day/month 有真实引擎视图）统一驱动 `setView` 与 `calendarOptions.defaultView`，修掉「移动选日却显示路由 scheduler」的串视图问题；移动分支渲染 `app--mobile` 外壳（无 sidebar/desktop topbar）。
+    - `app.css`：`.app--mobile`/`.m-top`/`.m-seg`/`.canvas--mobile`/`.m-placeholder` 等移动 chrome 样式（全部读 s2 token）。
+    - 预览验证（s2-app:5180）：375px → 移动外壳；日=单日时间轴 + 周条农历（初八…）；月=紧凑格 + `+N` + 今日圈、返回显示「日历」；多日/列表=占位（注明 M3/M2）；切回日恢复。1280px（reload）→ 桌面 sidebar+topbar 原样（零回归）；`tsc --noEmit` 通过、无 console 报错。
+  - **now「红色时间旗」已落地（包内 `responsive.scss`，2026-06-22）**：
+    - now 指示器颜色经主题以**内联 style** 注入（line/bullet/label 同色，s2 为 accent 绿）。外部 `!important` 可压过「非 important 的内联样式」，故在 `.day-view--mobile` 作用域内把 `now-indicator-line-bar`/`-bullet`/`-label` 重定向到 `--now-line`（红，宿主 token，亮/暗各一份，缺省回退 oklch 红），并把 label 做成白字红底胶囊。
+    - 预览验证：375px → now 红线 + 红 bullet(10px) + 白字红底「12:07」旗；1280px（reload）→ now-label 仍透明底/accent 色/无圆角（**桌面零回归**）；`day-view--mobile` tier 类在 s2 正常注入；包单测 374/374 绿、无 console 报错。
+  - **重要发现（修正前述模板注入设想）**：月视图实际由 `components/month/MonthGrid.tsx` 渲染（直接出 `month-cell-date` 数字），**不走 `monthGridHeader` 模板**（该模板仅 `dayGridMonth/CellHeader` 使用，月视图未用）。
+    故「宿主覆盖 `monthGridHeader` 注入月农历」在当前引擎**无效**；月农历需先给 `MonthGrid` 增加一个**可选模板插槽**（公开 API 扩展，docs-first：先改 `SPEC.md` + `template.type.ts`，默认渲染不变以保零回归），列为独立小步。
+  - **M1 剩余（下一小步）**：
+    - 月视图农历：给 `MonthGrid` 加可选 cell 模板插槽（公开 API，docs-first），宿主用 `lunarLabelOf` 注入；配套 `responsive.scss` 放开 `month-cell-header` 高度。
+    - 包内 `responsive.scss`：Day 时间 gutter 收窄、事件卡 tier（soft/bar/solid）、月格细节。
+    - 周条移动样式贴近 remix（数字+农历同圈、primary 实心、multi 连接带）；事件详情底部 sheet（复用 Popover 数据逻辑）。
+    - 实时切换（旋屏/改窗）依赖 `useIsMobile` 的 resize 兜底；CDP 模拟器下 matchMedia change 不稳定，真机/真浏览器正常。
 - M2：
 - M3：
 - M4：

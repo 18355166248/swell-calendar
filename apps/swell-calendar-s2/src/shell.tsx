@@ -243,6 +243,66 @@ export function DayWeekStrip({ currentDate, onDateChange }: DayWeekStripProps) {
   );
 }
 
+// ===== 移动 chrome（M1）=====
+// 移动端视图集与桌面不同：日/多日/月/列表（对标 remix 设计稿 segmented）。
+// 多日 = M3、列表 = M2 尚未建引擎能力，本阶段降级为占位。
+export type MobileViewId = 'day' | 'multi' | 'month' | 'list';
+
+interface MobileTopBarProps {
+  view: MobileViewId;
+  setView: (v: MobileViewId) => void;
+  monthLabel: string;
+  onSearch?: () => void;
+}
+
+export function MobileTopBar({ view, setView, monthLabel, onSearch }: MobileTopBarProps) {
+  const segs: { id: MobileViewId; label: string }[] = [
+    { id: 'day', label: '日' },
+    { id: 'multi', label: '多日' },
+    { id: 'month', label: '月' },
+    { id: 'list', label: '列表' },
+  ];
+  return (
+    <div className="m-top">
+      <div className="m-top-row">
+        <button className="m-back" onClick={() => setView('month')} aria-label="返回月视图">
+          <Ic.chevL />
+          {view === 'month' ? '日历' : monthLabel}
+        </button>
+        <div className="m-spacer" />
+        <div className="m-seg" role="tablist" aria-label="视图切换">
+          {segs.map((s) => (
+            <button
+              key={s.id}
+              type="button"
+              role="tab"
+              aria-selected={view === s.id}
+              className={'m-seg-btn' + (view === s.id ? ' active' : '')}
+              onClick={() => setView(s.id)}
+            >
+              {s.label}
+            </button>
+          ))}
+        </div>
+        <button className="m-iconbtn" onClick={onSearch} aria-label="搜索">
+          <Ic.search />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+export function MobilePlaceholder({ view }: { view: MobileViewId }) {
+  const label = view === 'multi' ? '多日视图' : '列表视图';
+  const phase = view === 'multi' ? 'M3' : 'M2';
+  return (
+    <div className="m-placeholder" role="status">
+      <p className="m-placeholder__title">{label}开发中</p>
+      <p className="m-placeholder__sub">该视图将在 {phase} 阶段上线</p>
+    </div>
+  );
+}
+
 interface TopbarProps {
   view: ViewId;
   setView: (v: ViewId) => void;

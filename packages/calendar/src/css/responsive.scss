@@ -31,6 +31,31 @@
     padding-left: 12px;
     font-size: 13px;
   }
+
+  // 当前时间指示器：移动端做成 Apple 风「红色时间旗」。
+  // now 指示的颜色经主题以内联 style 注入（line / bullet / label 同色），
+  // 外部 !important 可压过「非 important 的内联样式」，故仅在移动作用域内重定向到红色，桌面零回归。
+  // --now-line 由宿主 token 提供（spectrum-tokens.css，亮/暗各一份），无则回退红色 oklch。
+  .now-indicator-line-bar {
+    border-top-width: 2px;
+    border-top-color: var(--now-line, oklch(0.6 0.2 25)) !important;
+  }
+
+  .now-indicator-bullet {
+    width: 10px;
+    height: 10px;
+    background-color: var(--now-line, oklch(0.6 0.2 25)) !important;
+  }
+
+  .now-indicator-label {
+    right: 4px;
+    padding: 2px 5px;
+    border-radius: 5px;
+    font-size: 10px;
+    font-weight: 700;
+    color: #fff !important;
+    background: var(--now-line, oklch(0.6 0.2 25));
+  }
 }
 
 // 月视图移动布局：高密度紧凑格（对标 docs/assets/month.png）

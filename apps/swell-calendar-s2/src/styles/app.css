@@ -1256,3 +1256,131 @@ button {
 .data-state-btn:hover {
   filter: brightness(1.05);
 }
+
+/* ===== 移动外壳（M1）—— 顶部导航 + segmented + 画布 ===== */
+.app--mobile {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+  background: var(--bg-app);
+  color: var(--text-1);
+}
+
+/* 顶部导航条 */
+.m-top {
+  flex: none;
+  padding: calc(8px + env(safe-area-inset-top, 0px)) 12px 0;
+  background: var(--bg-layer);
+  border-bottom: 1px solid var(--border);
+  position: relative;
+  z-index: 6;
+}
+.m-top-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 48px;
+}
+.m-back {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  border: none;
+  background: none;
+  padding: 4px 2px;
+  color: var(--accent-text);
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+}
+.m-back svg {
+  width: 20px;
+  height: 20px;
+  stroke-width: 2.4;
+  margin-right: -2px;
+}
+.m-spacer {
+  flex: 1;
+}
+.m-iconbtn {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: none;
+  background: none;
+  color: var(--accent-text);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+.m-iconbtn:active {
+  background: var(--bg-hover);
+}
+.m-iconbtn svg {
+  width: 22px;
+  height: 22px;
+}
+
+/* segmented 视图切换 */
+.m-seg {
+  display: inline-flex;
+  background: var(--bg-sunken);
+  border-radius: 999px;
+  padding: 2px;
+  gap: 1px;
+  border: 1px solid var(--border);
+}
+.m-seg-btn {
+  height: 30px;
+  padding: 0 11px;
+  border: none;
+  background: none;
+  border-radius: 999px;
+  color: var(--text-2);
+  font-size: 13px;
+  font-weight: 600;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+.m-seg-btn.active {
+  background: var(--bg-layer-2);
+  color: var(--accent-text);
+  box-shadow: var(--shadow-sm);
+}
+
+/* 移动画布：复用 .canvas 滚动行为 */
+.canvas--mobile {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  position: relative;
+  overscroll-behavior: contain;
+  background: var(--bg-app);
+}
+
+/* 多日 / 列表占位（M2 / M3 上线前） */
+.m-placeholder {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 32px;
+  text-align: center;
+}
+.m-placeholder__title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-2);
+}
+.m-placeholder__sub {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-3);
+}

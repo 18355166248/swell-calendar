@@ -41,7 +41,16 @@ import {
   type NewEventInput,
   type UiPrefs,
 } from './overlays';
-import { DayWeekStrip, Sidebar, Topbar, type ViewId } from './shell';
+import {
+  DayWeekStrip,
+  MobilePlaceholder,
+  MobileTopBar,
+  Sidebar,
+  Topbar,
+  type MobileViewId,
+  type ViewId,
+} from './shell';
+import { useIsMobile } from './useIsMobile';
 
 // 事件 CRUD（种子 / 用户新建 / 编辑覆盖 / 删除墓碑四层）已收敛到 dataSource + useCalendarDataSource（P6）。
 // useCalendarDataSource 与 CalendarDataSource 契约已下沉到 swell-calendar 包（宿主侧可选装配件）。
@@ -190,7 +199,12 @@ export default function App({ view }: AppProps) {
   // view 的真源是 URL（router.tsx）；currentDate 由 App 内部管理 + 引擎 onPageChange 回填。
   // 刷新回到今天。
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
+  // 移动端视图状态独立于 URL（桌面 view 仍以路由为真源）；多日/列表为占位（M2/M3）。
+  const [mobileView, setMobileView] = useState<MobileViewId>('day');
   const [currentDate, setCurrentDate] = useState<Date>(() => new Date());
+  // 引擎实际视图：桌面跟随路由；移动端只有 day/month 有真实引擎视图（多日/列表占位时退化为 day）。
+  const engineView: ViewId = isMobile ? (mobileView === 'month' ? 'month' : 'day') : view;
   const [pick, setPick] = useState<{ ev: PickEvent; anchor: HTMLElement } | null>(null);
   const [morePick, setMorePick] = useState<{
     date: Date;
@@ -375,23 +389,14 @@ export default function App({ view }: AppProps) {
     monthMoreAnchorRef.current = trigger instanceof HTMLElement ? trigger : null;
   };
 
-  // 当视图切换时，同步 Calendar 内部视图
+  // 视图切换 → 同步 Calendar 内部视图（桌面路由 / 移动 segmented 统一走 engineView）
   useEffect(() => {
-    if (
-      calRef.current &&
-      (view === 'scheduler' ||
-        view === 'timeline' ||
-        view === 'day' ||
-        view === 'week' ||
-        view === 'month')
-    ) {
-      try {
-        calRef.current.setView(view);
-      } catch {
-        // 视图名不匹配时忽略
-      }
+    try {
+      calRef.current?.setView(engineView);
+    } catch {
+      // 视图名不匹配 / 占位视图未挂载引擎时忽略
     }
-  }, [view]);
+  }, [engineView]);
 
   const closePop = () => setPick(null);
 
@@ -410,7 +415,7 @@ export default function App({ view }: AppProps) {
   // useMemo 让引用仅在 view / currentDate / 周末开关 / 密度变化时改变，其余 render 复用旧引用。
   const calendarOptions = useMemo(() => {
     const options = buildCalendarOptions({
-      view,
+      view: engineView,
       currentDate,
       showWeekend: showWknd,
       monthNarrowWeekend,
@@ -430,8 +435,140 @@ export default function App({ view }: AppProps) {
         resources: calendarResources,
       },
     };
-  }, [view, currentDate, showWknd, monthNarrowWeekend, timelineRowHeight, calendarTuning]);
+  }, [engineView, currentDate, showWknd, monthNarrowWeekend, timelineRowHeight, calendarTuning]);
 
+  // 桌面 / 移动两套外壳共享同一引擎画布与浮层，避免 Calendar 接线分叉。
+  const calendarNode =
+    status === 'loading' ? (
+      <div className="data-state" role="status" aria-live="polite">
+        <div className="data-state-spinner" aria-hidden />
+        <p className="data-state-msg">正在加载日程…</p>
+      </div>
+    ) : status === 'error' ? (
+      <div className="data-state data-state--error" role="alert">
+        <p className="data-state-msg">日程加载失败{error ? `：${error}` : ''}</p>
+        <button type="button" className="data-state-btn" onClick={reload}>
+          重试
+        </button>
+      </div>
+    ) : allEvents.length === 0 ? (
+      <div className="data-state">
+        <p className="data-state-msg">还没有任何日程</p>
+        <button type="button" className="data-state-btn" onClick={() => setCreating(true)}>
+          新建日程
+        </button>
+      </div>
+    ) : (
+      <Calendar
+        ref={calRef}
+        events={calendarEvents}
+        calendars={calendarCalendars}
+        theme={CALENDAR_THEME}
+        options={calendarOptions}
+        callbacks={{
+          onEventClick: ({ event }) => {
+            openEventDetails(event);
+          },
+          // P7b: 滑动新建 / 单元格点击 → 预填对话框
+          onEventCreate: handleEngineCreate,
+          // P7b: 拖拽移动 / resize → 基于 raw 合并写回数据源
+          onEventUpdate: handleEngineUpdate,
+          // P7b: 创建 / 更新被引擎策略拒绝（overlap / invalid / policy）时 toast 提示
+          onEventCreateFailed: () => {
+            ToastQueue.negative('无法创建日程：与现有安排冲突或时段不合法', {
+              timeout: 5000,
+            });
+          },
+          onEventUpdateFailed: () => {
+            ToastQueue.negative('无法更新日程：与现有安排冲突或时段不合法', {
+              timeout: 5000,
+            });
+          },
+          // P8b: 引擎翻页 → 回填 currentDate，联动 MiniCalendar 高亮
+          onPageChange: handlePageChange,
+          // 月视图「+N 更多」点击 → 弹出该日所有事件列表
+          onMoreEventsClick: ({ date, events }) => {
+            const anchor = monthMoreAnchorRef.current ?? (document.activeElement as HTMLElement);
+            setMorePick({ date: date as unknown as Date, events, anchor });
+          },
+        }}
+      />
+    );
+
+  const overlays = (
+    <>
+      {pick && (
+        <Popover
+          ev={pick.ev}
+          anchor={pick.anchor}
+          onClose={closePop}
+          variant={UI_DEFAULTS.popover}
+          onEdit={openEdit}
+          onDelete={handleDelete}
+        />
+      )}
+      {morePick && (
+        <MoreEventsPopover
+          date={morePick.date}
+          events={morePick.events}
+          anchor={morePick.anchor}
+          onClose={() => setMorePick(null)}
+          onEventClick={(eventId, anchor) => {
+            const ev = morePick.events.find((e) => e.id === eventId);
+            if (ev) {
+              openEventDetails(ev as EventObject, anchor);
+            }
+            setMorePick(null);
+          }}
+          onEventEdit={openEventEditById}
+        />
+      )}
+      {(creating || editing) && (
+        <CreateDialog
+          onClose={closeDialog}
+          onCreate={handleSubmit}
+          initial={editing ? calEventToInput(editing) : createInitial ?? undefined}
+        />
+      )}
+      {settingsAnchor && (
+        <SettingsPanel
+          anchor={settingsAnchor}
+          value={prefs}
+          tuning={calendarTuning}
+          onChange={setPrefs}
+          onTuningChange={setCalendarTuning}
+          onClose={() => setSettingsAnchor(null)}
+        />
+      )}
+    </>
+  );
+
+  // ===== 移动外壳（M1）=====
+  if (isMobile) {
+    const monthLabel = `${currentDate.getMonth() + 1}月`;
+    const isPlaceholder = mobileView === 'multi' || mobileView === 'list';
+    return (
+      <Provider colorScheme={prefs.theme}>
+        <ToastContainer />
+        <div className="app app--mobile" data-card={UI_DEFAULTS.card} data-density={prefs.density}>
+          <MobileTopBar view={mobileView} setView={setMobileView} monthLabel={monthLabel} />
+          {mobileView === 'day' && (
+            <DayWeekStrip currentDate={currentDate} onDateChange={goToDate} />
+          )}
+          <div
+            className="canvas canvas--mobile"
+            onMouseDownCapture={(e) => rememberMonthMoreAnchor(e.target)}
+            onKeyDownCapture={(e) => rememberMonthMoreAnchor(e.target)}
+          >
+            {isPlaceholder ? <MobilePlaceholder view={mobileView} /> : calendarNode}
+          </div>
+          {overlays}
+        </div>
+      </Provider>
+    );
+  }
+
+  // ===== 桌面外壳 =====
   return (
     <Provider colorScheme={prefs.theme}>
       <ToastContainer />
@@ -483,108 +620,10 @@ export default function App({ view }: AppProps) {
             onMouseDownCapture={(e) => rememberMonthMoreAnchor(e.target)}
             onKeyDownCapture={(e) => rememberMonthMoreAnchor(e.target)}
           >
-            {status === 'loading' ? (
-              <div className="data-state" role="status" aria-live="polite">
-                <div className="data-state-spinner" aria-hidden />
-                <p className="data-state-msg">正在加载日程…</p>
-              </div>
-            ) : status === 'error' ? (
-              <div className="data-state data-state--error" role="alert">
-                <p className="data-state-msg">日程加载失败{error ? `：${error}` : ''}</p>
-                <button type="button" className="data-state-btn" onClick={reload}>
-                  重试
-                </button>
-              </div>
-            ) : allEvents.length === 0 ? (
-              <div className="data-state">
-                <p className="data-state-msg">还没有任何日程</p>
-                <button type="button" className="data-state-btn" onClick={() => setCreating(true)}>
-                  新建日程
-                </button>
-              </div>
-            ) : (
-              <Calendar
-                ref={calRef}
-                events={calendarEvents}
-                calendars={calendarCalendars}
-                theme={CALENDAR_THEME}
-                options={calendarOptions}
-                callbacks={{
-                  onEventClick: ({ event }) => {
-                    openEventDetails(event);
-                  },
-                  // P7b: 滑动新建 / 单元格点击 → 预填对话框
-                  onEventCreate: handleEngineCreate,
-                  // P7b: 拖拽移动 / resize → 基于 raw 合并写回数据源
-                  onEventUpdate: handleEngineUpdate,
-                  // P7b: 创建 / 更新被引擎策略拒绝（overlap / invalid / policy）时 toast 提示
-                  onEventCreateFailed: () => {
-                    ToastQueue.negative('无法创建日程：与现有安排冲突或时段不合法', {
-                      timeout: 5000,
-                    });
-                  },
-                  onEventUpdateFailed: () => {
-                    ToastQueue.negative('无法更新日程：与现有安排冲突或时段不合法', {
-                      timeout: 5000,
-                    });
-                  },
-                  // P8b: 引擎翻页 → 回填 currentDate，联动 MiniCalendar 高亮
-                  onPageChange: handlePageChange,
-                  // 月视图「+N 更多」点击 → 弹出该日所有事件列表
-                  onMoreEventsClick: ({ date, events }) => {
-                    const anchor =
-                      monthMoreAnchorRef.current ?? (document.activeElement as HTMLElement);
-                    setMorePick({ date: date as unknown as Date, events, anchor });
-                  },
-                }}
-              />
-            )}
+            {calendarNode}
           </div>
         </div>
-
-        {pick && (
-          <Popover
-            ev={pick.ev}
-            anchor={pick.anchor}
-            onClose={closePop}
-            variant={UI_DEFAULTS.popover}
-            onEdit={openEdit}
-            onDelete={handleDelete}
-          />
-        )}
-        {morePick && (
-          <MoreEventsPopover
-            date={morePick.date}
-            events={morePick.events}
-            anchor={morePick.anchor}
-            onClose={() => setMorePick(null)}
-            onEventClick={(eventId, anchor) => {
-              const ev = morePick.events.find((e) => e.id === eventId);
-              if (ev) {
-                openEventDetails(ev as EventObject, anchor);
-              }
-              setMorePick(null);
-            }}
-            onEventEdit={openEventEditById}
-          />
-        )}
-        {(creating || editing) && (
-          <CreateDialog
-            onClose={closeDialog}
-            onCreate={handleSubmit}
-            initial={editing ? calEventToInput(editing) : createInitial ?? undefined}
-          />
-        )}
-        {settingsAnchor && (
-          <SettingsPanel
-            anchor={settingsAnchor}
-            value={prefs}
-            tuning={calendarTuning}
-            onChange={setPrefs}
-            onTuningChange={setCalendarTuning}
-            onClose={() => setSettingsAnchor(null)}
-          />
-        )}
+        {overlays}
       </div>
     </Provider>
   );
