@@ -213,10 +213,13 @@
     - 预览验证：375px → now 红线 + 红 bullet(10px) + 白字红底「12:07」旗；1280px（reload）→ now-label 仍透明底/accent 色/无圆角（**桌面零回归**）；`day-view--mobile` tier 类在 s2 正常注入；包单测 374/374 绿、无 console 报错。
   - **重要发现（修正前述模板注入设想）**：月视图实际由 `components/month/MonthGrid.tsx` 渲染（直接出 `month-cell-date` 数字），**不走 `monthGridHeader` 模板**（该模板仅 `dayGridMonth/CellHeader` 使用，月视图未用）。
     故「宿主覆盖 `monthGridHeader` 注入月农历」在当前引擎**无效**；月农历需先给 `MonthGrid` 增加一个**可选模板插槽**（公开 API 扩展，docs-first：先改 `SPEC.md` + `template.type.ts`，默认渲染不变以保零回归），列为独立小步。
+  - **移动周条样式已贴近 remix（s2，2026-06-22）**：
+    - `DayWeekStrip` 结构调整：数字 + 农历包进 `day-week-chip__blob`。桌面下 blob 为透明壳（base 样式仅纵向堆叠，间距等同原 chip gap，视觉零变化）；移动端 `.app--mobile` 作用域内把 blob 样式化为 42px 圆，数字+农历同框，选中（primary）整圈实心、今日选中用 accent 实心、今日未选数字用 accent 色；移动端隐藏左侧月份 pill（月份已在顶部导航），7 列占满。
+    - 预览验证：375px → 7 列周条、数字+农历同圈、今日(22 初八)accent 实心圈；1280px（reload）→ 月份 pill「6月」在、日期仍 32px 圆 + 农历在下、blob 为透明壳（**桌面零回归**）；`tsc` 通过、无 console 报错。
   - **M1 剩余（下一小步）**：
     - 月视图农历：给 `MonthGrid` 加可选 cell 模板插槽（公开 API，docs-first），宿主用 `lunarLabelOf` 注入；配套 `responsive.scss` 放开 `month-cell-header` 高度。
     - 包内 `responsive.scss`：Day 时间 gutter 收窄、事件卡 tier（soft/bar/solid）、月格细节。
-    - 周条移动样式贴近 remix（数字+农历同圈、primary 实心、multi 连接带）；事件详情底部 sheet（复用 Popover 数据逻辑）。
+    - 事件详情底部 sheet（复用 Popover 数据逻辑）；多日连接带（随 M3 多日视图）。
     - 实时切换（旋屏/改窗）依赖 `useIsMobile` 的 resize 兜底；CDP 模拟器下 matchMedia change 不稳定，真机/真浏览器正常。
 - M2：
 - M3：

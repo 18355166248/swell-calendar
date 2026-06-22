@@ -226,15 +226,18 @@ export function DayWeekStrip({ currentDate, onDateChange }: DayWeekStripProps) {
               aria-pressed={active}
             >
               <span className="day-week-chip__dow">{MINI_DOW[mondayIndex(date)]}</span>
-              <span className="day-week-chip__date">{date.getDate()}</span>
-              {(() => {
-                const lunar = lunarLabelOf(date);
-                return (
-                  <span className={'day-week-chip__lunar' + (lunar.isTerm ? ' is-term' : '')}>
-                    {lunar.text}
-                  </span>
-                );
-              })()}
+              {/* blob 包住 数字 + 农历：桌面下为透明壳（视觉不变），移动端样式化为同一圆形 */}
+              <span className="day-week-chip__blob">
+                <span className="day-week-chip__date">{date.getDate()}</span>
+                {(() => {
+                  const lunar = lunarLabelOf(date);
+                  return (
+                    <span className={'day-week-chip__lunar' + (lunar.isTerm ? ' is-term' : '')}>
+                      {lunar.text}
+                    </span>
+                  );
+                })()}
+              </span>
             </button>
           );
         })}

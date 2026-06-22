@@ -602,6 +602,14 @@ button {
   color: var(--text-3);
 }
 
+/* blob：桌面下为透明壳，仅负责把 数字 + 农历 纵向堆叠（间距等同原 chip gap），视觉与改造前一致 */
+.day-week-chip__blob {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
 .day-week-chip__date {
   width: 32px;
   height: 32px;
@@ -1383,4 +1391,70 @@ button {
   margin: 0;
   font-size: 13px;
   color: var(--text-3);
+}
+
+/* ===== 移动周条（对标 remix WeekStrip：数字+农历同圈、选中实心）===== */
+.app--mobile .day-week-strip {
+  gap: 0;
+  padding: 6px 6px 8px;
+}
+/* 月份 pill 在移动端由顶部导航承担，周条内隐藏，7 列占满 */
+.app--mobile .day-week-strip__month {
+  display: none;
+}
+.app--mobile .day-week-strip__days {
+  gap: 0;
+}
+.app--mobile .day-week-chip {
+  padding: 5px 0 6px;
+  gap: 3px;
+  border-radius: 0;
+}
+.app--mobile .day-week-chip__dow {
+  font-size: 11px;
+  font-weight: 600;
+}
+/* blob 成为 42px 圆，数字 + 农历同框 */
+.app--mobile .day-week-chip__blob {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  gap: 1px;
+  justify-content: center;
+}
+.app--mobile .day-week-chip__date {
+  width: auto;
+  height: auto;
+  border-radius: 0;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+}
+.app--mobile .day-week-chip__lunar {
+  font-size: 10px;
+}
+/* 今日（非选中）：数字用强调色 */
+.app--mobile .day-week-chip.today:not(.active) .day-week-chip__date {
+  box-shadow: none;
+  color: var(--accent-text);
+}
+/* 选中（primary）：整圈实心填充，文字反色 */
+.app--mobile .day-week-chip.active .day-week-chip__date {
+  background: transparent;
+  color: var(--bg-layer-2);
+}
+.app--mobile .day-week-chip.active .day-week-chip__blob {
+  background: var(--text-1);
+}
+.app--mobile .day-week-chip.active .day-week-chip__date,
+.app--mobile .day-week-chip.active .day-week-chip__lunar {
+  color: var(--bg-layer-2);
+}
+/* 选中且为今日：强调色实心圈 */
+.app--mobile .day-week-chip.active.today .day-week-chip__blob {
+  background: var(--accent-bg);
+}
+.app--mobile .day-week-chip.active.today .day-week-chip__date,
+.app--mobile .day-week-chip.active.today .day-week-chip__lunar {
+  color: var(--accent-contrast);
 }
