@@ -216,10 +216,18 @@
   - **移动周条样式已贴近 remix（s2，2026-06-22）**：
     - `DayWeekStrip` 结构调整：数字 + 农历包进 `day-week-chip__blob`。桌面下 blob 为透明壳（base 样式仅纵向堆叠，间距等同原 chip gap，视觉零变化）；移动端 `.app--mobile` 作用域内把 blob 样式化为 42px 圆，数字+农历同框，选中（primary）整圈实心、今日选中用 accent 实心、今日未选数字用 accent 色；移动端隐藏左侧月份 pill（月份已在顶部导航），7 列占满。
     - 预览验证：375px → 7 列周条、数字+农历同圈、今日(22 初八)accent 实心圈；1280px（reload）→ 月份 pill「6月」在、日期仍 32px 圆 + 农历在下、blob 为透明壳（**桌面零回归**）；`tsc` 通过、无 console 报错。
+  - **事件详情底部 sheet 已落地（s2，2026-06-22）**：
+    - 仍复用引擎 `onEventClick` → `pick` → `toPickEvent` 数据链路；桌面继续渲染锚定式 `Popover`，移动端同一 `pick.ev` 改渲染 `MobileEventSheet`，不改 `swell-calendar` 公开 API。
+    - sheet 由宿主 `apps/swell-calendar-s2` 承担：底部固定、带安全区、顶部 grabber、标题/时间/地点/描述/参与人/删除/编辑；关闭、编辑、删除均复用原回调。
+    - 预期验证：375px 点击事件 → 底部 sheet；点遮罩关闭、编辑进入原编辑对话框、删除关闭并落库；1280px 仍为桌面 Popover（零回归）。
+  - **Day 移动 gutter 收窄已落地（包内，2026-06-22）**：
+    - `Day.tsx` 按 viewport tier 把移动端时间 gutter 从主题默认 72px 收窄为 48px，并统一传给 `GridHeader` / `AlldayRow` / `TimeGrid`，保证表头、全天行、时间网格三段左侧边界对齐。
+    - `TimeGrid` 新增内部 `gutterWidthOverride` prop，仅供包内响应式布局使用；未从 `src/index.ts` 导出，不构成公开 API。
+    - 预期验证：375px 单日视图内容列变宽、时间轴仍可读；1280px 仍使用主题默认 gutter（桌面零回归）。
   - **M1 剩余（下一小步）**：
     - 月视图农历：给 `MonthGrid` 加可选 cell 模板插槽（公开 API，docs-first），宿主用 `lunarLabelOf` 注入；配套 `responsive.scss` 放开 `month-cell-header` 高度。
-    - 包内 `responsive.scss`：Day 时间 gutter 收窄、事件卡 tier（soft/bar/solid）、月格细节。
-    - 事件详情底部 sheet（复用 Popover 数据逻辑）；多日连接带（随 M3 多日视图）。
+    - 包内 `responsive.scss`：事件卡 tier（soft/bar/solid）、月格细节。
+    - 多日连接带（随 M3 多日视图）。
     - 实时切换（旋屏/改窗）依赖 `useIsMobile` 的 resize 兜底；CDP 模拟器下 matchMedia change 不稳定，真机/真浏览器正常。
 - M2：
 - M3：

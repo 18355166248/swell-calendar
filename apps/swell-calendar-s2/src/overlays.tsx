@@ -15,6 +15,14 @@ const fmtH = (h: number) => {
 };
 /** 事件时间区间标签，如 `9:00 – 10:30`。 */
 const evRange = (e: { start: number; end: number }) => `${fmtH(e.start)} – ${fmtH(e.end)}`;
+const peopleColors: Cat[] = ['seafoam', 'indigo', 'orange', 'purple'];
+const initialsOf = (s: string) => s.replace(/[^一-龥A-Za-z0-9]/g, '').slice(0, 1) || '·';
+const getPeople = (value?: string) =>
+  (value || '')
+    .split(/[·+]/)
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .slice(0, 4);
 
 /**
  * 取折叠事件（月视图 `+N 更多` 浮层）的参与人 / 地点摘要。
@@ -95,13 +103,7 @@ export function Popover({
     setPos({ top, left });
   }, [anchor, ev]);
 
-  const people = (ev.who || '')
-    .split(/[·+]/)
-    .map((s) => s.trim())
-    .filter(Boolean)
-    .slice(0, 4);
-  const initialsOf = (s: string) => s.replace(/[^一-龥A-Za-z0-9]/g, '').slice(0, 1) || '·';
-  const peopleColors: Cat[] = ['seafoam', 'indigo', 'orange', 'purple'];
+  const people = getPeople(ev.who);
 
   return (
     <div className="pop-layer" onMouseDown={onClose}>
@@ -201,6 +203,99 @@ export function Popover({
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+export function MobileEventSheet({
+  ev,
+  onClose,
+  onEdit,
+  onDelete,
+}: {
+  ev: PickEvent;
+  onClose: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  const people = getPeople(ev.who);
+
+  return (
+    <div className="m-sheet-layer" onMouseDown={onClose}>
+      <section
+        className="m-sheet"
+        data-cat={ev.cat}
+        role="dialog"
+        aria-modal="true"
+        aria-label="日程详情"
+        onMouseDown={(e) => e.stopPropagation()}
+      >
+        <div className="m-sheet__grabber" aria-hidden />
+        <div className="m-sheet__head">
+          <div className="m-sheet__accent" aria-hidden />
+          <div className="m-sheet__title-wrap">
+            <div className="m-sheet__title">{ev.title}</div>
+            <div className="m-sheet__meta">
+              {ev.dateLabel || '未指定日期'} · {evRange(ev)}
+            </div>
+          </div>
+          <button type="button" className="m-sheet__close" onClick={onClose} aria-label="关闭">
+            ✕
+          </button>
+        </div>
+
+        <div className="m-sheet__rows">
+          <div className="m-sheet__row">
+            <Ic.clock />
+            <span>
+              {ev.dateLabel || '未指定日期'} · {evRange(ev)}
+              <span className="m-sheet__muted">
+                （{Math.round((ev.end - ev.start) * 60)} 分钟）
+              </span>
+            </span>
+          </div>
+          <div className="m-sheet__row">
+            <Ic.pin />
+            <span>{ev.loc || '未指定地点'}</span>
+          </div>
+          {ev.desc && (
+            <div className="m-sheet__row">
+              <Ic.inbox />
+              <span className="m-sheet__muted">{ev.desc}</span>
+            </div>
+          )}
+          <div className="m-sheet__row m-sheet__row--people">
+            <Ic.users />
+            <div className="m-sheet__people">
+              {people.length > 0 && (
+                <div className="m-sheet__avatars" aria-hidden>
+                  {people.map((person, index) => (
+                    <span
+                      key={`${person}-${index}`}
+                      className="m-sheet__avatar"
+                      style={{ background: CAT_COLORS[peopleColors[index % peopleColors.length]] }}
+                    >
+                      {initialsOf(person)}
+                    </span>
+                  ))}
+                </div>
+              )}
+              <span>{ev.who || '未指定参与人'}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="m-sheet__actions">
+          <button type="button" className="m-sheet__btn" onClick={onDelete}>
+            <Ic.trash />
+            删除
+          </button>
+          <button type="button" className="m-sheet__btn m-sheet__btn--primary" onClick={onEdit}>
+            <Ic.edit />
+            编辑
+          </button>
+        </div>
+      </section>
     </div>
   );
 }

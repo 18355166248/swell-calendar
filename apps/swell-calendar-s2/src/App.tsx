@@ -34,6 +34,7 @@ import { dataSource } from './dataSource';
 import {
   CreateDialog,
   FILTER_CATS,
+  MobileEventSheet,
   MoreEventsPopover,
   Popover,
   SettingsPanel,
@@ -497,7 +498,15 @@ export default function App({ view }: AppProps) {
 
   const overlays = (
     <>
-      {pick && (
+      {pick && isMobile && (
+        <MobileEventSheet
+          ev={pick.ev}
+          onClose={closePop}
+          onEdit={openEdit}
+          onDelete={handleDelete}
+        />
+      )}
+      {pick && !isMobile && (
         <Popover
           ev={pick.ev}
           anchor={pick.anchor}

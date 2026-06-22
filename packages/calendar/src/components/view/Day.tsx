@@ -18,6 +18,8 @@ import { getFilterRange, getRowStyleInfo } from '@/time/datetime';
 import { WeekOptions } from '@/types/options.type';
 import { getTierClassName } from '@/utils/viewport';
 
+const MOBILE_TIME_GRID_LEFT_WIDTH = '48px';
+
 export function Day(): JSX.Element {
   const { options, view } = useCalendarStore();
   const { week } = useThemeStore();
@@ -39,6 +41,10 @@ export function Day(): JSX.Element {
   const [timeGridRef, setTimeGridRef] = useDOMNode<HTMLDivElement>();
   const [scrollbarWidth, setScrollbarWidth] = useState(0);
   const [viewportTier, setViewportRef] = useViewportTier();
+  // 移动端只显示单日列，时间 gutter 继续沿用桌面 72px 会挤压事件内容列。
+  // 这里统一驱动 GridHeader / AlldayRow / TimeGrid，保证三段左侧边界始终对齐。
+  const effectiveTimeGridLeftWidth =
+    viewportTier === 'mobile' ? MOBILE_TIME_GRID_LEFT_WIDTH : timeGridLeftWidth;
 
   // 创建包含当前渲染日期的数组（日视图只显示一天）
   const days = useMemo(() => [renderDate], [renderDate]);
@@ -104,7 +110,7 @@ export function Day(): JSX.Element {
       <Panel name="day-view-day-names" initialHeight={WEEK_DAY_NAME_HEIGHT + WEEK_DAY_NAME_BORDER}>
         <GridHeader
           type="week"
-          marginLeft={timeGridLeftWidth}
+          marginLeft={effectiveTimeGridLeftWidth}
           rightInset={rightInset}
           dayNames={dayNames}
           rowStyleInfo={rowStyleInfo}
@@ -115,7 +121,7 @@ export function Day(): JSX.Element {
         <Panel name="allday" initialHeight={alldayPanelHeight}>
           <AlldayRow
             uiModels={alldayModels}
-            marginLeft={timeGridLeftWidth}
+            marginLeft={effectiveTimeGridLeftWidth}
             rightInset={rightInset}
           />
         </Panel>
@@ -123,7 +129,11 @@ export function Day(): JSX.Element {
 
       {activePanels.includes('time') ? (
         <Panel name="time" ref={setTimeGridRef}>
-          <TimeGrid timeGridData={timeGridData} events={dayGridEvents.time} />
+          <TimeGrid
+            timeGridData={timeGridData}
+            events={dayGridEvents.time}
+            gutterWidthOverride={effectiveTimeGridLeftWidth}
+          />
         </Panel>
       ) : null}
     </Layout>

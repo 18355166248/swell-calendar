@@ -49,6 +49,8 @@ export interface TimeGridProps {
   events: EventUIModel[]; // 需要在网格中显示的事件数组
   /** 固定列宽（像素），由 scheduler 视图传入以启用水平滚动 */
   columnWidth?: number;
+  /** 内部响应式覆盖：移动 Day 视图收窄时间轴 gutter，避免挤压单日内容列。 */
+  gutterWidthOverride?: string;
   /**
    * 隐藏内部左侧时间轴（gutter）。
    * scheduler 固定列宽模式下，外层已渲染独立的 sticky 时间轴，
@@ -68,7 +70,13 @@ function isSameResourceColumn(column: CommonGridColumn, uiModel: EventUIModel) {
   return resourceId === column.resourceId || resourceIds.includes(column.resourceId);
 }
 
-export function TimeGrid({ timeGridData, events, columnWidth, hideGutter }: TimeGridProps) {
+export function TimeGrid({
+  timeGridData,
+  events,
+  columnWidth,
+  gutterWidthOverride,
+  hideGutter,
+}: TimeGridProps) {
   const { columns } = timeGridData;
 
   // 获取列容器的 DOM 节点引用
@@ -89,12 +97,13 @@ export function TimeGrid({ timeGridData, events, columnWidth, hideGutter }: Time
   const timezones = currentView === 'scheduler' ? options.scheduler?.timezones ?? [] : [];
   const primaryTimezone =
     currentView === 'scheduler' ? options.scheduler?.displayTimezone : undefined;
-  const baseGutterWidth = parseInt(`${timeGridLeft.width}`, 10) || 72;
+  const resolvedBaseGutterWidth = gutterWidthOverride ?? timeGridLeft.width;
+  const baseGutterWidth = parseInt(`${resolvedBaseGutterWidth}`, 10) || 72;
   const gutterWidth = hideGutter
     ? '0'
     : timezones.length > 0
       ? `${baseGutterWidth * (timezones.length + 1)}px`
-      : timeGridLeft.width;
+      : resolvedBaseGutterWidth;
 
   // 固定列宽模式：计算网格总像素宽度，用于 .time-columns 和 .time-grid-scroll-area 的显式宽度
   const gutterWidthPx = hideGutter
