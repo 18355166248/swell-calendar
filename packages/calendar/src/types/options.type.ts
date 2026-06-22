@@ -9,7 +9,7 @@ import { ThemeState } from './theme.type';
 export type EventView = 'allday' | 'time';
 export type TaskView = 'milestone' | 'task';
 
-export type ViewType = 'month' | 'week' | 'day' | 'scheduler' | 'timeline';
+export type ViewType = 'month' | 'week' | 'day' | 'agenda' | 'scheduler' | 'timeline';
 export type EnabledViews = Record<ViewType, boolean>;
 
 // 时间分隔配置：2表示半小时一块，4表示15分钟一块
@@ -45,6 +45,8 @@ export interface Options {
   week?: WeekOptions;
   // 月视图选项
   month?: MonthOptions;
+  // 列表视图选项
+  agenda?: AgendaOptions;
   // 调度器视图选项
   scheduler?: SchedulerOptions;
   // 时间线视图选项
@@ -102,6 +104,13 @@ export interface MonthOptions {
   dragToResize?: boolean;
   /** 允许空白格子拖拽创建事件。默认 true；isReadOnly 时强制 false */
   dragToCreate?: boolean;
+}
+
+export interface AgendaOptions {
+  /** 从 renderDate 开始展示的连续天数，默认 14 天。 */
+  range?: number;
+  /** 是否展示没有事件的日期分组，默认 true。 */
+  showEmptyDays?: boolean;
 }
 
 export interface SchedulerOptions {
@@ -176,6 +185,7 @@ export interface NormalizedOptions {
   views: EnabledViews;
   week: Required<WeekOptions>;
   month: Required<MonthOptions>;
+  agenda: Required<AgendaOptions>;
   scheduler?: SchedulerOptions;
   timeline?: TimelineOptions;
   setOptions: (options: Options) => void;

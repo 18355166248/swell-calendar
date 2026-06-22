@@ -257,7 +257,23 @@
   - **M1 剩余（下一小步）**：
     - 多日连接带（随 M3 多日视图）。
     - 实时切换（旋屏/改窗）依赖 `useIsMobile` 的 resize 兜底；CDP 模拟器下 matchMedia change 不稳定，真机/真浏览器正常。
-- M2：
+- M2：**Agenda / 列表视图首版已落地（2026-06-22）**。
+  - docs-first：`SPEC.md` 已把 `agenda` 纳入 `ViewType` / `views` 配置示例，能力边界定义为「按天分组的只读事件列表，点击行触发既有 `onEventClick`」。
+  - 本阶段范围：
+    - 包内新增 `agenda.controller.ts` 纯函数：从 `renderDate` 开始生成连续日期窗口，按天归集命中事件，组内排序为全天优先、开始时间升序、同起点长事件优先。
+    - 包内新增 `components/view/Agenda.tsx`：日期分组头 + 事件行；事件行只负责展示和点击，不承担数据变更。
+    - `ViewType` / `Toolbar` / `CalendarApp` / navigation 接线支持 `'agenda'`。
+    - s2 移动端 segmented「列表」切到真实 `agenda` 引擎视图，点击事件复用已落地的移动底部 sheet。
+  - 非目标：本阶段不做虚拟化、搜索过滤增强、长按创建、触控拖拽、内建编辑表单；这些留在后续 M4/M5 或独立能力。
+  - 验证：
+    - `agenda.controller.spec.ts` 覆盖连续日期窗口、空日保留/隐藏、全天优先排序、同起点长事件优先、跨天延续标记。
+    - 包内 `Toolbar` / `CalendarApp` / `navigate()` 已接入 `'agenda'`；`options.agenda.range` 默认 14 天。
+    - s2 移动端 segmented「列表」不再显示占位；浏览器验证为 14 个日期分组、47 条事件，点击首条事件打开移动底部 sheet。
+    - `MIGRATION.md` 已记录 `ViewType` 扩展的宿主侧注意事项。
+  - **Agenda remix 视觉收口已落地（2026-06-22）**：
+    - 差距：首版更像彩色卡片流，而参考稿是 iOS 议程列表；缺右侧农历、全天星标行、右侧双行时间、整宽分割线，事件底色和圆角过重。
+    - 收口目标：移动端改为无卡片列表行；日期组头左右排（日期 + 农历）；全天事件用绿色星标；普通事件只保留左色条 + 标题 + 右侧起止时间；行间以 1px 分割线承接。
+    - 验证：浏览器确认移动列表为白底整宽行、0 圆角、1px 分割线、右侧农历、右侧起止时间两行；点击事件仍打开移动底部 sheet。
 - M3：
 - M4：
 - M5：

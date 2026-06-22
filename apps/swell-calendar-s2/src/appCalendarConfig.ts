@@ -113,6 +113,10 @@ export function computeViewTitle(
         `${daysInMonth}天 · 每日最多 ${tuning.monthMaxEventStack} 条`,
       ];
     }
+    case 'agenda': {
+      const dates = collectVisibleDates(currentDate, 14);
+      return [formatRangeTitle(dates[0], dates[dates.length - 1]), '按天分组列表'];
+    }
     case 'scheduler': {
       const dates = collectVisibleDates(currentDate, tuning.schedulerRange, !context.showWeekend);
       return [
@@ -163,6 +167,10 @@ export function buildCalendarOptions(input: {
       dragToResize: true,
       dragToCreate: true,
     },
+    agenda: {
+      range: 14,
+      showEmptyDays: true,
+    },
     scheduler: {
       resources: [],
       hourStart: 8,
@@ -180,6 +188,11 @@ export function buildCalendarOptions(input: {
         const lunar = lunarLabelOf(dayjs(model.date).toDate());
         const lunarClass = lunar.isTerm ? 's2-month-date-lunar is-term' : 's2-month-date-lunar';
         return `<span class="s2-month-date-num">${model.day}</span><span class="${lunarClass}">${lunar.text}</span>`;
+      },
+      agendaDayHeader(model: { renderDate: string }) {
+        const lunar = lunarLabelOf(dayjs(model.renderDate).toDate());
+        const lunarClass = lunar.isTerm ? 's2-agenda-lunar is-term' : 's2-agenda-lunar';
+        return `<span class="${lunarClass}">${lunar.text}</span>`;
       },
     },
   };

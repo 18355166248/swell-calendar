@@ -125,6 +125,25 @@ const schedulerOptions = {
 
 以下为近期新增的纯增量字段，不影响既有写法，宿主可按需启用：
 
+- `ViewType: 'agenda'` 与 `options.agenda`
+  - 新增只读列表视图，按天分组展示事件，点击事件行触发既有 `onEventClick`
+  - 默认 `agenda.range = 14`、`agenda.showEmptyDays = true`
+  - 不配置时既有默认视图、事件数据流和回调语义不变
+  - 如果宿主代码对 `ViewType` 做了 TypeScript 穷举（例如 `Record<ViewType, ...>` 或 `switch(view)` 的 exhaustive check），需要补上 `'agenda'` 分支
+
+  ```ts
+  const options = {
+    defaultView: 'agenda',
+    views: {
+      agenda: true,
+    },
+    agenda: {
+      range: 14,
+      showEmptyDays: true,
+    },
+  };
+  ```
+
 - `month.maxEventStack?: number`
   - 用于统一 month 每格直接显示的事件堆叠上限语义
   - 兼容期内运行时优先读取 `maxEventStack`，未提供时回退到旧字段 `visibleEventCount`

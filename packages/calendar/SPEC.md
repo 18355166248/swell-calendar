@@ -19,7 +19,7 @@ swell-calendar 是一个**可嵌入的 React 日历组件库**，面向需要在
 - 参考的是桌面端 scheduler 的产品行为、布局和交互闭环
 - 不要求与 Mobiscroll 保持同名 API
 - `connections`、`eventList` 不在当前近期范围
-- 移动端适配（响应式 + 触控 + 四视图）为活跃 capability epic；**M1 响应式基线已落地**：视口档位原语（`getViewportTier` / `useViewportTier`，按根容器宽度分 mobile/tablet/desktop）+ Day/Month 据档位切根类名 + Day 事件移动样式（限时圆角、全天胶囊），桌面零回归。**触控输入、`agenda`/`multi-day` 视图、移动打磨（M2–M5）仍规划中、未落地。** 视觉对标 iOS 苹果日历设计稿（`docs/assets/*.png`），覆盖 Day/Multi-day/Agenda/Month。详见 `docs/tasks/2026-06-19-mobile-adaptation.md`
+- 移动端适配（响应式 + 触控 + 四视图）为活跃 capability epic；**M1 响应式基线已落地**：视口档位原语（`getViewportTier` / `useViewportTier`，按根容器宽度分 mobile/tablet/desktop）+ Day/Month 据档位切根类名 + Day/Month 移动样式收口，桌面零回归。**M2 Agenda 列表视图首版已落地**：新增 `agenda` 视图，按天分组展示事件，点击行触发既有 `onEventClick`；触控输入、`multi-day` 视图、移动打磨（M3–M5）仍规划中、未落地。视觉对标 iOS 苹果日历设计稿（`docs/assets/*.png`），覆盖 Day/Multi-day/Agenda/Month。详见 `docs/tasks/2026-06-19-mobile-adaptation.md`
 
 ## 核心约束
 
@@ -38,6 +38,7 @@ swell-calendar 是一个**可嵌入的 React 日历组件库**，面向需要在
 | 日视图（Day）       | ✅ 完成     | 单日时间网格，24 小时展示                                                   |
 | 周视图（Week）      | ✅ 完成     | 7 天时间网格，支持 workweek 模式                                            |
 | 月视图（Month）     | ✅ 事件 + 拖动 | 月历格子 + 事件卡片，支持 `startDayOfWeek`、`workweek` 与 `maxEventStack`（兼容 `visibleEventCount`）；事件支持拖动换天（move，日粒度，保留时长）、左右 resize（改跨天天数）与空白格子横向框选创建全天事件（create） |
+| 列表视图（Agenda）  | ✅ M2 首版 | 按天分组的只读事件列表，覆盖从 `renderDate` 开始的连续日期窗口；组头展示日期，组内按全天优先、开始时间升序排序；点击事件行触发既有 `onEventClick` |
 | 时间线（Timeline）  | ✅ 日粒度排程 | 对标 Mobiscroll Calendar timeline：按天列（当月）+ 资源行，事件渲染为跨天横条、同行重叠按车道堆叠、行高自适应，今天列高亮、周末浅染；资源池与 scheduler 共享；支持拖拽移动（含跨资源行）/ 左右 resize / 空白拖拽创建 / 日期 tooltip |
 | 调度器（Scheduler） | 🟡 核心闭环可用 | 垂直时间轴 + 资源列的 time-grid 视图，桌面端核心业务闭环已形成，当前进入 Phase 3 高级体验收口阶段 |
 
@@ -104,11 +105,12 @@ swell-calendar 是一个**可嵌入的 React 日历组件库**，面向需要在
 - `eventList`
 - 虚拟化、打印、a11y 强化
 
-当前**活跃 epic（M1 响应式基线已落地，M2–M5 规划中）**：
+当前**活跃 epic（M1 响应式基线已落地，M2 Agenda 首版已落地，M3–M5 规划中）**：
 
 - 移动端适配（响应式布局 + 触控输入 + 四视图），视觉对标 iOS 苹果日历设计稿（`docs/assets/*.png`）；含新 `agenda` 视图（M2）。详见 `docs/tasks/2026-06-19-mobile-adaptation.md`
-  - 已落地（M1）：视口档位原语 + Day/Month 据档位切根类名 + Day 事件移动样式，桌面零回归
-  - 未落地：触控 create/move/resize（鼠标 only）、`agenda` / `multi-day` 视图、移动交互打磨
+  - 已落地（M1）：视口档位原语 + Day/Month 据档位切根类名 + Day/Month 移动样式收口，桌面零回归
+  - 已落地（M2）：`agenda` 只读列表视图，复用既有事件数据与 `onEventClick`
+  - 未落地：触控 create/move/resize（鼠标 only）、`multi-day` 视图、移动交互打磨
 
 shared events 的资源策略固定为：
 
@@ -123,13 +125,14 @@ shared events 的资源策略固定为：
 
 ```ts
 interface CalendarOptions {
-  defaultView?: 'day' | 'week' | 'month' | 'scheduler' | 'timeline';
+  defaultView?: 'day' | 'week' | 'month' | 'agenda' | 'scheduler' | 'timeline';
   initialDate?: Date | string;
   isReadOnly?: boolean;
   views?: {
     day?: boolean;
     week?: boolean;
     month?: boolean;
+    agenda?: boolean;
     scheduler?: boolean;
     timeline?: boolean;
   };
@@ -359,7 +362,7 @@ interface ColoredRange {
 
 ### 模板接口（`Template`）
 
-12 个可定制渲染点：
+13 个可定制渲染点：
 
 | 函数名                       | 渲染位置                   |
 | ---------------------------- | -------------------------- |
@@ -373,6 +376,7 @@ interface ColoredRange {
 | `timeMoveGuide`              | 拖拽时间提示               |
 | `timeGridNowIndicatorLabel`  | 当前时间指示器标签         |
 | `monthGridHeader`            | 当前 Month 视图日期格头部（含 `date/day/month/ymd/isToday/isOtherMonth/hiddenEventCount`） |
+| `agendaDayHeader`            | Agenda 日期分组头右侧内容（默认事件数量；宿主可注入农历/节气等文本） |
 | `schedulerDayHeader`         | scheduler 顶部日期头       |
 | `schedulerResourceHeader`    | scheduler 资源列头         |
 
@@ -577,7 +581,7 @@ function useCalendarDataSource<TEvent, TDraft>(
 
 - [x] Timeline 拖拽交互（移动 / resize / 拖拽创建 / 日期 tooltip）— 见下方「Timeline 交互」
 - [ ] Timeline 交互后续增量：overlap/invalid 校验、external/cross-instance DnD、shared events 跨资源行语义
-- [ ] agenda 视图
+- [x] agenda 只读列表视图（M2）
 - [ ] 月视图 workweek 支持
 - [ ] 顶边 resize（Scheduler 事件顶边调整开始时间）
 - [ ] 资源层级渲染（利用 `parentId` 字段）

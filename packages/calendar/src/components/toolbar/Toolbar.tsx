@@ -9,11 +9,12 @@ const VIEW_LABELS: Record<ViewType, string> = {
   day: '日',
   week: '周',
   month: '月',
+  agenda: '列表',
   scheduler: '调度',
   timeline: '时间线',
 };
 
-const VIEW_ORDER: ViewType[] = ['day', 'week', 'month', 'scheduler', 'timeline'];
+const VIEW_ORDER: ViewType[] = ['day', 'week', 'month', 'agenda', 'scheduler', 'timeline'];
 
 function getDateRangeText(view: ViewType, renderDate: DayjsTZDate, options: Options): string {
   const d = renderDate.dayjs;
@@ -22,6 +23,10 @@ function getDateRangeText(view: ViewType, renderDate: DayjsTZDate, options: Opti
   }
   if (view === 'month') {
     return d.format('YYYY年M月');
+  }
+  if (view === 'agenda') {
+    const range = normalizeRange(options.agenda?.range) ?? 14;
+    return formatDateWindowText(getVisibleDateWindow(renderDate, range));
   }
   if (view === 'timeline') {
     const timelineRange = normalizeRange(options.timeline?.range);

@@ -201,11 +201,17 @@ export default function App({ view }: AppProps) {
   // 刷新回到今天。
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-  // 移动端视图状态独立于 URL（桌面 view 仍以路由为真源）；多日/列表为占位（M2/M3）。
+  // 移动端视图状态独立于 URL（桌面 view 仍以路由为真源）；列表已接 agenda，多日仍为 M3 占位。
   const [mobileView, setMobileView] = useState<MobileViewId>('day');
   const [currentDate, setCurrentDate] = useState<Date>(() => new Date());
-  // 引擎实际视图：桌面跟随路由；移动端只有 day/month 有真实引擎视图（多日/列表占位时退化为 day）。
-  const engineView: ViewId = isMobile ? (mobileView === 'month' ? 'month' : 'day') : view;
+  // 引擎实际视图：桌面跟随路由；移动端 day/month/list 分别映射到 day/month/agenda。
+  const engineView: ViewId = isMobile
+    ? mobileView === 'month'
+      ? 'month'
+      : mobileView === 'list'
+        ? 'agenda'
+        : 'day'
+    : view;
   const [pick, setPick] = useState<{ ev: PickEvent; anchor: HTMLElement } | null>(null);
   const [morePick, setMorePick] = useState<{
     date: Date;
@@ -560,7 +566,7 @@ export default function App({ view }: AppProps) {
   // ===== 移动外壳（M1）=====
   if (isMobile) {
     const monthLabel = `${currentDate.getMonth() + 1}月`;
-    const isPlaceholder = mobileView === 'multi' || mobileView === 'list';
+    const isPlaceholder = mobileView === 'multi';
     return (
       <Provider colorScheme={prefs.theme}>
         <ToastContainer />

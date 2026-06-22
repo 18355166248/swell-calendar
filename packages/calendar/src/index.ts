@@ -42,6 +42,7 @@ export type {
   RecurringException,
 } from '@/types/events.type';
 export type {
+  AgendaOptions,
   EnabledViews,
   MonthOptions,
   Options,

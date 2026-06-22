@@ -1,0 +1,144 @@
+.agenda-view {
+  height: 100%;
+  overflow: hidden;
+  background: var(--swell-agenda-bg, #fff);
+}
+
+.agenda-scroll {
+  height: 100%;
+  overflow: auto;
+  padding: 0 0 24px;
+}
+
+.agenda-day {
+  padding: 0;
+}
+
+.agenda-day-header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 18px 8px;
+  background: var(--swell-agenda-bg, #fff);
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.agenda-day-title {
+  min-width: 0;
+  font-size: 17px;
+  font-weight: 800;
+  color: #333;
+  font-variant-numeric: tabular-nums;
+}
+
+.agenda-day--today .agenda-day-title {
+  color: var(--swell-agenda-today, #1677ff);
+}
+
+.agenda-day-count {
+  flex: none;
+  font-size: 13px;
+  color: #888;
+}
+
+.agenda-day-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding-top: 0;
+}
+
+.agenda-event {
+  width: 100%;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 4px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 11px;
+  min-height: 58px;
+  padding: 11px 18px;
+  border: 0;
+  border-bottom: 1px solid #e8e8e8;
+  border-radius: 0;
+  background: #fff;
+  color: #111;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.agenda-event:hover {
+  background: #f7f7f7;
+}
+
+.agenda-event:focus-visible {
+  outline: 2px solid color-mix(in oklch, var(--swell-agenda-event-border, #1677ff) 75%, #000);
+  outline-offset: 1px;
+}
+
+.agenda-event-mark {
+  align-self: stretch;
+  width: 4px;
+  min-height: 30px;
+  border-radius: 999px;
+  background: var(--swell-agenda-event-border, #1677ff);
+}
+
+.agenda-event--allday {
+  grid-template-columns: 18px minmax(0, 1fr) auto;
+}
+
+.agenda-event--allday .agenda-event-mark {
+  width: 18px;
+  height: 18px;
+  min-height: 18px;
+  align-self: center;
+  border-radius: 999px;
+  background: #63d83b;
+}
+
+.agenda-event-main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.agenda-event-title {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 15px;
+  font-weight: 650;
+}
+
+.agenda-event-time {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  min-width: 52px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.15;
+  color: #111;
+  font-variant-numeric: tabular-nums;
+}
+
+.agenda-event-time-end {
+  color: #8b8b8b;
+  font-weight: 500;
+}
+
+.agenda-empty {
+  padding: 12px 18px;
+  border-bottom: 1px solid #e8e8e8;
+  font-size: 13px;
+  color: #aaa;
+}

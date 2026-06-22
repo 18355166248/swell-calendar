@@ -5,6 +5,7 @@ import { cls } from '@/helpers/css';
 import { EventObjectWithDefaultValues } from '@/types/events.type';
 import {
   Template,
+  TemplateAgendaDayHeader,
   TemplateMonthDayName,
   TemplateMonthGrid,
   TemplateNow,
@@ -121,6 +122,10 @@ export const templates: Template = {
     const classNames = cls('weekday-grid-date', { 'weekday-grid-date-decorator': model.isToday });
 
     return <span className={classNames}>{date}</span>;
+  },
+
+  agendaDayHeader(model: TemplateAgendaDayHeader) {
+    return model.secondaryLabel;
   },
 
   schedulerDayHeader(model: TemplateSchedulerDayHeader) {

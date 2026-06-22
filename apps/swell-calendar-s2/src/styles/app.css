@@ -1522,3 +1522,11 @@ button {
 .app--mobile .swell-calendar-month-cell-date-today .s2-month-date-lunar {
   color: var(--accent-contrast);
 }
+.s2-agenda-lunar {
+  color: var(--text-3);
+  font-size: 13px;
+  font-weight: 600;
+}
+.s2-agenda-lunar.is-term {
+  color: var(--cat-green-text);
+}

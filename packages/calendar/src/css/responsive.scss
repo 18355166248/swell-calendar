@@ -207,3 +207,43 @@
     display: none;
   }
 }
+
+.agenda-view--mobile {
+  --swell-agenda-bg: var(--bg-app, #fff);
+  --swell-agenda-today: var(--accent-text, #1677ff);
+
+  .agenda-scroll {
+    padding: 0 0 24px;
+  }
+
+  .agenda-day {
+    padding-bottom: 12px;
+  }
+
+  .agenda-day-header {
+    padding: 15px 18px 8px;
+  }
+
+  .agenda-day-title {
+    font-size: 17px;
+    font-weight: 750;
+  }
+
+  .agenda-day-count {
+    font-size: 12px;
+  }
+
+  .agenda-day-list {
+    gap: 0;
+    padding-top: 0;
+  }
+
+  .agenda-event {
+    min-height: 58px;
+    padding: 11px 18px;
+  }
+
+  .agenda-event-title {
+    font-size: 15px;
+  }
+}

@@ -2,6 +2,7 @@ import React from 'react';
 
 import { CalendarProvider } from '@/components/CalendarProvider';
 import { Toolbar } from '@/components/toolbar/Toolbar';
+import { Agenda } from '@/components/view/Agenda';
 import { Day } from '@/components/view/Day';
 import { Month } from '@/components/view/Month';
 import { Scheduler } from '@/components/view/Scheduler';
@@ -19,6 +20,7 @@ function ViewRouter() {
     day: <Day />,
     week: <Week />,
     month: <Month />,
+    agenda: <Agenda />,
     scheduler: <Scheduler />,
     timeline: <Timeline />,
   };

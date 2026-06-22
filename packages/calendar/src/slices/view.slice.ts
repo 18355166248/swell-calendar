@@ -37,6 +37,13 @@ export function createViewSlice(
               state.view.renderDate = state.view.renderDate.addDate(step);
             } else if (view === 'month') {
               state.view.renderDate = state.view.renderDate.addMonth(step);
+            } else if (view === 'agenda') {
+              const agendaRange = normalizeRange(state.options.agenda.range) ?? 14;
+              state.view.renderDate = getShiftedDateWindowStart(
+                state.view.renderDate,
+                agendaRange,
+                direction
+              );
             } else if (view === 'timeline') {
               const timelineRange = normalizeRange(state.options.timeline?.range);
               if (timelineRange) {

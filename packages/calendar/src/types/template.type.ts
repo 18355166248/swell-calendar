@@ -23,6 +23,7 @@ export interface Template {
   timeMove: (event: EventObjectWithDefaultValues) => TemplateReturnType;
   timeMoveGuide: (event: EventObjectWithDefaultValues) => TemplateReturnType;
   monthGridHeader: (model: TemplateMonthGrid) => TemplateReturnType;
+  agendaDayHeader: (model: TemplateAgendaDayHeader) => TemplateReturnType;
   schedulerDayHeader: (model: TemplateSchedulerDayHeader) => TemplateReturnType;
   schedulerResourceHeader: (model: TemplateSchedulerResourceHeader) => TemplateReturnType;
 }
@@ -55,6 +56,19 @@ export interface TemplateMonthGrid {
   isToday: boolean;
   month: number;
   ymd: string;
+}
+
+export interface TemplateAgendaDayHeader {
+  date: number;
+  day: number;
+  dayName: string;
+  eventCount: number;
+  isToday: boolean;
+  month: number;
+  renderDate: string;
+  secondaryLabel: string;
+  ymd: string;
+  dateInstance: DayjsTZDate;
 }
 
 export interface TemplateSchedulerDayHeader {
