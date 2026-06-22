@@ -2,14 +2,20 @@
 
 ## 设计基线（真源）
 
-本 epic 的**视觉与结构**对标 iOS 苹果日历，设计稿存于仓库：
+本 epic 的**视觉与结构**对标 iOS 苹果日历，**唯一设计真源**是仓库内的 remix 活原型（HTML/CSS/JS，带完整尺寸 / 颜色 / 布局规则，比静态截图更完整）：
 
-| 设计稿 | 对应视图 |
-|--------|----------|
-| `docs/assets/day1.png` / `docs/assets/day2.png` | Day 单日视图 |
-| `docs/assets/multi-day.png` | Multi-day 多日视图 |
-| `docs/assets/agenda.png` | Agenda 列表视图 |
-| `docs/assets/month.png` | Month 月视图 |
+> **真源入口**：[`claude-design/mobile/swellcalendar-remix/project/swell-calendar-mobile.html`](../../claude-design/mobile/swellcalendar-remix/project/swell-calendar-mobile.html)
+> 还原前须**通读该 HTML 并跟进其全部 import**（`mobile-views.jsx` / `mobile-app.jsx` / `mobile.css` / `spectrum-tokens.css` / `data.js` / `icons.jsx` / `ios-frame.jsx`），以源码中的 px / oklch / 布局规则为准，不要凭截图臆测。
+> 设备基准 402×874。四视图主体定义在 `mobile-views.jsx`，样式在 `mobile.css`。
+
+四视图对应的静态参照截图（仅作快速比对，**非真源**，以 HTML 原型为准）：
+
+| 静态参照 | 对应视图 |
+|----------|----------|
+| `claude-design/.../ref/day1.png` / `day2.png`（= `docs/assets/day1.png` / `day2.png`） | Day 单日视图 |
+| `.../ref/multi-day.png` | Multi-day 多日视图 |
+| `.../ref/agenda.png` | Agenda 列表视图 |
+| `.../ref/month.png`（暗色 `month.dark.jpg`） | Month 月视图 |
 
 **触控交互**对标 Mobiscroll 移动端 day view：
 
@@ -26,7 +32,7 @@
 
 这是一次 **roadmap scope 变更**：移动端适配此前在 `plan.md` §2.3 标"本轮不对齐"、agenda 在 §3 矩阵标"未承诺"。本任务把两者一并提升为活跃 capability epic，按 docs-first 先落能力矩阵与分阶段计划，再实现。
 
-## 设计稿结构拆解（对照 docs/assets）
+## 设计稿结构拆解（对照 remix 原型 `mobile-views.jsx` / `mobile.css`）
 
 四个视图共享一套**移动 chrome**，再各自有视图主体：
 
