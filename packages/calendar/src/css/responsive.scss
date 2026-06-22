@@ -15,6 +15,14 @@
   --swell-time-event-radius: 7px;
   --swell-allday-event-radius: 999px;
 
+  // 时间轴密度对标设计稿 HOUR_H=52px：整格高度从「滚动容器 200%」改为「小时数×52」。
+  // 行按百分比布局，缩放整格即等比缩放每小时；min-height 清零，避免桌面 900px 基线撑高。
+  // 默认 624px = s2 默认 8–20 共 12h × 52；宿主可用 --swell-mobile-time-grid-height 覆盖。
+  .time-grid {
+    height: var(--swell-mobile-time-grid-height, 624px);
+    min-height: 0;
+  }
+
   // 限时事件移动化：实心卡片（移动端不做静置半透明）
   .event-time {
     opacity: 1;
@@ -124,6 +132,12 @@
 .multi-day-view--mobile {
   --swell-time-event-radius: 7px;
   --swell-allday-event-radius: 999px;
+
+  // 时间轴密度对标设计稿 HOUR_H=52px（同 .day-view--mobile）。
+  .time-grid {
+    height: var(--swell-mobile-time-grid-height, 624px);
+    min-height: 0;
+  }
 
   .event-time {
     opacity: 1;

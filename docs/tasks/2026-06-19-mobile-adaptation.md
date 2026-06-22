@@ -311,5 +311,9 @@
     - 2 天连接带：`app.css` 移动作用域内 `.day-week-chip.oncard::before` 绘制半透明胶囊（锚底对齐 42px blob，端点抠 21px 半圆），对标设计稿 `.m-ws-cell.oncard`；选中起始日仍 accent 实心圈浮于带上。
     - 标题与单日统一：去掉年份贴合设计稿（单日 `周X · M月D日`=`.m-dayhd`，多日 `周X M月D日`=`.m-tl-colhd`），单日 / 多日标题统一 15px、农历 13px（移除原 `--day` 专属覆盖）；多日日期栏高度 32→38px。
     - 验证：375px 预览确认多日有周条、22/23 两天连接带（oncard×2 + edge-l/r）、两列头「周一 6月22日 初八」「周二 6月23日 初九」15px、无占位；单日标题「周一 · 6月22日 初八」15px 且无连接带；桌面 `DayWeekStrip`（spanDays 默认 1）零回归。`tsc`(calendar+s2)/包构建通过。
+  - **时间轴密度对齐设计稿（2026-06-22）**：全视图对照后，唯一明显差距是时间轴密度——引擎 `.time-grid { height: 200%; min-height: 900px }`（高度=滚动容器 200%，与小时数无关）导致移动端约 **102px/小时**，而设计稿 `HOUR_H=52px`。
+    - 修法：`responsive.scss` 在 `.day-view--mobile` / `.multi-day-view--mobile` 作用域内把整格高度改为 `height: var(--swell-mobile-time-grid-height, 624px); min-height: 0`（624 = s2 默认 8–20 共 12h × 52）。行按百分比布局，缩放整格即等比缩放每小时、now 线、网格线、事件，全部保持正确比例；宿主可用该 CSS 变量按自身 hour 范围覆盖。桌面不带 `--mobile` 修饰类，零回归。
+    - 验证：375px 预览实测单日 / 多日均 **52px/小时**、整格 624px，一屏可见约 10 小时（原 ~4 小时）；事件排布正常、无 console 运行时报错。
+    - 其余细节属 1px 级（顶栏 48/44px、back 16/17px、agenda 日期头分级、月返回文案），暂未动，必要时再收口。
 - M4：
 - M5：
