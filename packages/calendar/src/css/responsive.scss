@@ -110,6 +110,53 @@
   }
 }
 
+.multi-day-view--mobile {
+  --swell-time-event-radius: 8px;
+  --swell-allday-event-radius: 999px;
+
+  .event-time {
+    opacity: 1;
+  }
+
+  .event-time-content {
+    min-width: 0;
+    max-width: 100%;
+    padding: 3px 5px;
+    overflow: hidden;
+    font-size: 11px;
+    line-height: 1.18;
+    text-overflow: ellipsis;
+  }
+
+  .event-time-stack {
+    min-width: 0;
+    max-width: 100%;
+    gap: 0;
+    line-height: 1.16;
+    overflow: hidden;
+  }
+
+  .event-time-stack-title,
+  .event-time-stack-sub {
+    display: block;
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .event-time-stack-sub {
+    font-size: 9.5px;
+  }
+
+  .allday-row-label {
+    justify-content: flex-start;
+    padding-left: 8px;
+    font-size: 12px;
+  }
+}
+
 // 月视图移动布局：高密度紧凑格（对标 docs/assets/month.png）
 .month-view--mobile {
   // 事件 chip 变量：移动端略圆 + 更小字号，单元格内塞下更多 chip

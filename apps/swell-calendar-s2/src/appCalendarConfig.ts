@@ -113,6 +113,10 @@ export function computeViewTitle(
         `${daysInMonth}天 · 每日最多 ${tuning.monthMaxEventStack} 条`,
       ];
     }
+    case 'multiDay': {
+      const dates = collectVisibleDates(currentDate, 2, !context.showWeekend);
+      return [formatRangeTitle(dates[0], dates[dates.length - 1]), '2天窗口'];
+    }
     case 'agenda': {
       const dates = collectVisibleDates(currentDate, 14);
       return [formatRangeTitle(dates[0], dates[dates.length - 1]), '按天分组列表'];
@@ -170,6 +174,9 @@ export function buildCalendarOptions(input: {
     agenda: {
       range: 14,
       showEmptyDays: true,
+    },
+    multiDay: {
+      range: 2,
     },
     scheduler: {
       resources: [],

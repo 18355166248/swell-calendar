@@ -14,7 +14,7 @@ import {
 import { Ic } from './icons';
 import { lunarLabelOf } from './lunar';
 
-export type ViewId = 'day' | 'week' | 'month' | 'agenda' | 'scheduler' | 'timeline';
+export type ViewId = 'day' | 'week' | 'month' | 'multiDay' | 'agenda' | 'scheduler' | 'timeline';
 export type Sidebar = 'full' | 'rail' | 'hidden';
 export type Toolbar = 'segmented' | 'boxed' | 'tabs' | 'minimal';
 
@@ -31,6 +31,7 @@ export function Sidebar({ view, setView, openCreate, currentDate, onDateChange }
     { id: 'day', label: '日视图', icon: Ic.day },
     { id: 'week', label: '周视图', icon: Ic.week },
     { id: 'month', label: '月视图', icon: Ic.month },
+    { id: 'multiDay', label: '多日', icon: Ic.week },
     { id: 'agenda', label: '列表', icon: Ic.timeline },
     { id: 'scheduler', label: '资源调度', icon: Ic.sched, badge: '10' },
     { id: 'timeline', label: '时间线', icon: Ic.timeline },
@@ -249,7 +250,7 @@ export function DayWeekStrip({ currentDate, onDateChange }: DayWeekStripProps) {
 
 // ===== 移动 chrome（M1）=====
 // 移动端视图集与桌面不同：日/多日/月/列表（对标 remix 设计稿 segmented）。
-// 多日 = M3、列表 = M2 尚未建引擎能力，本阶段降级为占位。
+// 列表已接 agenda，多日已接 multiDay；触控输入仍留到 M4。
 export type MobileViewId = 'day' | 'multi' | 'month' | 'list';
 
 interface MobileTopBarProps {
@@ -339,6 +340,8 @@ export function Topbar({
     { id: 'day', label: '日', icon: Ic.day },
     { id: 'week', label: '周', icon: Ic.week },
     { id: 'month', label: '月', icon: Ic.month },
+    { id: 'multiDay', label: '多日', icon: Ic.week },
+    { id: 'agenda', label: '列表', icon: Ic.timeline },
     { id: 'scheduler', label: '调度', icon: Ic.sched },
     { id: 'timeline', label: '时间线', icon: Ic.timeline },
   ];

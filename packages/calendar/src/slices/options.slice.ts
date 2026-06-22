@@ -7,6 +7,7 @@ import {
   EnabledViews,
   InvalidRange,
   MonthOptions,
+  MultiDayOptions,
   Options,
   OptionsSlice,
   SchedulerOptions,
@@ -87,6 +88,7 @@ function initializeEnabledViews(options: Options = {}): EnabledViews {
     day: options.views?.day !== false,
     week: options.views?.week !== false,
     month: options.views?.month !== false,
+    multiDay: options.views?.multiDay !== false,
     agenda: options.views?.agenda !== false,
     scheduler: options.views?.scheduler !== false,
     timeline: options.views?.timeline !== false,
@@ -98,6 +100,15 @@ function initializeAgendaOptions(agendaOptions: Options['agenda'] = {}): Require
     range: 14,
     showEmptyDays: true,
     ...agendaOptions,
+  };
+}
+
+function initializeMultiDayOptions(
+  multiDayOptions: Options['multiDay'] = {}
+): Required<MultiDayOptions> {
+  return {
+    range: 2,
+    ...multiDayOptions,
   };
 }
 
@@ -147,6 +158,7 @@ export function createOptionsSlice(options: Options = {}) {
       week: initializeWeekOptions(options.week),
       month: initializeMonthOptions(options.month, options.isReadOnly ?? false),
       agenda: initializeAgendaOptions(options.agenda),
+      multiDay: initializeMultiDayOptions(options.multiDay),
       calendars: options.calendars ?? [],
       scheduler: initializeSchedulerOptions(options.scheduler),
       timeline: initializeTimelineOptions(options.timeline),
@@ -159,6 +171,7 @@ export function createOptionsSlice(options: Options = {}) {
               options.isReadOnly ?? false
             );
             state.options.agenda = initializeAgendaOptions(options.agenda);
+            state.options.multiDay = initializeMultiDayOptions(options.multiDay);
             state.options.calendars = options.calendars ?? [];
             state.options.views = initializeEnabledViews(options);
             state.options.defaultView = options.defaultView ?? 'week';

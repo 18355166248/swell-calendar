@@ -5,6 +5,7 @@ import { Toolbar } from '@/components/toolbar/Toolbar';
 import { Agenda } from '@/components/view/Agenda';
 import { Day } from '@/components/view/Day';
 import { Month } from '@/components/view/Month';
+import { MultiDay } from '@/components/view/MultiDay';
 import { Scheduler } from '@/components/view/Scheduler';
 import { Timeline } from '@/components/view/Timeline';
 import { Week } from '@/components/view/Week';
@@ -20,6 +21,7 @@ function ViewRouter() {
     day: <Day />,
     week: <Week />,
     month: <Month />,
+    multiDay: <MultiDay />,
     agenda: <Agenda />,
     scheduler: <Scheduler />,
     timeline: <Timeline />,

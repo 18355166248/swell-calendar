@@ -96,7 +96,7 @@
 | 周条选择器（滑动切周 / 选中红圈） | day/multi-day | 部分在 S2 day-strip | M1 | 中 |
 | 农历 / 节气标签（宿主注入，`chinese-days`） | day/multi-day/month/agenda | ✅ PoC 落地（S2 周条） | M1 | 低 |
 | **Agenda 视图（新）** | agenda | ❌ 无（ViewType 无 agenda） | M2 | 中 |
-| Multi-day 移动视图（N 列日列） | multi-day | Day 仅单列 | M3 | 中 |
+| Multi-day 移动视图（N 列日列） | multi-day | ✅ M3 首版已落地 | M3 | 中 |
 | 触控 create / move / resize | mobiscroll | ❌ 鼠标 only | M4 | 高 |
 | 拖拽期阻止滚动（touch-action / capture） | — | n/a | M4 | 中 |
 | 长按创建 / tap 目标 / 滑动切日 / 浮层移动适配 | 四稿 | ❌ | M5 | 中 |
@@ -127,7 +127,8 @@
 - **验收**：`agenda` 可切换并按天分组渲染、tap 行触发 `onEventClick`、与 remix 列表稿目视一致；`agenda.controller` 单测绿；SPEC 能力行同步；桌面零回归。
 
 ### M3 Multi-day 移动视图
-- 复用 `time/view-range.ts` + Day 链路，支持 N 列日列（默认 2）+ 共享 gutter + 每列全天 lane。
+- `types/options.type.ts`：`ViewType` 扩展 `'multiDay'`，新增 `options.multiDay.range`（默认 2）。
+- 复用 `time/view-range.ts` + Week 时间网格链路，支持 N 列日列（默认 2）+ 共享 gutter + 每列全天 lane。
 - 窄屏列宽自适应；与 `scheduler.range` / `workweek` 语义对齐，不新造日期窗口逻辑。
 - **验收**：多日（默认 2 列）可切换、共享 gutter + 每列全天 lane、与 remix 多日稿目视一致；与 `view-range` 语义对齐无新造窗口逻辑；桌面零回归。
 
@@ -204,10 +205,10 @@
     预览验证（s2-app:5180 日视图）：周条显示「初一…初六」，2026-06-21 显示绿色「夏至」；选中日走 accent 覆盖；`tsc --noEmit` 通过、无 console 报错。
   - **移动 shell 首批已落地（s2，2026-06-22）**：
     - `useIsMobile.ts`：matchMedia `(max-width:767px)`（= 包内 `TABLET_MIN_WIDTH-1`）+ window.resize 兜底；SSR/无 matchMedia 落桌面，零回归。
-    - `shell.tsx`：`MobileTopBar`（返回月 + segmented「日/多日/月/列表」+ 搜索）、`MobilePlaceholder`（多日=M3 / 列表=M2 占位）。
+    - `shell.tsx`：`MobileTopBar`（返回月 + segmented「日/多日/月/列表」+ 搜索）、`MobilePlaceholder`（历史占位组件，M2/M3 后已不走主路径）。
     - `App.tsx`：抽出 `calendarNode` + `overlays` 供桌面/移动共用（引擎接线单一真源）；新增 `engineView`（移动只 day/month 有真实引擎视图）统一驱动 `setView` 与 `calendarOptions.defaultView`，修掉「移动选日却显示路由 scheduler」的串视图问题；移动分支渲染 `app--mobile` 外壳（无 sidebar/desktop topbar）。
     - `app.css`：`.app--mobile`/`.m-top`/`.m-seg`/`.canvas--mobile`/`.m-placeholder` 等移动 chrome 样式（全部读 s2 token）。
-    - 预览验证（s2-app:5180）：375px → 移动外壳；日=单日时间轴 + 周条农历（初八…）；月=紧凑格 + `+N` + 今日圈、返回显示「日历」；多日/列表=占位（注明 M3/M2）；切回日恢复。1280px（reload）→ 桌面 sidebar+topbar 原样（零回归）；`tsc --noEmit` 通过、无 console 报错。
+    - 预览验证（s2-app:5180）：375px → 移动外壳；日=单日时间轴 + 周条农历（初八…）；月=紧凑格 + `+N` + 今日圈、返回显示「日历」；M1 当时多日/列表为占位（后续 M2/M3 已分别接入 agenda / multiDay）；切回日恢复。1280px（reload）→ 桌面 sidebar+topbar 原样（零回归）；`tsc --noEmit` 通过、无 console 报错。
   - **now「红色时间旗」已落地（包内 `responsive.scss`，2026-06-22）**：
     - now 指示器颜色经主题以**内联 style** 注入（line/bullet/label 同色，s2 为 accent 绿）。外部 `!important` 可压过「非 important 的内联样式」，故在 `.day-view--mobile` 作用域内把 `now-indicator-line-bar`/`-bullet`/`-label` 重定向到 `--now-line`（红，宿主 token，亮/暗各一份，缺省回退 oklch 红），并把 label 做成白字红底胶囊。
     - 预览验证：375px → now 红线 + 红 bullet(10px) + 白字红底「12:07」旗；1280px（reload）→ now-label 仍透明底/accent 色/无圆角（**桌面零回归**）；`day-view--mobile` tier 类在 s2 正常注入；包单测 374/374 绿、无 console 报错。
@@ -275,5 +276,10 @@
     - 收口目标：移动端改为无卡片列表行；日期组头左右排（日期 + 农历）；全天事件用绿色星标；普通事件只保留左色条 + 标题 + 右侧起止时间；行间以 1px 分割线承接。
     - 验证：浏览器确认移动列表为白底整宽行、0 圆角、1px 分割线、右侧农历、右侧起止时间两行；点击事件仍打开移动底部 sheet。
 - M3：
+  - **Multi-day 首版已落地（2026-06-22）**：
+    - docs-first：`SPEC.md` / `MIGRATION.md` 已把 `multiDay` 纳入公开 `ViewType`、`views` 与 `options.multiDay.range`。
+    - 方案：新增薄视图层复用 Week 的 `GridHeader`、`AlldayRow`、`TimeGrid` 与 `getWeekViewEvents` / `createTimeGridData`；日期窗口统一走 `getVisibleDateWindow`，默认 2 天。
+    - s2 移动端 segmented「多日」切到真实 `multiDay` 引擎视图，不再显示占位。
+    - 验证：移动浏览器确认 `.swell-calendar-multi-day-view` 存在、无 `.m-placeholder`，默认 2 列（22/23）时间网格渲染，点击事件打开移动底部 sheet。
 - M4：
 - M5：

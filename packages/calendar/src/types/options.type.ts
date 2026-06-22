@@ -9,7 +9,7 @@ import { ThemeState } from './theme.type';
 export type EventView = 'allday' | 'time';
 export type TaskView = 'milestone' | 'task';
 
-export type ViewType = 'month' | 'week' | 'day' | 'agenda' | 'scheduler' | 'timeline';
+export type ViewType = 'month' | 'week' | 'day' | 'multiDay' | 'agenda' | 'scheduler' | 'timeline';
 export type EnabledViews = Record<ViewType, boolean>;
 
 // 时间分隔配置：2表示半小时一块，4表示15分钟一块
@@ -47,6 +47,8 @@ export interface Options {
   month?: MonthOptions;
   // 列表视图选项
   agenda?: AgendaOptions;
+  // 连续多日视图选项
+  multiDay?: MultiDayOptions;
   // 调度器视图选项
   scheduler?: SchedulerOptions;
   // 时间线视图选项
@@ -111,6 +113,11 @@ export interface AgendaOptions {
   range?: number;
   /** 是否展示没有事件的日期分组，默认 true。 */
   showEmptyDays?: boolean;
+}
+
+export interface MultiDayOptions {
+  /** 从 renderDate 开始展示的连续天数，默认 2 天。 */
+  range?: number;
 }
 
 export interface SchedulerOptions {
@@ -186,6 +193,7 @@ export interface NormalizedOptions {
   week: Required<WeekOptions>;
   month: Required<MonthOptions>;
   agenda: Required<AgendaOptions>;
+  multiDay: Required<MultiDayOptions>;
   scheduler?: SchedulerOptions;
   timeline?: TimelineOptions;
   setOptions: (options: Options) => void;

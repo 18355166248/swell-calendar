@@ -144,6 +144,25 @@ const schedulerOptions = {
   };
   ```
 
+- `ViewType: 'multiDay'` 与 `options.multiDay`
+  - 新增连续多日时间网格视图，默认 2 天，复用 day/week 的时间网格、全天行与事件点击链路
+  - 默认 `multiDay.range = 2`；导航上一页/下一页按当前可见天数窗口平移
+  - 日期窗口复用 `view-range` 语义；当 `week.workweek = true` 时跳过周末
+  - 不配置时既有默认视图、事件数据流和回调语义不变
+  - 如果宿主代码对 `ViewType` 做了 TypeScript 穷举，需要补上 `'multiDay'` 分支
+
+  ```ts
+  const options = {
+    defaultView: 'multiDay',
+    views: {
+      multiDay: true,
+    },
+    multiDay: {
+      range: 2,
+    },
+  };
+  ```
+
 - `month.maxEventStack?: number`
   - 用于统一 month 每格直接显示的事件堆叠上限语义
   - 兼容期内运行时优先读取 `maxEventStack`，未提供时回退到旧字段 `visibleEventCount`

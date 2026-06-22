@@ -53,8 +53,8 @@ PLAN4 相对 PLAN3 的主要修订：
 
 ### 2.3 本轮不对齐的内容
 
-- ~~agenda 视图~~（2026-06-19 修订）：已并入移动端 epic（M2），对标 `docs/assets/agenda.png`，详见 `docs/tasks/2026-06-19-mobile-adaptation.md`。
-- ~~移动端适配~~（2026-06-19 修订）：应宿主要求提升为活跃 capability epic，视觉对标 iOS 苹果日历设计稿（`docs/assets/*.png`）、触控对标 Mobiscroll 移动 day view，覆盖 Day/Multi-day/Agenda/Month 四视图。本 scheduler 对齐路线图只保留 scope 记录，分阶段计划与能力矩阵在该 task 内维护。
+- ~~agenda 视图~~（2026-06-19 修订）：已并入移动端 epic（M2），首版已落地；对标 `docs/assets/agenda.png`，详见 `docs/tasks/2026-06-19-mobile-adaptation.md`。
+- ~~移动端适配~~（2026-06-19 修订）：应宿主要求提升为活跃 capability epic，视觉对标 iOS 苹果日历设计稿（`docs/assets/*.png`）、触控对标 Mobiscroll 移动 day view，覆盖 Day/Multi-day/Agenda/Month 四视图。本 scheduler 对齐路线图只保留 scope 记录；M1/M2/M3 首版已落地，分阶段计划与能力矩阵在该 task 内维护。
 - Mobiscroll 弹窗、表单、内建 CRUD 界面
 - API 字段名兼容
 - `connections`、`eventList`、打印模式、虚拟化、大数据滚动优化、键盘无障碍
@@ -88,8 +88,8 @@ PLAN4 相对 PLAN3 的主要修订：
 | 资源级交互限制 | ✅ | ✅ | 公开承诺 | `eventDragInTime` / `eventResize` / `eventOverlap` 已接入 | 2 已落地 |
 | 跨资源拖动 gate | ✅ | ✅ | 公开承诺 | 全局 / 资源级 / per-event `dragBetweenResources` 已接入 | 2 已落地 |
 | recurrence 展开 | ✅ | ✅ | 公开承诺 | 视口窗口展开、异常跳过/替换与实例编辑链已接入 scheduler | 3 已落地 |
-| 移动端适配（响应式 + 触控 + 四视图） | ✅ | 🟡 | 规划中（活跃 epic） | 对标 iOS 苹果日历设计稿（`docs/assets/*.png`）+ Mobiscroll 移动 day view 触控；覆盖 Day/Multi-day/Agenda/Month，分 M1–M5；详见 mobile-adaptation task | mobile epic |
-| agenda 视图 | ✅ | 🟡 | 规划中（并入 mobile epic M2） | 按天分组列表视图，对标 `docs/assets/agenda.png`；需扩展 `ViewType` union | mobile epic |
+| 移动端适配（响应式 + 触控 + 四视图） | ✅ | 🟡 | M1/M2/M3 首版已落地，M4–M5 规划中 | 对标 iOS 苹果日历设计稿（`docs/assets/*.png`）+ Mobiscroll 移动 day view 触控；覆盖 Day/Multi-day/Agenda/Month，分 M1–M5；详见 mobile-adaptation task | mobile epic |
+| agenda 视图 | ✅ | ✅ | 已落地（并入 mobile epic M2） | 按天分组列表视图，对标 `docs/assets/agenda.png`；已扩展 `ViewType='agenda'` 与 `options.agenda` | mobile epic |
 | recurring exception | ✅ | ✅ | 公开承诺 | 跳过/替换已接入 scheduler 渲染链 | 3 已落地 |
 | 编辑作用域 | ✅ | ✅ | 公开承诺 | `recurrenceScope`（本次 / 本次及以后 / 全部）已接入编辑链 | 3 已落地 |
 | timezone | ✅ | ✅ | 公开承诺 | 数据→显示时区转换已接入 scheduler 渲染链 | 3 已落地 |

@@ -8,7 +8,15 @@ import App from './App';
 import type { ViewId } from './shell';
 
 /** 全部合法视图 ID，与引擎 ViewType 对齐（packages/calendar ViewType）。 */
-export const VIEW_IDS: ViewId[] = ['day', 'week', 'month', 'agenda', 'scheduler', 'timeline'];
+export const VIEW_IDS: ViewId[] = [
+  'day',
+  'week',
+  'month',
+  'multiDay',
+  'agenda',
+  'scheduler',
+  'timeline',
+];
 
 /** 默认视图（沿用改动前 useState 初值）。 */
 const DEFAULT_VIEW: ViewId = 'scheduler';

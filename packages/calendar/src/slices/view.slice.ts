@@ -37,6 +37,14 @@ export function createViewSlice(
               state.view.renderDate = state.view.renderDate.addDate(step);
             } else if (view === 'month') {
               state.view.renderDate = state.view.renderDate.addMonth(step);
+            } else if (view === 'multiDay') {
+              const multiDayRange = normalizeRange(state.options.multiDay.range) ?? 2;
+              state.view.renderDate = getShiftedDateWindowStart(
+                state.view.renderDate,
+                multiDayRange,
+                direction,
+                state.options.week.workweek
+              );
             } else if (view === 'agenda') {
               const agendaRange = normalizeRange(state.options.agenda.range) ?? 14;
               state.view.renderDate = getShiftedDateWindowStart(

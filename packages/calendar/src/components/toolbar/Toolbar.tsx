@@ -9,12 +9,21 @@ const VIEW_LABELS: Record<ViewType, string> = {
   day: '日',
   week: '周',
   month: '月',
+  multiDay: '多日',
   agenda: '列表',
   scheduler: '调度',
   timeline: '时间线',
 };
 
-const VIEW_ORDER: ViewType[] = ['day', 'week', 'month', 'agenda', 'scheduler', 'timeline'];
+const VIEW_ORDER: ViewType[] = [
+  'day',
+  'week',
+  'month',
+  'multiDay',
+  'agenda',
+  'scheduler',
+  'timeline',
+];
 
 function getDateRangeText(view: ViewType, renderDate: DayjsTZDate, options: Options): string {
   const d = renderDate.dayjs;
@@ -27,6 +36,12 @@ function getDateRangeText(view: ViewType, renderDate: DayjsTZDate, options: Opti
   if (view === 'agenda') {
     const range = normalizeRange(options.agenda?.range) ?? 14;
     return formatDateWindowText(getVisibleDateWindow(renderDate, range));
+  }
+  if (view === 'multiDay') {
+    const range = normalizeRange(options.multiDay?.range) ?? 2;
+    return formatDateWindowText(
+      getVisibleDateWindow(renderDate, range, options.week?.workweek ?? false)
+    );
   }
   if (view === 'timeline') {
     const timelineRange = normalizeRange(options.timeline?.range);

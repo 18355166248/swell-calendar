@@ -201,16 +201,18 @@ export default function App({ view }: AppProps) {
   // 刷新回到今天。
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-  // 移动端视图状态独立于 URL（桌面 view 仍以路由为真源）；列表已接 agenda，多日仍为 M3 占位。
+  // 移动端视图状态独立于 URL（桌面 view 仍以路由为真源）；多日/列表分别映射到 multiDay/agenda。
   const [mobileView, setMobileView] = useState<MobileViewId>('day');
   const [currentDate, setCurrentDate] = useState<Date>(() => new Date());
-  // 引擎实际视图：桌面跟随路由；移动端 day/month/list 分别映射到 day/month/agenda。
+  // 引擎实际视图：桌面跟随路由；移动端 segmented 映射到包内真实视图。
   const engineView: ViewId = isMobile
     ? mobileView === 'month'
       ? 'month'
-      : mobileView === 'list'
-        ? 'agenda'
-        : 'day'
+      : mobileView === 'multi'
+        ? 'multiDay'
+        : mobileView === 'list'
+          ? 'agenda'
+          : 'day'
     : view;
   const [pick, setPick] = useState<{ ev: PickEvent; anchor: HTMLElement } | null>(null);
   const [morePick, setMorePick] = useState<{
@@ -409,12 +411,12 @@ export default function App({ view }: AppProps) {
 
   const [title, sub] = useMemo(
     () =>
-      computeViewTitle(view, currentDate, {
+      computeViewTitle(engineView, currentDate, {
         resourceCount: calendarResources.length,
         showWeekend: showWknd,
         tuning: calendarTuning,
       }),
-    [view, currentDate, showWknd, calendarTuning]
+    [engineView, currentDate, showWknd, calendarTuning]
   );
 
   // 引擎 options 稳定化：引擎有 effect 监听 options.defaultView/initialDate 的引用变化
@@ -566,7 +568,6 @@ export default function App({ view }: AppProps) {
   // ===== 移动外壳（M1）=====
   if (isMobile) {
     const monthLabel = `${currentDate.getMonth() + 1}月`;
-    const isPlaceholder = mobileView === 'multi';
     return (
       <Provider colorScheme={prefs.theme}>
         <ToastContainer />
@@ -590,7 +591,7 @@ export default function App({ view }: AppProps) {
             onMouseDownCapture={(e) => rememberMonthMoreAnchor(e.target)}
             onKeyDownCapture={(e) => rememberMonthMoreAnchor(e.target)}
           >
-            {isPlaceholder ? <MobilePlaceholder view={mobileView} /> : calendarNode}
+            {calendarNode}
           </div>
           {overlays}
         </div>
@@ -630,12 +631,18 @@ export default function App({ view }: AppProps) {
             onNavigate={goToDir}
           />
           {view === 'day' && <DayWeekStrip currentDate={currentDate} onDateChange={goToDate} />}
-          {(view === 'week' || view === 'day' || view === 'scheduler' || view === 'month') && (
+          {(view === 'week' ||
+            view === 'day' ||
+            view === 'multiDay' ||
+            view === 'scheduler' ||
+            view === 'month') && (
             <SubBar
               showWknd={showWknd}
               setShowWknd={setShowWknd}
               // 周 / 月 / 资源调度都支持按宿主开关控制周末显隐。
-              showWeekendToggle={view === 'week' || view === 'scheduler' || view === 'month'}
+              showWeekendToggle={
+                view === 'week' || view === 'multiDay' || view === 'scheduler' || view === 'month'
+              }
               showMonthNarrowWeekendToggle={view === 'month'}
               monthNarrowWeekend={monthNarrowWeekend}
               setMonthNarrowWeekend={setMonthNarrowWeekend}

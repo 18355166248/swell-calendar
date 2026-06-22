@@ -45,6 +45,7 @@ export type {
   AgendaOptions,
   EnabledViews,
   MonthOptions,
+  MultiDayOptions,
   Options,
   ResourceInfo,
   SchedulerOptions,
