@@ -19,7 +19,8 @@ import { WeekOptions } from '@/types/options.type';
 import { getTierClassName } from '@/utils/viewport';
 
 const MOBILE_TIME_GRID_LEFT_WIDTH = '52px';
-const MOBILE_DAY_NAME_PANEL_HEIGHT = 32;
+// 设计稿 .m-dayhd 15px 主标题需要更高的日期栏（多日仍用 32px 的 .m-tl-colhd 列头）
+const MOBILE_DAY_NAME_PANEL_HEIGHT = 38;
 
 export function Day(): JSX.Element {
   const { options, view } = useCalendarStore();

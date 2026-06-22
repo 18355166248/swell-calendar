@@ -117,6 +117,20 @@
   font-weight: 650;
 }
 
+/* 行副信息（地点 · 参与人），对标设计稿 .m-ag-loc；宿主未注入时 :empty 隐藏 */
+.agenda-event-main .template-agendaEventMeta {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 12.5px;
+  color: #888;
+}
+
+.agenda-event-main .template-agendaEventMeta:empty {
+  display: none;
+}
+
 .agenda-event-time {
   display: flex;
   flex: none;

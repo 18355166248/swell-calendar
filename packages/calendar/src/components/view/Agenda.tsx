@@ -79,6 +79,7 @@ function AgendaEventRow({ item }: { item: AgendaEventItem }) {
       <span className={cls('agenda-event-mark')} aria-hidden />
       <span className={cls('agenda-event-main')}>
         <span className={cls('agenda-event-title')}>{model.title || '无标题'}</span>
+        <Template template="agendaEventMeta" as="span" param={eventObject} />
       </span>
       <span className={cls('agenda-event-time')}>
         <span>{timeParts.primary}</span>

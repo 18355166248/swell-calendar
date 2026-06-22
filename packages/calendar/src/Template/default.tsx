@@ -128,6 +128,11 @@ export const templates: Template = {
     return model.secondaryLabel;
   },
 
+  // 列表行副信息（地点 · 参与人等）。默认空串，宿主可覆盖；空时由 CSS :empty 隐藏第二行。
+  agendaEventMeta() {
+    return '';
+  },
+
   schedulerDayHeader(model: TemplateSchedulerDayHeader) {
     return (
       <span>

@@ -63,7 +63,17 @@
     overflow: hidden;
   }
 
-  .event-time-stack-title,
+  // 设计稿 .m-ev-title 允许 2 行截断（窄列仍靠 overflow/省略兜底）
+  .event-time-stack-title {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+    white-space: normal;
+  }
+
   .event-time-stack-sub {
     display: block;
     min-width: 0;
@@ -137,7 +147,17 @@
     overflow: hidden;
   }
 
-  .event-time-stack-title,
+  // 设计稿 .m-ev-title 允许 2 行截断（窄列仍靠 overflow/省略兜底）
+  .event-time-stack-title {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+    white-space: normal;
+  }
+
   .event-time-stack-sub {
     display: block;
     min-width: 0;

@@ -386,6 +386,14 @@ button {
   font-weight: 500;
 }
 
+/* 单日：设计稿 .m-dayhd 主标题 15px / 副标题 13px（多日仍按 .m-tl-colhd 12px/11px） */
+.app--mobile .swell-calendar-day-view--mobile .s2-week-mobile-title--day {
+  font-size: 15px;
+}
+.app--mobile .swell-calendar-day-view--mobile .s2-week-lunar {
+  font-size: 13px;
+}
+
 .app--mobile .swell-calendar-day-view--mobile .s2-week-lunar.is-term,
 .app--mobile .swell-calendar-multi-day-view--mobile .s2-week-lunar.is-term {
   color: var(--term-text);

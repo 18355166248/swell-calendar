@@ -300,6 +300,11 @@
     - 包内 `.allday-row-label`（responsive.scss）原为左对齐 13px，与设计稿 `.m-tl-gutter.allday`（右对齐 11px/600）及宿主 app.css 双重冲突 → 改为右对齐 11px/600，使包在独立宿主/Storybook 下也与设计稿一致。
     - 月格周末数字此前走 now 红色，设计稿 month 网格**周末不做单独配色**（仅 dow 表头弱化）→ 移除红色覆盖，统一 text-1。`month-cell-weekend` class 保留为未来挂点。
     - 验证：375px 预览计算值确认 gutter marginLeft 52px、事件圆角 7px、content padding 4px 8px、全天标签右对齐 11px、月格周末数字 = text-1（非红）；`tsc --noEmit` 通过、`responsive.spec` / `column.controller.spec` 绿、包构建通过。
-    - **未收口（判断项，待宿主确认）**：① now「红色时间旗」设计稿在左侧 gutter（`.m-now-flag left:-50px`），现实现在右端；② Day/Multi-day 大标题设计稿 `.m-dayhd` 15px，现实现 12px（前序「收口」刻意压小，与稿冲突）；③ Agenda 行设计稿含第二行「地点·参与人」（`.m-ag-loc`），现实现仅标题（M2 刻意精简、且依赖事件数据）；④ 限时事件标题设计稿允许 2 行 `-webkit-line-clamp:2`，现实现单行省略（防窄列溢出）。
+  - **判断项对齐（2026-06-22，经宿主确认全部对齐设计稿）**：
+    - ① now「红色时间旗」：核查后**本就在左侧 gutter**——`NowIndicatorLabel` 渲染于 `TimeColumn`（时间列/gutter）内、`right` 右对齐到 gutter 右缘，即 Apple 左 gutter 布局，移动端覆盖为红底白字胶囊，与设计稿 `.m-now-flag` 同位，**无需改码**。
+    - ② Day 大标题 12 → **15px**、农历 13px（设计稿 `.m-dayhd`，宿主 app.css `.s2-week-mobile-title--day`），单日日期栏高度 32 → 38px；多日仍保持 12px（对应设计稿 per-column `.m-tl-colhd`）。
+    - ③ Agenda 行补第二行「地点 · 参与人」：引擎 `EventObject` 无 location/who 一等字段，故新增**公开模板槽 `agendaEventMeta`**（默认空串、`:empty` 隐藏），s2 复用 `meta.pickMeta`/`raw` 注入 `loc · who`；与详情弹层同源。SPEC 模板表已同步（13 → 14 个渲染点）。
+    - ④ 限时事件标题改 **2 行截断**（`display:-webkit-box; -webkit-line-clamp:2; white-space:normal`），副行仍单行省略；`responsive.spec` 契约同步更新。
+    - 验证：375px 预览确认 Day 标题 15px/农历 13px、事件标题 line-clamp:2、列表行第二行 `loc · who` 12.5px（如「产品 · 设计 · 工程」「陈伊一 · 产品组」），数据缺失优雅降级；`tsc`（calendar + s2）通过、包构建通过。
 - M4：
 - M5：

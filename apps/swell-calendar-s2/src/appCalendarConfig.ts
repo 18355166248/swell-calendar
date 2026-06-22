@@ -228,6 +228,16 @@ export function buildCalendarOptions(input: {
         const lunarClass = lunar.isTerm ? 's2-agenda-lunar is-term' : 's2-agenda-lunar';
         return `<span class="${lunarClass}">${lunar.text}</span>`;
       },
+      // 列表行第二行「地点 · 参与人」，与详情弹层同源（meta.pickMeta / raw）。
+      agendaEventMeta(event: {
+        meta?: { pickMeta?: { who?: string; loc?: string } };
+        raw?: { who?: string; loc?: string };
+      }) {
+        const pickMeta = event.meta?.pickMeta;
+        const loc = pickMeta?.loc || event.raw?.loc;
+        const who = pickMeta?.who || event.raw?.who;
+        return [loc, who].filter(Boolean).join(' · ');
+      },
     },
   };
 }

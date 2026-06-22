@@ -24,6 +24,7 @@ export interface Template {
   timeMoveGuide: (event: EventObjectWithDefaultValues) => TemplateReturnType;
   monthGridHeader: (model: TemplateMonthGrid) => TemplateReturnType;
   agendaDayHeader: (model: TemplateAgendaDayHeader) => TemplateReturnType;
+  agendaEventMeta: (event: EventObjectWithDefaultValues) => TemplateReturnType;
   schedulerDayHeader: (model: TemplateSchedulerDayHeader) => TemplateReturnType;
   schedulerResourceHeader: (model: TemplateSchedulerResourceHeader) => TemplateReturnType;
 }

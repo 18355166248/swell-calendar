@@ -368,7 +368,7 @@ interface ColoredRange {
 
 ### 模板接口（`Template`）
 
-13 个可定制渲染点：
+14 个可定制渲染点：
 
 | 函数名                       | 渲染位置                   |
 | ---------------------------- | -------------------------- |
@@ -383,6 +383,7 @@ interface ColoredRange {
 | `timeGridNowIndicatorLabel`  | 当前时间指示器标签         |
 | `monthGridHeader`            | 当前 Month 视图日期格头部（含 `date/day/month/ymd/isToday/isOtherMonth/hiddenEventCount`） |
 | `agendaDayHeader`            | Agenda 日期分组头右侧内容（默认事件数量；宿主可注入农历/节气等文本） |
+| `agendaEventMeta`            | Agenda 事件行标题下第二行副信息（默认空串隐藏；宿主可注入「地点 · 参与人」等，入参为事件对象） |
 | `schedulerDayHeader`         | scheduler 顶部日期头       |
 | `schedulerResourceHeader`    | scheduler 资源列头         |
 
