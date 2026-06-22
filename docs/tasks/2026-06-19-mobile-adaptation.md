@@ -316,5 +316,8 @@
     - 验证：375px 预览实测单日 / 多日均 **52px/小时**、整格 624px，一屏可见约 10 小时（原 ~4 小时）；事件排布正常、无 console 运行时报错。
     - 其余细节属 1px 级（顶栏 48/44px、back 16/17px、agenda 日期头分级、月返回文案），暂未动，必要时再收口。
   - **全天行内容垂直居中（2026-06-22）**：引擎把全天 chip 以 `absolute + top=slot*24` 顶对齐堆叠，单条全天事件在 `min-height:30px` 行内顶贴、底部留白。`app.css` 移动作用域内把 `.allday-row-events` 改为 `display:flex; flex-direction:column; justify-content:center; gap:3px`、chip 转 `position:static`，对标设计稿 `.m-allday-cell`。效果：单条全天在行内垂直居中（上下各 ~4px），多条仍按 slot 堆叠并整体居中、填满时正常铺排；桌面零回归。
+  - **移动周条 hover 收口（2026-06-22）**：移动端 `.day-week-chip:hover` 覆盖为透明背景、无阴影，避免桌面鼠标 hover 反馈遗留到移动 viewport；选中态 / 今日态 / 多日连接带仍由原有 active/oncard 规则控制。
+  - **移动周条选中态反色（2026-06-22）**：active 日期圈内数字与农历统一使用 `--accent-contrast`，确保浅色模式为白字；深色模式下普通 active 圈背景切到 `--accent-bg`，避免 `--text-1` 在 dark 下变浅导致白字低对比。
+  - **单日移动标题居中（2026-06-22）**：`Day` 移动标题行不再复用时间轴 52px gutter，`GridHeader` 左 margin 改为 `0px`，标题按整行居中；全天行与时间网格仍保留移动 gutter 对齐。
 - M4：
 - M5：

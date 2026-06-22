@@ -112,13 +112,14 @@ export function Day(): JSX.Element {
       : WEEK_DAY_NAME_HEIGHT + WEEK_DAY_NAME_BORDER;
   const dayNamePanelName =
     viewportTier === 'mobile' ? 'day-view-day-names-mobile' : 'day-view-day-names';
+  const dayNameMarginLeft = viewportTier === 'mobile' ? '0px' : effectiveTimeGridLeftWidth;
 
   return (
     <Layout className={getTierClassName('day-view', viewportTier)} rootRef={setViewportRef}>
       <Panel name={dayNamePanelName} initialHeight={dayNamePanelHeight}>
         <GridHeader
           type="week"
-          marginLeft={effectiveTimeGridLeftWidth}
+          marginLeft={dayNameMarginLeft}
           rightInset={rightInset}
           dayNames={dayNames}
           rowStyleInfo={rowStyleInfo}
