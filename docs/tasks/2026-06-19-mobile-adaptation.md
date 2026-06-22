@@ -240,6 +240,10 @@
     - 包内 `.month-view--mobile` 对齐 remix mobile 参数：去竖向格线、只保留浅横向周分割；非本月格不再铺灰底；日期+农历使用 38px blob，今日只填充 blob；事件 chip 收敛为 9.5px / 14px / 4px radius，`+N` 居中小字。
     - `Month.tsx` mobile 日期头 / 事件步进同步为 44px / 16px，保证放大日期 blob 后事件层仍不压日期、不把 `+N` 挤出格底。
     - 预期验证：375–430px 月视图更接近 remix：大月份标题、弱化格线、日期 blob、紧凑 chip；桌面不受 mobile 修饰类影响。
+  - **Month remix 视觉收口二轮已落地（2026-06-22）**：
+    - 目标：继续缩小当前移动月视图与 remix 的差距，范围限定为结构清理与样式收口，不新增公开 API。
+    - 收口项：移动月视图仅显示 `+N` 溢出标记（桌面仍保留 `+N 更多`）；移动端隐藏月事件 resize handle，避免把手探出左边界造成横向溢出；s2 为移动月视图日历实例补明确 class，后续移动专属覆盖不依赖宽选择器。
+    - 验证：375 / 412 / 430 宽度关键布局指标通过；内部星期行隐藏、包内 toolbar 高度为 0、resize handle 不可见、`更多` 文案在移动端隐藏、今日整格背景透明且日期头不被事件层遮挡。默认浏览器视口恢复后 `documentElement.scrollWidth === clientWidth`，无页面级横向溢出。
   - **月视图农历接入已落地（2026-06-22）**：
     - docs-first：`SPEC.md` 明确 `monthGridHeader` 是当前 Month 日期格头部 slot，参数含 `date/day/month/ymd/isToday/isOtherMonth/hiddenEventCount`。
     - MonthGrid 日期头走既有 `Template`；s2 覆盖 `monthGridHeader`，用 `lunarLabelOf` 注入日期 + 农历/节气。桌面隐藏农历保持单数字，移动端显示第二行；节气走绿色。

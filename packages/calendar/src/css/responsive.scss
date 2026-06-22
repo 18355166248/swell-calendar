@@ -187,6 +187,12 @@
     box-shadow: none;
   }
 
+  // 移动月视图当前是浏览 + 点详情主路径，不展示桌面 resize 把手；
+  // 否则 start handle 会探出单元格左侧，窄屏下造成横向溢出。
+  .month-event-resize-handle {
+    display: none;
+  }
+
   // +N 溢出标记字号收紧
   .month-more {
     padding-left: 0;
@@ -195,5 +201,9 @@
     line-height: 12px;
     text-align: center;
     color: var(--text-3, #888);
+  }
+
+  .month-more-label {
+    display: none;
   }
 }

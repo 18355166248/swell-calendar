@@ -1399,6 +1399,14 @@ button {
 .app--mobile .swell-calendar-month-view--mobile .swell-calendar-month-day-names {
   display: none;
 }
+.app--mobile .s2-calendar--mobile-month > .swell-calendar-toolbar {
+  display: none !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  overflow: hidden !important;
+}
 
 /* 多日 / 列表占位（M2 / M3 上线前） */
 .m-placeholder {

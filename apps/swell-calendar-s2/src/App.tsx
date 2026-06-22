@@ -462,6 +462,11 @@ export default function App({ view }: AppProps) {
     ) : (
       <Calendar
         ref={calRef}
+        className={
+          isMobile
+            ? `s2-calendar s2-calendar--mobile${mobileView === 'month' ? ' s2-calendar--mobile-month' : ''}`
+            : 's2-calendar'
+        }
         events={calendarEvents}
         calendars={calendarCalendars}
         theme={CALENDAR_THEME}

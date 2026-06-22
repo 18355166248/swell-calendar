@@ -358,7 +358,8 @@ export function MonthGrid({
                         }
                       }}
                     >
-                      +{overflow} 更多
+                      <span className={cls('month-more-count')}>+{overflow}</span>
+                      <span className={cls('month-more-label')}> 更多</span>
                     </div>
                   );
                 })}
