@@ -319,5 +319,6 @@
   - **移动周条 hover 收口（2026-06-22）**：移动端 `.day-week-chip:hover` 覆盖为透明背景、无阴影，避免桌面鼠标 hover 反馈遗留到移动 viewport；选中态 / 今日态 / 多日连接带仍由原有 active/oncard 规则控制。
   - **移动周条选中态反色（2026-06-22）**：active 日期圈内数字与农历统一使用 `--accent-contrast`，确保浅色模式为白字；深色模式下普通 active 圈背景切到 `--accent-bg`，避免 `--text-1` 在 dark 下变浅导致白字低对比。
   - **单日移动标题居中（2026-06-22）**：`Day` 移动标题行不再复用时间轴 52px gutter，`GridHeader` 左 margin 改为 `0px`，标题按整行居中；全天行与时间网格仍保留移动 gutter 对齐。
+  - **移动日历画布纯色背景（2026-06-22）**：s2 移动宿主新增 `--mobile-calendar-bg`，浅色固定 `#fff`、深色固定 `#000`；Day / Multi-day / Month 的日期标题行、全天行、时间 gutter、时间列、月格与移动画布统一使用该变量，事件卡片自身分类色不变。
 - M4：
 - M5：

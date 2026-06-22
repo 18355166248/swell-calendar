@@ -334,12 +334,12 @@ button {
   .swell-calendar-multi-day-view--mobile
   .swell-calendar-multi-day-view-day-names-mobile {
   border-bottom: 1px solid color-mix(in oklch, var(--text-1) 12%, transparent);
-  background: var(--bg-app);
+  background: var(--mobile-calendar-bg);
 }
 
 .app--mobile .swell-calendar-day-view--mobile .swell-calendar-day-names,
 .app--mobile .swell-calendar-multi-day-view--mobile .swell-calendar-day-names {
-  background: var(--bg-app) !important;
+  background: var(--mobile-calendar-bg) !important;
 }
 
 .app--mobile .swell-calendar-day-view--mobile .swell-calendar-day-names-container,
@@ -395,7 +395,7 @@ button {
 .app--mobile .swell-calendar-day-view--mobile .swell-calendar-allday-row,
 .app--mobile .swell-calendar-multi-day-view--mobile .swell-calendar-allday-row {
   min-height: 30px;
-  background: var(--bg-layer) !important;
+  background: var(--mobile-calendar-bg) !important;
   border-bottom: 1px solid var(--border) !important;
 }
 
@@ -419,7 +419,7 @@ button {
   justify-content: flex-end;
   padding: 0 9px 0 0;
   border-right: 1px solid var(--grid-line-soft) !important;
-  background: var(--bg-layer) !important;
+  background: var(--mobile-calendar-bg) !important;
   color: var(--text-3) !important;
   font-size: 11px;
   font-weight: 600;
@@ -428,7 +428,7 @@ button {
 
 .app--mobile .swell-calendar-day-view--mobile .swell-calendar-allday-row-content,
 .app--mobile .swell-calendar-multi-day-view--mobile .swell-calendar-allday-row-content {
-  background: var(--bg-layer);
+  background: var(--mobile-calendar-bg) !important;
 }
 
 .app--mobile .swell-calendar-day-view--mobile .swell-calendar-allday-event,
@@ -1432,6 +1432,7 @@ button {
 
 /* ===== 移动外壳（M1）—— 顶部导航 + segmented + 画布 ===== */
 .app--mobile {
+  --mobile-calendar-bg: #fff;
   display: flex;
   flex-direction: column;
   height: 100vh;
@@ -1439,6 +1440,10 @@ button {
   min-height: 0;
   background: var(--bg-app);
   color: var(--text-1);
+}
+
+[data-theme='dark'] .app--mobile {
+  --mobile-calendar-bg: #000;
 }
 
 /* 顶部导航条 */
@@ -1510,7 +1515,7 @@ button {
   grid-template-columns: repeat(7, minmax(0, 1fr));
   padding: 2px 0 7px;
   border-bottom: 0.5px solid color-mix(in oklch, var(--text-1) 8%, transparent);
-  background: var(--bg-app);
+  background: var(--mobile-calendar-bg);
 }
 .m-month-dow div {
   min-width: 0;
@@ -1559,8 +1564,32 @@ button {
   overflow: auto;
   position: relative;
   overscroll-behavior: contain;
-  background: var(--bg-app);
+  background: var(--mobile-calendar-bg);
 }
+
+.app--mobile .swell-calendar-day-view--mobile,
+.app--mobile .swell-calendar-multi-day-view--mobile,
+.app--mobile .swell-calendar-month-view--mobile,
+.app--mobile .s2-calendar--mobile-month,
+.app--mobile .swell-calendar-day-view--mobile .swell-calendar-time-grid,
+.app--mobile .swell-calendar-multi-day-view--mobile .swell-calendar-time-grid,
+.app--mobile .swell-calendar-day-view--mobile .swell-calendar-time-grid-scroll-area,
+.app--mobile .swell-calendar-multi-day-view--mobile .swell-calendar-time-grid-scroll-area,
+.app--mobile .swell-calendar-day-view--mobile .swell-calendar-time-grid-time-column,
+.app--mobile .swell-calendar-multi-day-view--mobile .swell-calendar-time-grid-time-column,
+.app--mobile .swell-calendar-day-view--mobile .swell-calendar-time-grid-hour-rows,
+.app--mobile .swell-calendar-multi-day-view--mobile .swell-calendar-time-grid-hour-rows,
+.app--mobile .swell-calendar-day-view--mobile .swell-calendar-time-columns,
+.app--mobile .swell-calendar-multi-day-view--mobile .swell-calendar-time-columns,
+.app--mobile .swell-calendar-day-view--mobile .swell-calendar-column,
+.app--mobile .swell-calendar-multi-day-view--mobile .swell-calendar-column,
+.app--mobile .swell-calendar-month-view--mobile .swell-calendar-month-grid,
+.app--mobile .swell-calendar-month-view--mobile .swell-calendar-month-week-row,
+.app--mobile .swell-calendar-month-view--mobile .swell-calendar-month-cell,
+.app--mobile .swell-calendar-month-view--mobile .swell-calendar-month-cell-other-month {
+  background: var(--mobile-calendar-bg) !important;
+}
+
 .app--mobile .swell-calendar-month-view--mobile .swell-calendar-month-day-names {
   display: none;
 }
