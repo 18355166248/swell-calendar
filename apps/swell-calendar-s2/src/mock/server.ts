@@ -14,7 +14,8 @@ const DB_VERSION_KEY = 'swell-calendar-s2:mock-db-version';
 // 锚定语义 / schema 变化时递增：
 // v2 起种子事件按「当前周」锚定（修复首屏空日历），并借版本升级一次性重置旧的
 // 停留在 2025 周 / 早期丢失 allDay 语义的历史 demo 数据。
-const DB_VERSION = '2';
+// v3 增加移动 Day/Multi-day 设计稿所需的顶部全天样例。
+const DB_VERSION = '3';
 
 /** 写入一份锚定到当前周的全新种子，并打上当前版本号。 */
 function seedDB(): CalEvent[] {

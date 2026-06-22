@@ -191,6 +191,33 @@ export function buildCalendarOptions(input: {
       range: tuning.timelineRange,
     },
     template: {
+      weekDayName(model: {
+        date: number;
+        dayName: string;
+        isToday: boolean;
+        dateInstance: { toDate: () => Date };
+      }) {
+        const rawDate = model.dateInstance.toDate();
+        const date = dayjs(rawDate);
+        const lunar = lunarLabelOf(rawDate);
+        const lunarClass = lunar.isTerm ? 's2-week-lunar is-term' : 's2-week-lunar';
+        const todayClass = model.isToday ? ' is-today' : '';
+
+        return [
+          `<span class="s2-week-default${todayClass}">`,
+          `<span class="s2-week-date">${model.date}</span>`,
+          `<span class="s2-week-day">${model.dayName}</span>`,
+          `</span>`,
+          `<span class="s2-week-mobile-title s2-week-mobile-title--day${todayClass}">`,
+          `${model.dayName} ${date.format('YYYY年M月D日')} `,
+          `<span class="${lunarClass}">${lunar.text}</span>`,
+          `</span>`,
+          `<span class="s2-week-mobile-title s2-week-mobile-title--multi${todayClass}">`,
+          `${model.dayName} ${date.format('YYYY年M月D日')} `,
+          `<span class="${lunarClass}">${lunar.text}</span>`,
+          `</span>`,
+        ].join('');
+      },
       monthGridHeader(model: { date: string; day: number }) {
         const lunar = lunarLabelOf(dayjs(model.date).toDate());
         const lunarClass = lunar.isTerm ? 's2-month-date-lunar is-term' : 's2-month-date-lunar';

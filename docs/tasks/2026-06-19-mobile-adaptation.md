@@ -281,5 +281,12 @@
     - 方案：新增薄视图层复用 Week 的 `GridHeader`、`AlldayRow`、`TimeGrid` 与 `getWeekViewEvents` / `createTimeGridData`；日期窗口统一走 `getVisibleDateWindow`，默认 2 天。
     - s2 移动端 segmented「多日」切到真实 `multiDay` 引擎视图，不再显示占位。
     - 验证：移动浏览器确认 `.swell-calendar-multi-day-view` 存在、无 `.m-placeholder`，默认 2 列（22/23）时间网格渲染，点击事件打开移动底部 sheet。
+  - **Day / Multi-day 顶部日期栏视觉收口（2026-06-22）**：
+    - 差距：包内 `GridHeader` 仍沿用桌面周视图的「日期+星期」紧凑头，移动 Day / Multi-day 与设计稿的大标题日期栏不一致。
+    - 方案：s2 通过 `weekDayName` 模板注入农历；移动 day / multi-day 均显示完整日期标题；包内移动 panel 使用独立 name，避免旧 43px header 高度缓存覆盖移动标题高度；高度继续压缩为 32px。
+  - **全天行视觉与示例数据补齐（2026-06-22）**：
+    - 参考 `claude-design/mobile/swellcalendar-remix/project/mobile.css` 的 `.m-tl-header` / `.m-allday-chip`：移动 Day / Multi-day 在标题下方展示「全天」gutter + 绿色星标胶囊。
+    - s2 mock seed 增加端午节 / 夏至全天事件，并升级 mock DB version，刷新后自动重置本地旧 seed。
+    - 标题字号按 remix 收口后继续压缩：Day / Multi-day 主标题统一 12px、农历 11px，不再使用过大的 22px。
 - M4：
 - M5：

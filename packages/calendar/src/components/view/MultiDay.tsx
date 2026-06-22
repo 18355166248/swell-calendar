@@ -20,6 +20,7 @@ import { MultiDayOptions, WeekOptions } from '@/types/options.type';
 import { getTierClassName } from '@/utils/viewport';
 
 const MOBILE_TIME_GRID_LEFT_WIDTH = '44px';
+const MOBILE_DAY_NAME_PANEL_HEIGHT = 32;
 
 export function MultiDay(): JSX.Element {
   const { options, view, calendar } = useCalendarStore();
@@ -105,13 +106,16 @@ export function MultiDay(): JSX.Element {
     alldayModels.length > 0 ? Math.max(0, ...alldayModels.map((m) => m.top)) : -1;
   const alldayPanelHeight = maxAlldaySlot >= 0 ? (maxAlldaySlot + 1) * ALLDAY_EVENT_HEIGHT : 0;
   const rightInset = `${scrollbarWidth}px`;
+  const dayNamePanelHeight =
+    viewportTier === 'mobile'
+      ? MOBILE_DAY_NAME_PANEL_HEIGHT
+      : WEEK_DAY_NAME_HEIGHT + WEEK_DAY_NAME_BORDER;
+  const dayNamePanelName =
+    viewportTier === 'mobile' ? 'multi-day-view-day-names-mobile' : 'multi-day-view-day-names';
 
   return (
     <Layout className={getTierClassName('multi-day-view', viewportTier)} rootRef={setViewportRef}>
-      <Panel
-        name="multi-day-view-day-names"
-        initialHeight={WEEK_DAY_NAME_HEIGHT + WEEK_DAY_NAME_BORDER}
-      >
+      <Panel name={dayNamePanelName} initialHeight={dayNamePanelHeight}>
         <GridHeader
           type="week"
           marginLeft={effectiveTimeGridLeftWidth}

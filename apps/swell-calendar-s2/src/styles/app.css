@@ -296,6 +296,156 @@ button {
   color: var(--accent-text);
 }
 
+.s2-week-mobile-title {
+  display: none;
+}
+
+.s2-week-default {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.s2-week-date {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  font-size: 26px;
+}
+
+.s2-week-default.is-today .s2-week-date {
+  background: var(--accent-bg);
+  color: var(--accent-contrast);
+  font-weight: 700;
+}
+
+.s2-week-default.is-today .s2-week-day {
+  color: var(--accent-text);
+  font-weight: 600;
+}
+
+.app--mobile .swell-calendar-day-view--mobile .swell-calendar-day-view-day-names,
+.app--mobile .swell-calendar-day-view--mobile .swell-calendar-day-view-day-names-mobile,
+.app--mobile .swell-calendar-multi-day-view--mobile .swell-calendar-multi-day-view-day-names,
+.app--mobile
+  .swell-calendar-multi-day-view--mobile
+  .swell-calendar-multi-day-view-day-names-mobile {
+  border-bottom: 1px solid color-mix(in oklch, var(--text-1) 12%, transparent);
+  background: var(--bg-app);
+}
+
+.app--mobile .swell-calendar-day-view--mobile .swell-calendar-day-names,
+.app--mobile .swell-calendar-multi-day-view--mobile .swell-calendar-day-names {
+  background: var(--bg-app) !important;
+}
+
+.app--mobile .swell-calendar-day-view--mobile .swell-calendar-day-names-container,
+.app--mobile .swell-calendar-multi-day-view--mobile .swell-calendar-day-names-container {
+  align-items: center;
+}
+
+.app--mobile .swell-calendar-day-view--mobile .swell-calendar-day-name,
+.app--mobile .swell-calendar-multi-day-view--mobile .swell-calendar-day-name {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6px;
+  color: var(--text-2);
+}
+
+.app--mobile .swell-calendar-day-view--mobile .s2-week-default,
+.app--mobile .swell-calendar-multi-day-view--mobile .s2-week-default {
+  display: none;
+}
+
+.app--mobile .swell-calendar-day-view--mobile .s2-week-mobile-title--day,
+.app--mobile .swell-calendar-multi-day-view--mobile .s2-week-mobile-title--multi {
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 5px;
+  max-width: 100%;
+  width: 100%;
+  color: var(--text-1);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.1;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.app--mobile .swell-calendar-day-view--mobile .s2-week-lunar,
+.app--mobile .swell-calendar-multi-day-view--mobile .s2-week-lunar {
+  color: var(--text-3);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.app--mobile .swell-calendar-day-view--mobile .s2-week-lunar.is-term,
+.app--mobile .swell-calendar-multi-day-view--mobile .s2-week-lunar.is-term {
+  color: var(--term-text);
+}
+
+.app--mobile .swell-calendar-day-view--mobile .swell-calendar-allday-row,
+.app--mobile .swell-calendar-multi-day-view--mobile .swell-calendar-allday-row {
+  min-height: 30px;
+  background: var(--bg-layer) !important;
+  border-bottom: 1px solid var(--border) !important;
+}
+
+.app--mobile .swell-calendar-day-view--mobile .swell-calendar-allday-row-label,
+.app--mobile .swell-calendar-multi-day-view--mobile .swell-calendar-allday-row-label {
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 9px 0 0;
+  border-right: 1px solid var(--grid-line-soft) !important;
+  background: var(--bg-layer) !important;
+  color: var(--text-3) !important;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.app--mobile .swell-calendar-day-view--mobile .swell-calendar-allday-row-content,
+.app--mobile .swell-calendar-multi-day-view--mobile .swell-calendar-allday-row-content {
+  background: var(--bg-layer);
+}
+
+.app--mobile .swell-calendar-day-view--mobile .swell-calendar-allday-event,
+.app--mobile .swell-calendar-multi-day-view--mobile .swell-calendar-allday-event {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  padding: 0 9px 0 3px !important;
+  border-radius: 999px !important;
+  background: var(--cat-green-fill) !important;
+  color: var(--cat-green-text) !important;
+  font-size: 11.5px !important;
+  font-weight: 600;
+  box-shadow: none;
+}
+
+.app--mobile .swell-calendar-day-view--mobile .swell-calendar-allday-event::before,
+.app--mobile .swell-calendar-multi-day-view--mobile .swell-calendar-allday-event::before {
+  content: '★';
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: var(--cat-green-line);
+  color: #fff;
+  font-size: 9px;
+  line-height: 1;
+}
+
 /* 主日历只保留当天日期标题高亮，不再给整个月格铺底色。 */
 .swell-calendar-month-cell-today {
   background: inherit;
