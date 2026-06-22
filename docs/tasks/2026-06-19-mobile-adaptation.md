@@ -323,5 +323,6 @@
   - **移动顶部 chrome 分割线收口（2026-06-22）**：顶部导航 `.m-top` 去掉底部 border，与下方周条保持同一背景；周条底部分割线降为 0.5px 弱线，避免移动端视觉过粗。
   - **移动月 / 列表顶部背景对齐（2026-06-22）**：`.m-top` 与月标题块统一使用 `--mobile-calendar-bg`，月标题条改为 48px flex 垂直居中，避免顶部 chrome 与月视图标题出现两段底色。
   - **移动 Agenda 分组头背景对齐（2026-06-23）**：`.agenda-view--mobile` 的 `--swell-agenda-bg` 优先读取宿主 `--mobile-calendar-bg`，使列表日期分组头与移动顶栏 / 画布背景一致；无宿主变量时仍回退 `--bg-app/#fff`。
+  - **移动多日周条 active+oncard 反色修复（2026-06-23）**：多日连接带 `.oncard` 会在 active 规则之后覆盖农历颜色；补 active+oncard 专属规则，确保选中日期圈内数字与农历均保持 `--accent-contrast`。
 - M4：
 - M5：

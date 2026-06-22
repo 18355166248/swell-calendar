@@ -1745,6 +1745,10 @@ button {
   color: var(--text-2);
   font-weight: 600;
 }
+.app--mobile .day-week-chip.active.oncard .day-week-chip__date,
+.app--mobile .day-week-chip.active.oncard .day-week-chip__lunar {
+  color: var(--accent-contrast);
+}
 
 /* 月视图日期格模板：桌面保持单数字，移动端显示农历/节气第二行 */
 .s2-month-date-num {
