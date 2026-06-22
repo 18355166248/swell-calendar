@@ -632,6 +632,23 @@ button {
   color: var(--accent-contrast);
 }
 
+/* 农历 / 节气标签（chinese-days 注入，宿主侧 chrome） */
+.day-week-chip__lunar {
+  font-size: 10px;
+  line-height: 1;
+  color: var(--text-3);
+  white-space: nowrap;
+}
+
+.day-week-chip__lunar.is-term {
+  color: var(--cat-green-text, var(--accent-text));
+  font-weight: 600;
+}
+
+.day-week-chip.active .day-week-chip__lunar {
+  color: var(--accent-text);
+}
+
 @media (max-width: 1120px) {
   .day-week-strip {
     gap: 10px;

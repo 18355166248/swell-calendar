@@ -74,6 +74,7 @@
 | Month 移动布局（紧凑 chip + `+N`） | month | 桌面 Month 已有 overflow | M1 | 中 |
 | 移动 chrome（顶部导航条）@ S2 | 四稿共有 | ❌ 无 | M1 | 低 |
 | 周条选择器（滑动切周 / 选中红圈） | day/multi-day | 部分在 S2 day-strip | M1 | 中 |
+| 农历 / 节气标签（宿主注入，`chinese-days`） | day/multi-day/month/agenda | ✅ PoC 落地（S2 周条） | M1 | 低 |
 | **Agenda 视图（新）** | agenda | ❌ 无（ViewType 无 agenda） | M2 | 中 |
 | Multi-day 移动视图（N 列日列） | multi-day | Day 仅单列 | M3 | 中 |
 | 触控 create / move / resize | mobiscroll | ❌ 鼠标 only | M4 | 高 |
@@ -159,7 +160,22 @@
     - 同 tier 化模式：`MonthEvent` 的 `borderRadius` / `fontSize` 改读 CSS 变量（桌面 fallback 3px/12px → 零回归），移动作用域内紧凑为 4px/11px。
     - 非内联样式直接覆盖：日期圆圈 24→22px、字号 13→12px；`+N` 溢出标记 11→10px。
     - 预览验证（月视图 story）：移动 375 → chip 11px/4px、日期圈 22px/12px；桌面 1280（reload）→ 12px/3px、24px/13px、根类无修饰（零回归）。
-  - **M1 剩余（下一小步）**：Day 窄列 / 时间 gutter 细化；`apps/swell-calendar-s2` 移动 shell（顶部导航条 + 周条切周）。CSS 变量 + tier 类名钩子已成型，按此模式扩展即可。
+  - **样式职责边界（2026-06-22 定，并入 remix 设计稿）**：
+    本 epic 视觉基线更新为 `claude-design/mobile/swellcalendar-remix`（比 `docs/assets/*.png` 更完整）。
+    「样式」按归属一分为二，不可整体下沉到宿主：
+    - **能力**（agenda / multi-day / 触控 / viewport）：`packages/calendar`，docs-first 新增视图/控制器/钩子。
+    - **视图主体样式**（时间轴 / 月格 / 列表 / 多日列的布局）：`packages/calendar`，沿用 `css/responsive.scss` + `--mobile` tier 修饰类 + CSS 变量。
+      理由：引擎 DOM 经 postcss 前缀封装，且事件卡有 inline style，宿主外部 CSS 盖不住（M1 已为此把圆角改读 CSS 变量）。
+    - **颜色 / token**（强调色 / 边框 / now 线色…）：宿主 s2 通过 `data-theme/accent` + `theme` prop 驱动，引擎按 `var(--…)` 消费，无需改包 CSS。
+    - **Chrome**（顶部导航 / segmented / 周条 / 事件底部 sheet）：纯宿主 `apps/swell-calendar-s2`，结构 + 样式都在宿主。
+    - **农历 / 节气 / 休班**：宿主 s2 计算后注入 chrome，引擎不内建农历概念。
+  - **农历库选型（2026-06-22 定）**：`chinese-days`（MIT、零依赖、~9.5KB gzip）。
+    对比：`lunisolar` 13.7KB 但 GPL-3.0（产品不可用，排除）；`lunar-javascript/typescript` MIT 但 ~111KB（过大，排除）。
+    `chinese-days` 覆盖农历日（`getLunarDate().lunarDayCN`）+ 节气（`getSolarTerms`）+ 后续可扩休/班（`isWorkday`/`getDayDetail`）与节日。
+  - **农历 PoC 已落地并验证（s2）**：`apps/swell-calendar-s2/src/lunar.ts`（`lunarLabelOf(date)` 节气优先于农历日）；
+    `shell.tsx` 的 `DayWeekStrip` 每日 chip 追加农历/节气标签，节气日加绿色 `is-term` 样式（读 `--cat-green-text`）。
+    预览验证（s2-app:5180 日视图）：周条显示「初一…初六」，2026-06-21 显示绿色「夏至」；选中日走 accent 覆盖；`tsc --noEmit` 通过、无 console 报错。
+  - **M1 剩余（下一小步）**：Day 窄列 / 时间 gutter 细化；`apps/swell-calendar-s2` 移动 shell（顶部导航条 + segmented + 周条切周 + 事件底部 sheet，复用 `lunarLabelOf`）。CSS 变量 + tier 类名钩子已成型，按此模式扩展即可。
 - M2：
 - M3：
 - M4：

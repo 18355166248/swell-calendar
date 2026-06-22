@@ -12,6 +12,7 @@ import {
 } from '@react-spectrum/s2';
 
 import { Ic } from './icons';
+import { lunarLabelOf } from './lunar';
 
 export type ViewId = 'day' | 'week' | 'month' | 'scheduler' | 'timeline';
 export type Sidebar = 'full' | 'rail' | 'hidden';
@@ -226,6 +227,14 @@ export function DayWeekStrip({ currentDate, onDateChange }: DayWeekStripProps) {
             >
               <span className="day-week-chip__dow">{MINI_DOW[mondayIndex(date)]}</span>
               <span className="day-week-chip__date">{date.getDate()}</span>
+              {(() => {
+                const lunar = lunarLabelOf(date);
+                return (
+                  <span className={'day-week-chip__lunar' + (lunar.isTerm ? ' is-term' : '')}>
+                    {lunar.text}
+                  </span>
+                );
+              })()}
             </button>
           );
         })}

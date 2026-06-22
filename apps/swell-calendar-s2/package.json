@@ -15,6 +15,7 @@
   "dependencies": {
     "@react-spectrum/s2": "^1.4.0",
     "axios": "^1.18.0",
+    "chinese-days": "^1.5.9",
     "dayjs": "^1.11.13",
     "mockjs": "^1.1.0",
     "react": "^18.2.0",
