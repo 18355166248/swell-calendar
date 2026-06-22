@@ -53,7 +53,7 @@ if [ -n "$CALENDAR_LINT_FILES" ]; then
 fi
 
 # 3. Prettier（仅校验 staged 的可格式化文件）
-PRETTIER_FILES=$(echo "$CHANGED_EXISTING" | grep -E "\.(ts|tsx|js|jsx|mjs|cjs|json|md|yml|yaml|css|scss)$" || true)
+PRETTIER_FILES=$(echo "$CHANGED_EXISTING" | grep -E "\.(ts|tsx|js|jsx|mjs|cjs|json|md|yml|yaml|css|scss)$" | grep -v "^claude-design/" || true)
 if [ -n "$PRETTIER_FILES" ]; then
   echo "  → 运行 staged Prettier 检查..."
   run_pnpm exec prettier --check $PRETTIER_FILES

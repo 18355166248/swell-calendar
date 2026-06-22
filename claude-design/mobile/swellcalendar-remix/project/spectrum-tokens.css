@@ -1,0 +1,182 @@
+/* Spectrum 2 design tokens — approximated for swell-calendar mockups.
+   Adobe Clean is proprietary; Source Sans 3 (Adobe's open typeface) is the stand-in. */
+
+:root {
+  --sp-font: "Source Sans 3", "Adobe Clean", system-ui, -apple-system, sans-serif;
+  --sp-font-mono: "Source Code Pro", ui-monospace, monospace;
+
+  /* Corner radius — Spectrum 2 is rounder */
+  --r-75: 4px;
+  --r-100: 8px;
+  --r-200: 10px;
+  --r-300: 16px;
+  --r-full: 999px;
+
+  /* Spacing (8px grid) */
+  --sp-50: 4px;
+  --sp-100: 8px;
+  --sp-200: 12px;
+  --sp-300: 16px;
+  --sp-400: 24px;
+  --sp-500: 32px;
+  --sp-600: 40px;
+
+  /* Accent — seafoam (default). Overridable by tweaks. */
+  --seafoam-300: oklch(0.93 0.035 192);
+  --seafoam-400: oklch(0.86 0.06 192);
+  --seafoam-700: oklch(0.66 0.085 192);
+  --seafoam-900: oklch(0.58 0.085 192);
+  --seafoam-1000: oklch(0.51 0.08 192);
+  --seafoam-1100: oklch(0.44 0.07 192);
+
+  --accent-bg: var(--seafoam-900);
+  --accent-bg-hover: var(--seafoam-1000);
+  --accent-bg-down: var(--seafoam-1100);
+  --accent-text: var(--seafoam-1000);
+  --accent-tint: var(--seafoam-300);
+  --accent-tint-strong: var(--seafoam-400);
+  --accent-contrast: #ffffff;
+}
+
+/* ---------- LIGHT ---------- */
+:root,
+[data-theme="light"] {
+  --bg-app: oklch(0.97 0.002 270);
+  --bg-layer: oklch(0.995 0.001 270);
+  --bg-layer-2: oklch(1 0 0);
+  --bg-sunken: oklch(0.945 0.003 270);
+  --bg-hover: oklch(0.93 0.004 270);
+  --bg-down: oklch(0.9 0.005 270);
+
+  --border: oklch(0.9 0.004 270);
+  --border-strong: oklch(0.82 0.006 270);
+  --border-mid: oklch(0.86 0.005 270);
+
+  --text-1: oklch(0.22 0.006 270);
+  --text-2: oklch(0.45 0.008 270);
+  --text-3: oklch(0.6 0.008 270);
+  --text-disabled: oklch(0.74 0.006 270);
+
+  --grid-line: oklch(0.92 0.004 270);
+  --grid-line-soft: oklch(0.955 0.003 270);
+  --weekend-bg: oklch(0.965 0.004 270);
+  --now-line: oklch(0.6 0.2 25);
+
+  --shadow-sm: 0 1px 2px oklch(0.2 0.01 270 / 0.08), 0 1px 1px oklch(0.2 0.01 270 / 0.04);
+  --shadow-md: 0 4px 12px oklch(0.2 0.01 270 / 0.1), 0 1px 3px oklch(0.2 0.01 270 / 0.06);
+  --shadow-lg: 0 12px 32px oklch(0.2 0.01 270 / 0.16), 0 4px 10px oklch(0.2 0.01 270 / 0.08);
+}
+
+/* ---------- DARK ---------- */
+[data-theme="dark"] {
+  --bg-app: oklch(0.205 0.004 270);
+  --bg-layer: oklch(0.25 0.005 270);
+  --bg-layer-2: oklch(0.285 0.006 270);
+  --bg-sunken: oklch(0.18 0.004 270);
+  --bg-hover: oklch(0.32 0.007 270);
+  --bg-down: oklch(0.36 0.008 270);
+
+  --border: oklch(0.34 0.006 270);
+  --border-strong: oklch(0.44 0.008 270);
+  --border-mid: oklch(0.38 0.007 270);
+
+  --text-1: oklch(0.96 0.003 270);
+  --text-2: oklch(0.76 0.006 270);
+  --text-3: oklch(0.62 0.007 270);
+  --text-disabled: oklch(0.48 0.006 270);
+
+  --grid-line: oklch(0.32 0.006 270);
+  --grid-line-soft: oklch(0.27 0.005 270);
+  --weekend-bg: oklch(0.225 0.004 270);
+  --now-line: oklch(0.68 0.19 25);
+
+  --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.4), 0 1px 1px oklch(0 0 0 / 0.3);
+  --shadow-md: 0 4px 12px oklch(0 0 0 / 0.5), 0 1px 3px oklch(0 0 0 / 0.35);
+  --shadow-lg: 0 16px 40px oklch(0 0 0 / 0.6), 0 4px 12px oklch(0 0 0 / 0.4);
+
+  --accent-text: var(--seafoam-700);
+  --accent-tint: oklch(0.34 0.05 192);
+  --accent-tint-strong: oklch(0.4 0.06 192);
+}
+
+/* ---------- ACCENT PRESETS (set data-accent on root) ---------- */
+[data-accent="blue"] {
+  --accent-bg: oklch(0.56 0.16 256);
+  --accent-bg-hover: oklch(0.5 0.16 256);
+  --accent-bg-down: oklch(0.45 0.15 256);
+  --accent-text: oklch(0.5 0.16 256);
+  --accent-tint: oklch(0.93 0.04 256);
+  --accent-tint-strong: oklch(0.86 0.07 256);
+}
+[data-accent="blue"][data-theme="dark"] {
+  --accent-text: oklch(0.72 0.13 256);
+  --accent-tint: oklch(0.33 0.07 256);
+  --accent-tint-strong: oklch(0.4 0.09 256);
+}
+[data-accent="indigo"] {
+  --accent-bg: oklch(0.52 0.17 282);
+  --accent-bg-hover: oklch(0.47 0.17 282);
+  --accent-bg-down: oklch(0.42 0.16 282);
+  --accent-text: oklch(0.49 0.17 282);
+  --accent-tint: oklch(0.93 0.045 282);
+  --accent-tint-strong: oklch(0.87 0.08 282);
+}
+[data-accent="indigo"][data-theme="dark"] {
+  --accent-text: oklch(0.74 0.13 282);
+  --accent-tint: oklch(0.33 0.08 282);
+  --accent-tint-strong: oklch(0.4 0.1 282);
+}
+[data-accent="magenta"] {
+  --accent-bg: oklch(0.55 0.2 348);
+  --accent-bg-hover: oklch(0.5 0.2 348);
+  --accent-bg-down: oklch(0.45 0.19 348);
+  --accent-text: oklch(0.52 0.2 348);
+  --accent-tint: oklch(0.94 0.04 348);
+  --accent-tint-strong: oklch(0.88 0.08 348);
+}
+[data-accent="magenta"][data-theme="dark"] {
+  --accent-text: oklch(0.74 0.16 348);
+  --accent-tint: oklch(0.34 0.09 348);
+  --accent-tint-strong: oklch(0.41 0.12 348);
+}
+
+/* ---------- EVENT CATEGORY COLORS (Spectrum semantic hues) ---------- */
+:root {
+  --cat-seafoam-line: oklch(0.62 0.09 192);
+  --cat-seafoam-fill: oklch(0.93 0.04 192);
+  --cat-seafoam-text: oklch(0.4 0.07 192);
+
+  --cat-indigo-line: oklch(0.55 0.16 282);
+  --cat-indigo-fill: oklch(0.93 0.05 282);
+  --cat-indigo-text: oklch(0.42 0.13 282);
+
+  --cat-magenta-line: oklch(0.58 0.19 348);
+  --cat-magenta-fill: oklch(0.94 0.045 348);
+  --cat-magenta-text: oklch(0.45 0.15 348);
+
+  --cat-orange-line: oklch(0.68 0.16 55);
+  --cat-orange-fill: oklch(0.94 0.05 65);
+  --cat-orange-text: oklch(0.5 0.12 50);
+
+  --cat-green-line: oklch(0.62 0.13 150);
+  --cat-green-fill: oklch(0.93 0.05 150);
+  --cat-green-text: oklch(0.43 0.1 150);
+
+  --cat-purple-line: oklch(0.55 0.15 310);
+  --cat-purple-fill: oklch(0.93 0.05 310);
+  --cat-purple-text: oklch(0.43 0.12 310);
+}
+[data-theme="dark"] {
+  --cat-seafoam-fill: oklch(0.34 0.05 192);
+  --cat-seafoam-text: oklch(0.85 0.06 192);
+  --cat-indigo-fill: oklch(0.33 0.07 282);
+  --cat-indigo-text: oklch(0.85 0.07 282);
+  --cat-magenta-fill: oklch(0.34 0.08 348);
+  --cat-magenta-text: oklch(0.86 0.08 348);
+  --cat-orange-fill: oklch(0.36 0.06 55);
+  --cat-orange-text: oklch(0.86 0.08 60);
+  --cat-green-fill: oklch(0.33 0.06 150);
+  --cat-green-text: oklch(0.85 0.07 150);
+  --cat-purple-fill: oklch(0.33 0.07 310);
+  --cat-purple-text: oklch(0.85 0.07 310);
+}
