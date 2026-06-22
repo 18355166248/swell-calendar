@@ -19,7 +19,7 @@ import { getVisibleDateWindow, normalizeRange } from '@/time/view-range';
 import { MultiDayOptions, WeekOptions } from '@/types/options.type';
 import { getTierClassName } from '@/utils/viewport';
 
-const MOBILE_TIME_GRID_LEFT_WIDTH = '44px';
+const MOBILE_TIME_GRID_LEFT_WIDTH = '52px';
 const MOBILE_DAY_NAME_PANEL_HEIGHT = 32;
 
 export function MultiDay(): JSX.Element {

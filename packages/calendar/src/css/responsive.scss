@@ -12,7 +12,7 @@
 
 .day-view--mobile {
   // 事件圆角变量：限时事件加大圆角、全天事件胶囊化
-  --swell-time-event-radius: 8px;
+  --swell-time-event-radius: 7px;
   --swell-allday-event-radius: 999px;
 
   // 限时事件移动化：实心卡片（移动端不做静置半透明）
@@ -48,10 +48,10 @@
   .event-time-content {
     min-width: 0;
     max-width: 100%;
-    padding: 3px 5px;
+    padding: 4px 8px;
     overflow: hidden;
     font-size: 12px;
-    line-height: 1.2;
+    line-height: 1.25;
     text-overflow: ellipsis;
   }
 
@@ -74,14 +74,15 @@
   }
 
   .event-time-stack-sub {
-    font-size: 10px;
+    font-size: 11px;
   }
 
-  // 全天行标签「全天」移动端左对齐、字号略增，贴近设计稿
+  // 全天行「全天」标签：右对齐到时间 gutter 边界，贴近设计稿 .m-tl-gutter.allday
   .allday-row-label {
-    justify-content: flex-start;
-    padding-left: 12px;
-    font-size: 13px;
+    justify-content: flex-end;
+    padding: 0 9px;
+    font-size: 11px;
+    font-weight: 600;
   }
 
   // 当前时间指示器：移动端做成 Apple 风「红色时间旗」。
@@ -111,7 +112,7 @@
 }
 
 .multi-day-view--mobile {
-  --swell-time-event-radius: 8px;
+  --swell-time-event-radius: 7px;
   --swell-allday-event-radius: 999px;
 
   .event-time {
@@ -121,10 +122,10 @@
   .event-time-content {
     min-width: 0;
     max-width: 100%;
-    padding: 3px 5px;
+    padding: 4px 8px;
     overflow: hidden;
-    font-size: 11px;
-    line-height: 1.18;
+    font-size: 12px;
+    line-height: 1.25;
     text-overflow: ellipsis;
   }
 
@@ -147,13 +148,14 @@
   }
 
   .event-time-stack-sub {
-    font-size: 9.5px;
+    font-size: 11px;
   }
 
   .allday-row-label {
-    justify-content: flex-start;
-    padding-left: 8px;
-    font-size: 12px;
+    justify-content: flex-end;
+    padding: 0 9px;
+    font-size: 11px;
+    font-weight: 600;
   }
 }
 
@@ -188,10 +190,7 @@
     background: transparent;
   }
 
-  .month-cell-weekend .month-cell-date {
-    color: var(--now-line, oklch(0.6 0.2 25));
-  }
-
+  // 设计稿 month 网格周末不做单独配色（仅 dow 表头弱化），故移动端日期统一用 text-1。
   .month-cell-other-month {
     background: transparent;
   }

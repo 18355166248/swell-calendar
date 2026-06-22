@@ -294,5 +294,12 @@
     - 参考 `claude-design/mobile/swellcalendar-remix/project/mobile.css` 的 `.m-tl-header` / `.m-allday-chip`：移动 Day / Multi-day 在标题下方展示「全天」gutter + 绿色星标胶囊。
     - s2 mock seed 增加端午节 / 夏至全天事件，并升级 mock DB version，刷新后自动重置本地旧 seed。
     - 标题字号按 remix 收口后继续压缩：Day / Multi-day 主标题统一 12px、农历 11px，不再使用过大的 22px。
+  - **设计稿（remix）数值对齐收口（2026-06-22）**：以 `swell-calendar-mobile.html` → `mobile.css` 为唯一真源，逐项校正此前与设计稿不符的数值/结构：
+    - 时间 gutter：Day 48px / Multi-day 44px → 统一 **52px**（`.m-timeline` `grid-template-columns: 52px 1fr`），三段（GridHeader/AlldayRow/TimeGrid）左边界对齐。
+    - 限时事件圆角 8px → **7px**（`.m-ev --ev-radius`）；内容内边距 3px 5px → **4px 8px**；副行字号 10px/9.5px → **11px**（`.m-ev-time`）。
+    - 包内 `.allday-row-label`（responsive.scss）原为左对齐 13px，与设计稿 `.m-tl-gutter.allday`（右对齐 11px/600）及宿主 app.css 双重冲突 → 改为右对齐 11px/600，使包在独立宿主/Storybook 下也与设计稿一致。
+    - 月格周末数字此前走 now 红色，设计稿 month 网格**周末不做单独配色**（仅 dow 表头弱化）→ 移除红色覆盖，统一 text-1。`month-cell-weekend` class 保留为未来挂点。
+    - 验证：375px 预览计算值确认 gutter marginLeft 52px、事件圆角 7px、content padding 4px 8px、全天标签右对齐 11px、月格周末数字 = text-1（非红）；`tsc --noEmit` 通过、`responsive.spec` / `column.controller.spec` 绿、包构建通过。
+    - **未收口（判断项，待宿主确认）**：① now「红色时间旗」设计稿在左侧 gutter（`.m-now-flag left:-50px`），现实现在右端；② Day/Multi-day 大标题设计稿 `.m-dayhd` 15px，现实现 12px（前序「收口」刻意压小，与稿冲突）；③ Agenda 行设计稿含第二行「地点·参与人」（`.m-ag-loc`），现实现仅标题（M2 刻意精简、且依赖事件数据）；④ 限时事件标题设计稿允许 2 行 `-webkit-line-clamp:2`，现实现单行省略（防窄列溢出）。
 - M4：
 - M5：

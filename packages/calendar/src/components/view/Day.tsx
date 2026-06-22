@@ -18,7 +18,7 @@ import { getFilterRange, getRowStyleInfo } from '@/time/datetime';
 import { WeekOptions } from '@/types/options.type';
 import { getTierClassName } from '@/utils/viewport';
 
-const MOBILE_TIME_GRID_LEFT_WIDTH = '48px';
+const MOBILE_TIME_GRID_LEFT_WIDTH = '52px';
 const MOBILE_DAY_NAME_PANEL_HEIGHT = 32;
 
 export function Day(): JSX.Element {
