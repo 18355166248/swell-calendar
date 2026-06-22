@@ -20,6 +20,31 @@
     opacity: 1;
   }
 
+  // 宿主通过 data-card 控制移动端事件卡层级：
+  // soft = 默认轻卡片；bar = 左色条 + 透明底；solid = 实心色块。
+  // 事件原始配色由 TimeEvent 内联 CSS 变量提供，避免在 CSS 中反推分类色。
+  [data-card='soft'] & .event-time {
+    background-color: var(--swell-event-bg) !important;
+    border-left-color: var(--swell-event-border) !important;
+    color: var(--swell-event-text) !important;
+    box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--swell-event-border) 18%, transparent);
+  }
+
+  [data-card='bar'] & .event-time {
+    background-color: color-mix(in oklch, var(--swell-event-bg) 28%, transparent) !important;
+    border-left-width: 4px !important;
+    border-left-color: var(--swell-event-border) !important;
+    color: var(--swell-event-text) !important;
+    box-shadow: none;
+  }
+
+  [data-card='solid'] & .event-time {
+    background-color: var(--swell-event-border) !important;
+    border-left-color: color-mix(in oklch, var(--swell-event-border) 72%, #000) !important;
+    color: #fff !important;
+    box-shadow: 0 1px 6px rgba(15, 23, 42, 0.18);
+  }
+
   .event-time-content {
     padding: 3px 8px;
     font-size: 13px;

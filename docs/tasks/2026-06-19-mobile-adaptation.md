@@ -224,9 +224,13 @@
     - `Day.tsx` 按 viewport tier 把移动端时间 gutter 从主题默认 72px 收窄为 48px，并统一传给 `GridHeader` / `AlldayRow` / `TimeGrid`，保证表头、全天行、时间网格三段左侧边界对齐。
     - `TimeGrid` 新增内部 `gutterWidthOverride` prop，仅供包内响应式布局使用；未从 `src/index.ts` 导出，不构成公开 API。
     - 预期验证：375px 单日视图内容列变宽、时间轴仍可读；1280px 仍使用主题默认 gutter（桌面零回归）。
+  - **Day 移动事件卡 tier 已落地（包内，2026-06-22）**：
+    - `TimeEvent` 在默认内联样式外同步暴露 `--swell-event-bg/border/text/drag-bg`，供响应式 CSS 复用事件原始配色；默认桌面样式仍走原内联属性。
+    - `responsive.scss` 在 `.day-view--mobile` 下按宿主 `data-card` 支持 `soft`（轻卡片）、`bar`（左色条）、`solid`（实心色块）三档；当前 s2 默认仍为 `soft`。
+    - 预期验证：375px 默认 `soft` 轻卡片命中；临时切换 `data-card=bar/solid` 时卡片视觉变化；1280px 不带 mobile 修饰类，桌面零回归。
   - **M1 剩余（下一小步）**：
     - 月视图农历：给 `MonthGrid` 加可选 cell 模板插槽（公开 API，docs-first），宿主用 `lunarLabelOf` 注入；配套 `responsive.scss` 放开 `month-cell-header` 高度。
-    - 包内 `responsive.scss`：事件卡 tier（soft/bar/solid）、月格细节。
+    - 包内 `responsive.scss`：月格细节。
     - 多日连接带（随 M3 多日视图）。
     - 实时切换（旋屏/改窗）依赖 `useIsMobile` 的 resize 兜底；CDP 模拟器下 matchMedia change 不稳定，真机/真浏览器正常。
 - M2：

@@ -1,5 +1,5 @@
 import { isNil, isString } from 'lodash-es';
-import { KeyboardEvent, MouseEvent, useState } from 'react';
+import { type CSSProperties, KeyboardEvent, MouseEvent, useState } from 'react';
 
 import { KEY } from '@/constants/keyboard';
 import { TIME_EVENT_CONTAINER_MARGIN_LEFT } from '@/constants/style.const';
@@ -80,6 +80,17 @@ function getStyles({
     // （静置略带透明、hover 时恢复不透明，见 events/time.scss）
     opacity: isDraggingTarget && !isResizingEvent ? 0.5 : undefined,
     zIndex: hasNextStartTime ? 1 : 0, // 层级（重叠事件时调整）
+    // 移动端卡片 tier 需要在 CSS 中复用事件原始配色。
+    // 默认仍由上面的内联 background/border/color 生效；变量只作为响应式覆盖的稳定输入。
+    '--swell-event-bg': backgroundColor,
+    '--swell-event-border': borderColor,
+    '--swell-event-text': color,
+    '--swell-event-drag-bg': dragBackgroundColor,
+  } as CSSProperties & {
+    '--swell-event-bg': string;
+    '--swell-event-border': string;
+    '--swell-event-text': string;
+    '--swell-event-drag-bg': string;
   };
 
   return { containerStyle };
