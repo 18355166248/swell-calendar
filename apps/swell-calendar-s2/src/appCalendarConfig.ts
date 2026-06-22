@@ -209,11 +209,11 @@ export function buildCalendarOptions(input: {
           `<span class="s2-week-day">${model.dayName}</span>`,
           `</span>`,
           `<span class="s2-week-mobile-title s2-week-mobile-title--day${todayClass}">`,
-          `${model.dayName} ${date.format('YYYY年M月D日')} `,
+          `${model.dayName} · ${date.format('M月D日')} `,
           `<span class="${lunarClass}">${lunar.text}</span>`,
           `</span>`,
           `<span class="s2-week-mobile-title s2-week-mobile-title--multi${todayClass}">`,
-          `${model.dayName} ${date.format('YYYY年M月D日')} `,
+          `${model.dayName} ${date.format('M月D日')} `,
           `<span class="${lunarClass}">${lunar.text}</span>`,
           `</span>`,
         ].join('');

@@ -198,9 +198,14 @@ function MiniCalendar({ currentDate, onDateChange }: MiniCalendarProps) {
 interface DayWeekStripProps {
   currentDate: Date;
   onDateChange: (d: Date) => void;
+  /**
+   * 多日视图时一次选中的连续天数（默认 1=单日）。>1 时把 [currentDate .. +spanDays-1]
+   * 标记为同一选区，渲染连接带（对标设计稿 .m-ws-cell.oncard 的 2 天高亮）。
+   */
+  spanDays?: number;
 }
 
-export function DayWeekStrip({ currentDate, onDateChange }: DayWeekStripProps) {
+export function DayWeekStrip({ currentDate, onDateChange, spanDays = 1 }: DayWeekStripProps) {
   const today = new Date();
   const weekStart = startOfWeekMonday(currentDate);
   const days = Array.from({ length: 7 }, (_, index) => {
@@ -209,6 +214,14 @@ export function DayWeekStrip({ currentDate, onDateChange }: DayWeekStripProps) {
     return date;
   });
 
+  const spanStart = new Date(
+    currentDate.getFullYear(),
+    currentDate.getMonth(),
+    currentDate.getDate()
+  );
+  const spanEnd = new Date(spanStart);
+  spanEnd.setDate(spanEnd.getDate() + Math.max(1, spanDays) - 1);
+
   return (
     <div className="day-week-strip">
       <div className="day-week-strip__month">{getWeekStripMonthLabel(currentDate)}</div>
@@ -216,13 +229,21 @@ export function DayWeekStrip({ currentDate, onDateChange }: DayWeekStripProps) {
         {days.map((date) => {
           const active = isSameDay(date, currentDate);
           const isTodayDate = isSameDay(date, today);
+          const onCard = spanDays > 1 && date >= spanStart && date <= spanEnd;
+          const edgeL = onCard && isSameDay(date, spanStart);
+          const edgeR = onCard && isSameDay(date, spanEnd);
 
           return (
             <button
               key={date.toISOString()}
               type="button"
               className={
-                'day-week-chip' + (active ? ' active' : '') + (isTodayDate ? ' today' : '')
+                'day-week-chip' +
+                (active ? ' active' : '') +
+                (isTodayDate ? ' today' : '') +
+                (onCard ? ' oncard' : '') +
+                (edgeL ? ' edge-l' : '') +
+                (edgeR ? ' edge-r' : '')
               }
               onClick={() => onDateChange(date)}
               aria-pressed={active}

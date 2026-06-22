@@ -370,7 +370,7 @@ button {
   max-width: 100%;
   width: 100%;
   color: var(--text-1);
-  font-size: 12px;
+  font-size: 15px;
   font-weight: 700;
   line-height: 1.1;
   text-align: center;
@@ -379,19 +379,12 @@ button {
   text-overflow: ellipsis;
 }
 
+/* 农历副标题：单日 / 多日统一 13px（对标设计稿 .m-dayhd .sub） */
 .app--mobile .swell-calendar-day-view--mobile .s2-week-lunar,
 .app--mobile .swell-calendar-multi-day-view--mobile .s2-week-lunar {
   color: var(--text-3);
-  font-size: 11px;
-  font-weight: 500;
-}
-
-/* 单日：设计稿 .m-dayhd 主标题 15px / 副标题 13px（多日仍按 .m-tl-colhd 12px/11px） */
-.app--mobile .swell-calendar-day-view--mobile .s2-week-mobile-title--day {
-  font-size: 15px;
-}
-.app--mobile .swell-calendar-day-view--mobile .s2-week-lunar {
   font-size: 13px;
+  font-weight: 500;
 }
 
 .app--mobile .swell-calendar-day-view--mobile .s2-week-lunar.is-term,
@@ -1653,6 +1646,48 @@ button {
 .app--mobile .day-week-chip.active.today .day-week-chip__date,
 .app--mobile .day-week-chip.active.today .day-week-chip__lunar {
   color: var(--accent-contrast);
+}
+
+/* 多日连接带（对标设计稿 .m-ws-cell.oncard）：把选区 N 天连成一条胶囊，
+   band 锚到底部对齐 42px blob，端点按 edge-l/edge-r 抠出 21px 半圆。 */
+.app--mobile .day-week-chip {
+  position: relative;
+}
+.app--mobile .day-week-chip.oncard::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 6px;
+  height: 42px;
+  background: color-mix(in oklch, var(--text-2) 15%, transparent);
+  z-index: 0;
+}
+.app--mobile .day-week-chip.oncard.edge-l::before {
+  left: calc(50% - 21px);
+  border-top-left-radius: 21px;
+  border-bottom-left-radius: 21px;
+}
+.app--mobile .day-week-chip.oncard.edge-r::before {
+  right: calc(50% - 21px);
+  border-top-right-radius: 21px;
+  border-bottom-right-radius: 21px;
+}
+/* blob / dow 浮在 band 之上 */
+.app--mobile .day-week-chip__blob {
+  position: relative;
+  z-index: 1;
+}
+.app--mobile .day-week-chip__dow {
+  position: relative;
+  z-index: 1;
+}
+.app--mobile .day-week-chip.oncard .day-week-chip__dow {
+  color: var(--text-2);
+}
+.app--mobile .day-week-chip.oncard .day-week-chip__lunar {
+  color: var(--text-2);
+  font-weight: 600;
 }
 
 /* 月视图日期格模板：桌面保持单数字，移动端显示农历/节气第二行 */

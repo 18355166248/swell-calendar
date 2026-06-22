@@ -20,7 +20,8 @@ import { MultiDayOptions, WeekOptions } from '@/types/options.type';
 import { getTierClassName } from '@/utils/viewport';
 
 const MOBILE_TIME_GRID_LEFT_WIDTH = '52px';
-const MOBILE_DAY_NAME_PANEL_HEIGHT = 32;
+// 与单日一致：15px 标题需要更高的日期栏（见 Day.tsx）
+const MOBILE_DAY_NAME_PANEL_HEIGHT = 38;
 
 export function MultiDay(): JSX.Element {
   const { options, view, calendar } = useCalendarStore();

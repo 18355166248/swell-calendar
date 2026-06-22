@@ -306,5 +306,10 @@
     - ③ Agenda 行补第二行「地点 · 参与人」：引擎 `EventObject` 无 location/who 一等字段，故新增**公开模板槽 `agendaEventMeta`**（默认空串、`:empty` 隐藏），s2 复用 `meta.pickMeta`/`raw` 注入 `loc · who`；与详情弹层同源。SPEC 模板表已同步（13 → 14 个渲染点）。
     - ④ 限时事件标题改 **2 行截断**（`display:-webkit-box; -webkit-line-clamp:2; white-space:normal`），副行仍单行省略；`responsive.spec` 契约同步更新。
     - 验证：375px 预览确认 Day 标题 15px/农历 13px、事件标题 line-clamp:2、列表行第二行 `loc · who` 12.5px（如「产品 · 设计 · 工程」「陈伊一 · 产品组」），数据缺失优雅降级；`tsc`（calendar + s2）通过、包构建通过。
+  - **多日顶部周条 + 标题对齐（2026-06-22）**：按设计稿 `mobile-app.jsx`（周条 `day || multi` 都显示）补齐多日缺失项：
+    - 周条扩到多日：`App.tsx` 移动分支 `day || multi` 均渲染 `DayWeekStrip`，多日传 `spanDays=2`；`DayWeekStrip` 新增 `spanDays` prop，把 `[currentDate .. +span-1]` 标 `oncard/edge-l/edge-r`。
+    - 2 天连接带：`app.css` 移动作用域内 `.day-week-chip.oncard::before` 绘制半透明胶囊（锚底对齐 42px blob，端点抠 21px 半圆），对标设计稿 `.m-ws-cell.oncard`；选中起始日仍 accent 实心圈浮于带上。
+    - 标题与单日统一：去掉年份贴合设计稿（单日 `周X · M月D日`=`.m-dayhd`，多日 `周X M月D日`=`.m-tl-colhd`），单日 / 多日标题统一 15px、农历 13px（移除原 `--day` 专属覆盖）；多日日期栏高度 32→38px。
+    - 验证：375px 预览确认多日有周条、22/23 两天连接带（oncard×2 + edge-l/r）、两列头「周一 6月22日 初八」「周二 6月23日 初九」15px、无占位；单日标题「周一 · 6月22日 初八」15px 且无连接带；桌面 `DayWeekStrip`（spanDays 默认 1）零回归。`tsc`(calendar+s2)/包构建通过。
 - M4：
 - M5：

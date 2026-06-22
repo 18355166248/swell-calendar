@@ -573,8 +573,12 @@ export default function App({ view }: AppProps) {
         <ToastContainer />
         <div className="app app--mobile" data-card={UI_DEFAULTS.card} data-density={prefs.density}>
           <MobileTopBar view={mobileView} setView={setMobileView} monthLabel={monthLabel} />
-          {mobileView === 'day' && (
-            <DayWeekStrip currentDate={currentDate} onDateChange={goToDate} />
+          {(mobileView === 'day' || mobileView === 'multi') && (
+            <DayWeekStrip
+              currentDate={currentDate}
+              onDateChange={goToDate}
+              spanDays={mobileView === 'multi' ? 2 : 1}
+            />
           )}
           {mobileView === 'month' && <div className="m-month-title">{monthLabel}</div>}
           {mobileView === 'month' && (
