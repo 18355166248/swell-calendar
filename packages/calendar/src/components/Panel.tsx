@@ -51,11 +51,12 @@ const Panel = forwardRef<HTMLDivElement, PropsWithChildren<PanelProps>>(function
 ) {
   const PanelClassName = useMemo(() => cls(addTimeGridPrefix('panel'), name), [name]);
   const updateDayGridRowHeight = useCalendarStore((state) => state.layout.updateDayGridRowHeight);
+  const lastPanelType = useCalendarStore((state) => state.layout.weekViewLayout.lastPanelType);
   const dayGridRowHeight = useCalendarStore(
     (state) => state.layout.weekViewLayout.dayGridRows[name]?.height
   );
 
-  const height = dayGridRowHeight ?? initialHeight;
+  const height = name === lastPanelType ? dayGridRowHeight ?? initialHeight : initialHeight;
 
   const styles = getPanelStyle({ overFlowX, overFlowY, initialWidth, initialHeight: height });
 
