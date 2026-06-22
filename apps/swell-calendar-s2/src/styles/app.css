@@ -399,6 +399,21 @@ button {
   border-bottom: 1px solid var(--border) !important;
 }
 
+/* 全天内容在行内垂直居中（对标设计稿 .m-allday-cell { display:flex; justify-content:center }）。
+   引擎把 chip 以 absolute + top=slot*24 堆叠；移动端改为 events 容器 flex 居中 + chip 转 static，
+   单条时居中、多条时按 gap 堆叠且整体居中，行高仍由引擎面板（slot 数）+ min-height 决定。 */
+.app--mobile .swell-calendar-day-view--mobile .swell-calendar-allday-row-events,
+.app--mobile .swell-calendar-multi-day-view--mobile .swell-calendar-allday-row-events {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+}
+.app--mobile .swell-calendar-day-view--mobile .swell-calendar-allday-event,
+.app--mobile .swell-calendar-multi-day-view--mobile .swell-calendar-allday-event {
+  position: static !important;
+}
+
 .app--mobile .swell-calendar-day-view--mobile .swell-calendar-allday-row-label,
 .app--mobile .swell-calendar-multi-day-view--mobile .swell-calendar-allday-row-label {
   align-items: center;

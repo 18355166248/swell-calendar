@@ -315,5 +315,6 @@
     - 修法：`responsive.scss` 在 `.day-view--mobile` / `.multi-day-view--mobile` 作用域内把整格高度改为 `height: var(--swell-mobile-time-grid-height, 624px); min-height: 0`（624 = s2 默认 8–20 共 12h × 52）。行按百分比布局，缩放整格即等比缩放每小时、now 线、网格线、事件，全部保持正确比例；宿主可用该 CSS 变量按自身 hour 范围覆盖。桌面不带 `--mobile` 修饰类，零回归。
     - 验证：375px 预览实测单日 / 多日均 **52px/小时**、整格 624px，一屏可见约 10 小时（原 ~4 小时）；事件排布正常、无 console 运行时报错。
     - 其余细节属 1px 级（顶栏 48/44px、back 16/17px、agenda 日期头分级、月返回文案），暂未动，必要时再收口。
+  - **全天行内容垂直居中（2026-06-22）**：引擎把全天 chip 以 `absolute + top=slot*24` 顶对齐堆叠，单条全天事件在 `min-height:30px` 行内顶贴、底部留白。`app.css` 移动作用域内把 `.allday-row-events` 改为 `display:flex; flex-direction:column; justify-content:center; gap:3px`、chip 转 `position:static`，对标设计稿 `.m-allday-cell`。效果：单条全天在行内垂直居中（上下各 ~4px），多条仍按 slot 堆叠并整体居中、填满时正常铺排；桌面零回归。
 - M4：
 - M5：
