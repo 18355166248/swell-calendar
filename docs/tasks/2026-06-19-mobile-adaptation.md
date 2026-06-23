@@ -68,7 +68,8 @@
 **非目标**：
 - 不复刻 iOS / Mobiscroll 的弹窗 / 表单 / 内建 CRUD UI（沿用宿主受控）。
 - 不引入手势/UI 框架，优先原生 Pointer Events + CSS。
-- 本 epic 不做 connections / eventList / 虚拟化 / 打印 / a11y。
+- 本 epic 不做 connections / eventList / 打印 / a11y。
+  - 注：移动端 Agenda / S2 连续月视图为滚动性能在 2026-06-23 引入了通用 `useVirtualList`（见 `docs/tasks/2026-06-23-mobile-remix-visual-sync.md`），属移动还原的配套增量；桌面超长列表虚拟化仍后置。
 - 不改公开数据流（宿主受控不变），只新增可选配置、`agenda` 视图与触控输入通道。
 
 ## 目标 → 阶段对齐（验收口径）

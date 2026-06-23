@@ -144,6 +144,15 @@ const schedulerOptions = {
   };
   ```
 
+- `options.agenda.offset` 与 `onAgendaVisibleDateChange`
+  - `agenda.offset`（默认 0）：相对 `initialDate/renderDate` 的起始偏移天数，配合 `range` 可覆盖更长的列表日期窗口
+  - `onAgendaVisibleDateChange?: (info: { date: DayjsTZDate }) => void`：列表滚动导致顶部可见日期变化时触发，供宿主同步外部标题，不改选中态
+  - 均为纯增量；不配置时 agenda 行为与既有一致
+
+- `useVirtualList`（通用 Hook，公开导出）
+  - 轻量纵向虚拟列表基础能力，调用方提供 item 数量与估算高度，hook 维护滚动容器 / 可见范围 / 占位高度并支持真实高度修正
+  - 当前用于移动端 Agenda 与 S2 连续月视图；宿主可按需复用，未使用则无影响
+
 - `ViewType: 'multiDay'` 与 `options.multiDay`
   - 新增连续多日时间网格视图，默认 2 天，复用 day/week 的时间网格、全天行与事件点击链路
   - 默认 `multiDay.range = 2`；导航上一页/下一页按当前可见天数窗口平移

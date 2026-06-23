@@ -104,7 +104,8 @@ swell-calendar 是一个**可嵌入的 React 日历组件库**，面向需要在
 
 - `connections`
 - `eventList`
-- 虚拟化、打印、a11y 强化
+- 打印、a11y 强化
+- 虚拟化：通用 `useVirtualList` 已落地并用于移动端 Agenda / S2 连续月视图（见“通用 Hooks”）；尚未覆盖桌面超长事件列表等其余场景
 
 当前**活跃 epic（M1 响应式基线已落地，M2 Agenda 首版已落地，M3 Multi-day 首版已落地，M4–M5 规划中）**：
 
@@ -628,7 +629,8 @@ function useCalendarDataSource<TEvent, TDraft>(
 - [ ] 月视图 workweek 支持
 - [ ] 顶边 resize（Scheduler 事件顶边调整开始时间）
 - [ ] 资源层级渲染（利用 `parentId` 字段）
-- [ ] 虚拟化（超长事件列表性能优化）
+- [x] 虚拟化基础能力 `useVirtualList`（移动端 Agenda / S2 连续月视图已接入）
+- [ ] 虚拟化覆盖桌面超长事件列表等其余场景
 
 ## 当前阶段说明
 
