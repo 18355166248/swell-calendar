@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, type CSSProperties } from 'react';
+import { useLayoutEffect, useMemo, useRef, type CSSProperties } from 'react';
 
 import { useVirtualList } from 'swell-calendar';
 
@@ -103,7 +103,9 @@ export function MobileMonthScroller({
   onEventClick,
 }: MobileMonthScrollerProps) {
   const baseMonthRef = useRef(startOfMonth(currentDate));
-  const initialScrollPassRef = useRef(0);
+  // 用户是否已经主动滚动/操作过列表。一旦接管，就停止把列表回弹到基准月，
+  // 避免测量修正引发的“滚动→弹回”闪动，并解锁可见月份上报。
+  const userTookControlRef = useRef(false);
   const today = new Date();
 
   const months = useMemo(
@@ -127,15 +129,20 @@ export function MobileMonthScroller({
     resetKey: months,
   });
 
-  useEffect(() => {
-    if (initialScrollPassRef.current >= 8) return;
-    initialScrollPassRef.current += 1;
+  // 初始把列表定位到基准月（当前月）。测量修正会让 itemOffsets 反复变化，
+  // 在用户接管之前持续重新对齐基准月，使估算→实测的高度修正不把初始位置带偏；
+  // 用户一旦主动滚动就停止，绝不与用户的滚动竞争。
+  useLayoutEffect(() => {
+    if (userTookControlRef.current) return;
     virtualList.scrollToIndex(MONTH_RANGE_BEFORE);
   }, [virtualList.scrollToIndex]);
 
+  const markUserControl = () => {
+    userTookControlRef.current = true;
+  };
+
   const handleScroll = () => {
     virtualList.onScroll();
-    if (initialScrollPassRef.current < 8) return;
 
     const nextIndex = virtualList.getIndexAtOffset(
       (virtualList.scrollRef.current?.scrollTop ?? 0) + 1
@@ -151,7 +158,15 @@ export function MobileMonthScroller({
   };
 
   return (
-    <div className="m-month-scroller" ref={virtualList.scrollRef} onScroll={handleScroll}>
+    <div
+      className="m-month-scroller"
+      ref={virtualList.scrollRef}
+      onScroll={handleScroll}
+      onWheel={markUserControl}
+      onTouchStart={markUserControl}
+      onPointerDown={markUserControl}
+      onKeyDown={markUserControl}
+    >
       {virtualList.topSpacerHeight > 0 ? (
         <div aria-hidden style={{ height: virtualList.topSpacerHeight }} />
       ) : null}

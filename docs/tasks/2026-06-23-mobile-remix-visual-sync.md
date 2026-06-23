@@ -90,6 +90,44 @@
 - S2 连续月视图也接入同一套虚拟列表能力，只渲染视口附近月份 section。
 - 未调整日期、mock 数据、周起始或事件内容；`packages/calendar` 新增 agenda `offset` 配置、列表可见日期回调与通用 `useVirtualList`。
 
+## 后续修复（2026-06-23）
+
+移动端连续月视图滚动后顶部「M月」标题不更新且伴随闪动，定位到两个独立根因并修复：
+
+- `MobileMonthScroller` 初始定位用计数器 `initialScrollPassRef`（上限 8）同时承担「停止回弹」与「解锁可见月份上报」，二者耦合即坏：
+  - 测量修正会不断改变 `scrollToIndex` 引用，触发初始滚动 effect 反复把列表拽回基准月 → 与用户滚动竞争产生闪动。
+  - 计数器常在测量稳定前就停在 < 8，`handleScroll` 的上报分支永远不执行 → 标题卡死。
+  - 改为：用真实用户输入（`wheel/touchstart/pointerdown/keydown`）标记 `userTookControlRef`，用户接管前持续对齐基准月、接管后立即停止；可见月份上报与该标记解耦，始终生效。
+- `App.handlePageChange` 会把隐藏预热的 agenda 引擎 `onPageChange`（其页面日期恒为当前月）回写到 `visibleMonth`，把滚动刚更新的月份又拉回当前月。改为在 `isMobile && mobileView === 'month'` 时直接返回，不让预热引擎驱动 `visibleMonth`（该状态由 `MobileMonthScroller` 滚动独占）。
+
+验证：浏览器移动 viewport 下滚动连续月视图，标题随顶部月份 6月→7月→8月 实时更新，滚动位置不再回弹；`tsc --noEmit`、`appCalendarConfig.spec.ts`、`check-docs`、`check-arch` 均通过。
+
+剩余风险：月份边界处可见月份判定基于虚拟列表的估算/实测偏移，临界滚动位置可能有几像素的方向性滞后（同一 scrollTop 上下滚方向偶现差一个月），会随继续滚动自动校正，属可接受容差。
+
+## 四视图联动（2026-06-23）
+
+对标设计稿 `mobile-app.jsx` 的心智模型——**一个共享焦点日，`view` 只决定用哪种镜头看这一天**——把移动端日 / 多日 / 月 / 列表串到同一个 `currentDate` 上，切换不丢当前所看位置。
+
+设计稿真源动线：
+- `month` 是导航器：`onDay={(d) => { setDay(d); setView('day'); }}`，点日期 = 选中并放大进「日」。
+- `day` / `multi` 共享 `day`；`list` 有自己的滚动浏览游标（`listMonth`）。
+
+落地（均在 `apps/swell-calendar-s2/src/App.tsx`，不改 `packages/calendar`）：
+- **① 月点日期跳「日」**：`MobileMonthScroller` 的 `onDateChange` 末尾 `setMobileView('day')`，对齐设计稿 onDay 动线。
+- **②③ 切换对账 `changeMobileView`**：移动端切视图统一入口，切换前把"将要离开视图的浏览游标"对账回 `currentDate`——
+  - 离开月：`visibleMonth` 与 `currentDate` 不同月时，`reconcileDateToMonth` 把焦点挪到该月（保留日号、跨月裁剪到月末）。
+  - 离开列表：`currentDate = agendaVisibleDate`。
+  - 进入月 / 列表时它们各自从 `currentDate` 重新居中（月的 `baseMonthRef`、列表的 `offset + range` 初始滚动），故切到哪都续得上。`MobileTopBar` 的 segmented 与返回键都改走 `changeMobileView`。
+- **防预热污染**：`handleAgendaVisibleDateChange` 复用 `handlePageChange` 同款守卫，`isMobile && mobileView === 'month'` 时直接返回，隐藏预热的 agenda 实例滚动不污染列表浏览游标。
+
+验证（浏览器移动 viewport，真实交互）：
+- ① 月视图点 6月17日 → 切「日」且落在 6月17日。
+- ② 月视图滚到 9月 → 切「日」→ 周条显示 9月、选中 23 日（保留今日日号）。
+- ③ 列表滚到 9月 → 切「月」→ 月视图视口顶部 section 为 `2026-09`、大标题 9月。
+- 日 ↔ 多日仍共享焦点日，无回归；`tsc --noEmit` 通过。
+
+非目标：本轮不做视图切换的过渡动画（设计稿本身为瞬切），保持瞬切；动画作为后续可选润色。
+
 ## 风险
 
 - 本次只做样式边界修正，不处理更大范围的像素级还原差异。

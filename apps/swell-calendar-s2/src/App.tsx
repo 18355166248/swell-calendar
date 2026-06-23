@@ -161,6 +161,21 @@ function isSameDay(a: Date, b: Date): boolean {
   );
 }
 
+function isSameMonth(a: Date, b: Date): boolean {
+  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth();
+}
+
+/**
+ * 把焦点日期对齐到目标月份：保留原日号，超出目标月天数时裁剪到月末。
+ * 用于离开月视图时，把"滚动浏览到的月份"回写为共享焦点日期。
+ */
+function reconcileDateToMonth(date: Date, month: Date): Date {
+  const year = month.getFullYear();
+  const monthIndex = month.getMonth();
+  const lastDay = new Date(year, monthIndex + 1, 0).getDate();
+  return new Date(year, monthIndex, Math.min(date.getDate(), lastDay));
+}
+
 // 引擎不向 onEventClick 回传被点卡片的 DOM 节点，但各视图都给事件卡打了带 id 的 data-testid。
 // 据此按 id 定位真实卡片元素，供详情弹层锚定（替代不可靠的 document.activeElement）。
 const EVENT_CARD_TESTID_PREFIXES = ['event-card', 'month-event', 'timeline-event'];
@@ -423,6 +438,11 @@ export default function App({ view }: AppProps) {
   const handlePageChange = (info: { date: { toDate: () => Date } }) => {
     const next = info.date.toDate();
     setCurrentDate((prev) => (isSameDay(prev, next) ? prev : next));
+    // 移动端月视图下，引擎是隐藏预热的 agenda 实例，visibleMonth 由 MobileMonthScroller
+    // 的滚动驱动；此处不能让预热引擎的 onPageChange 把 visibleMonth 拉回它自己的页面日期。
+    if (isMobile && mobileView === 'month') {
+      return;
+    }
     setVisibleMonth((prev) =>
       prev.getFullYear() === next.getFullYear() && prev.getMonth() === next.getMonth()
         ? prev
@@ -430,10 +450,36 @@ export default function App({ view }: AppProps) {
     );
   };
 
-  const handleAgendaVisibleDateChange = useCallback((info: { date: { toDate: () => Date } }) => {
-    const next = info.date.toDate();
-    setAgendaVisibleDate((prev) => (isSameDay(prev, next) ? prev : next));
-  }, []);
+  const handleAgendaVisibleDateChange = useCallback(
+    (info: { date: { toDate: () => Date } }) => {
+      // 移动端月视图下引擎是隐藏预热的 agenda 实例，其滚动不应污染列表浏览游标。
+      if (isMobile && mobileView === 'month') {
+        return;
+      }
+      const next = info.date.toDate();
+      setAgendaVisibleDate((prev) => (isSameDay(prev, next) ? prev : next));
+    },
+    [isMobile, mobileView]
+  );
+
+  /**
+   * 移动端切视图统一入口：切换前把"将要离开视图的浏览游标"对账回共享焦点日期，
+   * 使日/多日/月/列表都挂在同一个 currentDate 上，来回切换不丢当前所看位置。
+   * - 离开月：把滚动浏览到的 visibleMonth 回写为焦点日期（保留日号，跨月裁剪）。
+   * - 离开列表：把滚动浏览到的 agendaVisibleDate 回写为焦点日期。
+   * 进入月/列表时它们各自从 currentDate 重新居中，无需在此处理。
+   */
+  const changeMobileView = (next: MobileViewId) => {
+    if (next === mobileView) {
+      return;
+    }
+    if (mobileView === 'month' && !isSameMonth(visibleMonth, currentDate)) {
+      setCurrentDate(reconcileDateToMonth(currentDate, visibleMonth));
+    } else if (mobileView === 'list' && !isSameDay(agendaVisibleDate, currentDate)) {
+      setCurrentDate(agendaVisibleDate);
+    }
+    setMobileView(next);
+  };
 
   /**
    * 月视图的 overflow 行没有真实事件卡片 DOM，详情弹层需要允许锚定到浮层内点击的行，
@@ -609,8 +655,10 @@ export default function App({ view }: AppProps) {
         visibleMonth={visibleMonth}
         events={visibleEvents}
         onDateChange={(date) => {
+          // 贴设计稿动线：月视图点日期 = 选中该日并放大进入「日」视图。
           setCurrentDate(date);
           setVisibleMonth(new Date(date.getFullYear(), date.getMonth(), 1));
+          setMobileView('day');
         }}
         onVisibleMonthChange={setVisibleMonth}
         onEventClick={(event, anchor) => {
@@ -691,7 +739,7 @@ export default function App({ view }: AppProps) {
         <div className="app app--mobile" data-card={UI_DEFAULTS.card} data-density={prefs.density}>
           <MobileTopBar
             view={mobileView}
-            setView={setMobileView}
+            setView={changeMobileView}
             monthLabel={monthLabel}
             calendarLabel={calendarLabel}
           />
