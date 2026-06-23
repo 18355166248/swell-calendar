@@ -324,5 +324,6 @@
   - **移动月 / 列表顶部背景对齐（2026-06-22）**：`.m-top` 与月标题块统一使用 `--mobile-calendar-bg`，月标题条改为 48px flex 垂直居中，避免顶部 chrome 与月视图标题出现两段底色。
   - **移动 Agenda 分组头背景对齐（2026-06-23）**：`.agenda-view--mobile` 的 `--swell-agenda-bg` 优先读取宿主 `--mobile-calendar-bg`，使列表日期分组头与移动顶栏 / 画布背景一致；无宿主变量时仍回退 `--bg-app/#fff`。
   - **移动多日周条 active+oncard 反色修复（2026-06-23）**：多日连接带 `.oncard` 会在 active 规则之后覆盖农历颜色；补 active+oncard 专属规则，确保选中日期圈内数字与农历均保持 `--accent-contrast`。
+  - **M3 验收完成（2026-06-23）**：Multi-day 视图引擎能力（公开 `multiDay` ViewType + `options.multiDay.range`）已落地并写入 `SPEC.md` / `MIGRATION.md`，Day / Multi-day 顶部日期栏、全天行、周条连接带、时间轴密度、背景与反色等视觉项均已逐项对齐 remix 设计稿真源并经 375px 预览验证；能力矩阵「Multi-day 移动视图」行为 ✅。后续仅在出现新设计稿差距时增量收口，不再作为进行中阶段。下一阶段进入 M4 触控输入核心（docs-first，先改 SPEC/能力矩阵/MIGRATION 再迁移 `useDrag`）。
 - M4：
 - M5：
