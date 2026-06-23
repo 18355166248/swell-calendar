@@ -464,6 +464,7 @@ interface MobileTopBarProps {
   setView: (v: MobileViewId) => void;
   monthLabel: string;
   calendarLabel: string;
+  onToday?: () => void;
   onSearch?: () => void;
 }
 
@@ -472,6 +473,7 @@ export function MobileTopBar({
   setView,
   monthLabel,
   calendarLabel,
+  onToday,
   onSearch,
 }: MobileTopBarProps) {
   const segs: { id: MobileViewId; label: string }[] = [
@@ -502,6 +504,11 @@ export function MobileTopBar({
             </button>
           ))}
         </div>
+        {onToday && (
+          <button type="button" className="m-today" onClick={onToday}>
+            今天
+          </button>
+        )}
         <button className="m-iconbtn" onClick={onSearch} aria-label="搜索">
           <Ic.search />
         </button>

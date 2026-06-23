@@ -39,7 +39,24 @@ function isSameDay(a: Date, b: Date): boolean {
   );
 }
 
-function buildMonthCells(monthDate: Date) {
+interface MonthCell {
+  date: Date;
+  inMonth: boolean;
+  key: string;
+}
+
+// 月份网格与农历都只取决于年月/日期，纯确定性结果。用模块级缓存避免快速滚动时
+// 每帧对可见月份重算 cells 与逐格农历。
+const monthCellsCache = new Map<string, MonthCell[]>();
+const lunarCache = new Map<string, ReturnType<typeof lunarLabelOf>>();
+
+function buildMonthCells(monthDate: Date): MonthCell[] {
+  const cacheKey = `${monthDate.getFullYear()}-${monthDate.getMonth()}`;
+  const cached = monthCellsCache.get(cacheKey);
+  if (cached) {
+    return cached;
+  }
+
   const firstDay = startOfMonth(monthDate);
   const gridStart = new Date(firstDay);
   gridStart.setDate(firstDay.getDate() - mondayIndex(firstDay));
@@ -47,7 +64,7 @@ function buildMonthCells(monthDate: Date) {
   const lastDay = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0);
   const totalCells = Math.ceil((mondayIndex(firstDay) + lastDay.getDate()) / 7) * 7;
 
-  return Array.from({ length: totalCells }, (_, index) => {
+  const cells = Array.from({ length: totalCells }, (_, index) => {
     const date = new Date(gridStart);
     date.setDate(gridStart.getDate() + index);
     return {
@@ -56,6 +73,18 @@ function buildMonthCells(monthDate: Date) {
       key: formatDateKey(date),
     };
   });
+  monthCellsCache.set(cacheKey, cells);
+  return cells;
+}
+
+function cachedLunarLabel(key: string, date: Date) {
+  const cached = lunarCache.get(key);
+  if (cached) {
+    return cached;
+  }
+  const lunar = lunarLabelOf(date);
+  lunarCache.set(key, lunar);
+  return lunar;
 }
 
 function estimateMonthSectionHeight(monthDate: Date): number {
@@ -192,7 +221,7 @@ export function MobileMonthScroller({
                 </div>
               ))}
               {cells.map(({ date, inMonth, key }) => {
-                const lunar = lunarLabelOf(date);
+                const lunar = cachedLunarLabel(key, date);
                 const dayEvents = eventsByDate.get(key) ?? [];
                 return (
                   <button

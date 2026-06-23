@@ -1545,6 +1545,139 @@ button {
   width: 22px;
   height: 22px;
 }
+.m-today {
+  flex: 0 0 auto;
+  border: 1px solid var(--border);
+  background: none;
+  border-radius: 999px;
+  padding: 4px 10px;
+  color: var(--accent-text);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.m-today:active {
+  background: var(--bg-hover);
+}
+
+/* 搜索浮层：从顶部下滑，覆盖在当前视图之上，自带输入与结果，不挤动底层布局 */
+.m-search-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: oklch(0.2 0.02 270 / 0.34);
+  animation: m-search-fade 0.18s ease;
+}
+@keyframes m-search-fade {
+  from {
+    opacity: 0;
+  }
+}
+.m-search-panel {
+  display: flex;
+  flex-direction: column;
+  max-height: 100%;
+  background: var(--mobile-calendar-bg, #fff);
+  padding-top: env(safe-area-inset-top, 0px);
+  border-bottom-left-radius: 16px;
+  border-bottom-right-radius: 16px;
+  box-shadow: 0 12px 32px color-mix(in oklch, var(--text-1) 22%, transparent);
+  animation: m-search-slide 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes m-search-slide {
+  from {
+    transform: translateY(-100%);
+  }
+}
+.m-search-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+}
+.m-search-bar .m-search-field {
+  flex: 1;
+  min-width: 0;
+}
+.m-search-cancel {
+  flex: 0 0 auto;
+  border: none;
+  background: none;
+  padding: 4px 2px;
+  color: var(--accent-text);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.m-search-results {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 4px 0 8px;
+}
+.m-search-empty {
+  margin: 0;
+  padding: 28px 16px;
+  text-align: center;
+  color: var(--text-3);
+  font-size: 14px;
+}
+.m-search-hit {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+  width: 100%;
+  border: none;
+  background: none;
+  padding: 10px 14px;
+  text-align: left;
+  cursor: pointer;
+}
+.m-search-hit:active {
+  background: var(--bg-hover);
+}
+.m-search-hit__rail {
+  flex: 0 0 3px;
+  border-radius: 999px;
+}
+.m-search-hit__body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.m-search-hit__title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.m-search-hit__meta {
+  font-size: 12px;
+  color: var(--text-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.m-search-hit__when {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  font-size: 12px;
+  color: var(--text-2);
+}
+.m-search-hit__time {
+  color: var(--text-3);
+}
 
 .m-month-title {
   display: flex;

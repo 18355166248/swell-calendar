@@ -23,6 +23,8 @@ import {
   calEventToInput,
   calendarCalendars,
   calendarResources,
+  dayIndexToDate,
+  decimalHourToTime,
   engineEventToCreateInput,
   engineEventToDraft,
   inputToDraft,
@@ -32,6 +34,7 @@ import {
 import { type Cat, type CalEvent, type PickEvent } from './data';
 import { dataSource } from './dataSource';
 import { MobileMonthScroller } from './MobileMonthScroller';
+import { MobileSearchOverlay, type MobileSearchHit } from './MobileSearchOverlay';
 import {
   CreateDialog,
   FILTER_CATS,
@@ -240,6 +243,9 @@ export default function App({ view }: AppProps) {
   const [visibleMonth, setVisibleMonth] = useState<Date>(() => new Date());
   const [agendaVisibleDate, setAgendaVisibleDate] = useState<Date>(() => new Date());
   const [shouldWarmMobileCalendar, setShouldWarmMobileCalendar] = useState(false);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  // 移动端搜索浮层用独立 query，不复用主筛选 query，避免底层日历被过滤、布局被扰动。
+  const [mobileSearchQuery, setMobileSearchQuery] = useState('');
   // 引擎实际视图：桌面跟随路由；移动端 segmented 映射到包内真实视图。
   const engineView: ViewId = isMobile
     ? mobileView === 'month'
@@ -479,6 +485,64 @@ export default function App({ view }: AppProps) {
       setCurrentDate(agendaVisibleDate);
     }
     setMobileView(next);
+  };
+
+  /**
+   * 移动端「今天」：把共享焦点日期归位到今天。日 / 多日就地居中；月 / 列表是各自的
+   * 独立滚动容器、没有外部 scroll-to 入口，统一落到日视图，保证任意滚动位置都能可靠归位。
+   */
+  const goToTodayMobile = () => {
+    const today = new Date();
+    setCurrentDate(today);
+    setVisibleMonth(new Date(today.getFullYear(), today.getMonth(), 1));
+    setAgendaVisibleDate(today);
+    calRef.current?.setDate(today);
+    if (mobileView === 'month' || mobileView === 'list') {
+      setMobileView('day');
+    }
+  };
+
+  /** 移动端搜索：从顶部下滑出自带结果的浮层；底层视图与布局保持不动。 */
+  const openMobileSearch = () => {
+    setMobileSearchOpen(true);
+  };
+
+  const closeMobileSearch = () => {
+    setMobileSearchOpen(false);
+    setMobileSearchQuery('');
+  };
+
+  /** 搜索命中：按关键词匹配标题 / 地点 / 与会人，按日期 + 开始时间排序，供浮层渲染。 */
+  const mobileSearchHits = useMemo<MobileSearchHit[]>(() => {
+    const q = mobileSearchQuery.trim().toLowerCase();
+    if (!mobileSearchOpen || !q) {
+      return [];
+    }
+    return allEvents
+      .filter((e) => `${e.title} ${e.who ?? ''} ${e.loc ?? ''}`.toLowerCase().includes(q))
+      .sort((a, b) => a.day - b.day || a.start - b.start)
+      .slice(0, 50)
+      .map((e) => {
+        const date = dayjs(dayIndexToDate(e.day));
+        return {
+          id: e.id,
+          title: e.title,
+          cat: e.cat,
+          dateLabel: `${date.format('M月D日')} 周${'日一二三四五六'[date.day()]}`,
+          timeLabel: e.allDay ? '全天' : decimalHourToTime(e.start),
+          meta: [e.loc, e.who].filter(Boolean).join(' · '),
+        };
+      });
+  }, [allEvents, mobileSearchOpen, mobileSearchQuery]);
+
+  /** 点搜索结果 → 关闭浮层并打开该事件详情。 */
+  const handleMobileSearchPick = (id: string) => {
+    const event = allEvents.find((e) => e.id === id);
+    if (!event) {
+      return;
+    }
+    closeMobileSearch();
+    openEventDetails(toCalendarEvents([event])[0]);
   };
 
   /**
@@ -742,7 +806,18 @@ export default function App({ view }: AppProps) {
             setView={changeMobileView}
             monthLabel={monthLabel}
             calendarLabel={calendarLabel}
+            onToday={goToTodayMobile}
+            onSearch={openMobileSearch}
           />
+          {mobileSearchOpen && (
+            <MobileSearchOverlay
+              query={mobileSearchQuery}
+              onQueryChange={setMobileSearchQuery}
+              hits={mobileSearchHits}
+              onPick={handleMobileSearchPick}
+              onClose={closeMobileSearch}
+            />
+          )}
           {(mobileView === 'day' || mobileView === 'multi') && (
             <DayWeekStrip
               currentDate={currentDate}
