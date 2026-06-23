@@ -292,7 +292,13 @@
   --swell-agenda-bg: var(--mobile-calendar-bg, var(--bg-app, #fff));
   --swell-agenda-today: var(--accent-text, #1677ff);
 
+  display: flex;
+  flex-direction: column;
+
   .agenda-scroll {
+    flex: 1 1 auto;
+    height: auto;
+    min-height: 0;
     padding: 0 0 24px;
   }
 
@@ -301,7 +307,16 @@
   }
 
   .agenda-day-header {
-    padding: 15px 18px 8px;
+    position: static;
+    padding: 16px 18px 7px;
+    background: var(--swell-agenda-bg, #fff);
+  }
+
+  .agenda-day-header--fixed {
+    flex: none;
+    padding: 12px 18px 11px;
+    background: var(--mobile-topzone-bg, var(--swell-agenda-bg, #fff));
+    border-bottom-color: var(--mobile-topzone-divider, #e8e8e8);
   }
 
   .agenda-day-title {

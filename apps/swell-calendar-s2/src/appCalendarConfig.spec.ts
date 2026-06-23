@@ -30,6 +30,26 @@ describe('appCalendarConfig', () => {
     expect(options.timeline.range).toBe(tuning.timelineRange);
   });
 
+  it('keeps desktop day hours at 8-20 and expands mobile day hours to 0-24', () => {
+    const base = {
+      view: 'day' as const,
+      currentDate: new Date('2026-06-10T09:00:00'),
+      showWeekend: true,
+      monthNarrowWeekend: false,
+      timelineRowHeight: 64,
+      resourceCount: 3,
+      tuning: DEFAULT_CALENDAR_TUNING,
+    };
+
+    const desktop = buildCalendarOptions(base);
+    const mobile = buildCalendarOptions({ ...base, isMobile: true });
+
+    expect(desktop.week.hourStart).toBe(8);
+    expect(desktop.week.hourEnd).toBe(20);
+    expect(mobile.week.hourStart).toBe(0);
+    expect(mobile.week.hourEnd).toBe(24);
+  });
+
   it('shows scheduler title using the tuned visible window instead of a single day', () => {
     const tuning: CalendarHostTuning = {
       ...DEFAULT_CALENDAR_TUNING,

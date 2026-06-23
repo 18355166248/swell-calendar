@@ -2,51 +2,61 @@
 
 ## 背景
 
-`claude-design/mobile/swellcalendar-remix/project/swell-calendar-mobile.html` 是 Claude Design 导出的移动端日历原型入口。最新参考稿已切换为更贴近 iOS 日历的红色强调、底部导航和节假日展示，需要同步当前页面表现。
+`claude-design/mobile/swellcalendar-remix/project/swell-calendar-mobile.html` 是 Claude Design 导出的移动端日历原型入口。本次只针对 `apps/swell-calendar-s2` 移动端与该 HTML 源文件的两处差异做小范围优化。
 
 ## 目标
 
-- 以 `claude-design/mobile/swellcalendar-remix/project/ref/` 下的日、多日、月、列表参考图为视觉来源。
-- 优化移动端原型的顶部导航、周日期条、时间轴、月视图、列表视图和底部导航。
-- 保持现有 React UMD 原型结构和轻交互能力，继续支持日 / 多日 / 月 / 列表切换。
+- 以 `claude-design/mobile/swellcalendar-remix/project/swell-calendar-mobile.html` 和本地预览 `http://127.0.0.1:8080/swell-calendar-mobile.html` 为视觉来源。
+- 修正移动端顶部区域与周条的浅灰背景，以及日历内容区白底。
+- 修正移动端时间列表滚动边界：顶部日期 / 全天区域不参与滚动，只有下方时间列表滚动。
+- 移动端日 / 多日时间轴展示完整 24 小时。
+- 修正移动端列表视图：固定日期行跟随顶部区域，列表内后续日期不再吸顶。
 
 ## 非目标
 
+- 不调整日期、mock 数据、事件内容或周起始。
 - 不调整 `packages/calendar` 公开 API、能力边界或生产组件架构。
 - 不引入新的运行时依赖。
-- 不处理桌面端 `swell-calendar.html` 或打印页。
+- 不参考或恢复本地截图目录；不处理桌面端样式。
 
 ## 影响范围
 
-- `claude-design/mobile/swellcalendar-remix/project/mobile-app.jsx`
-- `claude-design/mobile/swellcalendar-remix/project/mobile-views.jsx`
-- `claude-design/mobile/swellcalendar-remix/project/mobile.css`
-- `claude-design/mobile/swellcalendar-remix/project/data.js`
+- `apps/swell-calendar-s2/src/appCalendarConfig.ts`
+- `apps/swell-calendar-s2/src/appCalendarConfig.spec.ts`
+- `apps/swell-calendar-s2/src/App.tsx`
+- `apps/swell-calendar-s2/src/styles/app.css`
+- `packages/calendar/src/components/view/Agenda.tsx`
+- `packages/calendar/src/css/responsive.scss`
 
 ## 方案
 
-- 将原型强调色收敛为 iOS 日历红，并补齐底部 `今天 / 日历 / 收件箱` 导航。
-- 调整顶部操作区，使用参考稿中的返回月份、视图图标、搜索和新增操作。
-- 重新整理日期条、时间轴和全天区样式，使选中态、当前时间线、节日 chip 与参考稿一致。
-- 月视图补齐大标题、节假日 / 调休标记、跨日条和更高密度事件 chip。
-- 列表视图改为参考稿的大字号分组列表与右侧时间布局。
+- 增加移动端 top zone 背景变量，对齐设计稿 `--m-topzone`。
+- 将 `.app--mobile` / `.canvas--mobile` 背景收敛为日历内容白底。
+- 将移动端 canvas 改为不滚动，仅让 `.swell-calendar-time` 面板滚动。
+- 移动端 `week.hourStart/hourEnd` 使用 `0/24`，桌面仍保持 `8/20`。
+- 移动端 agenda 增加固定日期 header，滚动区内日期 header 取消 sticky。
+- 移动端按路由初始化视图，确保直接打开 `/app/calendar/agenda` 时进入列表视图。
 
 ## 验证
 
 - `node scripts/check-docs.mjs`：通过。
 - `node scripts/check-arch.mjs`：通过。
-- `node --check claude-design/mobile/swellcalendar-remix/project/data.js`：通过。
-- 使用 TypeScript `transpileModule` 对 `mobile-app.jsx`、`mobile-views.jsx` 做 JSX 转译检查：通过。
+- `pnpm --filter swell-calendar-s2 exec tsc --noEmit`：通过。
+- `pnpm --filter swell-calendar-s2 build`：通过；仅保留既有 `mockjs` eval 与 chunk size 警告。
+- `pnpm --filter swell-calendar-s2 test -- src/appCalendarConfig.spec.ts`：通过；沙箱下有 Vite WebSocket `EPERM` 噪声但退出码为 0。
+- 浏览器移动 viewport 验证：顶部 / 周条背景为 `oklch(0.955 0.003 270)`，app / canvas / 日期标题 / 全天行为白底；canvas 为 `overflow:hidden`，时间面板为 `overflow-y:auto`。
+- 浏览器移动 viewport 验证：时间轴从 `00:00` 开始，grid 高度约 `1248px`。
+- 浏览器移动 viewport 验证：`/app/calendar/agenda` 进入列表视图；固定日期行在 `.swell-calendar-agenda-scroll` 外，背景为 `oklch(0.955 0.003 270)`；滚动区内日期行 `position: static`。
 
 ## 最终方案
 
-- 将移动端原型切换到最新参考稿的 iOS 日历红色视觉体系，补齐顶部图标操作区和底部 `今天 / 日历 / 收件箱` 导航。
-- 将日 / 多日视图锚定到 2026 年 6 月 19 日所在周，补齐端午节、夏至、当前时间线和消费日历事件样例。
-- 将月视图切换到 2026 年 5 月参考稿语境，补齐大标题、休 / 班标记、节气 chip 和高密度事件展示。
-- 将列表视图改为参考稿的大字号分组列表，保留事件点击打开详情 sheet 的轻交互。
+- 仅在 `apps/swell-calendar-s2/src/styles/app.css` 调整移动端样式变量和滚动边界。
+- 顶部导航与周条使用设计稿浅灰 top zone；日历主体维持白底。
+- 移动端外层 canvas 不再作为滚动容器，顶部日期 / 全天区域保留在时间列表上方；下方 `.swell-calendar-time` 单独滚动。
+- 移动端日 / 多日视图时间轴展示 `00:00-24:00`；桌面时间范围不变。
+- 移动端列表视图使用设计稿同款固定日期行，后续日期行跟随列表内容自然滚动。
+- 未调整日期、mock 数据、周起始、事件内容或 `packages/calendar` API。
 
 ## 风险
 
-- 该目录是 Claude Design 导出原型，不是生产包代码；验证以源文件和原型入口为主。
-- 参考图为静态截图，细节如真实滚动位置和系统状态栏时间以视觉近似处理。
-- 未启动浏览器截图对比；本次按导出包源码与参考图做静态实现同步。
+- 本次只做样式边界修正，不处理更大范围的像素级还原差异。

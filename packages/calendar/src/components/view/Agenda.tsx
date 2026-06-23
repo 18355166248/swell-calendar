@@ -1,4 +1,12 @@
-import { CSSProperties, KeyboardEvent, useMemo } from 'react';
+import {
+  CSSProperties,
+  KeyboardEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
 import Layout from '@/components/Layout';
 import { KEY } from '@/constants/keyboard';
@@ -95,40 +103,83 @@ export function Agenda() {
   const { options, view } = useCalendarStore();
   const calendar = useCalendarStore((state) => state.calendar);
   const [viewportTier, setViewportRef] = useViewportTier();
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const headerRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const [activeGroupIndex, setActiveGroupIndex] = useState(0);
   const groups = useMemo(
     () => getAgendaDayGroups(calendar, view.renderDate, options.agenda),
     [calendar, options.agenda, view.renderDate]
   );
+  const isMobile = viewportTier === 'mobile';
+
+  const renderDayHeader = (group: (typeof groups)[number], fixed = false) => (
+    <div
+      className={cls('agenda-day-header', { 'agenda-day-header--fixed': fixed })}
+      ref={
+        fixed
+          ? undefined
+          : (el) => {
+              headerRefs.current[group.date.dayjs.format('YYYY-MM-DD')] = el;
+            }
+      }
+    >
+      <span className={cls('agenda-day-title')}>{formatDayTitle(group.date)}</span>
+      <span className={cls('agenda-day-count')}>
+        <Template
+          template="agendaDayHeader"
+          as="span"
+          param={{
+            date: group.date.getDate(),
+            day: group.date.getDay(),
+            dayName: group.date.dayjs.format('ddd'),
+            eventCount: group.events.length,
+            isToday: group.isToday,
+            month: group.date.getMonth(),
+            renderDate: group.date.dayjs.format('YYYY-MM-DD'),
+            secondaryLabel: group.events.length ? `${group.events.length}项` : '无日程',
+            ymd: group.date.dayjs.format('YYYYMMDD'),
+            dateInstance: group.date,
+          }}
+        />
+      </span>
+    </div>
+  );
+
+  const handleAgendaScroll = useCallback(() => {
+    if (!isMobile) return;
+    const scroller = scrollRef.current;
+    if (!scroller) return;
+
+    const scrollTop = scroller.getBoundingClientRect().top;
+    let nextIndex = 0;
+    // 移动设计稿使用一个固定日期行展示当前滚动到的日期；列表内日期行正常滚走，不吸顶。
+    for (let index = 1; index < groups.length; index += 1) {
+      const key = groups[index].date.dayjs.format('YYYY-MM-DD');
+      const header = headerRefs.current[key];
+      if (header && header.getBoundingClientRect().bottom - scrollTop <= 1) {
+        nextIndex = index;
+      }
+    }
+
+    setActiveGroupIndex((prev) => (prev === nextIndex ? prev : nextIndex));
+  }, [groups, isMobile]);
+
+  useEffect(() => {
+    setActiveGroupIndex(0);
+  }, [groups]);
 
   return (
     <Layout className={getTierClassName('agenda-view', viewportTier)} rootRef={setViewportRef}>
-      <div className={cls('agenda-scroll')}>
-        {groups.map((group) => (
+      {isMobile && groups[activeGroupIndex]
+        ? renderDayHeader(groups[activeGroupIndex], true)
+        : null}
+      <div className={cls('agenda-scroll')} ref={scrollRef} onScroll={handleAgendaScroll}>
+        {groups.map((group, index) => (
           <section
             key={group.date.dayjs.format('YYYY-MM-DD')}
             className={cls('agenda-day', { 'agenda-day--today': group.isToday })}
           >
-            <div className={cls('agenda-day-header')}>
-              <span className={cls('agenda-day-title')}>{formatDayTitle(group.date)}</span>
-              <span className={cls('agenda-day-count')}>
-                <Template
-                  template="agendaDayHeader"
-                  as="span"
-                  param={{
-                    date: group.date.getDate(),
-                    day: group.date.getDay(),
-                    dayName: group.date.dayjs.format('ddd'),
-                    eventCount: group.events.length,
-                    isToday: group.isToday,
-                    month: group.date.getMonth(),
-                    renderDate: group.date.dayjs.format('YYYY-MM-DD'),
-                    secondaryLabel: group.events.length ? `${group.events.length}项` : '无日程',
-                    ymd: group.date.dayjs.format('YYYYMMDD'),
-                    dateInstance: group.date,
-                  }}
-                />
-              </span>
-            </div>
+            {isMobile && index === 0 ? null : renderDayHeader(group)}
             <div className={cls('agenda-day-list')}>
               {group.events.length > 0 ? (
                 group.events.map((item) => (

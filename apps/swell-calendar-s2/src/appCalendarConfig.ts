@@ -148,17 +148,20 @@ export function buildCalendarOptions(input: {
   timelineRowHeight: number;
   resourceCount: number;
   tuning: CalendarHostTuning;
+  isMobile?: boolean;
 }) {
   void input.resourceCount;
   const tuning = sanitizeCalendarTuning(input.tuning);
+  const weekHourStart = input.isMobile ? 0 : 8;
+  const weekHourEnd = input.isMobile ? 24 : 20;
 
   return {
     defaultView: input.view,
     initialDate: input.currentDate,
     week: {
       startDayOfWeek: 1,
-      hourStart: 8,
-      hourEnd: 20,
+      hourStart: weekHourStart,
+      hourEnd: weekHourEnd,
       workweek: !input.showWeekend,
     },
     month: {
@@ -180,8 +183,8 @@ export function buildCalendarOptions(input: {
     },
     scheduler: {
       resources: [],
-      hourStart: 8,
-      hourEnd: 20,
+      hourStart: weekHourStart,
+      hourEnd: weekHourEnd,
       columnWidth: 120,
       range: tuning.schedulerRange,
     },

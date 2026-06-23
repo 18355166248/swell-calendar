@@ -1433,24 +1433,29 @@ button {
 /* ===== 移动外壳（M1）—— 顶部导航 + segmented + 画布 ===== */
 .app--mobile {
   --mobile-calendar-bg: #fff;
+  --mobile-topzone-bg: oklch(0.955 0.003 270);
+  --mobile-topzone-divider: oklch(0.9 0.004 270);
+  --swell-mobile-time-grid-height: 1248px;
   display: flex;
   flex-direction: column;
   height: 100vh;
   height: 100dvh;
   min-height: 0;
-  background: var(--bg-app);
+  background: var(--mobile-calendar-bg);
   color: var(--text-1);
 }
 
 [data-theme='dark'] .app--mobile {
   --mobile-calendar-bg: #000;
+  --mobile-topzone-bg: oklch(0.235 0.005 270);
+  --mobile-topzone-divider: oklch(0.32 0.006 270);
 }
 
 /* 顶部导航条 */
 .m-top {
   flex: none;
   padding: calc(8px + env(safe-area-inset-top, 0px)) 12px 0;
-  background: var(--mobile-calendar-bg);
+  background: var(--mobile-topzone-bg);
   border-bottom: none;
   position: relative;
   z-index: 6;
@@ -1565,10 +1570,31 @@ button {
 .canvas--mobile {
   flex: 1;
   min-height: 0;
-  overflow: auto;
+  overflow: hidden;
   position: relative;
   overscroll-behavior: contain;
   background: var(--mobile-calendar-bg);
+}
+
+.app--mobile .s2-calendar--mobile,
+.app--mobile .s2-calendar--mobile > div:not(.swell-calendar-toolbar),
+.app--mobile .swell-calendar-day-view--mobile,
+.app--mobile .swell-calendar-multi-day-view--mobile {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.app--mobile .swell-calendar-day-view--mobile .swell-calendar-time,
+.app--mobile .swell-calendar-multi-day-view--mobile .swell-calendar-time {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding-top: 16px;
+  padding-bottom: 16px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
 .app--mobile .swell-calendar-day-view--mobile,
@@ -1592,6 +1618,59 @@ button {
 .app--mobile .swell-calendar-month-view--mobile .swell-calendar-month-cell,
 .app--mobile .swell-calendar-month-view--mobile .swell-calendar-month-cell-other-month {
   background: var(--mobile-calendar-bg) !important;
+}
+
+/* 时间网格的横线由 grid-lines 绘制；列自身不能铺实底，否则会盖住线。 */
+.app--mobile .swell-calendar-day-view--mobile .swell-calendar-column,
+.app--mobile .swell-calendar-multi-day-view--mobile .swell-calendar-column {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+/* 日视图只有单列，左侧时间 gutter 不需要竖线；多日仍保留 gutter 和列间分隔。 */
+.app--mobile .swell-calendar-day-view--mobile .swell-calendar-time-grid-hour-rows {
+  border-right-color: transparent !important;
+}
+
+.app--mobile .swell-calendar-day-view--mobile .swell-calendar-time-grid-time-first,
+.app--mobile .swell-calendar-day-view--mobile .swell-calendar-time-grid-time-last,
+.app--mobile .swell-calendar-multi-day-view--mobile .swell-calendar-time-grid-time-first,
+.app--mobile .swell-calendar-multi-day-view--mobile .swell-calendar-time-grid-time-last {
+  visibility: visible !important;
+}
+
+.app--mobile .swell-calendar-day-view--mobile .swell-calendar-time-grid-time-last,
+.app--mobile .swell-calendar-multi-day-view--mobile .swell-calendar-time-grid-time-last {
+  top: 100% !important;
+}
+
+.app--mobile .swell-calendar-day-view--mobile .swell-calendar-grid-line,
+.app--mobile .swell-calendar-multi-day-view--mobile .swell-calendar-grid-line {
+  border-bottom-width: 0.5px !important;
+  border-bottom-color: var(--grid-line) !important;
+}
+
+.app--mobile .swell-calendar-day-view--mobile .swell-calendar-grid-line:first-child,
+.app--mobile .swell-calendar-multi-day-view--mobile .swell-calendar-grid-line:first-child {
+  border-top: 0.5px solid var(--grid-line) !important;
+}
+
+.app--mobile .swell-calendar-day-view--mobile .swell-calendar-grid-line:last-child,
+.app--mobile .swell-calendar-multi-day-view--mobile .swell-calendar-grid-line:last-child {
+  border-bottom: 0.5px solid var(--grid-line) !important;
+}
+
+.app--mobile .swell-calendar-multi-day-view--mobile .swell-calendar-time-grid-hour-rows {
+  border-right: 0.5px solid var(--grid-line) !important;
+}
+
+.app--mobile .swell-calendar-multi-day-view--mobile .swell-calendar-column {
+  border-left: 0 !important;
+  border-right: 0.5px solid var(--grid-line) !important;
+}
+
+.app--mobile .swell-calendar-multi-day-view--mobile .swell-calendar-column:last-child {
+  border-right: 0 !important;
 }
 
 .app--mobile .swell-calendar-month-view--mobile .swell-calendar-month-day-names {
@@ -1634,7 +1713,8 @@ button {
   gap: 0;
   padding: 6px 6px 8px;
   border-bottom: none;
-  box-shadow: inset 0 -0.5px color-mix(in oklch, var(--text-1) 8%, transparent);
+  background: var(--mobile-topzone-bg);
+  box-shadow: inset 0 -1px var(--mobile-topzone-divider);
 }
 /* 月份 pill 在移动端由顶部导航承担，周条内隐藏，7 列占满 */
 .app--mobile .day-week-strip__month {

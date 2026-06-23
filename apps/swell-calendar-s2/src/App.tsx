@@ -196,13 +196,20 @@ interface AppProps {
   view: ViewId;
 }
 
+function routeViewToMobileView(view: ViewId): MobileViewId {
+  if (view === 'agenda') return 'list';
+  if (view === 'multiDay') return 'multi';
+  if (view === 'month') return 'month';
+  return 'day';
+}
+
 export default function App({ view }: AppProps) {
   // view 的真源是 URL（router.tsx）；currentDate 由 App 内部管理 + 引擎 onPageChange 回填。
   // 刷新回到今天。
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   // 移动端视图状态独立于 URL（桌面 view 仍以路由为真源）；多日/列表分别映射到 multiDay/agenda。
-  const [mobileView, setMobileView] = useState<MobileViewId>('day');
+  const [mobileView, setMobileView] = useState<MobileViewId>(() => routeViewToMobileView(view));
   const [currentDate, setCurrentDate] = useState<Date>(() => new Date());
   // 引擎实际视图：桌面跟随路由；移动端 segmented 映射到包内真实视图。
   const engineView: ViewId = isMobile
@@ -243,6 +250,12 @@ export default function App({ view }: AppProps) {
   const [createInitial, setCreateInitial] = useState<NewEventInput | null>(null);
   const calRef = useRef<CalendarInstance>(null);
   const monthMoreAnchorRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (isMobile) {
+      setMobileView(routeViewToMobileView(view));
+    }
+  }, [isMobile, view]);
 
   const toggleCat = (c: Cat) =>
     setActiveCats((prev) => {
@@ -431,6 +444,7 @@ export default function App({ view }: AppProps) {
       timelineRowHeight,
       resourceCount: calendarResources.length,
       tuning: calendarTuning,
+      isMobile,
     });
 
     return {
@@ -444,7 +458,15 @@ export default function App({ view }: AppProps) {
         resources: calendarResources,
       },
     };
-  }, [engineView, currentDate, showWknd, monthNarrowWeekend, timelineRowHeight, calendarTuning]);
+  }, [
+    engineView,
+    currentDate,
+    showWknd,
+    monthNarrowWeekend,
+    timelineRowHeight,
+    calendarTuning,
+    isMobile,
+  ]);
 
   // 桌面 / 移动两套外壳共享同一引擎画布与浮层，避免 Calendar 接线分叉。
   const calendarNode =
