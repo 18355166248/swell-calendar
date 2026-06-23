@@ -52,11 +52,14 @@ if [ -n "$CALENDAR_LINT_FILES" ]; then
   )
 fi
 
-# 3. Prettier（仅校验 staged 的可格式化文件）
+# 3. Prettier（先自动修复再暂存——避免格式问题阻断提交）
 PRETTIER_FILES=$(echo "$CHANGED_EXISTING" | grep -E "\.(ts|tsx|js|jsx|mjs|cjs|json|md|yml|yaml|css|scss)$" | grep -v "^claude-design/" | grep -v "pnpm-lock.yaml" || true)
 if [ -n "$PRETTIER_FILES" ]; then
-  echo "  → 运行 staged Prettier 检查..."
-  run_pnpm exec prettier --check $PRETTIER_FILES
+  echo "  → Prettier 自动格式化..."
+  run_pnpm exec prettier --write --loglevel error $PRETTIER_FILES
+  echo "  → 重新暂存格式化后的文件..."
+  echo "$PRETTIER_FILES" | xargs git add
+  echo "✅ Prettier 格式化完成"
 fi
 
 # 4. TypeScript 类型检查（每次提交都执行）

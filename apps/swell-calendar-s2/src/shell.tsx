@@ -1,7 +1,15 @@
 // ===== App shell: sidebar + topbar =====
 // P3: 外围控件已替换为 @react-spectrum/s2 真实组件（Button / ActionButton / SearchField / SegmentedControl）。
 // 侧栏导航项保留 CSS 版（S2 无直接等价物，强行替换会偏离像素）。
-import { useEffect, useRef, useState, type Key } from 'react';
+import {
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type Key,
+  type MouseEvent,
+  type PointerEvent,
+} from 'react';
 
 import {
   ActionButton,
@@ -92,6 +100,9 @@ interface MiniCalendarProps {
 }
 
 const MINI_DOW = ['一', '二', '三', '四', '五', '六', '日'];
+const WEEK_STRIP_SWIPE_THRESHOLD = 48;
+const WEEK_STRIP_VERTICAL_CANCEL_THRESHOLD = 32;
+const WEEK_STRIP_SNAP_DURATION_MS = 180;
 
 /** 周一为一周起点：返回 0=周一 … 6=周日。 */
 function mondayIndex(d: Date): number {
@@ -207,12 +218,22 @@ interface DayWeekStripProps {
 
 export function DayWeekStrip({ currentDate, onDateChange, spanDays = 1 }: DayWeekStripProps) {
   const today = new Date();
+  const swipeRef = useRef<{ id: number; startX: number; startY: number } | null>(null);
+  const suppressClickRef = useRef(false);
+  const daysRef = useRef<HTMLDivElement | null>(null);
+  const snapTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const suppressClickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [dragOffset, setDragOffset] = useState(0);
+  const [isDraggingWeek, setIsDraggingWeek] = useState(false);
+  const [isResettingWeek, setIsResettingWeek] = useState(false);
   const weekStart = startOfWeekMonday(currentDate);
-  const days = Array.from({ length: 7 }, (_, index) => {
-    const date = new Date(weekStart);
-    date.setDate(weekStart.getDate() + index);
-    return date;
-  });
+  const visibleWeeks = [-1, 0, 1].map((weekOffset) =>
+    Array.from({ length: 7 }, (_, index) => {
+      const date = new Date(weekStart);
+      date.setDate(weekStart.getDate() + weekOffset * 7 + index);
+      return date;
+    })
+  );
 
   const spanStart = new Date(
     currentDate.getFullYear(),
@@ -222,48 +243,212 @@ export function DayWeekStrip({ currentDate, onDateChange, spanDays = 1 }: DayWee
   const spanEnd = new Date(spanStart);
   spanEnd.setDate(spanEnd.getDate() + Math.max(1, spanDays) - 1);
 
-  return (
-    <div className="day-week-strip">
-      <div className="day-week-strip__month">{getWeekStripMonthLabel(currentDate)}</div>
-      <div className="day-week-strip__days">
-        {days.map((date) => {
-          const active = isSameDay(date, currentDate);
-          const isTodayDate = isSameDay(date, today);
-          const onCard = spanDays > 1 && date >= spanStart && date <= spanEnd;
-          const edgeL = onCard && isSameDay(date, spanStart);
-          const edgeR = onCard && isSameDay(date, spanEnd);
+  const shiftWeek = (delta: number) => {
+    const next = new Date(currentDate);
+    next.setDate(currentDate.getDate() + delta * 7);
+    onDateChange(next);
+  };
 
-          return (
-            <button
-              key={date.toISOString()}
-              type="button"
-              className={
-                'day-week-chip' +
-                (active ? ' active' : '') +
-                (isTodayDate ? ' today' : '') +
-                (onCard ? ' oncard' : '') +
-                (edgeL ? ' edge-l' : '') +
-                (edgeR ? ' edge-r' : '')
-              }
-              onClick={() => onDateChange(date)}
-              aria-pressed={active}
-            >
-              <span className="day-week-chip__dow">{MINI_DOW[mondayIndex(date)]}</span>
-              {/* blob 包住 数字 + 农历：桌面下为透明壳（视觉不变），移动端样式化为同一圆形 */}
-              <span className="day-week-chip__blob">
-                <span className="day-week-chip__date">{date.getDate()}</span>
-                {(() => {
-                  const lunar = lunarLabelOf(date);
-                  return (
-                    <span className={'day-week-chip__lunar' + (lunar.isTerm ? ' is-term' : '')}>
-                      {lunar.text}
+  const pickDateAtClientX = (clientX: number) => {
+    const rect = daysRef.current?.getBoundingClientRect();
+    if (!rect || rect.width <= 0) return;
+
+    const dayIndex = Math.max(0, Math.min(6, Math.floor(((clientX - rect.left) / rect.width) * 7)));
+    const next = new Date(weekStart);
+    next.setDate(weekStart.getDate() + dayIndex);
+    onDateChange(next);
+  };
+
+  useEffect(
+    () => () => {
+      if (snapTimerRef.current) {
+        clearTimeout(snapTimerRef.current);
+      }
+      if (suppressClickTimerRef.current) {
+        clearTimeout(suppressClickTimerRef.current);
+      }
+    },
+    []
+  );
+
+  const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
+    if (event.pointerType === 'mouse' && event.button !== 0) return;
+    if (snapTimerRef.current) {
+      clearTimeout(snapTimerRef.current);
+      snapTimerRef.current = null;
+    }
+    if (suppressClickTimerRef.current) {
+      clearTimeout(suppressClickTimerRef.current);
+      suppressClickTimerRef.current = null;
+    }
+    suppressClickRef.current = false;
+    swipeRef.current = {
+      id: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+    };
+    setIsDraggingWeek(true);
+    setIsResettingWeek(false);
+    setDragOffset(0);
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+  };
+
+  const handlePointerMove = (event: PointerEvent<HTMLDivElement>) => {
+    const swipe = swipeRef.current;
+    if (!swipe || swipe.id !== event.pointerId) return;
+
+    const deltaX = event.clientX - swipe.startX;
+    const deltaY = event.clientY - swipe.startY;
+    if (
+      Math.abs(deltaY) > WEEK_STRIP_VERTICAL_CANCEL_THRESHOLD &&
+      Math.abs(deltaY) > Math.abs(deltaX)
+    ) {
+      swipeRef.current = null;
+      setIsDraggingWeek(false);
+      setIsResettingWeek(false);
+      setDragOffset(0);
+      return;
+    }
+
+    const maxOffset = daysRef.current?.clientWidth ?? 0;
+    setDragOffset(Math.max(-maxOffset, Math.min(maxOffset, deltaX)));
+  };
+
+  const handlePointerUp = (event: PointerEvent<HTMLDivElement>) => {
+    const swipe = swipeRef.current;
+    if (!swipe || swipe.id !== event.pointerId) return;
+    swipeRef.current = null;
+    setIsDraggingWeek(false);
+    setDragOffset(0);
+
+    const deltaX = event.clientX - swipe.startX;
+    const deltaY = event.clientY - swipe.startY;
+    if (
+      Math.abs(deltaX) < WEEK_STRIP_SWIPE_THRESHOLD ||
+      Math.abs(deltaY) > WEEK_STRIP_VERTICAL_CANCEL_THRESHOLD
+    ) {
+      setDragOffset(0);
+      if (Math.abs(deltaY) <= WEEK_STRIP_VERTICAL_CANCEL_THRESHOLD) {
+        suppressClickRef.current = true;
+        suppressClickTimerRef.current = setTimeout(() => {
+          suppressClickRef.current = false;
+          suppressClickTimerRef.current = null;
+        }, 120);
+        pickDateAtClientX(event.clientX);
+      }
+      return;
+    }
+
+    // 左滑进入下一周，右滑回到上一周；复用 onDateChange 保持宿主日期与引擎同步。
+    suppressClickRef.current = true;
+    suppressClickTimerRef.current = setTimeout(() => {
+      suppressClickRef.current = false;
+      suppressClickTimerRef.current = null;
+    }, 120);
+    const weekDelta = deltaX < 0 ? 1 : -1;
+    const snapWidth = daysRef.current?.clientWidth ?? Math.abs(deltaX);
+    setDragOffset(weekDelta > 0 ? -snapWidth : snapWidth);
+    snapTimerRef.current = setTimeout(() => {
+      setIsResettingWeek(true);
+      shiftWeek(weekDelta);
+      setDragOffset(0);
+      requestAnimationFrame(() => {
+        setIsResettingWeek(false);
+      });
+      snapTimerRef.current = null;
+    }, WEEK_STRIP_SNAP_DURATION_MS);
+  };
+
+  const handlePointerCancel = () => {
+    swipeRef.current = null;
+    setIsDraggingWeek(false);
+    setIsResettingWeek(false);
+    setDragOffset(0);
+  };
+
+  const handleClickCapture = (event: MouseEvent<HTMLDivElement>) => {
+    if (!suppressClickRef.current) return;
+    suppressClickRef.current = false;
+    if (suppressClickTimerRef.current) {
+      clearTimeout(suppressClickTimerRef.current);
+      suppressClickTimerRef.current = null;
+    }
+    event.preventDefault();
+    event.stopPropagation();
+  };
+
+  return (
+    <div
+      className="day-week-strip"
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerCancel}
+      onClickCapture={handleClickCapture}
+    >
+      <div className="day-week-strip__month">{getWeekStripMonthLabel(currentDate)}</div>
+      <div className="day-week-strip__dow-row" aria-hidden>
+        {MINI_DOW.map((day) => (
+          <span key={day} className="day-week-strip__dow">
+            {day}
+          </span>
+        ))}
+      </div>
+      <div
+        ref={daysRef}
+        className={
+          'day-week-strip__days' +
+          (isDraggingWeek ? ' is-dragging' : '') +
+          (isResettingWeek ? ' is-resetting' : '')
+        }
+        style={{ '--week-strip-drag-x': `${dragOffset}px` } as CSSProperties}
+      >
+        <div className="day-week-strip__track">
+          {visibleWeeks.map((weekDays, weekIndex) => (
+            <div className="day-week-strip__week" key={weekDays[0].toISOString()}>
+              {weekDays.map((date) => {
+                const active = isSameDay(date, currentDate);
+                const isTodayDate = isSameDay(date, today);
+                const onCard = spanDays > 1 && date >= spanStart && date <= spanEnd;
+                const edgeL = onCard && isSameDay(date, spanStart);
+                const edgeR = onCard && isSameDay(date, spanEnd);
+
+                return (
+                  <button
+                    key={date.toISOString()}
+                    type="button"
+                    className={
+                      'day-week-chip' +
+                      (active ? ' active' : '') +
+                      (isTodayDate ? ' today' : '') +
+                      (onCard ? ' oncard' : '') +
+                      (edgeL ? ' edge-l' : '') +
+                      (edgeR ? ' edge-r' : '')
+                    }
+                    onClick={() => onDateChange(date)}
+                    aria-pressed={active}
+                    tabIndex={weekIndex === 1 ? 0 : -1}
+                  >
+                    {/* blob 包住 数字 + 农历：桌面下为透明壳（视觉不变），移动端样式化为同一圆形 */}
+                    <span className="day-week-chip__blob">
+                      <span className="day-week-chip__date">{date.getDate()}</span>
+                      {(() => {
+                        const lunar = lunarLabelOf(date);
+                        return (
+                          <span
+                            className={'day-week-chip__lunar' + (lunar.isTerm ? ' is-term' : '')}
+                          >
+                            {lunar.text}
+                          </span>
+                        );
+                      })()}
                     </span>
-                  );
-                })()}
-              </span>
-            </button>
-          );
-        })}
+                  </button>
+                );
+              })}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
