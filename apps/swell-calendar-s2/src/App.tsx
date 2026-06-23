@@ -31,6 +31,7 @@ import {
 } from './calendarData';
 import { type Cat, type CalEvent, type PickEvent } from './data';
 import { dataSource } from './dataSource';
+import { MobileMonthScroller } from './MobileMonthScroller';
 import {
   CreateDialog,
   FILTER_CATS,
@@ -201,6 +202,16 @@ function routeViewToMobileView(view: ViewId): MobileViewId {
   if (view === 'multiDay') return 'multi';
   if (view === 'month') return 'month';
   return 'day';
+}
+
+function formatMobileMonthLabel(date: Date): string {
+  const month = `${date.getMonth() + 1}月`;
+  const today = new Date();
+  return date.getFullYear() === today.getFullYear() ? month : `${date.getFullYear()}年${month}`;
+}
+
+function formatMobileCalendarLabel(date: Date): string {
+  return `${date.getFullYear()}年`;
 }
 
 export default function App({ view }: AppProps) {
@@ -531,6 +542,30 @@ export default function App({ view }: AppProps) {
       />
     );
 
+  const mobileMonthNode =
+    status === 'loading' ? (
+      <div className="data-state" role="status" aria-live="polite">
+        <div className="data-state-spinner" aria-hidden />
+        <p className="data-state-msg">正在加载日程…</p>
+      </div>
+    ) : status === 'error' ? (
+      <div className="data-state data-state--error" role="alert">
+        <p className="data-state-msg">日程加载失败{error ? `：${error}` : ''}</p>
+        <button type="button" className="data-state-btn" onClick={reload}>
+          重试
+        </button>
+      </div>
+    ) : (
+      <MobileMonthScroller
+        currentDate={currentDate}
+        events={visibleEvents}
+        onDateChange={setCurrentDate}
+        onEventClick={(event, anchor) => {
+          openEventDetails(toCalendarEvents([event])[0], anchor);
+        }}
+      />
+    );
+
   const overlays = (
     <>
       {pick && isMobile && (
@@ -589,12 +624,18 @@ export default function App({ view }: AppProps) {
 
   // ===== 移动外壳（M1）=====
   if (isMobile) {
-    const monthLabel = `${currentDate.getMonth() + 1}月`;
+    const monthLabel = formatMobileMonthLabel(currentDate);
+    const calendarLabel = formatMobileCalendarLabel(currentDate);
     return (
       <Provider colorScheme={prefs.theme}>
         <ToastContainer />
         <div className="app app--mobile" data-card={UI_DEFAULTS.card} data-density={prefs.density}>
-          <MobileTopBar view={mobileView} setView={setMobileView} monthLabel={monthLabel} />
+          <MobileTopBar
+            view={mobileView}
+            setView={setMobileView}
+            monthLabel={monthLabel}
+            calendarLabel={calendarLabel}
+          />
           {(mobileView === 'day' || mobileView === 'multi') && (
             <DayWeekStrip
               currentDate={currentDate}
@@ -602,7 +643,9 @@ export default function App({ view }: AppProps) {
               spanDays={mobileView === 'multi' ? 2 : 1}
             />
           )}
-          {mobileView === 'month' && <div className="m-month-title">{monthLabel}</div>}
+          {mobileView === 'month' && (
+            <div className="m-month-title">{currentDate.getMonth() + 1}月</div>
+          )}
           {mobileView === 'month' && (
             <div className="m-month-dow" aria-hidden>
               {['周一', '周二', '周三', '周四', '周五', '周六', '周日'].map((day, index) => (
@@ -617,7 +660,7 @@ export default function App({ view }: AppProps) {
             onMouseDownCapture={(e) => rememberMonthMoreAnchor(e.target)}
             onKeyDownCapture={(e) => rememberMonthMoreAnchor(e.target)}
           >
-            {calendarNode}
+            {mobileView === 'month' ? mobileMonthNode : calendarNode}
           </div>
           {overlays}
         </div>

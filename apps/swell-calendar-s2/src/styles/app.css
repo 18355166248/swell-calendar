@@ -1503,6 +1503,9 @@ button {
   display: flex;
   align-items: center;
   gap: 2px;
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 112px;
   border: none;
   background: none;
   padding: 4px 2px;
@@ -1511,6 +1514,9 @@ button {
   font-weight: 600;
   letter-spacing: -0.01em;
   cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .m-back svg {
   width: 20px;
@@ -1545,7 +1551,7 @@ button {
   align-items: center;
   height: 48px;
   padding: 0 16px;
-  background: var(--mobile-calendar-bg);
+  background: var(--mobile-topzone-bg);
   font-size: 30px;
   font-weight: 800;
   line-height: 1.05;
@@ -1555,9 +1561,9 @@ button {
 .m-month-dow {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  padding: 2px 0 7px;
-  border-bottom: 0.5px solid color-mix(in oklch, var(--text-1) 8%, transparent);
-  background: var(--mobile-calendar-bg);
+  padding: 0 0 8px;
+  border-bottom: 0.5px solid var(--mobile-topzone-divider);
+  background: var(--mobile-topzone-bg);
 }
 .m-month-dow div {
   min-width: 0;
@@ -1569,6 +1575,155 @@ button {
 }
 .m-month-dow .wknd {
   color: var(--text-disabled);
+}
+
+.m-month-scroller {
+  height: 100%;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  background: var(--mobile-calendar-bg);
+  overscroll-behavior: contain;
+}
+
+.m-month-section {
+  padding: 10px 0 18px;
+  scroll-margin-top: 0;
+}
+
+.m-month-section:first-child {
+  padding-top: 6px;
+}
+
+.m-month-section-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 0 0 8px;
+  padding: 0 18px;
+  color: var(--text-1);
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+.m-month-section-divider::before,
+.m-month-section-divider::after {
+  content: '';
+  height: 0.5px;
+  flex: 1;
+  background: var(--grid-line);
+}
+
+.m-month-continuous-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  row-gap: 7px;
+  padding: 0 8px;
+}
+
+.m-month-inline-dow {
+  display: none;
+}
+
+.m-month-day {
+  appearance: none;
+  min-width: 0;
+  min-height: 78px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--text-1);
+  padding: 2px 2px 0;
+  text-align: center;
+  font: inherit;
+  cursor: pointer;
+}
+
+.m-month-day.is-outside {
+  color: var(--text-disabled);
+  cursor: default;
+}
+
+.m-month-day.is-outside > * {
+  visibility: hidden;
+}
+
+.m-month-day-badge {
+  width: 34px;
+  min-height: 36px;
+  margin: 0 auto;
+  border-radius: 999px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+}
+
+.m-month-day-num {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.m-month-day.is-selected .m-month-day-badge,
+.m-month-day.is-today .m-month-day-badge {
+  background: var(--accent-bg);
+}
+
+.m-month-day.is-selected .m-month-day-num,
+.m-month-day.is-today .m-month-day-num {
+  color: var(--accent-contrast);
+}
+
+.m-month-day-lunar {
+  display: block;
+  min-height: 10px;
+  font-size: 9px;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--text-3);
+  white-space: nowrap;
+}
+
+.m-month-day-lunar.is-term {
+  color: var(--cat-green-text);
+}
+
+.m-month-day.is-selected .m-month-day-lunar,
+.m-month-day.is-today .m-month-day-lunar {
+  color: var(--accent-contrast);
+}
+
+.m-month-day-events {
+  display: flex;
+  min-height: 42px;
+  margin-top: 4px;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.m-month-event-chip {
+  display: block;
+  min-width: 0;
+  height: 13px;
+  padding: 0 3px;
+  border-radius: 3px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background: var(--m-month-event-bg);
+  color: var(--m-month-event-text);
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 13px;
+  text-align: left;
 }
 
 /* segmented 视图切换 */

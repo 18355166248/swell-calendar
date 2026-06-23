@@ -463,10 +463,17 @@ interface MobileTopBarProps {
   view: MobileViewId;
   setView: (v: MobileViewId) => void;
   monthLabel: string;
+  calendarLabel: string;
   onSearch?: () => void;
 }
 
-export function MobileTopBar({ view, setView, monthLabel, onSearch }: MobileTopBarProps) {
+export function MobileTopBar({
+  view,
+  setView,
+  monthLabel,
+  calendarLabel,
+  onSearch,
+}: MobileTopBarProps) {
   const segs: { id: MobileViewId; label: string }[] = [
     { id: 'day', label: '日' },
     { id: 'multi', label: '多日' },
@@ -478,7 +485,7 @@ export function MobileTopBar({ view, setView, monthLabel, onSearch }: MobileTopB
       <div className="m-top-row">
         <button className="m-back" onClick={() => setView('month')} aria-label="返回月视图">
           <Ic.chevL />
-          {view === 'month' ? '日历' : monthLabel}
+          {view === 'month' ? calendarLabel : monthLabel}
         </button>
         <div className="m-spacer" />
         <div className="m-seg" role="tablist" aria-label="视图切换">
