@@ -14,6 +14,7 @@ function EventSheet({ ev, onClose }) {
   const people = (ev.who || "").split(/[·+]/).map((s) => s.trim()).filter(Boolean).slice(0, 4);
   const initialsOf = (s) => s.replace(/[^\u4e00-\u9fa5A-Za-z0-9]/g, "").slice(0, 1) || "·";
   const mins = Math.round((ev.end - ev.start) * 60);
+  const dom = ev.dom != null ? ev.dom : 18 + (ev.day || 0);
   const palette = ["seafoam", "indigo", "orange", "purple"];
   return (
     <React.Fragment>
@@ -23,7 +24,7 @@ function EventSheet({ ev, onClose }) {
         <div className="m-sheet-accent" data-cat={ev.cat} />
         <div className="m-sheet-title">{ev.title}</div>
         <div className="m-sheet-rows">
-          <div className="m-sheet-row"><Ic.clock /><span>周{["一","二","三","四","五","六","日"][ev.day]} · 3月{18 + ev.day}日 · {ev.allDay ? "全天" : <React.Fragment>{evRange(ev)} <span className="muted">（{mins} 分钟）</span></React.Fragment>}</span></div>
+          <div className="m-sheet-row"><Ic.clock /><span>周{["一","二","三","四","五","六","日"][dayIndexOf(dom)]} · {fmtMD(dom)} · {ev.allDay ? "全天" : <React.Fragment>{evRange(ev)} <span className="muted">（{mins} 分钟）</span></React.Fragment>}</span></div>
           <div className="m-sheet-row"><Ic.pin /><span>{ev.loc || "未指定地点"}</span></div>
           {ev.desc && <div className="m-sheet-row"><Ic.inbox /><span className="muted">{ev.desc}</span></div>}
           <div className="m-sheet-row">
@@ -82,13 +83,13 @@ function WeekStrip({ day, setDay, view }) {
 }
 
 // ---------- top bar ----------
-function TopBar({ view, setView, openMonth }) {
+function TopBar({ view, setView, openMonth, month }) {
   const segs = [["day", "日"], ["multi", "多日"], ["month", "月"], ["list", "列表"]];
   return (
     <div className="m-top">
       <div className="m-top-row">
         <button className="m-back" onClick={openMonth}>
-          <Ic.chevL />{view === "month" ? "2025年" : "三月"}
+          <Ic.chevL />{view === "month" ? "2025年" : month}
         </button>
         <div className="m-spacer" />
         <div className="m-seg">
@@ -107,6 +108,7 @@ function App() {
   const [view, setView] = React.useState("day");
   const [day, setDay] = React.useState(TODAY);
   const [pick, setPick] = React.useState(null);
+  const [listMonth, setListMonth] = React.useState(3);
 
   React.useEffect(() => {
     const r = document.documentElement;
@@ -116,21 +118,22 @@ function App() {
 
   const dayLabel = `周${["一","二","三","四","五","六","日"][dayIndexOf(day)]}`;
   const lun = lunarFor(day);
+  const topMonth = view === "list" ? monthCN(listMonth) : monthCN(monthOf(day));
 
   return (
     <IOSDevice dark={t.theme === "dark"}>
       <div className="screen" data-card={t.card}>
-        <TopBar view={view} setView={setView} openMonth={() => setView("month")} />
+        <TopBar view={view} setView={setView} openMonth={() => setView("month")} month={topMonth} />
 
         {(view === "day" || view === "multi") && <WeekStrip day={day} setDay={setDay} view={view} />}
         {view === "day" && (
-          <div className="m-dayhd">{dayLabel} · 3月{day}日<span className="sub">{lun.term ? lun.text : "二月" + lun.text}</span></div>
+          <div className="m-dayhd">{dayLabel} · {fmtMD(day)}<span className="sub">{lun.term ? lun.text : "二月" + lun.text}</span></div>
         )}
 
         {view === "day" && <DayView day={day} onPick={setPick} selId={pick?.id} />}
         {view === "multi" && <MultiDayView day={day} onPick={setPick} selId={pick?.id} />}
         {view === "month" && <MonthView onDay={(d) => { setDay(d); setView("day"); }} />}
-        {view === "list" && <AgendaView onPick={setPick} selId={pick?.id} />}
+        {view === "list" && <AgendaView onPick={setPick} selId={pick?.id} onMonth={setListMonth} />}
 
         {pick && <EventSheet ev={pick} onClose={() => setPick(null)} />}
       </div>

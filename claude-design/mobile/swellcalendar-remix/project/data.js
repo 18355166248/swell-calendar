@@ -60,8 +60,36 @@ window.SWELL = (function () {
     28: [{ title: "回顾会", cat: "indigo" }],
   };
 
+  // one-off extras keyed by day-of-month (variety on top of the weekly recurring set)
+  // days 1..31 = March, 32+ = April (day 32 = Apr 1)
+  const dateExtra = {
+    19: [{ id: "x19", start: 16, end: 17, title: "投资人季度更新", cat: "indigo", who: "CEO · 财务", loc: "海景厅" }],
+    25: [{ id: "x25", start: 15, end: 16.5, title: "路线图评审", cat: "seafoam", who: "产品 · 张明", loc: "海景厅" }],
+    26: [{ id: "x26a", start: 11, end: 12, title: "用户访谈 ×3", cat: "magenta", who: "研究 · 李娜", loc: "静思室" },
+         { id: "x26b", start: 17, end: 18, title: "OKR 复盘", cat: "orange", who: "团队", loc: "海景厅" }],
+    28: [{ id: "x28", start: 13.5, end: 15, title: "供应商评估", cat: "purple", who: "采购 +2", loc: "协作区" }],
+    32: [{ id: "x32a", start: 9, end: 10, title: "Q2 启动会", cat: "seafoam", who: "全员", loc: "海景厅" },
+         { id: "x32b", start: 14, end: 15.5, title: "季度目标对齐", cat: "indigo", who: "管理层", loc: "海景厅" }],
+    33: [{ id: "x33", start: 10.5, end: 11.5, title: "新人入职引导", cat: "green", who: "HR · 王哲", loc: "协作区" }],
+    34: [{ id: "x34", start: 15, end: 16, title: "品牌视觉评审", cat: "orange", who: "设计 · 李娜", loc: "静思室" }],
+    35: [{ id: "x35", start: 13, end: 14, title: "节前安排同步", cat: "seafoam", who: "行政", loc: "线上" }],
+    39: [{ id: "x39a", start: 9.5, end: 11, title: "产品评审 · v2", cat: "seafoam", who: "产品 · 设计", loc: "海景厅" },
+         { id: "x39b", start: 16, end: 17, title: "市场复盘", cat: "magenta", who: "市场组", loc: "静思室" }],
+    41: [{ id: "x41", start: 14, end: 15, title: "客户签约", cat: "orange", who: "销售 · 张明", loc: "海景厅" }],
+    42: [{ id: "x42", start: 11, end: 12.5, title: "技术分享会", cat: "purple", who: "工程组", loc: "协作区" }],
+    43: [{ id: "x43", start: 11, end: 12, title: "月度全员会", cat: "seafoam", who: "全员", loc: "海景厅" }],
+  };
+
+  // all-day items keyed by day-of-month (solar terms / company-wide)
+  const allDay = {
+    20: [{ title: "春分", cat: "green", term: true }],
+    21: [{ title: "全员战略对齐", cat: "seafoam" }],
+    32: [{ title: "Q2 启动周", cat: "seafoam" }],
+    35: [{ title: "清明", cat: "green", term: true }],
+  };
+
   const weekDays = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"];
   const weekDates = [18, 19, 20, 21, 22, 23, 24];
 
-  return { resources, events, monthEvents, weekDays, weekDates };
+  return { resources, events, monthEvents, dateExtra, allDay, weekDays, weekDates };
 })();

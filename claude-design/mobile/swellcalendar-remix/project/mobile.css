@@ -1,15 +1,24 @@
 /* ===== swell-calendar · mobile — Spectrum 2 tokens, Apple-Calendar layout ===== */
 * { box-sizing: border-box; }
 .screen {
+  /* calendar content surface (white / black) + slightly-gray top zone */
+  --m-content: oklch(1 0 0);
+  --m-topzone: oklch(0.955 0.003 270);
+  --m-topdivider: oklch(0.9 0.004 270);
   height: 100%;
   display: flex;
   flex-direction: column;
-  background: var(--bg-app);
+  background: var(--m-content);
   color: var(--text-1);
   font-family: var(--sp-font);
   -webkit-font-smoothing: antialiased;
   position: relative;
   overflow: hidden;
+}
+[data-theme="dark"] .screen {
+  --m-content: #000;
+  --m-topzone: oklch(0.235 0.005 270);
+  --m-topdivider: oklch(0.32 0.006 270);
 }
 .screen button { font-family: inherit; cursor: pointer; }
 
@@ -17,8 +26,7 @@
 .m-top {
   flex: none;
   padding: 56px 14px 0;
-  background: var(--bg-layer);
-  border-bottom: 1px solid var(--border);
+  background: var(--m-topzone);
   position: relative;
   z-index: 6;
 }
@@ -66,8 +74,8 @@
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   padding: 6px 6px 8px;
-  background: var(--bg-layer);
-  border-bottom: 1px solid var(--border);
+  background: var(--m-topzone);
+  border-bottom: 1px solid var(--m-topdivider);
   position: relative; z-index: 5;
 }
 .m-ws-cell {
@@ -118,7 +126,7 @@
 
 /* ---------- DAY HEADER (under week strip) ---------- */
 .m-dayhd {
-  flex: none; padding: 11px 18px 10px; background: var(--bg-layer);
+  flex: none; padding: 11px 18px 10px; background: var(--m-content);
   border-bottom: 1px solid var(--border); font-size: 15px; font-weight: 700;
   letter-spacing: -0.01em; position: relative; z-index: 4; text-align: center;
 }
@@ -127,7 +135,7 @@
 /* ---------- TIMELINE STICKY HEADER (day labels + all-day) ---------- */
 .m-tl-header {
   position: sticky; top: 0; z-index: 5; display: grid;
-  background: var(--bg-layer); border-bottom: 1px solid var(--border);
+  background: var(--m-content); border-bottom: 1px solid var(--border);
 }
 .m-tl-gutter { border-right: 1px solid var(--grid-line-soft); }
 .m-tl-gutter.allday {
@@ -182,8 +190,9 @@
 }
 .m-tl-hourlbl span { position: absolute; top: 0; left: 0; right: 0; padding-right: 9px; text-align: right; transform: translateY(-50%); white-space: nowrap; }
 .m-tl-cols { position: relative; display: grid; }
-.m-tl-col { position: relative; border-left: 1px solid var(--grid-line-soft); }
-.m-tl-col:first-child { border-left: none; }
+.m-tl-col { position: relative; }
+/* vertical column separators only in multi-day; single day has none */
+.m-timeline[data-multi] .m-tl-col { border-left: 1px solid var(--grid-line-soft); }
 .m-tl-hourline { height: var(--hour-h); border-top: 1px solid var(--grid-line); }
 
 .m-now { position: absolute; left: 0; right: 0; height: 2px; background: var(--now-line); z-index: 8; pointer-events: none; }
@@ -217,7 +226,7 @@
 .m-month-title { padding: 12px 16px 6px; font-size: 30px; font-weight: 800; letter-spacing: -0.02em; }
 .m-month-dow {
   display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); padding: 2px 0 7px;
-  position: sticky; top: 0; z-index: 3; background: var(--bg-app);
+  position: sticky; top: 0; z-index: 3; background: var(--m-content);
 }
 .m-month-dow div { text-align: center; font-size: 12px; font-weight: 600; color: var(--text-3); }
 .m-month-dow .wknd { color: var(--text-disabled); }
@@ -276,16 +285,32 @@
 .m-agenda { padding: 0 0 20px; }
 .m-ag-day {
   display: flex; align-items: baseline; gap: 9px; padding: 16px 18px 7px;
-  position: sticky; top: 0; background: var(--bg-app); z-index: 2;
+  background: var(--m-content);
 }
 .m-ag-day.today .m-ag-dnum, .m-ag-day.today .m-ag-dow { color: var(--accent-text); }
+/* single fixed date row above the agenda scroll — joins the gray top zone */
+.m-ag-fixed {
+  flex: none;
+  display: flex; align-items: baseline; gap: 9px;
+  padding: 12px 18px 11px;
+  background: var(--m-topzone);
+  border-bottom: 1px solid var(--m-topdivider);
+}
+.m-ag-fixed.today .m-ag-dnum, .m-ag-fixed.today .m-ag-dow { color: var(--accent-text); }
+/* month break inside the agenda scroll (e.g. when March rolls into April) */
+.m-ag-month {
+  display: flex; align-items: center; gap: 12px;
+  padding: 22px 18px 6px; font-size: 14px; font-weight: 800;
+  letter-spacing: 0.02em; color: var(--text-2);
+}
+.m-ag-month::after { content: ""; flex: 1; height: 1px; background: var(--border); }
 .m-ag-dnum { font-size: 17px; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .m-ag-dow { font-size: 14px; font-weight: 600; color: var(--text-2); white-space: nowrap; }
 .m-ag-lunar { font-size: 12px; color: var(--text-3); margin-left: auto; }
 .m-ag-list { display: flex; flex-direction: column; }
 .m-ag-row {
   display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 12px;
-  padding: 11px 18px; border-top: 1px solid var(--border); background: var(--bg-layer);
+  padding: 11px 18px; border-top: 1px solid var(--border); background: var(--m-content);
 }
 .m-ag-row:active { background: var(--bg-hover); }
 .m-ag-main { display: flex; align-items: center; gap: 11px; min-width: 0; }
@@ -298,7 +323,7 @@
 .m-ag-time .end { color: var(--text-3); font-weight: 500; display: block; }
 .m-ag-allday {
   display: flex; align-items: center; gap: 9px; padding: 11px 18px; border-top: 1px solid var(--border);
-  background: var(--bg-layer);
+  background: var(--m-content);
 }
 .m-ag-allday .star { width: 18px; height: 18px; border-radius: 50%; background: var(--cat-green-line); display: grid; place-items: center; flex: none; }
 .m-ag-allday .star svg { width: 11px; height: 11px; color: #fff; }

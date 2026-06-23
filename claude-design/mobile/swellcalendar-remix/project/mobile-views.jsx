@@ -6,12 +6,15 @@ const M_CAT = {
 const HSTART = 0, HEND = 24, HOUR_H = 52, NOW = 14.55, TODAY = 21;
 const ROOM = SWELL.events.filter((e) => e.res.startsWith("r"));
 const WK = ["一", "二", "三", "四", "五", "六", "日"];
-// all-day items keyed by month-day (solar terms / company-wide)
-const ALLDAY = {
-  20: [{ title: "春分", cat: "green", term: true }],
-  21: [{ title: "全员战略对齐", cat: "seafoam" }],
-};
-const allDayFor = (d) => ALLDAY[d] || [];
+// all-day items + one-off extras keyed by day-of-month (from the data layer)
+const allDayFor = (d) => (SWELL.allDay[d] || []);
+const DATE_EXTRA = SWELL.dateExtra || {};
+
+// month-aware date labels (days 1..31 → March, 32+ → April; day 32 = Apr 1)
+const monthOf = (d) => (d <= 31 ? 3 : 4);
+const dayNum = (d) => (d <= 31 ? d : d - 31);
+const monthCN = (m) => (m === 4 ? "四月" : "三月");
+const fmtMD = (d) => monthOf(d) + "月" + dayNum(d) + "日";
 
 const pad2 = (n) => String(n).padStart(2, "0");
 const fmtH = (h) => { const hr = Math.floor(h), m = Math.round((h - hr) * 60); return `${hr}:${pad2(m)}`; };
@@ -30,6 +33,7 @@ function lunarCN(n) {
 }
 function lunarFor(d) {
   if (d === 20) return { text: "春分", term: true };
+  if (d === 35) return { text: "清明", term: true };
   const n = d + 1;
   if (n <= 30) return { text: lunarCN(n) };
   const m = n - 30;
@@ -67,7 +71,7 @@ function Timeline({ cols, onPick, selId }) {
   const gridCols = `52px repeat(${cols.length}, 1fr)`;
   const anyAllDay = cols.some((c) => allDayFor(c.day).length);
   const showBand = multi || anyAllDay;
-  const mkAllDay = (e, col) => ({ ...e, day: dayIndexOf(col.day), start: 0, end: 24, loc: "全天", who: e.term ? "节气" : "全体成员", allDay: true });
+  const mkAllDay = (e, col) => ({ ...e, day: dayIndexOf(col.day), dom: col.day, start: 0, end: 24, loc: "全天", who: e.term ? "节气" : "全体成员", allDay: true });
   return (
     <div className="m-body" ref={bodyRef}>
       {(multi || showBand) && (
@@ -77,7 +81,7 @@ function Timeline({ cols, onPick, selId }) {
               <div className="m-tl-gutter" />
               {cols.map((col, ci) => (
                 <div key={ci} className={"m-tl-colhd" + (col.day === TODAY ? " today" : "")}>
-                  周{WK[dayIndexOf(col.day)]} <span className="sub">3月{col.day}日</span>
+                  周{WK[dayIndexOf(col.day)]} <span className="sub">{fmtMD(col.day)}</span>
                 </div>
               ))}
             </React.Fragment>
@@ -98,7 +102,7 @@ function Timeline({ cols, onPick, selId }) {
           )}
         </div>
       )}
-      <div className="m-timeline" style={{ "--hour-h": HOUR_H + "px", gridTemplateColumns: gridCols }}>
+      <div className="m-timeline" data-multi={multi ? "" : undefined} style={{ "--hour-h": HOUR_H + "px", gridTemplateColumns: gridCols }}>
         <div className="m-tl-times">
           {hours.map((h) => <div key={h} className="m-tl-hourlbl"><span>{pad2(h) + ":00"}</span></div>)}
           <div className="m-tl-hourlbl" style={{ height: 0 }}><span>00:00</span></div>
@@ -118,7 +122,7 @@ function Timeline({ cols, onPick, selId }) {
                 {evs.map((e) => (
                   <div key={e.id} className={"m-ev" + (selId === e.id ? " sel" : "")} data-cat={e.cat}
                     style={{ top: topOf(e.start) + 1, height: (e.end - e.start) * HOUR_H - 3, left: `calc(${e._l * 100}% + 2px)`, width: `calc(${e._w * 100}% - 4px)` }}
-                    onClick={() => onPick(e)}>
+                    onClick={() => onPick({ ...e, dom: col.day })}>
                     <div className="m-ev-title">{e.title}</div>
                     {(e.end - e.start) >= 0.75 && <div className="m-ev-time">{fmtH(e.start)}</div>}
                   </div>
@@ -209,31 +213,62 @@ function MonthView({ onDay }) {
 }
 
 // ---------- AGENDA / LIST ----------
-function AgendaView({ onPick, selId }) {
-  const days = [18, 19, 20, 21, 22]; // Mon–Fri with bookings
+function AgendaView({ onPick, selId, onMonth }) {
+  // Mon–Fri across four weeks, spanning late March into mid-April
+  const days = [18, 19, 20, 21, 22, 25, 26, 27, 28, 29, 32, 33, 34, 35, 36, 39, 40, 41, 42, 43];
+  const bodyRef = React.useRef(null);
+  const hdrRefs = React.useRef({});
+  const [curDay, setCurDay] = React.useState(days[0]);
+  // one fixed top row reflects the day you're scrolled into; it flips to the
+  // next day only once that day's inline header has fully scrolled off the top
+  // (no sticky, no shove — inline headers just scroll away)
+  const onScroll = React.useCallback(() => {
+    const sc = bodyRef.current; if (!sc) return;
+    const cTop = sc.getBoundingClientRect().top;
+    let cur = days[0];
+    for (let i = 1; i < days.length; i++) {
+      const el = hdrRefs.current[days[i]];
+      if (el && el.getBoundingClientRect().bottom - cTop <= 1) cur = days[i];
+    }
+    setCurDay(cur);
+  }, []);
+  React.useEffect(() => { onScroll(); }, [onScroll]);
+  // report the month under the fixed row so the top bar can follow along
+  React.useEffect(() => { onMonth && onMonth(monthOf(curDay)); }, [curDay]);
+  const fixTerm = lunarFor(curDay);
   return (
-    <div className="m-body">
+    <React.Fragment>
+      <div className={"m-ag-fixed" + (curDay === TODAY ? " today" : "")}>
+        <span className="m-ag-dow">星期{DOW_SUN[sunIdx(curDay)]}</span>
+        <span className="m-ag-dnum">{fmtMD(curDay)}</span>
+        <span className="m-ag-lunar">{fixTerm.text}</span>
+      </div>
+      <div className="m-body" ref={bodyRef} onScroll={onScroll}>
       <div className="m-agenda">
-        {days.map((d) => {
-          const evs = ROOM.filter((e) => e.day === dayIndexOf(d)).sort((a, b) => a.start - b.start);
+        {days.map((d, di) => {
+          const evs = [...ROOM.filter((e) => e.day === dayIndexOf(d)), ...(DATE_EXTRA[d] || [])].sort((a, b) => a.start - b.start);
           const term = lunarFor(d);
+          const monthStart = di > 0 && monthOf(d) !== monthOf(days[di - 1]);
           return (
             <div key={d}>
-              <div className={"m-ag-day" + (d === TODAY ? " today" : "")}>
-                <span className="m-ag-dow">星期{DOW_SUN[sunIdx(d)]}</span>
-                <span className="m-ag-dnum">3月{d}日</span>
-                <span className="m-ag-lunar">{term.text}</span>
-              </div>
+              {monthStart && <div className="m-ag-month">{monthCN(monthOf(d))}</div>}
+              {di > 0 && (
+                <div className={"m-ag-day" + (d === TODAY ? " today" : "")} ref={(el) => { hdrRefs.current[d] = el; }}>
+                  <span className="m-ag-dow">星期{DOW_SUN[sunIdx(d)]}</span>
+                  <span className="m-ag-dnum">{fmtMD(d)}</span>
+                  <span className="m-ag-lunar">{term.text}</span>
+                </div>
+              )}
               <div className="m-ag-list">
                 {allDayFor(d).map((e, j) => (
-                  <div key={"ad" + j} className="m-ag-allday" onClick={() => onPick({ ...e, day: dayIndexOf(d), start: 0, end: 24, loc: "全天", who: e.term ? "节气" : "全体成员", allDay: true })}>
+                  <div key={"ad" + j} className="m-ag-allday" onClick={() => onPick({ ...e, day: dayIndexOf(d), dom: d, start: 0, end: 24, loc: "全天", who: e.term ? "节气" : "全体成员", allDay: true })}>
                     <span className="star" style={{ background: M_CAT[e.cat] }}><Ic.star /></span>
                     <span className="lbl">{e.title}</span>
                     <span className="at">全天</span>
                   </div>
                 ))}
                 {evs.map((e) => (
-                  <div key={e.id} className="m-ag-row" onClick={() => onPick(e)}>
+                  <div key={e.id} className="m-ag-row" onClick={() => onPick({ ...e, dom: d })}>
                     <div className="m-ag-main">
                       <span className="m-ag-rail" data-cat={e.cat} />
                       <div className="m-ag-txt">
@@ -249,8 +284,9 @@ function AgendaView({ onPick, selId }) {
           );
         })}
       </div>
-    </div>
+      </div>
+    </React.Fragment>
   );
 }
 
-Object.assign(window, { DayView, MultiDayView, MonthView, AgendaView, fmtH, evRange, M_CAT, dayIndexOf, sunIdx, DOW_SUN, lunarFor, TODAY });
+Object.assign(window, { DayView, MultiDayView, MonthView, AgendaView, fmtH, evRange, M_CAT, dayIndexOf, sunIdx, DOW_SUN, lunarFor, monthOf, dayNum, fmtMD, monthCN, TODAY });
