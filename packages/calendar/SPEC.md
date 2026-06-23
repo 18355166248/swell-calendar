@@ -142,6 +142,11 @@ interface CalendarOptions {
   multiDay?: {
     range?: number; // 默认 2，连续展示 N 天
   };
+  agenda?: {
+    offset?: number; // 默认 0，相对 initialDate/renderDate 的起始偏移天数
+    range?: number; // 默认 14，连续展示 N 天
+    showEmptyDays?: boolean; // 默认 true
+  };
   week?: {
     startDayOfWeek?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
     workweek?: boolean;
@@ -468,6 +473,8 @@ interface CalendarProps {
       resourceId?: string;
       resourceName?: string;
     }) => void;
+    // 列表视图滚动导致顶部可见日期变化时触发；用于宿主同步外部标题。
+    onAgendaVisibleDateChange?: (info: { date: DayjsTZDate }) => void;
     // scheduler 资源列头显隐控件被切换时触发。受控：宿主据 visibleResourceIds
     // 回写 scheduler.visibleResourceIds 后视图才更新（库内不维护独立显隐状态）。
     onResourceVisibilityChange?: (info: {
@@ -517,6 +524,34 @@ if (result.result === 'allowed') {
   // 根据 result.info.start / end / resourceId 创建新事件
 }
 ```
+
+### 通用 Hooks
+
+```ts
+function useVirtualList(options: {
+  count: number;
+  estimateSize: (index: number) => number;
+  enabled?: boolean;
+  overscan?: number;
+  resetKey?: unknown;
+}): {
+  scrollRef: React.RefObject<HTMLDivElement>;
+  scrollTop: number;
+  viewportHeight: number;
+  totalSize: number;
+  range: { start: number; end: number };
+  virtualItems: Array<{ index: number; start: number; size: number }>;
+  topSpacerHeight: number;
+  bottomSpacerHeight: number;
+  onScroll: () => void;
+  getIndexAtOffset: (offset: number) => number;
+  measureElement: (index: number, element: HTMLElement | null) => void;
+  scrollToIndex: (index: number) => void;
+  resetMeasurements: () => void;
+}
+```
+
+`useVirtualList` 是轻量纵向虚拟列表基础能力：调用方提供 item 数量和估算高度，hook 维护滚动容器、可见范围、上下占位高度，并支持渲染后用真实 DOM 高度修正偏移。当前用于移动端 Agenda 和 S2 连续月视图，避免长日期窗口一次性渲染全部 section。
 
 ### 宿主侧数据装配（可选）
 

@@ -36,7 +36,7 @@ describe('agenda.controller', () => {
         },
       ]),
       new DayjsTZDate('2026-06-22T00:00:00'),
-      { range: 3, showEmptyDays: true }
+      { offset: 0, range: 3, showEmptyDays: true }
     );
 
     expect(groups.map((group) => group.date.dayjs.format('YYYY-MM-DD'))).toEqual([
@@ -48,6 +48,21 @@ describe('agenda.controller', () => {
       ['standup'],
       [],
       ['next-day'],
+    ]);
+  });
+
+  it('supports an offset before renderDate', () => {
+    const groups = getAgendaDayGroups(calendarWith([]), new DayjsTZDate('2026-06-22T00:00:00'), {
+      offset: -2,
+      range: 4,
+      showEmptyDays: true,
+    });
+
+    expect(groups.map((group) => group.date.dayjs.format('YYYY-MM-DD'))).toEqual([
+      '2026-06-20',
+      '2026-06-21',
+      '2026-06-22',
+      '2026-06-23',
     ]);
   });
 
@@ -81,7 +96,7 @@ describe('agenda.controller', () => {
         },
       ]),
       new DayjsTZDate('2026-06-22T00:00:00'),
-      { range: 1, showEmptyDays: true }
+      { offset: 0, range: 1, showEmptyDays: true }
     );
 
     expect(group.events.map((event) => event.uiModel.model.id)).toEqual([
@@ -103,7 +118,7 @@ describe('agenda.controller', () => {
         },
       ]),
       new DayjsTZDate('2026-06-22T00:00:00'),
-      { range: 4, showEmptyDays: false }
+      { offset: 0, range: 4, showEmptyDays: false }
     );
 
     expect(groups.map((group) => group.date.dayjs.format('YYYY-MM-DD'))).toEqual([

@@ -6,7 +6,7 @@ import { Provider, ToastContainer, ToastQueue } from '@react-spectrum/s2';
 import dayjs from 'dayjs';
 import 'dayjs/locale/zh-cn';
 import weekOfYear from 'dayjs/plugin/weekOfYear';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import type { CalendarInstance, EventObject } from 'swell-calendar';
@@ -223,6 +223,8 @@ export default function App({ view }: AppProps) {
   const [mobileView, setMobileView] = useState<MobileViewId>(() => routeViewToMobileView(view));
   const [currentDate, setCurrentDate] = useState<Date>(() => new Date());
   const [visibleMonth, setVisibleMonth] = useState<Date>(() => new Date());
+  const [agendaVisibleDate, setAgendaVisibleDate] = useState<Date>(() => new Date());
+  const [shouldWarmMobileCalendar, setShouldWarmMobileCalendar] = useState(false);
   // 引擎实际视图：桌面跟随路由；移动端 segmented 映射到包内真实视图。
   const engineView: ViewId = isMobile
     ? mobileView === 'month'
@@ -233,6 +235,7 @@ export default function App({ view }: AppProps) {
           ? 'agenda'
           : 'day'
     : view;
+  const calendarEngineView: ViewId = isMobile && mobileView === 'month' ? 'agenda' : engineView;
   const [pick, setPick] = useState<{ ev: PickEvent; anchor: HTMLElement } | null>(null);
   const [morePick, setMorePick] = useState<{
     date: Date;
@@ -279,6 +282,26 @@ export default function App({ view }: AppProps) {
       );
     }
   }, [currentDate, isMobile, mobileView]);
+
+  useEffect(() => {
+    if (!isMobile || mobileView !== 'month' || shouldWarmMobileCalendar) {
+      return;
+    }
+
+    const warm = () => setShouldWarmMobileCalendar(true);
+    const idleId =
+      'requestIdleCallback' in window
+        ? window.requestIdleCallback(warm, { timeout: 1200 })
+        : globalThis.setTimeout(warm, 350);
+
+    return () => {
+      if ('cancelIdleCallback' in window && typeof idleId === 'number') {
+        window.cancelIdleCallback(idleId);
+      } else {
+        globalThis.clearTimeout(idleId as number);
+      }
+    };
+  }, [isMobile, mobileView, shouldWarmMobileCalendar]);
 
   const toggleCat = (c: Cat) =>
     setActiveCats((prev) => {
@@ -382,6 +405,7 @@ export default function App({ view }: AppProps) {
   const goToDate = (d: Date) => {
     setCurrentDate(d);
     setVisibleMonth(new Date(d.getFullYear(), d.getMonth(), 1));
+    setAgendaVisibleDate(d);
     calRef.current?.setDate(d);
   };
 
@@ -405,6 +429,11 @@ export default function App({ view }: AppProps) {
         : new Date(next.getFullYear(), next.getMonth(), 1)
     );
   };
+
+  const handleAgendaVisibleDateChange = useCallback((info: { date: { toDate: () => Date } }) => {
+    const next = info.date.toDate();
+    setAgendaVisibleDate((prev) => (isSameDay(prev, next) ? prev : next));
+  }, []);
 
   /**
    * 月视图的 overflow 行没有真实事件卡片 DOM，详情弹层需要允许锚定到浮层内点击的行，
@@ -443,11 +472,11 @@ export default function App({ view }: AppProps) {
   // 视图切换 → 同步 Calendar 内部视图（桌面路由 / 移动 segmented 统一走 engineView）
   useEffect(() => {
     try {
-      calRef.current?.setView(engineView);
+      calRef.current?.setView(calendarEngineView);
     } catch {
       // 视图名不匹配 / 占位视图未挂载引擎时忽略
     }
-  }, [engineView]);
+  }, [calendarEngineView]);
 
   const closePop = () => setPick(null);
 
@@ -466,7 +495,7 @@ export default function App({ view }: AppProps) {
   // useMemo 让引用仅在 view / currentDate / 周末开关 / 密度变化时改变，其余 render 复用旧引用。
   const calendarOptions = useMemo(() => {
     const options = buildCalendarOptions({
-      view: engineView,
+      view: calendarEngineView,
       currentDate,
       showWeekend: showWknd,
       monthNarrowWeekend,
@@ -488,7 +517,7 @@ export default function App({ view }: AppProps) {
       },
     };
   }, [
-    engineView,
+    calendarEngineView,
     currentDate,
     showWknd,
     monthNarrowWeekend,
@@ -551,6 +580,7 @@ export default function App({ view }: AppProps) {
           },
           // P8b: 引擎翻页 → 回填 currentDate，联动 MiniCalendar 高亮
           onPageChange: handlePageChange,
+          onAgendaVisibleDateChange: handleAgendaVisibleDateChange,
           // 月视图「+N 更多」点击 → 弹出该日所有事件列表
           onMoreEventsClick: ({ date, events }) => {
             const anchor = monthMoreAnchorRef.current ?? (document.activeElement as HTMLElement);
@@ -647,7 +677,12 @@ export default function App({ view }: AppProps) {
 
   // ===== 移动外壳（M1）=====
   if (isMobile) {
-    const mobileLabelDate = mobileView === 'month' ? visibleMonth : currentDate;
+    const mobileLabelDate =
+      mobileView === 'month'
+        ? visibleMonth
+        : mobileView === 'list'
+          ? agendaVisibleDate
+          : currentDate;
     const monthLabel = formatMobileMonthLabel(mobileLabelDate);
     const calendarLabel = formatMobileCalendarLabel(mobileLabelDate);
     return (
@@ -684,7 +719,17 @@ export default function App({ view }: AppProps) {
             onMouseDownCapture={(e) => rememberMonthMoreAnchor(e.target)}
             onKeyDownCapture={(e) => rememberMonthMoreAnchor(e.target)}
           >
-            {mobileView === 'month' ? mobileMonthNode : calendarNode}
+            {mobileView === 'month' ? mobileMonthNode : null}
+            {shouldWarmMobileCalendar || mobileView !== 'month' ? (
+              <div
+                className={
+                  mobileView === 'month' ? 's2-mobile-calendar-prewarm' : 's2-mobile-calendar-live'
+                }
+                aria-hidden={mobileView === 'month' ? true : undefined}
+              >
+                {calendarNode}
+              </div>
+            ) : null}
           </div>
           {overlays}
         </div>

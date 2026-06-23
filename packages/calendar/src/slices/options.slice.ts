@@ -97,6 +97,7 @@ function initializeEnabledViews(options: Options = {}): EnabledViews {
 
 function initializeAgendaOptions(agendaOptions: Options['agenda'] = {}): Required<AgendaOptions> {
   return {
+    offset: 0,
     range: 14,
     showEmptyDays: true,
     ...agendaOptions,

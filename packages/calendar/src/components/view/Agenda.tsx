@@ -16,13 +16,32 @@ import { AgendaEventItem, getAgendaDayGroups } from '@/controller/agenda.control
 import { cls, getEventColors } from '@/helpers/css';
 import { useCalendarColor } from '@/hooks/calendar/useCalendarColor';
 import { useViewportTier } from '@/hooks/common/useViewportTier';
+import { useVirtualList } from '@/hooks/common/useVirtualList';
 import DayjsTZDate from '@/time/dayjs-tzdate';
 import { getTierClassName } from '@/utils/viewport';
 
 import { Template } from '../Template';
 
+type AgendaDayGroup = ReturnType<typeof getAgendaDayGroups>[number];
+
+const MOBILE_AGENDA_OVERSCAN = 8;
+const MOBILE_AGENDA_HEADER_ESTIMATE = 48;
+const MOBILE_AGENDA_EMPTY_ESTIMATE = 42;
+const MOBILE_AGENDA_EVENT_ESTIMATE = 58;
+const MOBILE_AGENDA_DAY_GAP_ESTIMATE = 12;
+
 function formatDayTitle(date: DayjsTZDate): string {
   return date.dayjs.format('dddd M月D日');
+}
+
+function estimateMobileAgendaGroupHeight(group: AgendaDayGroup, index: number): number {
+  const headerHeight = index === 0 ? 0 : MOBILE_AGENDA_HEADER_ESTIMATE;
+  const listHeight =
+    group.events.length > 0
+      ? group.events.length * MOBILE_AGENDA_EVENT_ESTIMATE
+      : MOBILE_AGENDA_EMPTY_ESTIMATE;
+
+  return headerHeight + listHeight + MOBILE_AGENDA_DAY_GAP_ESTIMATE;
 }
 
 function formatEventTimeParts(item: AgendaEventItem): { primary: string; secondary?: string } {
@@ -102,9 +121,10 @@ function AgendaEventRow({ item }: { item: AgendaEventItem }) {
 export function Agenda() {
   const { options, view } = useCalendarStore();
   const calendar = useCalendarStore((state) => state.calendar);
+  const callbacks = useCalendarCallbacks();
   const [viewportTier, setViewportRef] = useViewportTier();
-  const scrollRef = useRef<HTMLDivElement | null>(null);
-  const headerRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const initialScrollKeyRef = useRef<string | null>(null);
+  const initialScrollPassRef = useRef(0);
   const [activeGroupIndex, setActiveGroupIndex] = useState(0);
   const groups = useMemo(
     () => getAgendaDayGroups(calendar, view.renderDate, options.agenda),
@@ -112,17 +132,33 @@ export function Agenda() {
   );
   const isMobile = viewportTier === 'mobile';
 
+  const estimateAgendaGroupHeight = useCallback(
+    (index: number) => estimateMobileAgendaGroupHeight(groups[index], index),
+    [groups]
+  );
+  const virtualList = useVirtualList({
+    count: groups.length,
+    estimateSize: estimateAgendaGroupHeight,
+    enabled: isMobile,
+    overscan: MOBILE_AGENDA_OVERSCAN,
+    resetKey: groups,
+  });
+  const {
+    bottomSpacerHeight,
+    getIndexAtOffset,
+    measureElement,
+    onScroll,
+    scrollRef,
+    scrollToIndex,
+    topSpacerHeight,
+    viewportHeight: vh,
+    virtualItems,
+  } = virtualList;
+
+  const visibleGroups = isMobile ? virtualItems.map((item) => groups[item.index]) : groups;
+
   const renderDayHeader = (group: (typeof groups)[number], fixed = false) => (
-    <div
-      className={cls('agenda-day-header', { 'agenda-day-header--fixed': fixed })}
-      ref={
-        fixed
-          ? undefined
-          : (el) => {
-              headerRefs.current[group.date.dayjs.format('YYYY-MM-DD')] = el;
-            }
-      }
-    >
+    <div className={cls('agenda-day-header', { 'agenda-day-header--fixed': fixed })}>
       <span className={cls('agenda-day-title')}>{formatDayTitle(group.date)}</span>
       <span className={cls('agenda-day-count')}>
         <Template
@@ -147,26 +183,38 @@ export function Agenda() {
 
   const handleAgendaScroll = useCallback(() => {
     if (!isMobile) return;
-    const scroller = scrollRef.current;
-    if (!scroller) return;
+    onScroll();
+    const nextScrollTop = scrollRef.current?.scrollTop ?? 0;
+    const nextIndex = getIndexAtOffset(nextScrollTop + 1);
 
-    const scrollTop = scroller.getBoundingClientRect().top;
-    let nextIndex = 0;
-    // 移动设计稿使用一个固定日期行展示当前滚动到的日期；列表内日期行正常滚走，不吸顶。
-    for (let index = 1; index < groups.length; index += 1) {
-      const key = groups[index].date.dayjs.format('YYYY-MM-DD');
-      const header = headerRefs.current[key];
-      if (header && header.getBoundingClientRect().bottom - scrollTop <= 1) {
-        nextIndex = index;
-      }
-    }
+    if (activeGroupIndex === nextIndex) return;
 
-    setActiveGroupIndex((prev) => (prev === nextIndex ? prev : nextIndex));
-  }, [groups, isMobile]);
+    setActiveGroupIndex(nextIndex);
+    callbacks?.onAgendaVisibleDateChange?.({ date: groups[nextIndex].date });
+  }, [activeGroupIndex, callbacks, groups, isMobile, getIndexAtOffset, onScroll, scrollRef]);
 
   useEffect(() => {
-    setActiveGroupIndex(0);
-  }, [groups]);
+    if (!isMobile) return;
+    const renderDateKey = view.renderDate.dayjs.format('YYYY-MM-DD');
+    if (initialScrollKeyRef.current !== renderDateKey) {
+      initialScrollKeyRef.current = renderDateKey;
+      initialScrollPassRef.current = 0;
+    }
+
+    if (initialScrollPassRef.current >= 8) return;
+
+    const targetIndex = groups.findIndex(
+      (group) => group.date.dayjs.format('YYYY-MM-DD') === renderDateKey
+    );
+    if (targetIndex < 0) return;
+
+    if (vh < 80) return;
+
+    initialScrollPassRef.current += 1;
+    setActiveGroupIndex(targetIndex);
+    callbacks?.onAgendaVisibleDateChange?.({ date: groups[targetIndex].date });
+    scrollToIndex(targetIndex);
+  }, [callbacks, groups, isMobile, view.renderDate, scrollToIndex, vh]);
 
   return (
     <Layout className={getTierClassName('agenda-view', viewportTier)} rootRef={setViewportRef}>
@@ -174,26 +222,37 @@ export function Agenda() {
         ? renderDayHeader(groups[activeGroupIndex], true)
         : null}
       <div className={cls('agenda-scroll')} ref={scrollRef} onScroll={handleAgendaScroll}>
-        {groups.map((group, index) => (
-          <section
-            key={group.date.dayjs.format('YYYY-MM-DD')}
-            className={cls('agenda-day', { 'agenda-day--today': group.isToday })}
-          >
-            {isMobile && index === 0 ? null : renderDayHeader(group)}
-            <div className={cls('agenda-day-list')}>
-              {group.events.length > 0 ? (
-                group.events.map((item) => (
-                  <AgendaEventRow
-                    key={`${item.uiModel.cid()}-${group.date.getTime()}`}
-                    item={item}
-                  />
-                ))
-              ) : (
-                <div className={cls('agenda-empty')}>无日程</div>
-              )}
-            </div>
-          </section>
-        ))}
+        {isMobile && topSpacerHeight > 0 ? (
+          <div aria-hidden style={{ height: topSpacerHeight }} />
+        ) : null}
+        {visibleGroups.map((group, virtualIndex) => {
+          const index = isMobile ? virtualItems[virtualIndex].index : virtualIndex;
+          return (
+            <section
+              key={group.date.dayjs.format('YYYY-MM-DD')}
+              className={cls('agenda-day', { 'agenda-day--today': group.isToday })}
+              ref={isMobile ? (el) => measureElement(index, el) : undefined}
+              data-agenda-index={isMobile ? index : undefined}
+            >
+              {isMobile && index === 0 ? null : renderDayHeader(group)}
+              <div className={cls('agenda-day-list')}>
+                {group.events.length > 0 ? (
+                  group.events.map((item) => (
+                    <AgendaEventRow
+                      key={`${item.uiModel.cid()}-${group.date.getTime()}`}
+                      item={item}
+                    />
+                  ))
+                ) : (
+                  <div className={cls('agenda-empty')}>无日程</div>
+                )}
+              </div>
+            </section>
+          );
+        })}
+        {isMobile && bottomSpacerHeight > 0 ? (
+          <div aria-hidden style={{ height: bottomSpacerHeight }} />
+        ) : null}
       </div>
     </Layout>
   );

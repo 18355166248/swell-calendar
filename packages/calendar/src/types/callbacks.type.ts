@@ -200,6 +200,12 @@ export interface CalendarMoreEventsClickInfo {
   events: EventObject[];
 }
 
+/** 列表视图当前可见日期变化时传出的信息 */
+export interface CalendarAgendaVisibleDateChangeInfo {
+  /** 当前列表顶部对应的日期 */
+  date: DayjsTZDate;
+}
+
 export interface CalendarCallbacks {
   onEventClick?: (info: CalendarEventClickInfo) => void;
   onCellClick?: (info: CalendarCellClickInfo) => void;
@@ -218,6 +224,8 @@ export interface CalendarCallbacks {
   onCrossInstanceDrop?: (info: CalendarCrossInstanceDropInfo) => void;
   /** 月视图「+N 更多」按钮被点击时触发 */
   onMoreEventsClick?: (info: CalendarMoreEventsClickInfo) => void;
+  /** 列表视图滚动导致顶部可见日期变化时触发 */
+  onAgendaVisibleDateChange?: (info: CalendarAgendaVisibleDateChangeInfo) => void;
   /**
    * scheduler 资源列头显隐控件被切换时触发。
    *

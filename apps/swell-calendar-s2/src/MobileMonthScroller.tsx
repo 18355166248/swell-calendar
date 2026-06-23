@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, type CSSProperties } from 'react';
 
+import { useVirtualList } from 'swell-calendar';
+
 import { dayIndexToDate } from './calendarData';
 import { CAT_COLOR_STYLES, type CalEvent } from './data';
 import { lunarLabelOf } from './lunar';
@@ -7,6 +9,9 @@ import { lunarLabelOf } from './lunar';
 const MONTH_RANGE_BEFORE = 24;
 const MONTH_RANGE_AFTER = 12;
 const MONTH_DOW = ['一', '二', '三', '四', '五', '六', '日'];
+const MONTH_OVERSCAN = 3;
+const MONTH_SECTION_BASE_HEIGHT = 68;
+const MONTH_WEEK_ROW_HEIGHT = 85;
 
 function startOfMonth(date: Date): Date {
   return new Date(date.getFullYear(), date.getMonth(), 1);
@@ -53,6 +58,12 @@ function buildMonthCells(monthDate: Date) {
   });
 }
 
+function estimateMonthSectionHeight(monthDate: Date): number {
+  return (
+    MONTH_SECTION_BASE_HEIGHT + (buildMonthCells(monthDate).length / 7) * MONTH_WEEK_ROW_HEIGHT
+  );
+}
+
 function groupEventsByDate(events: CalEvent[]): Map<string, CalEvent[]> {
   const grouped = new Map<string, CalEvent[]>();
 
@@ -91,10 +102,8 @@ export function MobileMonthScroller({
   onVisibleMonthChange,
   onEventClick,
 }: MobileMonthScrollerProps) {
-  const scrollerRef = useRef<HTMLDivElement | null>(null);
-  const currentMonthRef = useRef<HTMLElement | null>(null);
   const baseMonthRef = useRef(startOfMonth(currentDate));
-  const didInitialScrollRef = useRef(false);
+  const initialScrollPassRef = useRef(0);
   const today = new Date();
 
   const months = useMemo(
@@ -106,62 +115,55 @@ export function MobileMonthScroller({
   );
 
   const eventsByDate = useMemo(() => groupEventsByDate(events), [events]);
+  const estimateMonthHeight = useMemo(
+    () => (index: number) => estimateMonthSectionHeight(months[index]),
+    [months]
+  );
+  const virtualList = useVirtualList({
+    count: months.length,
+    estimateSize: estimateMonthHeight,
+    enabled: true,
+    overscan: MONTH_OVERSCAN,
+    resetKey: months,
+  });
 
   useEffect(() => {
-    if (didInitialScrollRef.current) return;
-    didInitialScrollRef.current = true;
-    currentMonthRef.current?.scrollIntoView({ block: 'start' });
-  }, [months]);
+    if (initialScrollPassRef.current >= 8) return;
+    initialScrollPassRef.current += 1;
+    virtualList.scrollToIndex(MONTH_RANGE_BEFORE);
+  }, [virtualList.scrollToIndex]);
 
-  useEffect(() => {
-    const scroller = scrollerRef.current;
-    if (!scroller) return;
+  const handleScroll = () => {
+    virtualList.onScroll();
+    if (initialScrollPassRef.current < 8) return;
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visible = entries
-          .filter((entry) => entry.isIntersecting)
-          .sort((a, b) => Math.abs(a.boundingClientRect.top) - Math.abs(b.boundingClientRect.top));
-        const target = visible[0]?.target as HTMLElement | undefined;
-        const monthKey = target?.dataset.month;
-        if (!monthKey) return;
-
-        const [year, month] = monthKey.split('-').map(Number);
-        const next = new Date(year, (month || 1) - 1, 1);
-        if (
-          next.getFullYear() !== visibleMonth.getFullYear() ||
-          next.getMonth() !== visibleMonth.getMonth()
-        ) {
-          onVisibleMonthChange(next);
-        }
-      },
-      {
-        root: scroller,
-        threshold: [0.2, 0.6],
-        rootMargin: '-8% 0px -72% 0px',
-      }
+    const nextIndex = virtualList.getIndexAtOffset(
+      (virtualList.scrollRef.current?.scrollTop ?? 0) + 1
     );
-
-    scroller.querySelectorAll<HTMLElement>('.m-month-section').forEach((section) => {
-      observer.observe(section);
-    });
-
-    return () => observer.disconnect();
-  }, [months, onVisibleMonthChange, visibleMonth]);
+    const next = months[nextIndex];
+    if (
+      next &&
+      (next.getFullYear() !== visibleMonth.getFullYear() ||
+        next.getMonth() !== visibleMonth.getMonth())
+    ) {
+      onVisibleMonthChange(next);
+    }
+  };
 
   return (
-    <div className="m-month-scroller" ref={scrollerRef}>
-      {months.map((month) => {
+    <div className="m-month-scroller" ref={virtualList.scrollRef} onScroll={handleScroll}>
+      {virtualList.topSpacerHeight > 0 ? (
+        <div aria-hidden style={{ height: virtualList.topSpacerHeight }} />
+      ) : null}
+      {virtualList.virtualItems.map((virtualItem) => {
+        const month = months[virtualItem.index];
         const monthKey = `${month.getFullYear()}-${String(month.getMonth() + 1).padStart(2, '0')}`;
         const cells = buildMonthCells(month);
-        const isCurrentMonth =
-          month.getFullYear() === currentDate.getFullYear() &&
-          month.getMonth() === currentDate.getMonth();
 
         return (
           <section
             key={monthKey}
-            ref={isCurrentMonth ? currentMonthRef : undefined}
+            ref={(el) => virtualList.measureElement(virtualItem.index, el)}
             className="m-month-section"
             data-month={monthKey}
           >
@@ -230,6 +232,9 @@ export function MobileMonthScroller({
           </section>
         );
       })}
+      {virtualList.bottomSpacerHeight > 0 ? (
+        <div aria-hidden style={{ height: virtualList.bottomSpacerHeight }} />
+      ) : null}
     </div>
   );
 }

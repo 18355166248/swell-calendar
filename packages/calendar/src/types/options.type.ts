@@ -109,6 +109,8 @@ export interface MonthOptions {
 }
 
 export interface AgendaOptions {
+  /** 相对 renderDate 的起始偏移天数，默认 0。负数表示从 renderDate 之前开始。 */
+  offset?: number;
   /** 从 renderDate 开始展示的连续天数，默认 14 天。 */
   range?: number;
   /** 是否展示没有事件的日期分组，默认 true。 */

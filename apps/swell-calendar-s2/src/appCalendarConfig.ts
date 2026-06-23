@@ -24,6 +24,8 @@ const MIN_STACK = 1;
 const MAX_STACK = 6;
 const MIN_RANGE = 1;
 const MAX_RANGE = 14;
+const MOBILE_AGENDA_MONTHS_BEFORE = 24;
+const MOBILE_AGENDA_MONTHS_AFTER = 12;
 
 function isWeekend(day: number) {
   return day === 0 || day === 6;
@@ -82,6 +84,31 @@ function formatRangeTitle(start: Date, end: Date) {
   }
 
   return `${startMonth}月${startDateValue}日 – ${endMonth}月${endDateValue}日`;
+}
+
+function startOfMonth(date: Date): Date {
+  return new Date(date.getFullYear(), date.getMonth(), 1);
+}
+
+function addMonths(date: Date, delta: number): Date {
+  return new Date(date.getFullYear(), date.getMonth() + delta, 1);
+}
+
+function diffDays(start: Date, end: Date): number {
+  const startDay = dayjs(start).startOf('day');
+  const endDay = dayjs(end).startOf('day');
+  return endDay.diff(startDay, 'day');
+}
+
+function getMobileAgendaWindow(currentDate: Date): { offset: number; range: number } {
+  const baseMonth = startOfMonth(currentDate);
+  const start = addMonths(baseMonth, -MOBILE_AGENDA_MONTHS_BEFORE);
+  const endExclusive = addMonths(baseMonth, MOBILE_AGENDA_MONTHS_AFTER + 1);
+
+  return {
+    offset: diffDays(currentDate, start),
+    range: diffDays(start, endExclusive),
+  };
 }
 
 export function computeViewTitle(
@@ -155,6 +182,10 @@ export function buildCalendarOptions(input: {
   const weekHourStart = input.isMobile ? 0 : 8;
   const weekHourEnd = input.isMobile ? 24 : 20;
 
+  const agendaWindow = input.isMobile
+    ? getMobileAgendaWindow(input.currentDate)
+    : { offset: 0, range: 14 };
+
   return {
     defaultView: input.view,
     initialDate: input.currentDate,
@@ -175,7 +206,8 @@ export function buildCalendarOptions(input: {
       dragToCreate: true,
     },
     agenda: {
-      range: 14,
+      offset: agendaWindow.offset,
+      range: agendaWindow.range,
       showEmptyDays: true,
     },
     multiDay: {

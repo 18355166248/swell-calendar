@@ -1587,6 +1587,20 @@ button {
   overscroll-behavior: contain;
 }
 
+.s2-mobile-calendar-prewarm {
+  position: absolute;
+  inset: auto 0 0 0;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.s2-mobile-calendar-live {
+  display: contents;
+}
+
 .m-month-section {
   padding: 10px 0 18px;
   scroll-margin-top: 0;

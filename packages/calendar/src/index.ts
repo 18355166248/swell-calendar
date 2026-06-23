@@ -10,6 +10,12 @@ export {
   isRecurrenceInstance,
 } from '@/controller/recurrence-edit-scope';
 export type {
+  UseVirtualListOptions,
+  UseVirtualListResult,
+  VirtualItem,
+} from '@/hooks/common/useVirtualList';
+export { useVirtualList } from '@/hooks/common/useVirtualList';
+export type {
   CalendarDataStatus,
   UseCalendarDataSourceResult,
 } from '@/hooks/data/useCalendarDataSource';

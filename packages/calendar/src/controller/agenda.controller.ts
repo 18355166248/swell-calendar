@@ -1,5 +1,4 @@
 import { isAllday } from '@/controller/event.controller';
-import { EventModel } from '@/model/eventModel';
 import { EventUIModel } from '@/model/eventUIModel';
 import { makeDateRange, MS_PER_DAY, toEndOfDay, toStartOfDay } from '@/time/datetime';
 import DayjsTZDate from '@/time/dayjs-tzdate';
@@ -29,17 +28,10 @@ function normalizeAgendaRange(range?: number): number {
 }
 
 export function getAgendaDays(renderDate: DayjsTZDate, options: Required<AgendaOptions>) {
-  const start = toStartOfDay(renderDate);
-  const end = toStartOfDay(renderDate).addDate(normalizeAgendaRange(options.range) - 1);
+  const start = toStartOfDay(renderDate).addDate(Math.trunc(options.offset));
+  const end = start.addDate(normalizeAgendaRange(options.range) - 1);
 
   return makeDateRange(start, end, MS_PER_DAY);
-}
-
-function eventIntersectsDay(model: EventModel, day: DayjsTZDate): boolean {
-  const dayStart = toStartOfDay(day).getTime();
-  const dayEnd = toEndOfDay(day).getTime();
-
-  return model.getStarts().getTime() <= dayEnd && model.getEnds().getTime() >= dayStart;
 }
 
 function toAgendaEventItem(uiModel: EventUIModel, day: DayjsTZDate): AgendaEventItem {
@@ -60,17 +52,28 @@ export function getAgendaDayGroups(
   options: Required<AgendaOptions>
 ): AgendaDayGroup[] {
   const days = getAgendaDays(renderDate, options);
-  const models = calendar.events
-    .toArray()
-    .filter((model) => model.isVisible)
-    .map((model) => new EventUIModel(model))
-    .sort(array.compare.event.asc);
+  const uiModelCache = new Map<number, EventUIModel>();
   const today = new DayjsTZDate();
 
   return days
     .map((date) => {
-      const events = models
-        .filter((uiModel) => eventIntersectsDay(uiModel.model, date))
+      const ids = calendar.idsOfDay[date.dayjs.format('YYYYMMDD')] ?? [];
+      // idsOfDay 是事件写入时维护的日期索引；Agenda 长窗口按天取命中事件，
+      // 避免切到列表时执行「天数 × 全量事件」扫描。
+      const events = ids
+        .map((cid) => {
+          const model = calendar.events.get(cid);
+          if (!model?.isVisible) return null;
+
+          const cached = uiModelCache.get(cid);
+          if (cached) return cached;
+
+          const next = new EventUIModel(model);
+          uiModelCache.set(cid, next);
+          return next;
+        })
+        .filter((uiModel): uiModel is EventUIModel => uiModel !== null)
+        .sort(array.compare.event.asc)
         .map((uiModel) => toAgendaEventItem(uiModel, date));
 
       return {
