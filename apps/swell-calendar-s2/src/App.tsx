@@ -222,6 +222,7 @@ export default function App({ view }: AppProps) {
   // 移动端视图状态独立于 URL（桌面 view 仍以路由为真源）；多日/列表分别映射到 multiDay/agenda。
   const [mobileView, setMobileView] = useState<MobileViewId>(() => routeViewToMobileView(view));
   const [currentDate, setCurrentDate] = useState<Date>(() => new Date());
+  const [visibleMonth, setVisibleMonth] = useState<Date>(() => new Date());
   // 引擎实际视图：桌面跟随路由；移动端 segmented 映射到包内真实视图。
   const engineView: ViewId = isMobile
     ? mobileView === 'month'
@@ -267,6 +268,17 @@ export default function App({ view }: AppProps) {
       setMobileView(routeViewToMobileView(view));
     }
   }, [isMobile, view]);
+
+  useEffect(() => {
+    if (isMobile && mobileView === 'month') {
+      setVisibleMonth((prev) =>
+        prev.getFullYear() === currentDate.getFullYear() &&
+        prev.getMonth() === currentDate.getMonth()
+          ? prev
+          : new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
+      );
+    }
+  }, [currentDate, isMobile, mobileView]);
 
   const toggleCat = (c: Cat) =>
     setActiveCats((prev) => {
@@ -369,6 +381,7 @@ export default function App({ view }: AppProps) {
   /** MiniCalendar 点日期 → 同步 state + 引擎 setDate（引擎回填的 onPageChange 同日，不会成环）。 */
   const goToDate = (d: Date) => {
     setCurrentDate(d);
+    setVisibleMonth(new Date(d.getFullYear(), d.getMonth(), 1));
     calRef.current?.setDate(d);
   };
 
@@ -386,6 +399,11 @@ export default function App({ view }: AppProps) {
   const handlePageChange = (info: { date: { toDate: () => Date } }) => {
     const next = info.date.toDate();
     setCurrentDate((prev) => (isSameDay(prev, next) ? prev : next));
+    setVisibleMonth((prev) =>
+      prev.getFullYear() === next.getFullYear() && prev.getMonth() === next.getMonth()
+        ? prev
+        : new Date(next.getFullYear(), next.getMonth(), 1)
+    );
   };
 
   /**
@@ -558,8 +576,13 @@ export default function App({ view }: AppProps) {
     ) : (
       <MobileMonthScroller
         currentDate={currentDate}
+        visibleMonth={visibleMonth}
         events={visibleEvents}
-        onDateChange={setCurrentDate}
+        onDateChange={(date) => {
+          setCurrentDate(date);
+          setVisibleMonth(new Date(date.getFullYear(), date.getMonth(), 1));
+        }}
+        onVisibleMonthChange={setVisibleMonth}
         onEventClick={(event, anchor) => {
           openEventDetails(toCalendarEvents([event])[0], anchor);
         }}
@@ -624,8 +647,9 @@ export default function App({ view }: AppProps) {
 
   // ===== 移动外壳（M1）=====
   if (isMobile) {
-    const monthLabel = formatMobileMonthLabel(currentDate);
-    const calendarLabel = formatMobileCalendarLabel(currentDate);
+    const mobileLabelDate = mobileView === 'month' ? visibleMonth : currentDate;
+    const monthLabel = formatMobileMonthLabel(mobileLabelDate);
+    const calendarLabel = formatMobileCalendarLabel(mobileLabelDate);
     return (
       <Provider colorScheme={prefs.theme}>
         <ToastContainer />
@@ -644,7 +668,7 @@ export default function App({ view }: AppProps) {
             />
           )}
           {mobileView === 'month' && (
-            <div className="m-month-title">{currentDate.getMonth() + 1}月</div>
+            <div className="m-month-title">{visibleMonth.getMonth() + 1}月</div>
           )}
           {mobileView === 'month' && (
             <div className="m-month-dow" aria-hidden>

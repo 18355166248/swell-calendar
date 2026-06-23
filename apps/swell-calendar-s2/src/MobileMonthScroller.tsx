@@ -76,15 +76,19 @@ function groupEventsByDate(events: CalEvent[]): Map<string, CalEvent[]> {
 
 interface MobileMonthScrollerProps {
   currentDate: Date;
+  visibleMonth: Date;
   events: CalEvent[];
   onDateChange: (date: Date) => void;
+  onVisibleMonthChange: (date: Date) => void;
   onEventClick: (event: CalEvent, anchor: HTMLElement) => void;
 }
 
 export function MobileMonthScroller({
   currentDate,
+  visibleMonth,
   events,
   onDateChange,
+  onVisibleMonthChange,
   onEventClick,
 }: MobileMonthScrollerProps) {
   const scrollerRef = useRef<HTMLDivElement | null>(null);
@@ -125,10 +129,10 @@ export function MobileMonthScroller({
         const [year, month] = monthKey.split('-').map(Number);
         const next = new Date(year, (month || 1) - 1, 1);
         if (
-          next.getFullYear() !== currentDate.getFullYear() ||
-          next.getMonth() !== currentDate.getMonth()
+          next.getFullYear() !== visibleMonth.getFullYear() ||
+          next.getMonth() !== visibleMonth.getMonth()
         ) {
-          onDateChange(next);
+          onVisibleMonthChange(next);
         }
       },
       {
@@ -143,7 +147,7 @@ export function MobileMonthScroller({
     });
 
     return () => observer.disconnect();
-  }, [currentDate, months, onDateChange]);
+  }, [months, onVisibleMonthChange, visibleMonth]);
 
   return (
     <div className="m-month-scroller" ref={scrollerRef}>
