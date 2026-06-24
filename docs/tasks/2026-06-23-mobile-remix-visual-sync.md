@@ -194,6 +194,19 @@
 
 验证：`node scripts/check-docs.mjs`、`node scripts/check-arch.mjs`、`pnpm --filter swell-calendar-s2 exec tsc --noEmit` 通过。剩余风险：本轮只处理移动端触摸反馈阴影，不调整弹层自身阴影（搜索面板、详情 sheet 等容器阴影仍保留）。
 
+## 移动端视图切换响应优化（2026-06-24）
+
+移动端从顶部 tab 切到「月」或「列表」时，点击反馈会和虚拟滚动容器 / Calendar agenda 重内容切换在同一轮同步提交，导致 tab active 态也跟着卡顿。此前虚拟列表已优化滚动阶段，但切换入口仍会被首次挂载、日期窗口重建和 setView 阻塞。
+
+修复（`apps/swell-calendar-s2/src/App.tsx`）：
+- 将移动端顶部 tab 的即时状态 `mobileView` 与实际重内容渲染状态 `renderedMobileView` 拆开。
+- 点击 tab 时先同步更新 `mobileView`，让顶部 segmented 立即进入选中态。
+- 实际内容切换、离开月/列表时的焦点日期对账、Calendar 视图切换统一延后到下一次绘制后，并包在 React `startTransition` 中降低优先级。
+- 所有重内容副作用（Calendar `engineView`、预热 agenda、月标题 / 周条 / 月滚动内容、切换动画、自动滚到当前时间）改由 `renderedMobileView` 驱动，避免 tab 状态变化直接触发重渲染。
+- 「今天」和月视图点日期这类直接跳转会取消尚未执行的延迟切换，避免旧的排队切换覆盖新动作。
+
+验证：`node scripts/check-docs.mjs`、`node scripts/check-arch.mjs`、`pnpm --filter swell-calendar-s2 exec tsc --noEmit`、`pnpm --filter swell-calendar-s2 test` 通过；测试输出保留沙箱下 Vite WebSocket `EPERM` 噪声但退出码为 0。剩余风险：重内容最多延后一帧加一个 macrotask 出现；这是为了优先保证触摸反馈即时，视觉上表现为 tab 先亮、页面随后切出。
+
 ## 风险
 
 - 本次只做样式边界修正，不处理更大范围的像素级还原差异。

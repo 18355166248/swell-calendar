@@ -6,7 +6,7 @@ import { Provider, ToastContainer, ToastQueue } from '@react-spectrum/s2';
 import dayjs from 'dayjs';
 import 'dayjs/locale/zh-cn';
 import weekOfYear from 'dayjs/plugin/weekOfYear';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import type { CalendarInstance, EventObject } from 'swell-calendar';
@@ -239,6 +239,9 @@ export default function App({ view }: AppProps) {
   const isMobile = useIsMobile();
   // 移动端视图状态独立于 URL（桌面 view 仍以路由为真源）；多日/列表分别映射到 multiDay/agenda。
   const [mobileView, setMobileView] = useState<MobileViewId>(() => routeViewToMobileView(view));
+  const [renderedMobileView, setRenderedMobileView] = useState<MobileViewId>(() =>
+    routeViewToMobileView(view)
+  );
   const [currentDate, setCurrentDate] = useState<Date>(() => new Date());
   const [visibleMonth, setVisibleMonth] = useState<Date>(() => new Date());
   const [agendaVisibleDate, setAgendaVisibleDate] = useState<Date>(() => new Date());
@@ -248,15 +251,16 @@ export default function App({ view }: AppProps) {
   const [mobileSearchQuery, setMobileSearchQuery] = useState('');
   // 引擎实际视图：桌面跟随路由；移动端 segmented 映射到包内真实视图。
   const engineView: ViewId = isMobile
-    ? mobileView === 'month'
+    ? renderedMobileView === 'month'
       ? 'month'
-      : mobileView === 'multi'
+      : renderedMobileView === 'multi'
         ? 'multiDay'
-        : mobileView === 'list'
+        : renderedMobileView === 'list'
           ? 'agenda'
           : 'day'
     : view;
-  const calendarEngineView: ViewId = isMobile && mobileView === 'month' ? 'agenda' : engineView;
+  const calendarEngineView: ViewId =
+    isMobile && renderedMobileView === 'month' ? 'agenda' : engineView;
   const [pick, setPick] = useState<{ ev: PickEvent; anchor: HTMLElement } | null>(null);
   const [morePick, setMorePick] = useState<{
     date: Date;
@@ -287,15 +291,19 @@ export default function App({ view }: AppProps) {
   const calRef = useRef<CalendarInstance>(null);
   const monthMoreAnchorRef = useRef<HTMLElement | null>(null);
   const mobileCanvasRef = useRef<HTMLDivElement>(null);
+  const pendingMobileViewFrameRef = useRef<number | null>(null);
+  const pendingMobileViewTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (isMobile) {
-      setMobileView(routeViewToMobileView(view));
+      const next = routeViewToMobileView(view);
+      setMobileView(next);
+      setRenderedMobileView(next);
     }
   }, [isMobile, view]);
 
   useEffect(() => {
-    if (isMobile && mobileView === 'month') {
+    if (isMobile && renderedMobileView === 'month') {
       setVisibleMonth((prev) =>
         prev.getFullYear() === currentDate.getFullYear() &&
         prev.getMonth() === currentDate.getMonth()
@@ -303,10 +311,10 @@ export default function App({ view }: AppProps) {
           : new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
       );
     }
-  }, [currentDate, isMobile, mobileView]);
+  }, [currentDate, isMobile, renderedMobileView]);
 
   useEffect(() => {
-    if (!isMobile || mobileView !== 'month' || shouldWarmMobileCalendar) {
+    if (!isMobile || renderedMobileView !== 'month' || shouldWarmMobileCalendar) {
       return;
     }
 
@@ -323,7 +331,19 @@ export default function App({ view }: AppProps) {
         globalThis.clearTimeout(idleId as number);
       }
     };
-  }, [isMobile, mobileView, shouldWarmMobileCalendar]);
+  }, [isMobile, renderedMobileView, shouldWarmMobileCalendar]);
+
+  useEffect(
+    () => () => {
+      if (pendingMobileViewFrameRef.current !== null) {
+        cancelAnimationFrame(pendingMobileViewFrameRef.current);
+      }
+      if (pendingMobileViewTimerRef.current !== null) {
+        window.clearTimeout(pendingMobileViewTimerRef.current);
+      }
+    },
+    []
+  );
 
   const toggleCat = (c: Cat) =>
     setActiveCats((prev) => {
@@ -447,7 +467,7 @@ export default function App({ view }: AppProps) {
     setCurrentDate((prev) => (isSameDay(prev, next) ? prev : next));
     // 移动端月视图下，引擎是隐藏预热的 agenda 实例，visibleMonth 由 MobileMonthScroller
     // 的滚动驱动；此处不能让预热引擎的 onPageChange 把 visibleMonth 拉回它自己的页面日期。
-    if (isMobile && mobileView === 'month') {
+    if (isMobile && renderedMobileView === 'month') {
       return;
     }
     setVisibleMonth((prev) =>
@@ -460,13 +480,13 @@ export default function App({ view }: AppProps) {
   const handleAgendaVisibleDateChange = useCallback(
     (info: { date: { toDate: () => Date } }) => {
       // 移动端月视图下引擎是隐藏预热的 agenda 实例，其滚动不应污染列表浏览游标。
-      if (isMobile && mobileView === 'month') {
+      if (isMobile && renderedMobileView === 'month') {
         return;
       }
       const next = info.date.toDate();
       setAgendaVisibleDate((prev) => (isSameDay(prev, next) ? prev : next));
     },
-    [isMobile, mobileView]
+    [isMobile, renderedMobileView]
   );
 
   /**
@@ -480,12 +500,38 @@ export default function App({ view }: AppProps) {
     if (next === mobileView) {
       return;
     }
-    if (mobileView === 'month' && !isSameMonth(visibleMonth, currentDate)) {
-      setCurrentDate(reconcileDateToMonth(currentDate, visibleMonth));
-    } else if (mobileView === 'list' && !isSameDay(agendaVisibleDate, currentDate)) {
-      setCurrentDate(agendaVisibleDate);
-    }
     setMobileView(next);
+
+    if (pendingMobileViewFrameRef.current !== null) {
+      cancelAnimationFrame(pendingMobileViewFrameRef.current);
+      pendingMobileViewFrameRef.current = null;
+    }
+    if (pendingMobileViewTimerRef.current !== null) {
+      window.clearTimeout(pendingMobileViewTimerRef.current);
+      pendingMobileViewTimerRef.current = null;
+    }
+
+    const fromView = renderedMobileView;
+    const dateBeforeSwitch = currentDate;
+    const monthBeforeSwitch = visibleMonth;
+    const listDateBeforeSwitch = agendaVisibleDate;
+
+    // 顶部 tab 的 active 态先同步提交；重视图切换放到下一次绘制之后，并用 transition
+    // 降低优先级，避免月/列表虚拟容器初始化阻塞触摸反馈。
+    pendingMobileViewFrameRef.current = requestAnimationFrame(() => {
+      pendingMobileViewFrameRef.current = null;
+      pendingMobileViewTimerRef.current = window.setTimeout(() => {
+        pendingMobileViewTimerRef.current = null;
+        startTransition(() => {
+          if (fromView === 'month' && !isSameMonth(monthBeforeSwitch, dateBeforeSwitch)) {
+            setCurrentDate(reconcileDateToMonth(dateBeforeSwitch, monthBeforeSwitch));
+          } else if (fromView === 'list' && !isSameDay(listDateBeforeSwitch, dateBeforeSwitch)) {
+            setCurrentDate(listDateBeforeSwitch);
+          }
+          setRenderedMobileView(next);
+        });
+      }, 0);
+    });
   };
 
   /**
@@ -537,14 +583,14 @@ export default function App({ view }: AppProps) {
       ],
       { duration: 200, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' }
     );
-  }, [mobileView, isMobile]);
+  }, [renderedMobileView, isMobile]);
 
   // 进入日 / 多日视图且焦点为今天时，自动把时间面板滚到当前时刻；切到别的日期不触发。
   useEffect(() => {
-    if (!isMobile || (mobileView !== 'day' && mobileView !== 'multi')) return;
+    if (!isMobile || (renderedMobileView !== 'day' && renderedMobileView !== 'multi')) return;
     if (!isSameDay(currentDate, new Date())) return;
     scrollMobileTimeToNow();
-  }, [isMobile, mobileView, currentDate, status, scrollMobileTimeToNow]);
+  }, [isMobile, renderedMobileView, currentDate, status, scrollMobileTimeToNow]);
 
   /**
    * 移动端「今天」：把共享焦点日期归位到今天。日 / 多日就地居中；月 / 列表是各自的
@@ -552,12 +598,26 @@ export default function App({ view }: AppProps) {
    */
   const goToTodayMobile = () => {
     const today = new Date();
+    if (pendingMobileViewFrameRef.current !== null) {
+      cancelAnimationFrame(pendingMobileViewFrameRef.current);
+      pendingMobileViewFrameRef.current = null;
+    }
+    if (pendingMobileViewTimerRef.current !== null) {
+      window.clearTimeout(pendingMobileViewTimerRef.current);
+      pendingMobileViewTimerRef.current = null;
+    }
     setCurrentDate(today);
     setVisibleMonth(new Date(today.getFullYear(), today.getMonth(), 1));
     setAgendaVisibleDate(today);
     calRef.current?.setDate(today);
-    if (mobileView === 'month' || mobileView === 'list') {
+    if (
+      mobileView === 'month' ||
+      mobileView === 'list' ||
+      renderedMobileView === 'month' ||
+      renderedMobileView === 'list'
+    ) {
       setMobileView('day');
+      setRenderedMobileView('day');
     }
   };
 
@@ -721,7 +781,7 @@ export default function App({ view }: AppProps) {
         ref={calRef}
         className={
           isMobile
-            ? `s2-calendar s2-calendar--mobile${mobileView === 'month' ? ' s2-calendar--mobile-month' : ''}`
+            ? `s2-calendar s2-calendar--mobile${renderedMobileView === 'month' ? ' s2-calendar--mobile-month' : ''}`
             : 's2-calendar'
         }
         events={calendarEvents}
@@ -779,9 +839,18 @@ export default function App({ view }: AppProps) {
         events={visibleEvents}
         onDateChange={(date) => {
           // 贴设计稿动线：月视图点日期 = 选中该日并放大进入「日」视图。
+          if (pendingMobileViewFrameRef.current !== null) {
+            cancelAnimationFrame(pendingMobileViewFrameRef.current);
+            pendingMobileViewFrameRef.current = null;
+          }
+          if (pendingMobileViewTimerRef.current !== null) {
+            window.clearTimeout(pendingMobileViewTimerRef.current);
+            pendingMobileViewTimerRef.current = null;
+          }
           setCurrentDate(date);
           setVisibleMonth(new Date(date.getFullYear(), date.getMonth(), 1));
           setMobileView('day');
+          setRenderedMobileView('day');
         }}
         onVisibleMonthChange={setVisibleMonth}
         onEventClick={(event, anchor) => {
@@ -877,17 +946,17 @@ export default function App({ view }: AppProps) {
               onClose={closeMobileSearch}
             />
           )}
-          {(mobileView === 'day' || mobileView === 'multi') && (
+          {(renderedMobileView === 'day' || renderedMobileView === 'multi') && (
             <DayWeekStrip
               currentDate={currentDate}
               onDateChange={goToDate}
-              spanDays={mobileView === 'multi' ? 2 : 1}
+              spanDays={renderedMobileView === 'multi' ? 2 : 1}
             />
           )}
-          {mobileView === 'month' && (
+          {renderedMobileView === 'month' && (
             <div className="m-month-title">{visibleMonth.getMonth() + 1}月</div>
           )}
-          {mobileView === 'month' && (
+          {renderedMobileView === 'month' && (
             <div className="m-month-dow" aria-hidden>
               {['周一', '周二', '周三', '周四', '周五', '周六', '周日'].map((day, index) => (
                 <div key={day} className={index >= 5 ? 'wknd' : undefined}>
@@ -902,13 +971,15 @@ export default function App({ view }: AppProps) {
             onMouseDownCapture={(e) => rememberMonthMoreAnchor(e.target)}
             onKeyDownCapture={(e) => rememberMonthMoreAnchor(e.target)}
           >
-            {mobileView === 'month' ? mobileMonthNode : null}
-            {shouldWarmMobileCalendar || mobileView !== 'month' ? (
+            {renderedMobileView === 'month' ? mobileMonthNode : null}
+            {shouldWarmMobileCalendar || renderedMobileView !== 'month' ? (
               <div
                 className={
-                  mobileView === 'month' ? 's2-mobile-calendar-prewarm' : 's2-mobile-calendar-live'
+                  renderedMobileView === 'month'
+                    ? 's2-mobile-calendar-prewarm'
+                    : 's2-mobile-calendar-live'
                 }
-                aria-hidden={mobileView === 'month' ? true : undefined}
+                aria-hidden={renderedMobileView === 'month' ? true : undefined}
               >
                 {calendarNode}
               </div>
