@@ -34,8 +34,10 @@ function formatDayTitle(date: DayjsTZDate): string {
   return date.dayjs.format('dddd M月D日');
 }
 
-function estimateMobileAgendaGroupHeight(group: AgendaDayGroup, index: number): number {
-  const headerHeight = index === 0 ? 0 : MOBILE_AGENDA_HEADER_ESTIMATE;
+function estimateMobileAgendaGroupHeight(group: AgendaDayGroup): number {
+  // 每个日期组都渲染头部；当前组的头部由覆盖式固定 header 盖住（见 .agenda-day-header--fixed），
+  // 所以这里高度对所有组一致，避免随激活组变化产生估算抖动。
+  const headerHeight = MOBILE_AGENDA_HEADER_ESTIMATE;
   const listHeight =
     group.events.length > 0
       ? group.events.length * MOBILE_AGENDA_EVENT_ESTIMATE
@@ -133,7 +135,7 @@ export function Agenda() {
   const isMobile = viewportTier === 'mobile';
 
   const estimateAgendaGroupHeight = useCallback(
-    (index: number) => estimateMobileAgendaGroupHeight(groups[index], index),
+    (index: number) => estimateMobileAgendaGroupHeight(groups[index]),
     [groups]
   );
   const virtualList = useVirtualList({
@@ -234,7 +236,7 @@ export function Agenda() {
               ref={isMobile ? (el) => measureElement(index, el) : undefined}
               data-agenda-index={isMobile ? index : undefined}
             >
-              {isMobile && index === 0 ? null : renderDayHeader(group)}
+              {renderDayHeader(group)}
               <div className={cls('agenda-day-list')}>
                 {group.events.length > 0 ? (
                   group.events.map((item) => (

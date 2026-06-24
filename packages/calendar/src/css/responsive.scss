@@ -294,6 +294,7 @@
 
   display: flex;
   flex-direction: column;
+  position: relative;
 
   .agenda-scroll {
     flex: 1 1 auto;
@@ -312,8 +313,14 @@
     background: var(--swell-agenda-bg, #fff);
   }
 
+  // 固定日期 header 改为覆盖在滚动区顶部：当前日期组自身的 static header 滚到顶时正好被它盖住，
+  // 既消除「固定 header 与列表内首行同日期重复」，又不在固定 header 与首个事件之间留空隙。
   .agenda-day-header--fixed {
-    flex: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 2;
     padding: 12px 18px 11px;
     background: var(--mobile-topzone-bg, var(--swell-agenda-bg, #fff));
     border-bottom-color: var(--mobile-topzone-divider, #e8e8e8);

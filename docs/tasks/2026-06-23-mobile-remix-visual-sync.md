@@ -160,6 +160,19 @@
 
 剩余风险：node 环境下因 S2 引入 .css 仍只在 `MobileSearchOverlay` 单独成文件规避，本轮未触及；③ 的 rAF 节流让 range 更新最多滞后一帧，静止时已读终值，肉眼不可察。
 
+## 列表固定日期与列表内首行重复修复（2026-06-24）
+
+移动端列表（agenda）滚动时，顶部固定日期 header 与滚动区内同一天的日期行会同时出现（如「6月26日」显示两次）。
+
+根因：固定 header 显示 `groups[activeGroupIndex]` 的日期，但列表内只对 `index === 0` 抑制日期行；一旦滚动使 `activeGroupIndex > 0`，该组自身的 static header 仍渲染，正好落在固定 header 下方造成重复。原 `index === 0` 抑制只在初始位置（activeGroupIndex 为 0）有效。
+
+修复（`packages/calendar/src/components/view/Agenda.tsx` + `css/responsive.scss`）：改用 iOS 分组列表的覆盖式固定头：
+- 固定 header 由「流式占位在滚动区上方」改为「绝对定位覆盖在滚动区顶部」（`.agenda-day-header--fixed` 设 `position:absolute; top:0; z-index:2`，`.agenda-view--mobile` 设 `position:relative`）。
+- 列表内所有日期组统一渲染 header（移除 `index === 0` 特例），当前组的 static header 滚到顶部时正好被覆盖式固定 header 盖住——既消除重复，又不在固定 header 与首个事件之间留空隙。
+- `estimateMobileAgendaGroupHeight` 去掉对 index 0 的 0 高度特例，改为所有组一致含 header 高度，避免随激活组变化产生估算抖动（无滚动跳动）。
+
+验证：`tsc --noEmit`、`check-arch`、calendar 包 387 例 + s2 24 例测试通过；浏览器移动 viewport 实测：列表静止与滚动跨日边界处，固定 header 与列表内均不再出现同一天重复，固定 header 下方紧接事件无空隙，下一天 header 自然在列表内出现。
+
 ## 风险
 
 - 本次只做样式边界修正，不处理更大范围的像素级还原差异。
