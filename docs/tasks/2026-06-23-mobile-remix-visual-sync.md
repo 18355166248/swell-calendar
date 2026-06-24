@@ -221,6 +221,20 @@
 
 验证：`pnpm --filter swell-calendar exec tsc --noEmit`、`pnpm --filter swell-calendar-s2 exec tsc --noEmit`、`pnpm --filter swell-calendar test -- src/controller/agenda.controller.spec.ts src/hooks/common/useVirtualList.spec.tsx`、`pnpm --filter swell-calendar-s2 test`、`node scripts/check-docs.mjs`、`node scripts/check-arch.mjs` 通过；Vitest 输出保留沙箱下 Vite WebSocket `EPERM` 噪声但退出码为 0。剩余风险：overscan 降低后极快滚动时离屏缓冲更少，但虚拟列表仍保留前后缓冲，正常触摸滚动应不受影响。
 
+## 移动端周条滑动手感优化（2026-06-24）
+
+日 / 多日视图顶部周条左右滑动时，原实现松手后会先把 `dragOffset` 清零，再设置目标周 snap 位移，最后切周复位；这会造成一次明显的反弹 / 闪动，且滑动不像连续横移。
+
+修复（`apps/swell-calendar-s2/src/shell.tsx` + `styles/app.css`）：
+- 周条手势状态拆成 `dragging → snapping → jumping` 三段：拖动中无 transition 跟手，松手后沿当前方向滑到上一 / 下一周，切周后无 transition 复位到中间周。
+- 移除松手时立即 `setDragOffset(0)` 的路径，避免先回弹再切周。
+- 移动端拖动中不再降低透明度，避免滑动时产生闪一下的视觉噪声。
+- snap 动画改为 220ms `cubic-bezier(0.22, 1, 0.36, 1)`，更接近 iOS 的滑入感。
+
+验证：`pnpm --filter swell-calendar-s2 exec tsc --noEmit`、`pnpm --filter swell-calendar-s2 test`、`node scripts/check-docs.mjs`、`node scripts/check-arch.mjs` 通过；Vitest 输出保留沙箱下 Vite WebSocket `EPERM` 噪声但退出码为 0。剩余风险：当前仍使用定时器等待 snap 结束，后续如需严格跟 CSS duration 同步，可改为 `transitionend` 驱动。
+
+后续修正：滑入目标周后，新周 DOM 复位到中间周时仍可能因为 transition 恢复过早而出现“新周弹一下”。增加 `WEEK_STRIP_JUMP_LOCK_MS`，切周后保持 `is-jumping` 80ms，确保新周 DOM 至少完成一次绘制后再恢复 transition；同时给 `.is-jumping` 的 transition 关闭加 `!important`，避免被 snapping / 基础 transition 覆盖。
+
 ## 风险
 
 - 本次只做样式边界修正，不处理更大范围的像素级还原差异。

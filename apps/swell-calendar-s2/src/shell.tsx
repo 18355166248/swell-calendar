@@ -102,7 +102,8 @@ interface MiniCalendarProps {
 const MINI_DOW = ['一', '二', '三', '四', '五', '六', '日'];
 const WEEK_STRIP_SWIPE_THRESHOLD = 48;
 const WEEK_STRIP_VERTICAL_CANCEL_THRESHOLD = 32;
-const WEEK_STRIP_SNAP_DURATION_MS = 180;
+const WEEK_STRIP_SNAP_DURATION_MS = 220;
+const WEEK_STRIP_JUMP_LOCK_MS = 80;
 
 /** 周一为一周起点：返回 0=周一 … 6=周日。 */
 function mondayIndex(d: Date): number {
@@ -222,10 +223,12 @@ export function DayWeekStrip({ currentDate, onDateChange, spanDays = 1 }: DayWee
   const suppressClickRef = useRef(false);
   const daysRef = useRef<HTMLDivElement | null>(null);
   const snapTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const jumpTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const suppressClickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [dragOffset, setDragOffset] = useState(0);
   const [isDraggingWeek, setIsDraggingWeek] = useState(false);
-  const [isResettingWeek, setIsResettingWeek] = useState(false);
+  const [isSnappingWeek, setIsSnappingWeek] = useState(false);
+  const [isJumpingWeek, setIsJumpingWeek] = useState(false);
   const weekStart = startOfWeekMonday(currentDate);
   const visibleWeeks = [-1, 0, 1].map((weekOffset) =>
     Array.from({ length: 7 }, (_, index) => {
@@ -264,6 +267,9 @@ export function DayWeekStrip({ currentDate, onDateChange, spanDays = 1 }: DayWee
       if (snapTimerRef.current) {
         clearTimeout(snapTimerRef.current);
       }
+      if (jumpTimerRef.current) {
+        clearTimeout(jumpTimerRef.current);
+      }
       if (suppressClickTimerRef.current) {
         clearTimeout(suppressClickTimerRef.current);
       }
@@ -277,6 +283,10 @@ export function DayWeekStrip({ currentDate, onDateChange, spanDays = 1 }: DayWee
       clearTimeout(snapTimerRef.current);
       snapTimerRef.current = null;
     }
+    if (jumpTimerRef.current) {
+      clearTimeout(jumpTimerRef.current);
+      jumpTimerRef.current = null;
+    }
     if (suppressClickTimerRef.current) {
       clearTimeout(suppressClickTimerRef.current);
       suppressClickTimerRef.current = null;
@@ -288,7 +298,8 @@ export function DayWeekStrip({ currentDate, onDateChange, spanDays = 1 }: DayWee
       startY: event.clientY,
     };
     setIsDraggingWeek(true);
-    setIsResettingWeek(false);
+    setIsSnappingWeek(false);
+    setIsJumpingWeek(false);
     setDragOffset(0);
     event.currentTarget.setPointerCapture?.(event.pointerId);
   };
@@ -305,7 +316,8 @@ export function DayWeekStrip({ currentDate, onDateChange, spanDays = 1 }: DayWee
     ) {
       swipeRef.current = null;
       setIsDraggingWeek(false);
-      setIsResettingWeek(false);
+      setIsSnappingWeek(false);
+      setIsJumpingWeek(false);
       setDragOffset(0);
       return;
     }
@@ -319,7 +331,6 @@ export function DayWeekStrip({ currentDate, onDateChange, spanDays = 1 }: DayWee
     if (!swipe || swipe.id !== event.pointerId) return;
     swipeRef.current = null;
     setIsDraggingWeek(false);
-    setDragOffset(0);
 
     const deltaX = event.clientX - swipe.startX;
     const deltaY = event.clientY - swipe.startY;
@@ -328,6 +339,8 @@ export function DayWeekStrip({ currentDate, onDateChange, spanDays = 1 }: DayWee
       Math.abs(deltaY) > WEEK_STRIP_VERTICAL_CANCEL_THRESHOLD
     ) {
       setDragOffset(0);
+      setIsSnappingWeek(false);
+      setIsJumpingWeek(false);
       if (Math.abs(deltaY) <= WEEK_STRIP_VERTICAL_CANCEL_THRESHOLD) {
         suppressClickRef.current = true;
         suppressClickTimerRef.current = setTimeout(() => {
@@ -347,14 +360,19 @@ export function DayWeekStrip({ currentDate, onDateChange, spanDays = 1 }: DayWee
     }, 120);
     const weekDelta = deltaX < 0 ? 1 : -1;
     const snapWidth = daysRef.current?.clientWidth ?? Math.abs(deltaX);
+    setIsSnappingWeek(true);
     setDragOffset(weekDelta > 0 ? -snapWidth : snapWidth);
     snapTimerRef.current = setTimeout(() => {
-      setIsResettingWeek(true);
+      setIsSnappingWeek(false);
+      setIsJumpingWeek(true);
       shiftWeek(weekDelta);
       setDragOffset(0);
-      requestAnimationFrame(() => {
-        setIsResettingWeek(false);
-      });
+      // 切周后需要让新周 DOM 至少完成一次绘制，再恢复 transition；
+      // 否则浏览器会把“复位到中间周”的 transform 也动画出来，形成新周弹一下。
+      jumpTimerRef.current = setTimeout(() => {
+        setIsJumpingWeek(false);
+        jumpTimerRef.current = null;
+      }, WEEK_STRIP_JUMP_LOCK_MS);
       snapTimerRef.current = null;
     }, WEEK_STRIP_SNAP_DURATION_MS);
   };
@@ -362,7 +380,8 @@ export function DayWeekStrip({ currentDate, onDateChange, spanDays = 1 }: DayWee
   const handlePointerCancel = () => {
     swipeRef.current = null;
     setIsDraggingWeek(false);
-    setIsResettingWeek(false);
+    setIsSnappingWeek(false);
+    setIsJumpingWeek(false);
     setDragOffset(0);
   };
 
@@ -399,7 +418,8 @@ export function DayWeekStrip({ currentDate, onDateChange, spanDays = 1 }: DayWee
         className={
           'day-week-strip__days' +
           (isDraggingWeek ? ' is-dragging' : '') +
-          (isResettingWeek ? ' is-resetting' : '')
+          (isSnappingWeek ? ' is-snapping' : '') +
+          (isJumpingWeek ? ' is-jumping' : '')
         }
         style={{ '--week-strip-drag-x': `${dragOffset}px` } as CSSProperties}
       >

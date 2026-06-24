@@ -765,7 +765,7 @@ button {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   width: 300%;
   transform: translate3d(calc(-33.333333% + var(--week-strip-drag-x, 0px)), 0, 0);
-  transition: transform 0.18s cubic-bezier(0.2, 0, 0.2, 1);
+  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
   will-change: transform;
 }
 
@@ -773,8 +773,12 @@ button {
   transition: none;
 }
 
-.day-week-strip__days.is-resetting .day-week-strip__track {
-  transition: none;
+.day-week-strip__days.is-snapping .day-week-strip__track {
+  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.day-week-strip__days.is-jumping .day-week-strip__track {
+  transition: none !important;
 }
 
 .day-week-strip__week {
@@ -2230,9 +2234,6 @@ button {
 .app--mobile .day-week-strip__days {
   width: 100%;
   margin: 0 -6px;
-}
-.app--mobile .day-week-strip__days.is-dragging {
-  opacity: 0.94;
 }
 .app--mobile .day-week-strip__week {
   gap: 0;
