@@ -1876,6 +1876,7 @@ button {
 /* segmented 视图切换 */
 .m-seg {
   display: inline-flex;
+  flex: 0 0 auto;
   background: var(--bg-sunken);
   border-radius: 999px;
   padding: 2px;
@@ -1891,6 +1892,9 @@ button {
   color: var(--text-2);
   font-size: 13px;
   font-weight: 600;
+  /* 单行不换行：年份返回标签（如「2026年」）变宽时，由返回标签省略号收缩，
+     不让分段控件把「多日 / 列表」挤成两行。 */
+  white-space: nowrap;
   display: grid;
   place-items: center;
   cursor: pointer;

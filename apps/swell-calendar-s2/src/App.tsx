@@ -286,6 +286,7 @@ export default function App({ view }: AppProps) {
   const [createInitial, setCreateInitial] = useState<NewEventInput | null>(null);
   const calRef = useRef<CalendarInstance>(null);
   const monthMoreAnchorRef = useRef<HTMLElement | null>(null);
+  const mobileCanvasRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (isMobile) {
@@ -486,6 +487,64 @@ export default function App({ view }: AppProps) {
     }
     setMobileView(next);
   };
+
+  /**
+   * 移动端日 / 多日视图：聚焦今天时，把时间面板滚到当前时刻附近（now 指示线落在视口约 1/3 处）。
+   * 引擎不暴露 scrollToNow，故复用其已渲染的 `.swell-calendar-now-indicator-line` 作为锚点——
+   * 该线仅在「今天」在列内时存在，正好与「需要归位到现在」的条件重合；非今天则没有线、自动跳过。
+   * 时间面板异步随数据加载，故用 rAF 轮询等待 now 线挂载（上限 ~1s）。
+   */
+  const scrollMobileTimeToNow = useCallback((smooth = false) => {
+    let frames = 0;
+    const attempt = () => {
+      const scroller = document.querySelector<HTMLElement>(
+        '.app--mobile .s2-mobile-calendar-live .swell-calendar-time'
+      );
+      const line = scroller?.querySelector<HTMLElement>('.swell-calendar-now-indicator-line');
+      if (!scroller || !line) {
+        if (frames++ < 60) requestAnimationFrame(attempt);
+        return;
+      }
+      const lineOffset =
+        line.getBoundingClientRect().top -
+        scroller.getBoundingClientRect().top +
+        scroller.scrollTop;
+      const target = Math.max(0, lineOffset - scroller.clientHeight * 0.32);
+      scroller.scrollTo({ top: target, behavior: smooth ? 'smooth' : 'auto' });
+    };
+    requestAnimationFrame(attempt);
+  }, []);
+
+  // 移动端切视图过渡：四视图共享同一引擎实例、不重挂载，故用 Web Animations API 对画布做一次
+  // 轻量淡入 + 上浮（不改 DOM 结构、可靠重放）；尊重 prefers-reduced-motion，首挂不放动画。
+  const mobileViewAnimReady = useRef(false);
+  useEffect(() => {
+    if (!isMobile) {
+      mobileViewAnimReady.current = false;
+      return;
+    }
+    if (!mobileViewAnimReady.current) {
+      mobileViewAnimReady.current = true;
+      return;
+    }
+    const el = mobileCanvasRef.current;
+    if (!el || typeof el.animate !== 'function') return;
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+    el.animate(
+      [
+        { opacity: 0.35, transform: 'translateY(8px)' },
+        { opacity: 1, transform: 'translateY(0)' },
+      ],
+      { duration: 200, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' }
+    );
+  }, [mobileView, isMobile]);
+
+  // 进入日 / 多日视图且焦点为今天时，自动把时间面板滚到当前时刻；切到别的日期不触发。
+  useEffect(() => {
+    if (!isMobile || (mobileView !== 'day' && mobileView !== 'multi')) return;
+    if (!isSameDay(currentDate, new Date())) return;
+    scrollMobileTimeToNow();
+  }, [isMobile, mobileView, currentDate, status, scrollMobileTimeToNow]);
 
   /**
    * 移动端「今天」：把共享焦点日期归位到今天。日 / 多日就地居中；月 / 列表是各自的
@@ -838,6 +897,7 @@ export default function App({ view }: AppProps) {
             </div>
           )}
           <div
+            ref={mobileCanvasRef}
             className="canvas canvas--mobile"
             onMouseDownCapture={(e) => rememberMonthMoreAnchor(e.target)}
             onKeyDownCapture={(e) => rememberMonthMoreAnchor(e.target)}

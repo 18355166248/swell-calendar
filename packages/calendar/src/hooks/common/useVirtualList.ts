@@ -137,12 +137,26 @@ export function useVirtualList({
     [itemOffsets, itemSizes, range]
   );
 
+  // 滚动事件每秒可触发 60~120 次，逐次 setScrollTop 会让 range / virtualItems 每个事件重算一次。
+  // 用 rAF 把同一帧内的多次滚动合并为一次状态更新（rAF 回调读取最新 DOM scrollTop，静止时也能拿到终值），
+  // 显著降低快速滚动时的 re-render 频率。宿主侧若需读取实时位置，仍可直接读 scrollRef.current.scrollTop。
+  const scrollRafRef = useRef<number | null>(null);
   const onScroll = useCallback(() => {
     if (!enabled) return;
-    const scroller = scrollRef.current;
-    if (!scroller) return;
-    setScrollTop(scroller.scrollTop);
+    if (scrollRafRef.current != null) return;
+    scrollRafRef.current = requestAnimationFrame(() => {
+      scrollRafRef.current = null;
+      const scroller = scrollRef.current;
+      if (scroller) setScrollTop(scroller.scrollTop);
+    });
   }, [enabled]);
+
+  useEffect(
+    () => () => {
+      if (scrollRafRef.current != null) cancelAnimationFrame(scrollRafRef.current);
+    },
+    []
+  );
 
   const measureElement = useCallback(
     (index: number, element: HTMLElement | null) => {

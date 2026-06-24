@@ -143,6 +143,23 @@
 
 非目标：本轮未做日视图打开自动滚到当前时间（备选项，后续可加）。
 
+## 移动端继续优化（2026-06-24）
+
+承接上一轮，按「日视图滚到当前时间 / 视图切换过渡 / 滚动性能 / 视觉细节」四个方向各落一项高价值优化：
+
+- **① 日视图自动滚到当前时间**（`apps/swell-calendar-s2/src/App.tsx`）：日 / 多日视图聚焦今天时，时间面板自动滚到当前时刻，now 指示线落在视口约 1/3 处，不必每次手动下滑找「现在」。引擎未暴露 `scrollToNow`，故复用其已渲染的 `.swell-calendar-now-indicator-line` 作锚点——该线仅在「今天」在列内时存在，正好与「需要归位到现在」的条件重合；非今天没有线、自动跳过。时间面板随数据异步加载，用 rAF 轮询等待 now 线挂载（上限 ~1s）。进入日 / 多日视图、或在月 / 列表点「今天」落回日视图，均触发。
+- **② 视图切换轻量过渡**（`App.tsx`）：四视图共享同一引擎实例、刻意不重挂载，无法用 `key` 重挂触发动画；改用 Web Animations API 在 `mobileView` 变化时对画布做一次淡入（0.35→1）+ 上浮（8px→0）共 200ms，不改 DOM 结构、可靠重放，首挂不放、并尊重 `prefers-reduced-motion`。设计稿本身为瞬切，这里只做不打断操作的轻润色。
+- **③ 虚拟列表滚动节流**（`packages/calendar/src/hooks/common/useVirtualList.ts`）：原 `onScroll` 每个滚动事件都 `setScrollTop`，快速滚动时每秒触发 60~120 次 range / virtualItems 重算。改为用 rAF 把同一帧内的多次滚动合并为一次状态更新（rAF 回调读取最新 DOM `scrollTop`，静止时也拿到终值），显著降低快速滚动 re-render 频率；宿主侧仍可直接读 `scrollRef.current.scrollTop` 拿实时位置（月滚动可见月份、列表可见日期上报均不受影响）。移动端连续月视图与 agenda 列表同时受益。组件卸载时取消挂起的 rAF。
+- **④ 顶栏分段控件不再换行**（`apps/swell-calendar-s2/src/styles/app.css`）：月视图返回标签是「YYYY年」比「M月」宽，会把分段控件挤窄，导致「多日 / 列表」折成两行。给 `.m-seg-btn` 加 `white-space: nowrap`、`.m-seg` 设 `flex: 0 0 auto`，让返回标签以省略号收缩、分段控件保持单行。
+
+验证：
+- `pnpm --filter swell-calendar exec tsc --noEmit`、`pnpm --filter swell-calendar-s2 exec tsc --noEmit` 通过。
+- `pnpm --filter swell-calendar test` 387 例通过（新增 `useVirtualList.spec.tsx` 4 例覆盖 rAF 合并：同帧多次 onScroll 只调度一次更新、flush 读终值、消费后可再调度、卸载取消挂起 rAF）；`pnpm --filter swell-calendar-s2 test` 24 例通过。
+- `node scripts/check-arch.mjs` 通过（204 文件无分层违规）。
+- 浏览器移动 viewport 实测：日视图打开 / 点「今天」now 线落在面板上 ~1/3（scrollTop 360、line 距顶 ~204px）；切视图触发一次 ~200ms 画布动画；连续月滚动标题 6月→8月 实时更新、虚拟 section 正常回收；月视图分段控件单行不折行。
+
+剩余风险：node 环境下因 S2 引入 .css 仍只在 `MobileSearchOverlay` 单独成文件规避，本轮未触及；③ 的 rAF 节流让 range 更新最多滞后一帧，静止时已读终值，肉眼不可察。
+
 ## 风险
 
 - 本次只做样式边界修正，不处理更大范围的像素级还原差异。
