@@ -37,6 +37,10 @@ function resolveCalendarSourcePath(relativePath: string) {
 // ⚠️ macros.vite() 必须排在 react() 之前，否则 S2 的 style() macro 不会在构建期被处理，
 // Vite 会报 fs/url 等 node 模块被 externalize 的错。
 export default defineConfig({
+  // 默认 Vite 只绑回环地址（localhost / [::1]），局域网内其它设备用本机 IP 访问不通。
+  // host: true 让 dev / preview 监听所有网卡，方便手机等同网段设备实机调试。
+  server: { host: true },
+  preview: { host: true },
   plugins: [
     {
       name: 'resolve-calendar-workspace-source',

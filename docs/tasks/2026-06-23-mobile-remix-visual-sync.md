@@ -183,6 +183,17 @@
 
 验证：`tsc --noEmit`、`check-arch`、s2 24 例测试通过；浏览器移动 viewport 实测：6↔7 月边界上下滚动，标题始终等于当前可见主体月份（如 July 可见 506px、June 残留 7px 时标题为「7月」；反向 June 可见 487px 时为「6月」）。
 
+## 移动端按压阴影收敛（2026-06-24）
+
+移动端触摸按钮、事件卡片时会出现或残留阴影 / 高亮反馈，与 iOS 原生日历的轻量触摸反馈不一致。本次仅调整 `apps/swell-calendar-s2` 宿主样式，不改 `packages/calendar` 公共 API、数据行为或桌面端表现。
+
+修复：
+- `.app--mobile` 作用域内关闭 button、`role="button"`、事件卡片的 `-webkit-tap-highlight-color`。
+- 移动端顶部分段控件选中态移除 `box-shadow`，S2 segmented 选中 slider 在移动端也不再叠加投影。
+- 移动端日 / 多日视图事件卡片覆盖 hover / hovered / solid 卡片阴影与 filter，避免触屏 tap 后保留桌面 hover 投影。
+
+验证：`node scripts/check-docs.mjs`、`node scripts/check-arch.mjs`、`pnpm --filter swell-calendar-s2 exec tsc --noEmit` 通过。剩余风险：本轮只处理移动端触摸反馈阴影，不调整弹层自身阴影（搜索面板、详情 sheet 等容器阴影仍保留）。
+
 ## 风险
 
 - 本次只做样式边界修正，不处理更大范围的像素级还原差异。

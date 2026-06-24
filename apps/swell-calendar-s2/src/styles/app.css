@@ -19,6 +19,13 @@ button {
   font-family: inherit;
 }
 
+.app--mobile button,
+.app--mobile [role='button'],
+.app--mobile .swell-calendar-event-time,
+.app--mobile .swell-calendar-allday-event {
+  -webkit-tap-highlight-color: transparent;
+}
+
 :root,
 [data-density='regular'] {
   --topbar-gap: 14px;
@@ -1020,6 +1027,12 @@ button {
   opacity: 0.85;
 }
 
+.app--mobile .s2-ss button[aria-pressed='true'] > div:first-child,
+.app--mobile .s2-ss button[aria-checked='true'] > div:first-child,
+.app--mobile .s2-ss button[data-selected] > div:first-child {
+  box-shadow: none !important;
+}
+
 /* 文字 span */
 .s2-ss button span {
   line-height: 1 !important;
@@ -1902,7 +1915,7 @@ button {
 .m-seg-btn.active {
   background: var(--bg-layer-2);
   color: var(--accent-text);
-  box-shadow: var(--shadow-sm);
+  box-shadow: none;
 }
 
 /* 移动画布：复用 .canvas 滚动行为 */
@@ -2010,6 +2023,17 @@ button {
 
 .app--mobile .swell-calendar-multi-day-view--mobile .swell-calendar-column:last-child {
   border-right: 0 !important;
+}
+
+/* 移动端触摸点击遵循 iOS 原生日历的轻反馈：不在按下或 tap 后保留 hover 阴影。 */
+.app--mobile .swell-calendar-event-time,
+.app--mobile .swell-calendar-event-time:hover,
+.app--mobile .swell-calendar-event-time--hovered,
+.app--mobile .swell-calendar-allday-event,
+.app--mobile .swell-calendar-allday-event:hover,
+.app--mobile [data-card='solid'] .swell-calendar-event-time {
+  box-shadow: none !important;
+  filter: none !important;
 }
 
 .app--mobile .swell-calendar-month-view--mobile .swell-calendar-month-day-names {
