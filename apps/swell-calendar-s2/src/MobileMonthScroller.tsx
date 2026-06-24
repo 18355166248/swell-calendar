@@ -9,7 +9,7 @@ import { lunarLabelOf } from './lunar';
 const MONTH_RANGE_BEFORE = 24;
 const MONTH_RANGE_AFTER = 12;
 const MONTH_DOW = ['一', '二', '三', '四', '五', '六', '日'];
-const MONTH_OVERSCAN = 3;
+const MONTH_OVERSCAN = 1;
 const MONTH_SECTION_BASE_HEIGHT = 68;
 const MONTH_WEEK_ROW_HEIGHT = 85;
 
@@ -88,9 +88,10 @@ function cachedLunarLabel(key: string, date: Date) {
 }
 
 function estimateMonthSectionHeight(monthDate: Date): number {
-  return (
-    MONTH_SECTION_BASE_HEIGHT + (buildMonthCells(monthDate).length / 7) * MONTH_WEEK_ROW_HEIGHT
-  );
+  const firstDay = startOfMonth(monthDate);
+  const lastDay = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0);
+  const weekCount = Math.ceil((mondayIndex(firstDay) + lastDay.getDate()) / 7);
+  return MONTH_SECTION_BASE_HEIGHT + weekCount * MONTH_WEEK_ROW_HEIGHT;
 }
 
 function groupEventsByDate(events: CalEvent[]): Map<string, CalEvent[]> {

@@ -207,6 +207,20 @@
 
 验证：`node scripts/check-docs.mjs`、`node scripts/check-arch.mjs`、`pnpm --filter swell-calendar-s2 exec tsc --noEmit`、`pnpm --filter swell-calendar-s2 test` 通过；测试输出保留沙箱下 Vite WebSocket `EPERM` 噪声但退出码为 0。剩余风险：重内容最多延后一帧加一个 macrotask 出现；这是为了优先保证触摸反馈即时，视觉上表现为 tab 先亮、页面随后切出。
 
+## 移动端月 / 列表首帧渲染继续优化（2026-06-24）
+
+在 tab 先响应、页面后出现的基础上，继续减少「月」和「列表」实际内容出现前的首帧工作量。
+
+修复：
+- 列表视图 `Agenda` 移动端且 `showEmptyDays=true` 时，不再切入时一次性 materialize 全部日期组；改为根据虚拟列表的可见窗口按索引懒生成 `AgendaDayGroup`。
+- `agenda.controller` 拆出 `getAgendaDayCount` / `getAgendaDateAt` / `getAgendaDayGroup`，完整 groups 路径仍保留给桌面和 `showEmptyDays=false` 场景。
+- 懒生成路径复用 `EventUIModel` cache，只为当前可见日期窗口附近的事件创建 UI model；估高阶段只读 `idsOfDay` 数量，不创建事件 UI model。
+- 移动端列表 overscan 从 8 降到 3，月视图 overscan 从 3 降到 1，减少切入首帧的离屏 DOM 和农历 / 事件 chip 渲染。
+- S2 移动端「列表」进一步改为宿主侧 `MobileAgendaScroller`，和月视图一样绕过通用 Calendar 引擎：不再切入时触发 Calendar agenda 的 `setView` / `setOptions` / 隐藏预热实例渲染，只渲染当前可见日期窗口附近的轻量 DOM。
+- 移动端月视图虚拟列表估高不再调用 `buildMonthCells`，改用年月数学计算周数；只有真实可见月份才构建日期格与农历标签。
+
+验证：`pnpm --filter swell-calendar exec tsc --noEmit`、`pnpm --filter swell-calendar-s2 exec tsc --noEmit`、`pnpm --filter swell-calendar test -- src/controller/agenda.controller.spec.ts src/hooks/common/useVirtualList.spec.tsx`、`pnpm --filter swell-calendar-s2 test`、`node scripts/check-docs.mjs`、`node scripts/check-arch.mjs` 通过；Vitest 输出保留沙箱下 Vite WebSocket `EPERM` 噪声但退出码为 0。剩余风险：overscan 降低后极快滚动时离屏缓冲更少，但虚拟列表仍保留前后缓冲，正常触摸滚动应不受影响。
+
 ## 风险
 
 - 本次只做样式边界修正，不处理更大范围的像素级还原差异。

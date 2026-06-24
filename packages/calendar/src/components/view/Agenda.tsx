@@ -12,11 +12,18 @@ import Layout from '@/components/Layout';
 import { KEY } from '@/constants/keyboard';
 import { useCalendarCallbacks } from '@/contexts/calendarCallbacks';
 import { useCalendarStore } from '@/contexts/calendarStore';
-import { AgendaEventItem, getAgendaDayGroups } from '@/controller/agenda.controller';
+import {
+  AgendaEventItem,
+  getAgendaDateAt,
+  getAgendaDayCount,
+  getAgendaDayGroup,
+  getAgendaDayGroups,
+} from '@/controller/agenda.controller';
 import { cls, getEventColors } from '@/helpers/css';
 import { useCalendarColor } from '@/hooks/calendar/useCalendarColor';
 import { useViewportTier } from '@/hooks/common/useViewportTier';
 import { useVirtualList } from '@/hooks/common/useVirtualList';
+import { EventUIModel } from '@/model/eventUIModel';
 import DayjsTZDate from '@/time/dayjs-tzdate';
 import { getTierClassName } from '@/utils/viewport';
 
@@ -24,7 +31,7 @@ import { Template } from '../Template';
 
 type AgendaDayGroup = ReturnType<typeof getAgendaDayGroups>[number];
 
-const MOBILE_AGENDA_OVERSCAN = 8;
+const MOBILE_AGENDA_OVERSCAN = 3;
 const MOBILE_AGENDA_HEADER_ESTIMATE = 48;
 const MOBILE_AGENDA_EMPTY_ESTIMATE = 42;
 const MOBILE_AGENDA_EVENT_ESTIMATE = 58;
@@ -127,23 +134,62 @@ export function Agenda() {
   const [viewportTier, setViewportRef] = useViewportTier();
   const initialScrollKeyRef = useRef<string | null>(null);
   const initialScrollPassRef = useRef(0);
+  const uiModelCacheRef = useRef<Map<number, EventUIModel>>(new Map());
   const [activeGroupIndex, setActiveGroupIndex] = useState(0);
-  const groups = useMemo(
-    () => getAgendaDayGroups(calendar, view.renderDate, options.agenda),
-    [calendar, options.agenda, view.renderDate]
-  );
   const isMobile = viewportTier === 'mobile';
+  const useLazyMobileGroups = isMobile && options.agenda.showEmptyDays;
+  const groups = useMemo(
+    () =>
+      useLazyMobileGroups ? [] : getAgendaDayGroups(calendar, view.renderDate, options.agenda),
+    [calendar, options.agenda, useLazyMobileGroups, view.renderDate]
+  );
+  const lazyGroupCount = useLazyMobileGroups ? getAgendaDayCount(options.agenda) : 0;
+  const groupCount = useLazyMobileGroups ? lazyGroupCount : groups.length;
+  const todayRef = useRef(new DayjsTZDate());
+
+  useEffect(() => {
+    uiModelCacheRef.current = new Map();
+    todayRef.current = new DayjsTZDate();
+  }, [calendar, options.agenda, view.renderDate]);
+
+  const getGroupAt = useCallback(
+    (index: number): AgendaDayGroup => {
+      if (!useLazyMobileGroups) {
+        return groups[index];
+      }
+      return getAgendaDayGroup(
+        calendar,
+        getAgendaDateAt(view.renderDate, options.agenda, index),
+        uiModelCacheRef.current,
+        todayRef.current
+      );
+    },
+    [calendar, groups, options.agenda, useLazyMobileGroups, view.renderDate]
+  );
 
   const estimateAgendaGroupHeight = useCallback(
-    (index: number) => estimateMobileAgendaGroupHeight(groups[index]),
-    [groups]
+    (index: number) => {
+      if (!useLazyMobileGroups) {
+        return estimateMobileAgendaGroupHeight(groups[index]);
+      }
+
+      const date = getAgendaDateAt(view.renderDate, options.agenda, index);
+      const eventCount = calendar.idsOfDay[date.dayjs.format('YYYYMMDD')]?.length ?? 0;
+      const listHeight =
+        eventCount > 0 ? eventCount * MOBILE_AGENDA_EVENT_ESTIMATE : MOBILE_AGENDA_EMPTY_ESTIMATE;
+
+      return MOBILE_AGENDA_HEADER_ESTIMATE + listHeight + MOBILE_AGENDA_DAY_GAP_ESTIMATE;
+    },
+    [calendar.idsOfDay, groups, options.agenda, useLazyMobileGroups, view.renderDate]
   );
   const virtualList = useVirtualList({
-    count: groups.length,
+    count: groupCount,
     estimateSize: estimateAgendaGroupHeight,
     enabled: isMobile,
     overscan: MOBILE_AGENDA_OVERSCAN,
-    resetKey: groups,
+    resetKey: useLazyMobileGroups
+      ? `${view.renderDate.dayjs.format('YYYY-MM-DD')}:${options.agenda.offset}:${options.agenda.range}`
+      : groups,
   });
   const {
     bottomSpacerHeight,
@@ -157,7 +203,7 @@ export function Agenda() {
     virtualItems,
   } = virtualList;
 
-  const visibleGroups = isMobile ? virtualItems.map((item) => groups[item.index]) : groups;
+  const visibleGroups = isMobile ? virtualItems.map((item) => getGroupAt(item.index)) : groups;
 
   const renderDayHeader = (group: (typeof groups)[number], fixed = false) => (
     <div className={cls('agenda-day-header', { 'agenda-day-header--fixed': fixed })}>
@@ -192,8 +238,8 @@ export function Agenda() {
     if (activeGroupIndex === nextIndex) return;
 
     setActiveGroupIndex(nextIndex);
-    callbacks?.onAgendaVisibleDateChange?.({ date: groups[nextIndex].date });
-  }, [activeGroupIndex, callbacks, groups, isMobile, getIndexAtOffset, onScroll, scrollRef]);
+    callbacks?.onAgendaVisibleDateChange?.({ date: getGroupAt(nextIndex).date });
+  }, [activeGroupIndex, callbacks, getGroupAt, isMobile, getIndexAtOffset, onScroll, scrollRef]);
 
   useEffect(() => {
     if (!isMobile) return;
@@ -205,24 +251,33 @@ export function Agenda() {
 
     if (initialScrollPassRef.current >= 8) return;
 
-    const targetIndex = groups.findIndex(
-      (group) => group.date.dayjs.format('YYYY-MM-DD') === renderDateKey
-    );
+    const targetIndex = useLazyMobileGroups
+      ? Math.max(0, Math.min(groupCount - 1, -Math.trunc(options.agenda.offset)))
+      : groups.findIndex((group) => group.date.dayjs.format('YYYY-MM-DD') === renderDateKey);
     if (targetIndex < 0) return;
 
     if (vh < 80) return;
 
     initialScrollPassRef.current += 1;
     setActiveGroupIndex(targetIndex);
-    callbacks?.onAgendaVisibleDateChange?.({ date: groups[targetIndex].date });
+    callbacks?.onAgendaVisibleDateChange?.({ date: getGroupAt(targetIndex).date });
     scrollToIndex(targetIndex);
-  }, [callbacks, groups, isMobile, view.renderDate, scrollToIndex, vh]);
+  }, [
+    callbacks,
+    getGroupAt,
+    groupCount,
+    groups,
+    isMobile,
+    options.agenda.offset,
+    scrollToIndex,
+    useLazyMobileGroups,
+    view.renderDate,
+    vh,
+  ]);
 
   return (
     <Layout className={getTierClassName('agenda-view', viewportTier)} rootRef={setViewportRef}>
-      {isMobile && groups[activeGroupIndex]
-        ? renderDayHeader(groups[activeGroupIndex], true)
-        : null}
+      {isMobile && groupCount > 0 ? renderDayHeader(getGroupAt(activeGroupIndex), true) : null}
       <div className={cls('agenda-scroll')} ref={scrollRef} onScroll={handleAgendaScroll}>
         {isMobile && topSpacerHeight > 0 ? (
           <div aria-hidden style={{ height: topSpacerHeight }} />

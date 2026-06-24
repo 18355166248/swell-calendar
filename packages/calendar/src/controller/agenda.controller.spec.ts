@@ -6,7 +6,12 @@ import { CalendarData } from '@/types/calendar.type';
 import { EventObject } from '@/types/events.type';
 import Collection from '@/utils/collection';
 
-import { getAgendaDayGroups } from './agenda.controller';
+import {
+  getAgendaDateAt,
+  getAgendaDayCount,
+  getAgendaDayGroup,
+  getAgendaDayGroups,
+} from './agenda.controller';
 
 function calendarWith(events: EventObject[]): CalendarData {
   const data: CalendarData = {
@@ -64,6 +69,30 @@ describe('agenda.controller', () => {
       '2026-06-22',
       '2026-06-23',
     ]);
+  });
+
+  it('can build one day group by index without materializing the whole range', () => {
+    const calendar = calendarWith([
+      {
+        id: 'indexed',
+        title: 'Indexed',
+        start: '2026-06-24T10:00:00',
+        end: '2026-06-24T11:00:00',
+      },
+    ]);
+    const renderDate = new DayjsTZDate('2026-06-22T00:00:00');
+    const options = { offset: -1, range: 5, showEmptyDays: true };
+    const date = getAgendaDateAt(renderDate, options, 3);
+    const group = getAgendaDayGroup(calendar, date);
+    const fullGroups = getAgendaDayGroups(calendar, renderDate, options);
+
+    expect(getAgendaDayCount(options)).toBe(5);
+    expect(date.dayjs.format('YYYY-MM-DD')).toBe('2026-06-24');
+    expect(group.date.dayjs.format('YYYY-MM-DD')).toBe('2026-06-24');
+    expect(group.events.map((event) => event.uiModel.model.id)).toEqual(['indexed']);
+    expect(group.events.map((event) => event.uiModel.model.id)).toEqual(
+      fullGroups[3].events.map((event) => event.uiModel.model.id)
+    );
   });
 
   it('sorts allday first, then start time ascending and longer same-start events first', () => {

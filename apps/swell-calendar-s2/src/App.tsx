@@ -33,6 +33,7 @@ import {
 } from './calendarData';
 import { type Cat, type CalEvent, type PickEvent } from './data';
 import { dataSource } from './dataSource';
+import { MobileAgendaScroller } from './MobileAgendaScroller';
 import { MobileMonthScroller } from './MobileMonthScroller';
 import { MobileSearchOverlay, type MobileSearchHit } from './MobileSearchOverlay';
 import {
@@ -245,7 +246,6 @@ export default function App({ view }: AppProps) {
   const [currentDate, setCurrentDate] = useState<Date>(() => new Date());
   const [visibleMonth, setVisibleMonth] = useState<Date>(() => new Date());
   const [agendaVisibleDate, setAgendaVisibleDate] = useState<Date>(() => new Date());
-  const [shouldWarmMobileCalendar, setShouldWarmMobileCalendar] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   // 移动端搜索浮层用独立 query，不复用主筛选 query，避免底层日历被过滤、布局被扰动。
   const [mobileSearchQuery, setMobileSearchQuery] = useState('');
@@ -255,12 +255,9 @@ export default function App({ view }: AppProps) {
       ? 'month'
       : renderedMobileView === 'multi'
         ? 'multiDay'
-        : renderedMobileView === 'list'
-          ? 'agenda'
-          : 'day'
+        : 'day'
     : view;
-  const calendarEngineView: ViewId =
-    isMobile && renderedMobileView === 'month' ? 'agenda' : engineView;
+  const calendarEngineView: ViewId = engineView;
   const [pick, setPick] = useState<{ ev: PickEvent; anchor: HTMLElement } | null>(null);
   const [morePick, setMorePick] = useState<{
     date: Date;
@@ -312,26 +309,6 @@ export default function App({ view }: AppProps) {
       );
     }
   }, [currentDate, isMobile, renderedMobileView]);
-
-  useEffect(() => {
-    if (!isMobile || renderedMobileView !== 'month' || shouldWarmMobileCalendar) {
-      return;
-    }
-
-    const warm = () => setShouldWarmMobileCalendar(true);
-    const idleId =
-      'requestIdleCallback' in window
-        ? window.requestIdleCallback(warm, { timeout: 1200 })
-        : globalThis.setTimeout(warm, 350);
-
-    return () => {
-      if ('cancelIdleCallback' in window && typeof idleId === 'number') {
-        window.cancelIdleCallback(idleId);
-      } else {
-        globalThis.clearTimeout(idleId as number);
-      }
-    };
-  }, [isMobile, renderedMobileView, shouldWarmMobileCalendar]);
 
   useEffect(
     () => () => {
@@ -859,6 +836,30 @@ export default function App({ view }: AppProps) {
       />
     );
 
+  const mobileAgendaNode =
+    status === 'loading' ? (
+      <div className="data-state" role="status" aria-live="polite">
+        <div className="data-state-spinner" aria-hidden />
+        <p className="data-state-msg">正在加载日程…</p>
+      </div>
+    ) : status === 'error' ? (
+      <div className="data-state data-state--error" role="alert">
+        <p className="data-state-msg">日程加载失败{error ? `：${error}` : ''}</p>
+        <button type="button" className="data-state-btn" onClick={reload}>
+          重试
+        </button>
+      </div>
+    ) : (
+      <MobileAgendaScroller
+        currentDate={currentDate}
+        events={visibleEvents}
+        onVisibleDateChange={setAgendaVisibleDate}
+        onEventClick={(event, anchor) => {
+          openEventDetails(toCalendarEvents([event])[0], anchor);
+        }}
+      />
+    );
+
   const overlays = (
     <>
       {pick && isMobile && (
@@ -972,17 +973,9 @@ export default function App({ view }: AppProps) {
             onKeyDownCapture={(e) => rememberMonthMoreAnchor(e.target)}
           >
             {renderedMobileView === 'month' ? mobileMonthNode : null}
-            {shouldWarmMobileCalendar || renderedMobileView !== 'month' ? (
-              <div
-                className={
-                  renderedMobileView === 'month'
-                    ? 's2-mobile-calendar-prewarm'
-                    : 's2-mobile-calendar-live'
-                }
-                aria-hidden={renderedMobileView === 'month' ? true : undefined}
-              >
-                {calendarNode}
-              </div>
+            {renderedMobileView === 'list' ? mobileAgendaNode : null}
+            {renderedMobileView !== 'month' && renderedMobileView !== 'list' ? (
+              <div className="s2-mobile-calendar-live">{calendarNode}</div>
             ) : null}
           </div>
           {overlays}
