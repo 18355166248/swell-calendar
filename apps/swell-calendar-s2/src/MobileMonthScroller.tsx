@@ -173,16 +173,33 @@ export function MobileMonthScroller({
   const handleScroll = () => {
     virtualList.onScroll();
 
-    const nextIndex = virtualList.getIndexAtOffset(
-      (virtualList.scrollRef.current?.scrollTop ?? 0) + 1
-    );
-    const next = months[nextIndex];
-    if (
-      next &&
-      (next.getFullYear() !== visibleMonth.getFullYear() ||
-        next.getMonth() !== visibleMonth.getMonth())
-    ) {
-      onVisibleMonthChange(next);
+    const scroller = virtualList.scrollRef.current;
+    if (!scroller) return;
+
+    // 顶部月份判定改读真实 DOM 位置，取「在视口内可见面积最大」的 section：
+    // - 不再依赖虚拟列表 getIndexAtOffset 的「估算 vs 实测」高度差——该差值在月份边界处会随
+    //   滚动方向产生 off-by-one，导致顶部「M月」标题方向性滞后；改用 DOM 矩形后结果只取决于位置。
+    // - 用可见面积最大而非「顶边第一个 section」，避免上一个月仅剩几像素残留在顶边时仍判为当前月，
+    //   与用户实际看到的主体月份一致。
+    const rect = scroller.getBoundingClientRect();
+    const topEdge = rect.top;
+    const bottomEdge = rect.bottom;
+    const sections = scroller.querySelectorAll<HTMLElement>('.m-month-section[data-month]');
+    let topKey: string | null = null;
+    let maxVisible = 0;
+    for (const section of sections) {
+      const r = section.getBoundingClientRect();
+      const visible = Math.min(r.bottom, bottomEdge) - Math.max(r.top, topEdge);
+      if (visible > maxVisible) {
+        maxVisible = visible;
+        topKey = section.dataset.month ?? null;
+      }
+    }
+    if (!topKey) return;
+
+    const [year, month] = topKey.split('-').map(Number);
+    if (year !== visibleMonth.getFullYear() || month - 1 !== visibleMonth.getMonth()) {
+      onVisibleMonthChange(new Date(year, month - 1, 1));
     }
   };
 
