@@ -2062,6 +2062,40 @@ button {
   background: var(--mobile-calendar-bg);
 }
 
+/* 日/多日主体横滑切日的跟手容器：
+   pan-y 让纵向小时滚动走原生（内部 .swell-calendar-time），横向交本组件接管。 */
+.m-view-swipe {
+  /* 父级 .canvas--mobile 是 display:block，flex:1 不生效；
+     用 height:100% 撑满其确定高度（替代此前 .s2-mobile-calendar-live 的 display:contents 直接填充）。 */
+  height: 100%;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  touch-action: pan-y;
+  transform: translate3d(var(--swipe-x, 0px), 0, 0);
+  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* will-change 仅在手势进行中开启，避免常驻 GPU 合成层 */
+.m-view-swipe.is-dragging,
+.m-view-swipe.is-snapping,
+.m-view-swipe.is-jumping {
+  will-change: transform;
+}
+
+.m-view-swipe.is-dragging {
+  transition: none;
+}
+
+.m-view-swipe.is-snapping {
+  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.m-view-swipe.is-jumping {
+  transition: none !important;
+}
+
 .app--mobile .s2-calendar--mobile,
 .app--mobile .s2-calendar--mobile > div:not(.swell-calendar-toolbar),
 .app--mobile .swell-calendar-day-view--mobile,
