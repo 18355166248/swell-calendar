@@ -104,9 +104,10 @@
 | 农历 / 节气标签（宿主注入，`chinese-days`） | day/multi-day/month/agenda | ✅ PoC 落地（S2 周条） | M1 | 低 |
 | **Agenda 视图（新）** | agenda | ❌ 无（ViewType 无 agenda） | M2 | 中 |
 | Multi-day 移动视图（N 列日列） | multi-day | ✅ M3 首版已落地 | M3 | 中 |
-| 触控 create / move / resize | mobiscroll | ❌ 鼠标 only | M4 | 高 |
-| 拖拽期阻止滚动（touch-action / capture） | — | n/a | M4 | 中 |
-| 长按创建 / tap 目标 / 滑动切日 / 浮层移动适配 | 四稿 | ❌ | M5 | 中 |
+| 触控 create / move / resize | mobiscroll | ✅ M4 已落地（Pointer Events） | M4 | 高 |
+| 拖拽期阻止滚动（touch-action / capture） | — | ✅ M4 已落地（capture + 动态 touch-action） | M4 | 中 |
+| 长按创建（时间网格/月格/timeline 空白） | mobiscroll | ✅ M4 已落地（与滚动共存所需） | M4（自 M5 提前） | 中 |
+| tap 目标放大 / 滑动切日 / 浮层移动适配 | 四稿 | ❌ | M5 | 中 |
 
 > 标记规则同 `plan.md` §3.1：能力在对应 Phase 落地前，不得在 README / SPEC 写成"已支持"。
 
@@ -326,5 +327,20 @@
   - **移动 Agenda 分组头背景对齐（2026-06-23）**：`.agenda-view--mobile` 的 `--swell-agenda-bg` 优先读取宿主 `--mobile-calendar-bg`，使列表日期分组头与移动顶栏 / 画布背景一致；无宿主变量时仍回退 `--bg-app/#fff`。
   - **移动多日周条 active+oncard 反色修复（2026-06-23）**：多日连接带 `.oncard` 会在 active 规则之后覆盖农历颜色；补 active+oncard 专属规则，确保选中日期圈内数字与农历均保持 `--accent-contrast`。
   - **M3 验收完成（2026-06-23）**：Multi-day 视图引擎能力（公开 `multiDay` ViewType + `options.multiDay.range`）已落地并写入 `SPEC.md` / `MIGRATION.md`，Day / Multi-day 顶部日期栏、全天行、周条连接带、时间轴密度、背景与反色等视觉项均已逐项对齐 remix 设计稿真源并经 375px 预览验证；能力矩阵「Multi-day 移动视图」行为 ✅。后续仅在出现新设计稿差距时增量收口，不再作为进行中阶段。下一阶段进入 M4 触控输入核心（docs-first，先改 SPEC/能力矩阵/MIGRATION 再迁移 `useDrag`）。
-- M4：
+- M4：**触控输入核心已落地（2026-06-24）**。
+  - docs-first：`SPEC.md` 新增「触控输入（M4）」小节 + Backlog 勾选；`MIGRATION.md` 新增「触控输入（Pointer Events）」小节（明确无公开 API 变更、桌面零回归、长按创建行为）；本文件能力矩阵三行转 ✅。
+  - **关键产品决策（经宿主确认）**：时间网格上「触控拖拽创建」与「上下滚动看时段」是同一手势，二者冲突。采用 **长按进入创建**（对标 iOS 日历 / Mobiscroll mobile day view），把原 M5 的长按提前到 M4——这是同时保留滚动与创建的唯一干净解。已有事件 move/resize 无此冲突，卡片 `touch-action:none` 即时拖拽。
+  - 实现：
+    - `utils/mouse.ts`：`isLeftMouseButton` 改为 `isPressablePointer`，鼠标要求左键、触控/笔放宽为任意主指针（`pointerType !== 'mouse'`）。
+    - `hooks/common/useDrag.ts`：`mousedown/move/up` → `pointerdown/move/up/cancel`；按下 `setPointerCapture`（try/catch 兜底）+ 动态把目标 `touch-action` 锁 `none`、结束还原；只跟踪首个主指针（`activePointerIdRef` 过滤多指）；`pointercancel` 走「拖拽结束」兜底清理；保留「主键松开丢失自恢复」（仍读 `e.buttons & 1`，触控按住时为 1）。
+    - 新增可选 `delayTouchStart`（长按毫秒）：仅对触控/笔生效——按下起计时，长按前移动超容差视为滚动并放弃（不 capture/不锁滚动），计时到达且仍按住才「激活」进入拖拽创建；鼠标/笔即时，零回归。`useGridSelection` / `useMonthCreate` / `useTimelineCreate` 三条创建路径传入 `LONG_PRESS_DELAY`。
+    - 事件组件 `onMouseDown` → `onPointerDown`：`TimeEvent` / `MonthEvent` / `TimelineEvent` / `TimeGridView`（`.time-columns`）/ `MonthGrid`（周行）/ `TimelineRow`。
+    - CSS：事件卡片 / resize 手柄 `touch-action: none`（桌面无副作用）。
+  - 验证结果：
+    - `tsc --noEmit`（calendar）通过；`check-arch`（205 文件无分层违规）/ `check-docs` 通过。
+    - 包单测 **392/392 绿**：
+      - `useDrag.spec` 重写为 Pointer Events，新增 5 例覆盖——鼠标 pointerup 丢失自恢复 + 二次拖拽、触控无长按即时拖拽（卡片 move/resize）、长按未到/轻点不创建、长按前移动超容差判定为滚动放弃、长按到达后激活并拖拽。
+      - `useTimelineInteraction.spec`（move/resize/create）迁移为 `pointerType:'mouse'` 即时路径，鼠标几何提交行为零回归。
+      - 其余 day/week/month/scheduler/timeline/agenda/multiDay 既有单测保持绿。
+    - 浏览器触控验证：CDP 触控模拟不稳定（参见 M1 旋屏说明），真机/真浏览器待宿主侧联调；鼠标路径零回归由上述单测锁定。
 - M5：

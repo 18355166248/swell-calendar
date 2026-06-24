@@ -1,6 +1,6 @@
 import { act, useRef } from 'react';
 import { createRoot, Root } from 'react-dom/client';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
   CalendarStoreProvider,
@@ -24,9 +24,11 @@ const reactActEnv = globalThis as typeof globalThis & {
 function DragHarness({
   store,
   onSnapshot,
+  delayTouchStart,
 }: {
   store: ReturnType<typeof createCalendarStore>;
   onSnapshot: (snapshot: DragSnapshot) => void;
+  delayTouchStart?: number;
 }) {
   const countersRef = useRef({
     onDragStartCalls: 0,
@@ -34,14 +36,18 @@ function DragHarness({
   });
 
   function Inner() {
-    const handleMouseDown = useDrag('event/timeGrid/move/1', {
-      onDragStart: () => {
-        countersRef.current.onDragStartCalls += 1;
+    const handlePointerDown = useDrag(
+      'event/timeGrid/move/1',
+      {
+        onDragStart: () => {
+          countersRef.current.onDragStartCalls += 1;
+        },
+        onMouseUp: () => {
+          countersRef.current.onMouseUpCalls += 1;
+        },
       },
-      onMouseUp: () => {
-        countersRef.current.onMouseUpCalls += 1;
-      },
-    });
+      { delayTouchStart }
+    );
     const draggingState = useCalendarStore((state) => state.dnd.draggingState);
 
     onSnapshot({
@@ -50,7 +56,7 @@ function DragHarness({
       onMouseUpCalls: countersRef.current.onMouseUpCalls,
     });
 
-    return <div data-testid="drag-target" onMouseDown={handleMouseDown} />;
+    return <div data-testid="drag-target" onPointerDown={handlePointerDown} />;
   }
 
   return (
@@ -58,6 +64,17 @@ function DragHarness({
       <Inner />
     </CalendarStoreProvider>
   );
+}
+
+// jsdom 没有原生 PointerEvent 构造器，用 MouseEvent 承载坐标/按键，再补 pointer 字段。
+function makePointerEvent(
+  type: string,
+  init: MouseEventInit & { pointerId?: number; pointerType?: string }
+) {
+  const { pointerId = 1, pointerType = 'mouse', ...mouseInit } = init;
+  const e = new MouseEvent(type, { bubbles: true, ...mouseInit });
+  Object.assign(e, { pointerId, pointerType });
+  return e;
 }
 
 describe('useDrag', () => {
@@ -87,11 +104,12 @@ describe('useDrag', () => {
     delete reactActEnv.IS_REACT_ACT_ENVIRONMENT;
   });
 
-  function mount() {
+  function mount(delayTouchStart?: number) {
     act(() => {
       root.render(
         <DragHarness
           store={store}
+          delayTouchStart={delayTouchStart}
           onSnapshot={(snapshot) => {
             latest = snapshot;
           }}
@@ -100,27 +118,33 @@ describe('useDrag', () => {
     });
   }
 
-  function dispatchToTarget(type: 'mousedown', init: MouseEventInit) {
+  function dispatchToTarget(
+    type: 'pointerdown',
+    init: MouseEventInit & { pointerId?: number; pointerType?: string }
+  ) {
     const target = container.querySelector('[data-testid="drag-target"]');
     if (!target) {
       throw new Error('drag target not found');
     }
 
     act(() => {
-      target.dispatchEvent(new MouseEvent(type, { bubbles: true, ...init }));
+      target.dispatchEvent(makePointerEvent(type, init));
     });
   }
 
-  function dispatchToDocument(type: 'mousemove' | 'mouseup', init: MouseEventInit) {
+  function dispatchToDocument(
+    type: 'pointermove' | 'pointerup' | 'pointercancel',
+    init: MouseEventInit & { pointerId?: number; pointerType?: string }
+  ) {
     act(() => {
-      document.dispatchEvent(new MouseEvent(type, { bubbles: true, ...init }));
+      document.dispatchEvent(makePointerEvent(type, init));
     });
   }
 
-  it('auto-recovers when mouseup is lost and allows the next drag to start again', () => {
+  it('auto-recovers when pointerup is lost and allows the next drag to start again (mouse)', () => {
     mount();
 
-    dispatchToTarget('mousedown', {
+    dispatchToTarget('pointerdown', {
       button: 0,
       buttons: 1,
       clientX: 10,
@@ -128,7 +152,7 @@ describe('useDrag', () => {
     });
     expect(latest.draggingState).toBe(DraggingState.INIT);
 
-    dispatchToDocument('mousemove', {
+    dispatchToDocument('pointermove', {
       button: 0,
       buttons: 1,
       clientX: 10,
@@ -137,8 +161,8 @@ describe('useDrag', () => {
     expect(latest.draggingState).toBe(DraggingState.DRAGGING);
     expect(latest.onDragStartCalls).toBe(1);
 
-    // 模拟 mouseup 丢失：没有 mouseup，只收到 buttons=0 的 mousemove
-    dispatchToDocument('mousemove', {
+    // 模拟 pointerup 丢失：没有 pointerup，只收到 buttons=0 的 pointermove
+    dispatchToDocument('pointermove', {
       button: 0,
       buttons: 0,
       clientX: 10,
@@ -148,13 +172,13 @@ describe('useDrag', () => {
     expect(latest.onMouseUpCalls).toBe(1);
 
     // 若恢复失败，这里第二次拖拽会一直卡住无法重新开始
-    dispatchToTarget('mousedown', {
+    dispatchToTarget('pointerdown', {
       button: 0,
       buttons: 1,
       clientX: 30,
       clientY: 30,
     });
-    dispatchToDocument('mousemove', {
+    dispatchToDocument('pointermove', {
       button: 0,
       buttons: 1,
       clientX: 30,
@@ -163,13 +187,150 @@ describe('useDrag', () => {
     expect(latest.draggingState).toBe(DraggingState.DRAGGING);
     expect(latest.onDragStartCalls).toBe(2);
 
-    dispatchToDocument('mouseup', {
+    dispatchToDocument('pointerup', {
       button: 0,
       buttons: 0,
       clientX: 30,
       clientY: 40,
     });
     expect(latest.draggingState).toBe(DraggingState.IDLE);
-    expect(latest.onMouseUpCalls).toBe(2);
+    expect(latest.onMouseUpCalls).toBe(1 + 1);
+  });
+
+  it('starts a touch drag immediately when no long-press delay is configured', () => {
+    mount();
+
+    dispatchToTarget('pointerdown', {
+      button: 0,
+      buttons: 1,
+      clientX: 10,
+      clientY: 10,
+      pointerType: 'touch',
+    });
+    // 触控无长按配置（事件卡片 move/resize 场景）：按下即进入拖拽
+    expect(latest.draggingState).toBe(DraggingState.INIT);
+
+    dispatchToDocument('pointermove', {
+      buttons: 1,
+      clientX: 10,
+      clientY: 24,
+      pointerType: 'touch',
+    });
+    expect(latest.draggingState).toBe(DraggingState.DRAGGING);
+    expect(latest.onDragStartCalls).toBe(1);
+
+    dispatchToDocument('pointerup', {
+      buttons: 0,
+      clientX: 10,
+      clientY: 24,
+      pointerType: 'touch',
+    });
+    expect(latest.draggingState).toBe(DraggingState.IDLE);
+    expect(latest.onMouseUpCalls).toBe(1);
+  });
+
+  it('does NOT start a touch drag before the long-press delay elapses', () => {
+    vi.useFakeTimers();
+    try {
+      mount(400);
+
+      dispatchToTarget('pointerdown', {
+        button: 0,
+        buttons: 1,
+        clientX: 10,
+        clientY: 10,
+        pointerType: 'touch',
+      });
+      // 长按未到时，处于等待态：尚未进入拖拽
+      expect(latest.draggingState).toBe(DraggingState.IDLE);
+
+      // 未到时长就抬起（轻点）：不创建、不进入拖拽
+      dispatchToDocument('pointerup', {
+        buttons: 0,
+        clientX: 10,
+        clientY: 10,
+        pointerType: 'touch',
+      });
+      act(() => {
+        vi.advanceTimersByTime(500);
+      });
+      expect(latest.draggingState).toBe(DraggingState.IDLE);
+      expect(latest.onDragStartCalls).toBe(0);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('cancels long-press when the finger moves beyond tolerance (treated as scroll)', () => {
+    vi.useFakeTimers();
+    try {
+      mount(400);
+
+      dispatchToTarget('pointerdown', {
+        button: 0,
+        buttons: 1,
+        clientX: 10,
+        clientY: 10,
+        pointerType: 'touch',
+      });
+
+      // 长按到达前手指明显移动 → 判定为滚动，放弃长按创建
+      dispatchToDocument('pointermove', {
+        buttons: 1,
+        clientX: 10,
+        clientY: 60,
+        pointerType: 'touch',
+      });
+      act(() => {
+        vi.advanceTimersByTime(500);
+      });
+      expect(latest.draggingState).toBe(DraggingState.IDLE);
+      expect(latest.onDragStartCalls).toBe(0);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('activates a touch drag after the long-press delay, then drags', () => {
+    vi.useFakeTimers();
+    try {
+      mount(400);
+
+      dispatchToTarget('pointerdown', {
+        button: 0,
+        buttons: 1,
+        clientX: 10,
+        clientY: 10,
+        pointerType: 'touch',
+      });
+      expect(latest.draggingState).toBe(DraggingState.IDLE);
+
+      // 长按到达：进入拖拽初始态（onInit → INIT）
+      act(() => {
+        vi.advanceTimersByTime(400);
+      });
+      expect(latest.draggingState).toBe(DraggingState.INIT);
+
+      // 激活后移动 → 进入 DRAGGING
+      dispatchToDocument('pointermove', {
+        buttons: 1,
+        clientX: 12,
+        clientY: 40,
+        pointerType: 'touch',
+      });
+      expect(latest.draggingState).toBe(DraggingState.DRAGGING);
+      expect(latest.onDragStartCalls).toBe(1);
+
+      dispatchToDocument('pointerup', {
+        buttons: 0,
+        clientX: 12,
+        clientY: 40,
+        pointerType: 'touch',
+      });
+      expect(latest.draggingState).toBe(DraggingState.IDLE);
+      expect(latest.onMouseUpCalls).toBe(1);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

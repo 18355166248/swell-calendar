@@ -241,7 +241,7 @@ export function MonthGrid({
               key={weekIndex}
               className={cls('month-week-row')}
               style={{ height: `${rowHeightPercent}%` }}
-              onMouseDown={onCreateStart}
+              onPointerDown={onCreateStart}
             >
               {week.map((date, colIndex) => {
                 const today = isToday(date);

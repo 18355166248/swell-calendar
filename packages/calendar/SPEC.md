@@ -107,13 +107,14 @@ swell-calendar 是一个**可嵌入的 React 日历组件库**，面向需要在
 - 打印、a11y 强化
 - 虚拟化：通用 `useVirtualList` 已落地并用于移动端 Agenda / S2 连续月视图（见“通用 Hooks”）；尚未覆盖桌面超长事件列表等其余场景
 
-当前**活跃 epic（M1 响应式基线已落地，M2 Agenda 首版已落地，M3 Multi-day 首版已落地，M4–M5 规划中）**：
+当前**活跃 epic（M1 响应式基线已落地，M2 Agenda 首版已落地，M3 Multi-day 首版已落地，M4 触控输入已落地，M5 交互打磨规划中）**：
 
 - 移动端适配（响应式布局 + 触控输入 + 四视图），视觉对标 iOS 苹果日历设计稿（`docs/assets/*.png`）；含新 `agenda` 视图（M2）。详见 `docs/tasks/2026-06-19-mobile-adaptation.md`
   - 已落地（M1）：视口档位原语 + Day/Month 据档位切根类名 + Day/Month 移动样式收口，桌面零回归
   - 已落地（M2）：`agenda` 只读列表视图，复用既有事件数据与 `onEventClick`
   - 已落地（M3）：`multiDay` 连续多日时间网格视图，默认 2 天
-  - 未落地：触控 create/move/resize（鼠标 only）、移动交互打磨
+  - 已落地（M4）：触控 create/move/resize —— 拖拽输入链路从鼠标事件迁移到 Pointer Events，鼠标/触控/手写笔统一走 `onEventCreate` / `onEventUpdate`；详见下方「触控输入」
+  - 未落地：移动交互打磨（滑动切日/周、命中区放大、浮层底部适配等，M5）
 
 shared events 的资源策略固定为：
 
@@ -626,6 +627,7 @@ function useCalendarDataSource<TEvent, TDraft>(
 - [ ] Timeline 交互后续增量：overlap/invalid 校验、external/cross-instance DnD、shared events 跨资源行语义
 - [x] agenda 只读列表视图（M2）
 - [x] multiDay 连续多日时间网格视图（M3）
+- [x] 触控 create/move/resize（Pointer Events 输入链路，M4）
 - [ ] 月视图 workweek 支持
 - [ ] 顶边 resize（Scheduler 事件顶边调整开始时间）
 - [ ] 资源层级渲染（利用 `parentId` 字段）
@@ -655,3 +657,12 @@ function useCalendarDataSource<TEvent, TDraft>(
 - `create/move/resize` 当前也会先检查 `invalid` / `blockedTimes`，命中后直接拒绝提交
 - `invalid` / `blockedTimes` 当前会在 time-grid 中渲染为只读遮罩，提示不可操作区域
 - 内部尚未内建事件编辑弹窗、宿主侧冲突解决 UI、external/cross-instance 预览层与 timezone 完整多时区体验
+
+### 触控输入（M4）
+
+- 拖拽输入统一走 **Pointer Events**（`pointerdown/move/up/cancel`），鼠标、触控、手写笔共用同一条 create/move/resize 链路；公开回调（`onEventCreate` / `onEventUpdate` / `onRangeSelect` / `onCellClick` / `onEventClick`）签名与语义不变。
+- **主指针判定**：鼠标仍要求左键（`button === 0`）；触控/手写笔放宽为任意主指针（`pointerType !== 'mouse'`）。一次拖拽只跟踪首个落下的指针，多指并发被忽略。
+- **拖拽期不滚动**：拖拽进行中对所在指针 `setPointerCapture`（环境不支持时静默降级），并把目标元素 `touch-action` 锁为 `none`；结束/取消后还原。`pointercancel`（系统中断、手势被接管）按「拖拽结束」走兜底清理，等价于既有「主键松开丢失自恢复」。
+- **已有事件移动 / resize（触控即时）**：事件卡片与 resize 手柄默认 `touch-action: none`，按下即进入拖拽，无需长按。
+- **空白网格创建（触控长按）**：时间网格 / 月格 / timeline 资源行的「拖拽创建」在触控下需**长按约 400ms** 才进入创建（随后拖拽选区、锁定滚动）；长按前的滑动仍是原生滚动，轻点（tap）不创建。此设计让「滚动看时段」与「拖拽创建」在同一表面共存，对标 iOS 日历 / Mobiscroll mobile day view。鼠标 / 手写笔不经长按，行为与桌面一致（零回归）。
+- 受 `isReadOnly` 与 per-event / 视图级 `dragToCreate/dragToMove/dragToResize` 及 `onValidateEventChange` 约束，与桌面一致。

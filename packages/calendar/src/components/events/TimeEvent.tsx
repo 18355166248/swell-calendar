@@ -428,7 +428,7 @@ export function TimeEvent({
       data-testid={`event-card-${model.id}`}
       tabIndex={0}
       role="button"
-      onMouseDown={handleMoveStart}
+      onPointerDown={handleMoveStart}
       onKeyDown={handleKeyDown}
       onPointerEnter={handleMouseEnter}
       onPointerLeave={handleMouseLeave}
@@ -450,7 +450,7 @@ export function TimeEvent({
         <div
           className={classNames.resizeHandleTop}
           data-testid={`resize-handle-top-${model.id}`}
-          onMouseDown={handleResizeTopStart}
+          onPointerDown={handleResizeTopStart}
         />
       )}
 
@@ -459,7 +459,7 @@ export function TimeEvent({
         <div
           className={classNames.resizeHandleBottom}
           data-testid={`resize-handle-bottom-${model.id}`}
-          onMouseDown={handleResizeBottomStart}
+          onPointerDown={handleResizeBottomStart}
         />
       )}
     </div>

@@ -81,6 +81,8 @@
 
 .month-event {
   position: absolute;
+  // 触控按下即拖拽 move/resize（仅影响触屏，桌面无副作用）
+  touch-action: none;
 
   &:hover {
     opacity: 1 !important;
@@ -101,6 +103,7 @@
   bottom: 0;
   width: 8px;
   cursor: ew-resize;
+  touch-action: none;
 
   &--start {
     left: -2px;

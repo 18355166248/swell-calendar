@@ -97,7 +97,7 @@ export function TimelineEvent({
       tabIndex={0}
       role="button"
       data-testid={`timeline-event-${model.id}`}
-      onMouseDown={handleMoveStart}
+      onPointerDown={handleMoveStart}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
       onPointerEnter={handleMouseEnter}
@@ -106,7 +106,7 @@ export function TimelineEvent({
       <div
         className={cls('timeline-event-resize-handle', 'timeline-event-resize-handle--start')}
         data-testid={`timeline-resize-start-${model.id}`}
-        onMouseDown={(e) => handleResizeStart(e, 'start')}
+        onPointerDown={(e) => handleResizeStart(e, 'start')}
       />
       {exceedLeft && <span className={cls('timeline-event-arrow')}>‹</span>}
       <span className={cls('timeline-event-title')}>{title}</span>
@@ -114,7 +114,7 @@ export function TimelineEvent({
       <div
         className={cls('timeline-event-resize-handle', 'timeline-event-resize-handle--end')}
         data-testid={`timeline-resize-end-${model.id}`}
-        onMouseDown={(e) => handleResizeStart(e, 'end')}
+        onPointerDown={(e) => handleResizeStart(e, 'end')}
       />
     </div>
   );

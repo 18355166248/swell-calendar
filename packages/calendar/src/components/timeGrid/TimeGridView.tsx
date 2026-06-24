@@ -425,7 +425,7 @@ export function TimeGrid({
               ? { left: gutterWidth, width: `${gridPixelWidth}px`, right: 'auto' }
               : { left: gutterWidth }
           }
-          onMouseDown={isReadOnly ? undefined : handleMouseDown}
+          onPointerDown={isReadOnly ? undefined : handleMouseDown}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}

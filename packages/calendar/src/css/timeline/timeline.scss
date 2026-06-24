@@ -178,6 +178,8 @@
   white-space: nowrap;
   box-sizing: border-box;
   cursor: grab;
+  // 触控按下即拖拽 move/resize（仅影响触屏，桌面无副作用）
+  touch-action: none;
   z-index: 2;
   transition:
     box-shadow 0.12s ease,
@@ -205,6 +207,7 @@
   width: 8px;
   height: 100%;
   cursor: ew-resize;
+  touch-action: none;
   z-index: 3;
 
   &--start {

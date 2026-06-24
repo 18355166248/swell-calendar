@@ -87,18 +87,26 @@ describe('timeline interaction hooks', () => {
     });
   }
 
+  // 拖拽链路已迁移到 Pointer Events；用 MouseEvent 承载坐标/按键再补 pointer 字段。
+  // pointerType='mouse' 走鼠标即时路径（不经触控长按），等价于历史鼠标行为。
+  function makePointerEvent(type: string, init: MouseEventInit) {
+    const e = new MouseEvent(type, { bubbles: true, ...init });
+    Object.assign(e, { pointerId: 1, pointerType: 'mouse' });
+    return e;
+  }
+
   function down(testid: string, init: MouseEventInit) {
     const el = container.querySelector(`[data-testid="${testid}"]`);
     if (!el) throw new Error(`target ${testid} not found`);
-    act(() => el.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, ...init })));
+    act(() => el.dispatchEvent(makePointerEvent('pointerdown', init)));
   }
 
   function moveDoc(init: MouseEventInit) {
-    act(() => document.dispatchEvent(new MouseEvent('mousemove', { bubbles: true, ...init })));
+    act(() => document.dispatchEvent(makePointerEvent('pointermove', init)));
   }
 
   function upDoc(init: MouseEventInit) {
-    act(() => document.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, ...init })));
+    act(() => document.dispatchEvent(makePointerEvent('pointerup', init)));
   }
 
   // ---- move ----
@@ -109,7 +117,7 @@ describe('timeline interaction hooks', () => {
       startDayIndex: 1,
       endDayIndex: 5,
     });
-    return <div data-testid="move" onMouseDown={onMoveStart} />;
+    return <div data-testid="move" onPointerDown={onMoveStart} />;
   }
 
   it('move：mouseup 按 dayDelta 提交 commitMove', () => {
@@ -133,7 +141,7 @@ describe('timeline interaction hooks', () => {
       startDayIndex: 1,
       endDayIndex: 5,
     });
-    return <div data-testid="resize-end" onMouseDown={onResizeEndStart} />;
+    return <div data-testid="resize-end" onPointerDown={onResizeEndStart} />;
   }
 
   it('resize：mouseup 按 dayDelta 提交 commitResize(end)', () => {
@@ -151,7 +159,7 @@ describe('timeline interaction hooks', () => {
   // ---- create ----
   function CreateHarness() {
     const onCreateStart = useTimelineCreate({ resourceIndex: 0 });
-    return <div data-testid="create" onMouseDown={onCreateStart} />;
+    return <div data-testid="create" onPointerDown={onCreateStart} />;
   }
 
   it('create：空白横拖 mouseup 提交 commitCreate(资源行, 起, 止)', () => {

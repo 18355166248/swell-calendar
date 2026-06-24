@@ -198,6 +198,25 @@ const schedulerOptions = {
   };
   ```
 
+### 触控输入（Pointer Events，移动端 M4）
+
+#### 目标
+
+让移动端可触控 create / move / resize。内部拖拽链路从鼠标事件（`mousedown/move/up`）迁移到 **Pointer Events**（`pointerdown/move/up/cancel`），鼠标 / 触控 / 手写笔共用同一条交互链路。
+
+#### 对宿主的影响
+
+- **无公开 API / 配置变更**：`onEventCreate` / `onEventUpdate` / `onRangeSelect` / `onCellClick` / `onEventClick` 的签名与触发语义不变；`useDrag` / 视口原语等均未从 `src/index.ts` 导出，迁移为内部增量。
+- **桌面零回归**：鼠标路径仍要求左键、即时进入拖拽，行为与之前完全一致。
+- **新增触控行为（自动生效，无需宿主开关）**：
+  - 已有事件卡片 / resize 手柄：按下即拖拽（卡片默认 `touch-action: none`）。
+  - 空白网格创建：触控下需**长按约 400ms** 才进入拖拽创建；长按前滑动 = 原生滚动，轻点不创建。鼠标 / 手写笔不经长按。
+- **宿主需注意**：若宿主在引擎容器内自定义了会吞掉 `pointer`/`touch` 事件或设置了 `touch-action` 的包裹层，可能影响触控拖拽，需放行到引擎根节点。
+
+#### 兼容窗口
+
+- 一次性迁移，无双轨兼容期；鼠标行为不变，故宿主无需改动。
+
 ## 原则
 
 - 不通过运行时 `console.warn` 提醒宿主

@@ -1,6 +1,7 @@
 import { isNil } from 'lodash-es';
 import { MouseEvent, useRef, useState } from 'react';
 
+import { LONG_PRESS_DELAY } from '@/constants/mouse.const';
 import { useCalendarStore } from '@/contexts/calendarStore';
 import { DRAGGING_TYPE_CREATE } from '@/helpers/drag';
 import { DraggingState } from '@/types/dnd.type';
@@ -89,40 +90,45 @@ export function useGridSelection({
     onMouseup(e, true);
   };
 
-  const onMouseDown = useDrag(currentGridSelectionType, {
-    onInit: (e) => {
-      // 获取并记录初始网格位置
-      const gridPosition = gridPositionFinder(e);
-      if (!isNil(gridPosition)) {
-        setInitGridPosition(gridPosition);
-      }
-    },
-    onDragStart: (e) => {
-      setGridSelectionByPosition(e);
-    },
-    onDrag: (e) => {
-      if (gridSelectionRef.current) {
+  const onMouseDown = useDrag(
+    currentGridSelectionType,
+    {
+      onInit: (e) => {
+        // 获取并记录初始网格位置
+        const gridPosition = gridPositionFinder(e);
+        if (!isNil(gridPosition)) {
+          setInitGridPosition(gridPosition);
+        }
+      },
+      onDragStart: (e) => {
         setGridSelectionByPosition(e);
-      }
-    },
-    onMouseUp: (e, { draggingState }) => {
-      e.stopPropagation();
+      },
+      onDrag: (e) => {
+        if (gridSelectionRef.current) {
+          setGridSelectionByPosition(e);
+        }
+      },
+      onMouseUp: (e, { draggingState }) => {
+        e.stopPropagation();
 
-      // 判断是否为点击事件（拖拽状态小于等于初始状态表示没有发生拖拽）
-      const isClickEvent = draggingState <= DraggingState.INIT;
+        // 判断是否为点击事件（拖拽状态小于等于初始状态表示没有发生拖拽）
+        const isClickEvent = draggingState <= DraggingState.INIT;
 
-      if (isClickEvent) {
-        // 如果是点击事件，使用带点击检测的处理函数
-        // 这个函数会处理单击和双击的冲突，并根据配置决定是否触发事件
-        onMouseUpWithClick(e);
-        return;
-      } else {
-        // 如果是拖拽结束事件，直接调用鼠标抬起处理函数
-        // 传入 false 表示这不是点击事件，而是拖拽结束事件
-        onMouseup(e, false);
-      }
+        if (isClickEvent) {
+          // 如果是点击事件，使用带点击检测的处理函数
+          // 这个函数会处理单击和双击的冲突，并根据配置决定是否触发事件
+          onMouseUpWithClick(e);
+          return;
+        } else {
+          // 如果是拖拽结束事件，直接调用鼠标抬起处理函数
+          // 传入 false 表示这不是点击事件，而是拖拽结束事件
+          onMouseup(e, false);
+        }
+      },
     },
-  });
+    // 触控空白网格创建走长按进入，避免与上下滚动看时段的手势冲突；鼠标即时
+    { delayTouchStart: LONG_PRESS_DELAY }
+  );
 
   return onMouseDown;
 }

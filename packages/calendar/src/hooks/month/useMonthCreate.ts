@@ -4,6 +4,7 @@ import {
   MonthDragPreview,
   MonthGridPositionResult,
 } from '@/components/month/MonthInteractionContext';
+import { LONG_PRESS_DELAY } from '@/constants/mouse.const';
 import { DRAGGING_TYPE_CREATE } from '@/helpers/drag';
 import { useDrag } from '@/hooks/common/useDrag';
 
@@ -43,33 +44,38 @@ export function useMonthCreate({
     cursorY: e.clientY,
   });
 
-  return useDrag(DRAGGING_TYPE_CREATE.gridSelection('timeGrid'), {
-    onInit: (e) => {
-      hasDraggedRef.current = false;
-      const pos = gridPositionFinder(e.clientX, e.clientY);
-      startFlatRef.current = pos ? pos.flatOffset : null;
+  return useDrag(
+    DRAGGING_TYPE_CREATE.gridSelection('timeGrid'),
+    {
+      onInit: (e) => {
+        hasDraggedRef.current = false;
+        const pos = gridPositionFinder(e.clientX, e.clientY);
+        startFlatRef.current = pos ? pos.flatOffset : null;
+      },
+      onDragStart: () => {
+        hasDraggedRef.current = true;
+      },
+      onDrag: (e) => {
+        const pos = gridPositionFinder(e.clientX, e.clientY);
+        if (!pos || startFlatRef.current === null) {
+          return;
+        }
+        setDragPreview(previewOf(startFlatRef.current, pos.flatOffset, e));
+      },
+      onMouseUp: (e) => {
+        const pos = gridPositionFinder(e.clientX, e.clientY);
+        setDragPreview(null);
+        const startFlat = startFlatRef.current;
+        const didDrag = hasDraggedRef.current;
+        startFlatRef.current = null;
+        hasDraggedRef.current = false;
+        if (!pos || startFlat === null || !didDrag) {
+          return;
+        }
+        commitCreate(Math.min(startFlat, pos.flatOffset), Math.max(startFlat, pos.flatOffset));
+      },
     },
-    onDragStart: () => {
-      hasDraggedRef.current = true;
-    },
-    onDrag: (e) => {
-      const pos = gridPositionFinder(e.clientX, e.clientY);
-      if (!pos || startFlatRef.current === null) {
-        return;
-      }
-      setDragPreview(previewOf(startFlatRef.current, pos.flatOffset, e));
-    },
-    onMouseUp: (e) => {
-      const pos = gridPositionFinder(e.clientX, e.clientY);
-      setDragPreview(null);
-      const startFlat = startFlatRef.current;
-      const didDrag = hasDraggedRef.current;
-      startFlatRef.current = null;
-      hasDraggedRef.current = false;
-      if (!pos || startFlat === null || !didDrag) {
-        return;
-      }
-      commitCreate(Math.min(startFlat, pos.flatOffset), Math.max(startFlat, pos.flatOffset));
-    },
-  });
+    // 触控空白月格创建走长按进入，避免与滚动手势冲突；鼠标即时
+    { delayTouchStart: LONG_PRESS_DELAY }
+  );
 }

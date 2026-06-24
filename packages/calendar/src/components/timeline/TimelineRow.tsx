@@ -64,7 +64,7 @@ export function TimelineRow({
     <div
       className={cls('timeline-grid-row')}
       style={{ height: rowHeight, borderBottom: gridTheme.rowBorderBottom }}
-      onMouseDown={onCreateStart}
+      onPointerDown={onCreateStart}
     >
       {/* 天列格（网格线 + 周末/今天浅染） */}
       {days.map((day, dayIndex) => {

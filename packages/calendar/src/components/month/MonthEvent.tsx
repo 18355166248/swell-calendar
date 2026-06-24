@@ -116,7 +116,7 @@ export function MonthEvent({
       title={model.title}
       tabIndex={0}
       role="button"
-      onMouseDown={handleMoveStart}
+      onPointerDown={handleMoveStart}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
       data-testid={`month-event-${model.id}`}
@@ -127,7 +127,7 @@ export function MonthEvent({
         <div
           className={cls('month-event-resize-handle', 'month-event-resize-handle--start')}
           data-testid={`month-resize-start-${model.id}`}
-          onMouseDown={(e) => handleResizeStart(e, 'start')}
+          onPointerDown={(e) => handleResizeStart(e, 'start')}
         />
       )}
 
@@ -135,7 +135,7 @@ export function MonthEvent({
         <div
           className={cls('month-event-resize-handle', 'month-event-resize-handle--end')}
           data-testid={`month-resize-end-${model.id}`}
-          onMouseDown={(e) => handleResizeStart(e, 'end')}
+          onPointerDown={(e) => handleResizeStart(e, 'end')}
         />
       )}
     </div>

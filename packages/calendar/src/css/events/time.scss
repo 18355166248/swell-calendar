@@ -3,6 +3,8 @@
   overflow: hidden;
   cursor: pointer;
   white-space: nowrap;
+  // 触控按下即拖拽 move/resize，禁用浏览器原生手势接管（仅影响触屏，桌面无副作用）
+  touch-action: none;
   // 静置时略带透明，卡片更轻、与网格/重叠更融合；hover 时恢复不透明并加深
   opacity: 0.9;
   transition:
@@ -68,6 +70,7 @@
     width: 100%;
     height: 7px;
     cursor: ns-resize;
+    touch-action: none;
     // 置于内容之上，保证短卡片上也能优先命中手柄而非触发移动
     z-index: 1;
   }
@@ -79,6 +82,7 @@
     width: 100%;
     height: 7px;
     cursor: ns-resize;
+    touch-action: none;
     z-index: 1;
   }
 }
