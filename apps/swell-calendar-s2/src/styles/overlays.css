@@ -369,6 +369,7 @@
   display: grid;
   place-items: center;
   backdrop-filter: blur(2px);
+  touch-action: pan-x pan-y;
 }
 .dialog {
   width: 520px;
@@ -379,6 +380,7 @@
   border: 1px solid var(--border);
   overflow: hidden;
   animation: popIn 0.18s cubic-bezier(0.2, 0.9, 0.3, 1);
+  touch-action: pan-x pan-y;
 }
 .dlg-hd {
   padding: 20px 24px 4px;
@@ -557,6 +559,106 @@
   }
   to {
     transform: translateY(0);
+  }
+}
+
+/* ---------- 移动端全屏编辑页（iOS 风格）---------- */
+/* 全屏不透明页面：顶部导航栏固定，表单区独立滚动，软键盘只覆盖底部、不顶起导航栏。 */
+.dialog--page {
+  position: fixed;
+  /* 不设 bottom：高度由 JS 按 VisualViewport 实时控制（见 overlays.tsx），
+     键盘弹出时整页收缩到键盘上方可见区，顶部导航栏不被顶出屏幕 */
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 60;
+  width: 100%;
+  max-width: 100%;
+  height: 100dvh;
+  max-height: none;
+  margin: 0;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  background: var(--bg-layer-1, var(--bg-layer-2));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transform-origin: top center;
+  /* 入场用 opacity 淡入：JS 会设置内联 transform 锁定视口，避免与位移动画相互覆盖 */
+  animation: pageFade 0.2s ease;
+}
+
+/* 顶部导航栏：取消（左）/ 标题（中）/ 保存（右），贴合状态栏安全区 */
+.page-nav {
+  flex: none;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 8px;
+  min-height: 52px;
+  padding: max(env(safe-area-inset-top, 0px), 6px) 8px 6px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-layer-2);
+}
+.page-nav__title {
+  grid-column: 2;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text-1);
+}
+.page-nav__btn {
+  justify-self: start;
+  padding: 8px 10px;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: 16px;
+  color: var(--accent-bg);
+  cursor: pointer;
+}
+.page-nav__btn--primary {
+  justify-self: end;
+  font-weight: 700;
+}
+
+.page-err {
+  flex: none;
+  padding: 8px 18px 0;
+  color: var(--cat-magenta-line);
+  font-size: 13px;
+}
+
+/* 表单区：占满剩余高度、独立滚动；底部留 home indicator 安全区 */
+.dialog--page .dlg-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 18px 18px calc(28px + env(safe-area-inset-bottom, 0px));
+  gap: 18px;
+}
+
+/* 触控友好：输入控件加高，字号 ≥16px 防止 iOS 聚焦时自动放大页面 */
+.dialog--page .field-input,
+.dialog--page .field-select {
+  height: 44px;
+  font-size: 16px;
+}
+
+/* 窄屏下「开始 / 结束」改为竖直整行堆叠，避免半屏列放不下「日期 + 时间」双输入被裁切 */
+.dialog--page .field-row {
+  grid-template-columns: 1fr;
+}
+
+@keyframes pageFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }
 

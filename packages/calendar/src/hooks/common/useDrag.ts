@@ -116,6 +116,13 @@ export function useDrag(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     handlePointerCancelRef.current?.(e as any)
   );
+  const wrappedPinchBlockRef = useRef((e: TouchEvent | Event) => {
+    // 拖拽已经激活后，双指加入不应触发页面缩放；否则 event move/resize/create 会被浏览器打断。
+    // 长按等待态尚未进入拖拽时不拦截，第二指会在 pointerdown 中取消 pending 并交给浏览器缩放。
+    if (!isStartedRef.current) return;
+    if ('touches' in e && e.touches.length < 2) return;
+    e.preventDefault();
+  });
 
   const attachListeners = useCallback(() => {
     document.addEventListener('pointermove', wrappedMoveRef.current);
@@ -129,23 +136,49 @@ export function useDrag(
     document.removeEventListener('pointercancel', wrappedCancelRef.current);
   }, []);
 
-  // 锁定 / 解锁滚动 + 指针捕获，集中管理便于结束时彻底还原
-  const lockGesture = useCallback((target: HTMLElement | null, pointerId: number | null) => {
-    if (isNil(target)) return;
-
-    if (!isNil(pointerId) && typeof target.setPointerCapture === 'function') {
-      try {
-        target.setPointerCapture(pointerId);
-        captureTargetRef.current = target;
-      } catch {
-        // 某些环境（jsdom / 指针已失效）不支持，静默降级——document 监听仍可兜底
-      }
-    }
-
-    // 动态把目标 touch-action 锁为 none，拖拽期不被浏览器接管为滚动；结束后还原
-    touchActionLockRef.current = { target, prev: target.style.touchAction };
-    target.style.touchAction = 'none';
+  const attachPinchBlocker = useCallback(() => {
+    document.addEventListener('touchmove', wrappedPinchBlockRef.current, {
+      capture: true,
+      passive: false,
+    });
+    // iOS Safari 的非标准 gesture 事件仍会在部分 WebView 中触发，拖拽期一并拦截。
+    document.addEventListener('gesturestart', wrappedPinchBlockRef.current, {
+      capture: true,
+      passive: false,
+    });
+    document.addEventListener('gesturechange', wrappedPinchBlockRef.current, {
+      capture: true,
+      passive: false,
+    });
   }, []);
+
+  const detachPinchBlocker = useCallback(() => {
+    document.removeEventListener('touchmove', wrappedPinchBlockRef.current, true);
+    document.removeEventListener('gesturestart', wrappedPinchBlockRef.current, true);
+    document.removeEventListener('gesturechange', wrappedPinchBlockRef.current, true);
+  }, []);
+
+  // 锁定 / 解锁滚动 + 指针捕获，集中管理便于结束时彻底还原
+  const lockGesture = useCallback(
+    (target: HTMLElement | null, pointerId: number | null) => {
+      if (isNil(target)) return;
+
+      if (!isNil(pointerId) && typeof target.setPointerCapture === 'function') {
+        try {
+          target.setPointerCapture(pointerId);
+          captureTargetRef.current = target;
+        } catch {
+          // 某些环境（jsdom / 指针已失效）不支持，静默降级——document 监听仍可兜底
+        }
+      }
+
+      // 动态把目标 touch-action 锁为 none，拖拽期不被浏览器接管为滚动；结束后还原
+      touchActionLockRef.current = { target, prev: target.style.touchAction };
+      target.style.touchAction = 'none';
+      attachPinchBlocker();
+    },
+    [attachPinchBlocker]
+  );
 
   const releaseGesture = useCallback(() => {
     const captureTarget = captureTargetRef.current;
@@ -168,7 +201,8 @@ export function useDrag(
       lock.target.style.touchAction = lock.prev;
       touchActionLockRef.current = null;
     }
-  }, []);
+    detachPinchBlocker();
+  }, [detachPinchBlocker]);
 
   // 清理触控长按等待态（未激活时调用：判定为滚动 / 提前抬起 / 取消）
   const cancelLongPress = useCallback(() => {
@@ -204,13 +238,29 @@ export function useDrag(
       // 只处理可发起拖拽的主指针（鼠标左键 / 触控 / 笔）
       if (!isPressablePointer(e)) return;
 
-      // 已在拖拽或长按等待中，忽略后续指针（多指并发兜底）
-      if (isStartedRef.current || !isNil(pendingRef.current)) return;
-
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const pe = e as any as { pointerId?: number; pointerType?: string };
       const pointerId = isNil(pe.pointerId) ? null : pe.pointerId;
       const isTouchLike = !isNil(pe.pointerType) && pe.pointerType !== 'mouse';
+
+      // 第二根触控指针进入时分两种情况：
+      // - 长按创建等待态：取消 pending，避免 400ms 后误弹创建框。
+      // - 已开始拖拽：保持拖拽锁并阻止缩放，避免拖拽过程被浏览器 pinch zoom 打断。
+      if (isTouchLike && (!isNil(pendingRef.current) || isStartedRef.current)) {
+        if (!isNil(pendingRef.current)) {
+          cancelLongPress();
+          return;
+        }
+        if (isStartedRef.current) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+        return;
+      }
+
+      // 已在拖拽或长按等待中，忽略后续非触控指针（多指并发兜底）
+      if (isStartedRef.current || !isNil(pendingRef.current)) return;
+
       const target = e.currentTarget as HTMLElement;
 
       // 同步挂载全局监听器，而不是等 useEffect（passive，paint 后才执行）。
@@ -256,7 +306,7 @@ export function useDrag(
       e.preventDefault();
       beginDrag(e, target, pointerId);
     },
-    [attachListeners, beginDrag, delayTouchStart]
+    [attachListeners, beginDrag, cancelLongPress, delayTouchStart]
   );
 
   /**

@@ -767,6 +767,10 @@ export default function App({ view }: AppProps) {
         options={calendarOptions}
         callbacks={{
           onEventClick: ({ event }) => {
+            if (isMobile && event.id) {
+              openEventEditById(event.id);
+              return;
+            }
             openEventDetails(event);
           },
           // P7b: 滑动新建 / 单元格点击 → 预填对话框
@@ -831,6 +835,10 @@ export default function App({ view }: AppProps) {
         }}
         onVisibleMonthChange={setVisibleMonth}
         onEventClick={(event, anchor) => {
+          if (event.id) {
+            openEventEditById(event.id);
+            return;
+          }
           openEventDetails(toCalendarEvents([event])[0], anchor);
         }}
       />
@@ -855,6 +863,10 @@ export default function App({ view }: AppProps) {
         events={visibleEvents}
         onVisibleDateChange={setAgendaVisibleDate}
         onEventClick={(event, anchor) => {
+          if (event.id) {
+            openEventEditById(event.id);
+            return;
+          }
           openEventDetails(toCalendarEvents([event])[0], anchor);
         }}
       />
@@ -888,6 +900,10 @@ export default function App({ view }: AppProps) {
           variant={isMobile ? 'sheet' : 'popover'}
           onClose={() => setMorePick(null)}
           onEventClick={(eventId, anchor) => {
+            if (isMobile) {
+              openEventEditById(eventId);
+              return;
+            }
             const ev = morePick.events.find((e) => e.id === eventId);
             if (ev) {
               openEventDetails(ev as EventObject, anchor);
@@ -903,7 +919,7 @@ export default function App({ view }: AppProps) {
           onCreate={handleSubmit}
           initial={editing ? calEventToInput(editing) : createInitial ?? undefined}
           isEdit={!!editing}
-          variant={isMobile ? 'sheet' : 'dialog'}
+          variant={isMobile ? 'page' : 'dialog'}
         />
       )}
       {settingsAnchor && (

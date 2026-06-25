@@ -1,5 +1,6 @@
 import { CalendarSlice } from './calendar.type';
 import { DndSlice } from './dnd.type';
+import { EventEditSlice } from './eventEdit.type';
 import { ExternalDropSlice } from './externalDrop.type';
 import { GridSelectionSlice } from './gridSelection.type';
 import { HoverSlice } from './hover.type';
@@ -20,6 +21,7 @@ export type CalendarState = OptionsSlice &
   CalendarSlice &
   ResourceSlice &
   HoverSlice &
+  EventEditSlice &
   ExternalDropSlice;
 
 export type CalendarStore = CalendarState;

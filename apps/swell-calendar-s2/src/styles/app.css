@@ -26,6 +26,41 @@ button {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* 移动端不走文本选中交互：避免长按/拖拽日程时出现蓝色选区或 iOS callout。
+   表单输入仍允许选择、编辑和系统菜单。 */
+.app--mobile,
+.app--mobile * {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  touch-action: pan-x pan-y;
+  user-select: none;
+}
+
+.app--mobile input,
+.app--mobile textarea,
+.app--mobile select,
+.app--mobile [contenteditable='true'] {
+  -webkit-touch-callout: default;
+  -webkit-user-select: text;
+  touch-action: auto;
+  user-select: text;
+}
+
+/* 宿主全局触摸策略会覆盖包内样式；移动端时间卡只有进入编辑态后才锁手势，降低误拖拽。 */
+.app--mobile .swell-calendar-event-time {
+  touch-action: pan-y;
+}
+
+.app--mobile .swell-calendar-event-time--mobile-editing,
+.app--mobile .swell-calendar-event-time--mobile-editing .swell-calendar-resize-handle-top,
+.app--mobile .swell-calendar-event-time--mobile-editing .swell-calendar-resize-handle-bottom,
+.app--mobile .swell-calendar-month-event,
+.app--mobile .swell-calendar-month-event-resize-handle,
+.app--mobile .swell-calendar-timeline-event,
+.app--mobile .swell-calendar-timeline-event-resize-handle {
+  touch-action: none;
+}
+
 :root,
 [data-density='regular'] {
   --topbar-gap: 14px;

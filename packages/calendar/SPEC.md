@@ -19,7 +19,7 @@ swell-calendar 是一个**可嵌入的 React 日历组件库**，面向需要在
 - 参考的是桌面端 scheduler 的产品行为、布局和交互闭环
 - 不要求与 Mobiscroll 保持同名 API
 - `connections`、`eventList` 不在当前近期范围
-- 移动端适配（响应式 + 触控 + 四视图）为活跃 capability epic；**M1 响应式基线已落地**：视口档位原语（`getViewportTier` / `useViewportTier`，按根容器宽度分 mobile/tablet/desktop）+ Day/Month 据档位切根类名 + Day/Month 移动样式收口，桌面零回归。**M2 Agenda 列表视图首版已落地**：新增 `agenda` 视图，按天分组展示事件，点击行触发既有 `onEventClick`；**M3 Multi-day 首版已落地**：新增 `multiDay` 连续多日时间网格视图，默认 2 天。触控输入与移动打磨（M4–M5）仍规划中、未落地。视觉对标 iOS 苹果日历设计稿（`docs/assets/*.png`），覆盖 Day/Multi-day/Agenda/Month。详见 `docs/tasks/2026-06-19-mobile-adaptation.md`
+- 移动端适配（响应式 + 触控 + 四视图）为活跃 capability epic；**M1 响应式基线已落地**：视口档位原语（`getViewportTier` / `useViewportTier`，按根容器宽度分 mobile/tablet/desktop）+ Day/Month 据档位切根类名 + Day/Month 移动样式收口，桌面零回归。**M2 Agenda 列表视图首版已落地**：新增 `agenda` 视图，按天分组展示事件，点击行触发既有 `onEventClick`；**M3 Multi-day 首版已落地**：新增 `multiDay` 连续多日时间网格视图，默认 2 天。**M4 触控输入已落地**：Pointer Events 统一输入链路，触控长按创建、事件编辑态 move/resize。视觉对标 iOS 苹果日历设计稿（`docs/assets/*.png`），覆盖 Day/Multi-day/Agenda/Month。详见 `docs/tasks/2026-06-19-mobile-adaptation.md`
 
 ## 核心约束
 
@@ -113,7 +113,7 @@ swell-calendar 是一个**可嵌入的 React 日历组件库**，面向需要在
   - 已落地（M1）：视口档位原语 + Day/Month 据档位切根类名 + Day/Month 移动样式收口，桌面零回归
   - 已落地（M2）：`agenda` 只读列表视图，复用既有事件数据与 `onEventClick`
   - 已落地（M3）：`multiDay` 连续多日时间网格视图，默认 2 天
-  - 已落地（M4）：触控 create/move/resize —— 拖拽输入链路从鼠标事件迁移到 Pointer Events，鼠标/触控/手写笔统一走 `onEventCreate` / `onEventUpdate`；详见下方「触控输入」
+  - 已落地（M4/M5）：触控 create/move/resize —— 拖拽输入链路从鼠标事件迁移到 Pointer Events；触控空白创建走长按，触控事件 move/resize 需先长按卡片进入编辑态；鼠标路径仍即时拖拽。公开回调仍走 `onEventCreate` / `onEventUpdate`；详见下方「触控输入」
   - 未落地：移动交互打磨（滑动切日/周、命中区放大、浮层底部适配等，M5）
 
 shared events 的资源策略固定为：
@@ -663,6 +663,6 @@ function useCalendarDataSource<TEvent, TDraft>(
 - 拖拽输入统一走 **Pointer Events**（`pointerdown/move/up/cancel`），鼠标、触控、手写笔共用同一条 create/move/resize 链路；公开回调（`onEventCreate` / `onEventUpdate` / `onRangeSelect` / `onCellClick` / `onEventClick`）签名与语义不变。
 - **主指针判定**：鼠标仍要求左键（`button === 0`）；触控/手写笔放宽为任意主指针（`pointerType !== 'mouse'`）。一次拖拽只跟踪首个落下的指针，多指并发被忽略。
 - **拖拽期不滚动**：拖拽进行中对所在指针 `setPointerCapture`（环境不支持时静默降级），并把目标元素 `touch-action` 锁为 `none`；结束/取消后还原。`pointercancel`（系统中断、手势被接管）按「拖拽结束」走兜底清理，等价于既有「主键松开丢失自恢复」。
-- **已有事件移动 / resize（触控即时）**：事件卡片与 resize 手柄默认 `touch-action: none`，按下即进入拖拽，无需长按。
+- **已有事件移动 / resize（触控编辑态）**：移动端触控短按事件卡仍触发既有 `onEventClick`；长按事件卡进入全局唯一编辑态，卡片显示右上 / 左下两个圆点把手。编辑态下拖拽卡片主体移动事件，拖拽圆点分别 resize 开始/结束时间；非编辑态卡片允许 `pan-y`，避免误挡纵向滚动。鼠标路径仍按下即拖拽，桌面零回归。
 - **空白网格创建（触控长按）**：时间网格 / 月格 / timeline 资源行的「拖拽创建」在触控下需**长按约 400ms** 才进入创建（随后拖拽选区、锁定滚动）；长按前的滑动仍是原生滚动，轻点（tap）不创建。此设计让「滚动看时段」与「拖拽创建」在同一表面共存，对标 iOS 日历 / Mobiscroll mobile day view。鼠标 / 手写笔不经长按，行为与桌面一致（零回归）。
 - 受 `isReadOnly` 与 per-event / 视图级 `dragToCreate/dragToMove/dragToResize` 及 `onValidateEventChange` 约束，与桌面一致。

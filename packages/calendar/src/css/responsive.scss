@@ -141,6 +141,13 @@
 
   .event-time {
     opacity: 1;
+    touch-action: pan-y;
+  }
+
+  .event-time--mobile-editing {
+    overflow: visible;
+    touch-action: none;
+    box-shadow: 0 14px 26px rgba(15, 23, 42, 0.22);
   }
 
   .event-time-content {
@@ -201,6 +208,53 @@
   .resize-handle-top,
   .resize-handle-bottom {
     height: 14px;
+    pointer-events: none;
+  }
+
+  // 编辑态把手锚在卡角、外凸 20px：卡片基类是 overflow:hidden，会把卡片外的圆点切掉，
+  // 故编辑态显式放开溢出（多日块已有同款规则，此处补齐日视图）。
+  .event-time--mobile-editing {
+    overflow: visible;
+  }
+
+  // 事件区 .time-columns 自 gutter 右缘起 overflow:hidden，会把最左 / 最右列编辑态
+  // 卡片外凸的半个圆点裁掉。仅当有卡处于编辑态时（:has）放开裁剪，让边缘圆点完整可见可点；
+  // 常态仍裁剪，零回归。编辑卡 z-index=30，圆点会盖在 gutter / 相邻列之上。
+  .time-columns:has(.event-time--mobile-editing) {
+    overflow: visible;
+  }
+
+  .event-time--mobile-editing .resize-handle-top,
+  .event-time--mobile-editing .resize-handle-bottom {
+    pointer-events: auto;
+    width: 40px;
+    height: 40px;
+  }
+
+  .event-time--mobile-editing .resize-handle-top::after,
+  .event-time--mobile-editing .resize-handle-bottom::after {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    top: 50%;
+    left: 50%;
+    border: 2px solid var(--swell-event-border);
+    border-radius: 999px;
+    background: #fff;
+    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.2);
+    content: '';
+    transform: translate(-50%, -50%);
+  }
+
+  .event-time--mobile-editing .resize-handle-top {
+    top: -20px;
+    right: -20px;
+    left: auto;
+  }
+
+  .event-time--mobile-editing .resize-handle-bottom {
+    bottom: -20px;
+    left: -20px;
   }
 }
 

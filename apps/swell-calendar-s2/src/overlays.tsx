@@ -1,5 +1,5 @@
 // ===== Overlays: 事件弹窗 + 新建对话框 + 设置面板 + 子栏 =====（移植自设计稿 overlays.jsx）
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 import type { EventObject } from 'swell-calendar';
 
@@ -462,10 +462,14 @@ export function CreateDialog({
    * 二者都会传 `initial`，不能再用 `!!initial` 推断模式，否则拖拽创建会误显示「编辑日程」。
    */
   isEdit?: boolean;
-  /** 'sheet' 在移动端改为底部全宽 sheet（grabber + 安全区），桌面默认居中对话框。 */
-  variant?: 'dialog' | 'sheet';
+  /**
+   * 'sheet' 底部全宽 sheet；'page' 移动端全屏页面（iOS 风格，顶部导航栏 + 可滚动表单，
+   * 避免软键盘把底部 sheet 顶出屏幕）；桌面默认居中对话框。
+   */
+  variant?: 'dialog' | 'sheet' | 'page';
 }) {
   const isSheet = variant === 'sheet';
+  const isPage = variant === 'page';
   const cats: { c: Cat; label: string }[] = [
     { c: 'seafoam', label: '会议' },
     { c: 'indigo', label: '规划' },
@@ -484,6 +488,29 @@ export function CreateDialog({
   const [end, setEnd] = useState(initial?.end ?? '10:00');
   const [err, setErr] = useState<string | null>(null);
 
+  // 全屏页：iOS Safari 软键盘会把 position:fixed 整页随焦点上推、顶部导航栏被顶出屏幕。
+  // 用 VisualViewport 把整页锁到「可视视口」——键盘弹出时页面只占键盘上方可见区、
+  // 顶部导航栏始终钉在可见区顶部，表单在内部滚动；键盘收起后还原。
+  const pageRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!isPage) return;
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const sync = () => {
+      const el = pageRef.current;
+      if (!el) return;
+      el.style.height = `${vv.height}px`;
+      el.style.transform = `translateY(${vv.offsetTop}px)`;
+    };
+    sync();
+    vv.addEventListener('resize', sync);
+    vv.addEventListener('scroll', sync);
+    return () => {
+      vv.removeEventListener('resize', sync);
+      vv.removeEventListener('scroll', sync);
+    };
+  }, [isPage]);
+
   const submit = () => {
     if (!title.trim()) {
       setErr('请填写标题');
@@ -499,6 +526,127 @@ export function CreateDialog({
     onClose();
   };
 
+  const formBody = (
+    <div className="dlg-body">
+      <div className="field">
+        <div className="field-label">标题</div>
+        <input
+          className="field-input"
+          autoFocus
+          placeholder="例如：产品双周评审"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+        />
+      </div>
+      <div className="field">
+        <div className="field-label">资源</div>
+        <select className="field-select" value={res} onChange={(e) => setRes(e.target.value)}>
+          {resources.map((r) => (
+            <option key={r.id} value={r.id}>
+              {r.name}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="field-row">
+        <div className="field">
+          <div className="field-label">开始</div>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <input
+              className="field-input"
+              type="date"
+              value={date}
+              onChange={(e) => {
+                const next = e.target.value;
+                setDate(next);
+                // 开始日晚于结束日时，把结束日跟着前移，避免出现负跨度
+                if (endDate < next) setEndDate(next);
+              }}
+            />
+            <input
+              className="field-input"
+              type="time"
+              value={start}
+              onChange={(e) => setStart(e.target.value)}
+            />
+          </div>
+        </div>
+        <div className="field">
+          <div className="field-label">结束</div>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <input
+              className="field-input"
+              type="date"
+              value={endDate}
+              min={date}
+              onChange={(e) => setEndDate(e.target.value)}
+            />
+            <input
+              className="field-input"
+              type="time"
+              value={end}
+              onChange={(e) => setEnd(e.target.value)}
+            />
+          </div>
+        </div>
+      </div>
+      <div className="field">
+        <div className="field-label">分类</div>
+        <div className="cat-picker">
+          {cats.map((c) => (
+            <div
+              key={c.c}
+              className={'cat-dot' + (cat === c.c ? ' sel' : '')}
+              title={c.label}
+              style={{ background: CAT_COLORS[c.c] }}
+              onClick={() => setCat(c.c)}
+            >
+              <Ic.check />
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="field">
+        <div className="field-label">重复</div>
+        <div className="seg-pills">
+          {[
+            ['none', '不重复'],
+            ['daily', '每天'],
+            ['weekly', '每周'],
+            ['biweekly', '双周'],
+          ].map(([k, l]) => (
+            <button
+              key={k}
+              className={'seg-pill' + (rep === k ? ' on' : '')}
+              onClick={() => setRep(k)}
+            >
+              {l}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  // iOS 风格全屏编辑页：顶部导航栏固定，表单区独立滚动；不盖半透明遮罩、不点击外部关闭。
+  if (isPage) {
+    return (
+      <div className="dialog dialog--page" role="dialog" aria-modal="true" ref={pageRef}>
+        <div className="page-nav">
+          <button type="button" className="page-nav__btn" onClick={onClose}>
+            取消
+          </button>
+          <div className="page-nav__title">{isEdit ? '编辑日程' : '新建日程'}</div>
+          <button type="button" className="page-nav__btn page-nav__btn--primary" onClick={submit}>
+            {isEdit ? '保存' : '完成'}
+          </button>
+        </div>
+        {err && <div className="page-err">{err}</div>}
+        {formBody}
+      </div>
+    );
+  }
+
   return (
     <div className={'scrim' + (isSheet ? ' scrim--sheet' : '')} onMouseDown={onClose}>
       <div
@@ -512,105 +660,7 @@ export function CreateDialog({
             {isEdit ? '修改已有日程的安排' : '为会议室或成员预定时间段'}
           </div>
         </div>
-        <div className="dlg-body">
-          <div className="field">
-            <div className="field-label">标题</div>
-            <input
-              className="field-input"
-              autoFocus
-              placeholder="例如：产品双周评审"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-            />
-          </div>
-          <div className="field">
-            <div className="field-label">资源</div>
-            <select className="field-select" value={res} onChange={(e) => setRes(e.target.value)}>
-              {resources.map((r) => (
-                <option key={r.id} value={r.id}>
-                  {r.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="field-row">
-            <div className="field">
-              <div className="field-label">开始</div>
-              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                <input
-                  className="field-input"
-                  type="date"
-                  value={date}
-                  onChange={(e) => {
-                    const next = e.target.value;
-                    setDate(next);
-                    // 开始日晚于结束日时，把结束日跟着前移，避免出现负跨度
-                    if (endDate < next) setEndDate(next);
-                  }}
-                />
-                <input
-                  className="field-input"
-                  type="time"
-                  value={start}
-                  onChange={(e) => setStart(e.target.value)}
-                />
-              </div>
-            </div>
-            <div className="field">
-              <div className="field-label">结束</div>
-              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                <input
-                  className="field-input"
-                  type="date"
-                  value={endDate}
-                  min={date}
-                  onChange={(e) => setEndDate(e.target.value)}
-                />
-                <input
-                  className="field-input"
-                  type="time"
-                  value={end}
-                  onChange={(e) => setEnd(e.target.value)}
-                />
-              </div>
-            </div>
-          </div>
-          <div className="field">
-            <div className="field-label">分类</div>
-            <div className="cat-picker">
-              {cats.map((c) => (
-                <div
-                  key={c.c}
-                  className={'cat-dot' + (cat === c.c ? ' sel' : '')}
-                  title={c.label}
-                  style={{ background: CAT_COLORS[c.c] }}
-                  onClick={() => setCat(c.c)}
-                >
-                  <Ic.check />
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="field">
-            <div className="field-label">重复</div>
-            <div className="seg-pills">
-              {[
-                ['none', '不重复'],
-                ['daily', '每天'],
-                ['weekly', '每周'],
-                ['biweekly', '双周'],
-              ].map(([k, l]) => (
-                <button
-                  key={k}
-                  className={'seg-pill' + (rep === k ? ' on' : '')}
-                  onClick={() => setRep(k)}
-                >
-                  {l}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
+        {formBody}
         <div className="dlg-foot">
           {err && (
             <span style={{ color: 'var(--cat-magenta-line)', marginRight: 'auto' }}>{err}</span>

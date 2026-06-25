@@ -1,133 +1,32 @@
-import { isNil, isString } from 'lodash-es';
-import { type CSSProperties, KeyboardEvent, MouseEvent, useState } from 'react';
+import { isNil } from 'lodash-es';
+import {
+  KeyboardEvent,
+  MouseEvent,
+  TouchEvent as ReactTouchEvent,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 
 import { KEY } from '@/constants/keyboard';
-import { TIME_EVENT_CONTAINER_MARGIN_LEFT } from '@/constants/style.const';
 import { useCalendarCallbacks } from '@/contexts/calendarCallbacks';
 import { useCalendarStore } from '@/contexts/calendarStore';
 import { useLayoutContainer } from '@/contexts/layoutContainer';
 import { buildRecurrenceInstanceInfo } from '@/controller/recurrence-edit-scope';
 import { shouldAcceptEventChange } from '@/controller/scheduler-validation';
-import { cls, extractPercentPx, getEventColors, toPercent } from '@/helpers/css';
+import { cls } from '@/helpers/css';
 import { DRAGGING_TYPE_CREATE } from '@/helpers/drag';
 import { useCalendarColor } from '@/hooks/calendar/useCalendarColor';
 import { useDrag } from '@/hooks/common/useDrag';
 import { useTransientUpdatesCalendar } from '@/hooks/common/useTransientUpdatesCalendar';
+import { useMobileEditPress } from '@/hooks/event/useMobileEditPress';
 import { EventUIModel } from '@/model/eventUIModel';
 import { isSameDate } from '@/time/datetime';
 import DayjsTZDate from '@/time/dayjs-tzdate';
-import { CalendarColor } from '@/types/calendar.type';
 import { DraggingState } from '@/types/dnd.type';
 
 import { Template } from '../Template';
-
-/**
- * 计算事件容器的样式
- * @param uiModel - 事件的UI模型
- * @param minHeight - 最小高度
- * @param calendarColor - 日历颜色配置
- * @param isDraggingTarget - 是否为拖拽目标
- * @param hasNextStartTime - 是否有下一个开始时间
- * @param isResizingEvent - 是否为调整大小事件
- * @returns 返回包含容器样式的对象
- */
-function getStyles({
-  uiModel,
-  minHeight,
-  calendarColor,
-  isDraggingTarget,
-  hasNextStartTime,
-  isResizingEvent,
-}: {
-  uiModel: EventUIModel;
-  minHeight: number;
-  calendarColor: CalendarColor;
-  isDraggingTarget: boolean;
-  hasNextStartTime: boolean;
-  isResizingEvent?: boolean;
-}) {
-  // 从UI模型中提取位置和尺寸信息
-  const { top, left, width, height, duplicateWidth, duplicateLeft } = uiModel;
-
-  // 边框圆角：默认 2px（桌面零回归），移动 tier 经 CSS 变量覆盖（见 css/responsive.scss）
-  const borderRadius = 'var(--swell-time-event-radius, 2px)';
-  // 默认底部边距
-  const defaultMarginBottom = 1;
-
-  // 获取事件的颜色配置
-  const { color, backgroundColor, borderColor, dragBackgroundColor } = getEventColors(
-    uiModel,
-    calendarColor
-  );
-
-  // 计算左边距
-  const marginLeft = getMarginLeft(left);
-
-  // 构建容器样式对象
-  const containerStyle = {
-    top: toPercent(top), // 顶部位置（百分比）
-    left: duplicateLeft || toPercent(left), // 左侧位置（百分比）
-    width: getContainerWidth(duplicateWidth || width, marginLeft), // 宽度
-    height: `calc(${toPercent(Math.max(minHeight, height))} - ${defaultMarginBottom}px)`, // 高度
-    marginLeft, // 左边距
-    // 背景色：move 跟手原卡用 dragBackgroundColor；resize 引导（isResizingEvent）保持正常
-    // backgroundColor，避免 dragBackgroundColor 为空串时引导卡渲染成透明、看不清
-    backgroundColor: isDraggingTarget && !isResizingEvent ? dragBackgroundColor : backgroundColor,
-    borderRadius,
-    borderLeft: `3px solid ${borderColor}`, // 边框颜色
-    color, // 文字颜色
-    // 拖拽目标半透明；其余情况不写内联 opacity，交由 CSS 控制
-    // （静置略带透明、hover 时恢复不透明，见 events/time.scss）
-    opacity: isDraggingTarget && !isResizingEvent ? 0.5 : undefined,
-    zIndex: hasNextStartTime ? 1 : 0, // 层级（重叠事件时调整）
-    // 移动端卡片 tier 需要在 CSS 中复用事件原始配色。
-    // 默认仍由上面的内联 background/border/color 生效；变量只作为响应式覆盖的稳定输入。
-    '--swell-event-bg': backgroundColor,
-    '--swell-event-border': borderColor,
-    '--swell-event-text': color,
-    '--swell-event-drag-bg': dragBackgroundColor,
-  } as CSSProperties & {
-    '--swell-event-bg': string;
-    '--swell-event-border': string;
-    '--swell-event-text': string;
-    '--swell-event-drag-bg': string;
-  };
-
-  return { containerStyle };
-}
-
-/**
- * 计算容器宽度
- * @param width - 原始宽度值
- * @param marginLeft - 左边距
- * @returns 返回计算后的宽度字符串
- */
-function getContainerWidth(width: number | string, marginLeft: number) {
-  if (isString(width)) {
-    // 如果宽度是字符串，直接返回
-    return width;
-  }
-  if (width >= 0) {
-    // 如果宽度是正数，计算减去左边距后的宽度
-    return `calc(${toPercent(width)} - ${marginLeft}px)`;
-  }
-
-  // 如果宽度为负数，返回空字符串
-  return '';
-}
-
-/**
- * 计算左边距
- * @param left - 左侧位置值
- * @returns 返回左边距值
- */
-function getMarginLeft(left: number | string) {
-  // 解析位置值中的百分比和像素值
-  const { percent, px } = extractPercentPx(`${left}`);
-
-  // 只有当位置值大于0时才添加默认左边距
-  return Number(left) > 0 || percent > 0 || px > 0 ? TIME_EVENT_CONTAINER_MARGIN_LEFT : 0;
-}
+import { canInteractWithTimeEvent, getPointerInfo, getStyles } from './TimeEvent.utils';
 
 /**
  * 时间事件组件的属性接口
@@ -162,38 +61,6 @@ const classNames = {
   resizeHandleBottom: cls('resize-handle-bottom'), // 调整大小底部手柄
 };
 
-type TimeEventInteraction = 'move' | 'resize';
-
-function canInteractWithTimeEvent({
-  uiModel,
-  isReadOnlyCalendar,
-  isDraggingTarget,
-  currentView,
-  interaction,
-}: {
-  uiModel: EventUIModel;
-  isReadOnlyCalendar: boolean;
-  isDraggingTarget: boolean;
-  currentView: string;
-  interaction: TimeEventInteraction;
-}) {
-  const { model } = uiModel;
-
-  if (isReadOnlyCalendar || model.isReadOnly || isDraggingTarget) {
-    return false;
-  }
-
-  if (currentView !== 'scheduler') {
-    return true;
-  }
-
-  if (!model.editable) {
-    return false;
-  }
-
-  return interaction === 'move' ? model.draggable : model.resizable;
-}
-
 /**
  * 时间事件组件 - 用于在时间网格中显示单个事件
  * 支持拖拽移动、样式定制、重叠事件处理等功能
@@ -221,9 +88,13 @@ export function TimeEvent({
   const { model } = uiModel;
 
   // 跨天事件多段联动高亮：悬浮任一段时，同一事件 id 的所有段一起加深。
-  // 用布尔 selector 订阅 —— 仅当“是否为当前悬浮事件”翻转的段才重渲染。
   const setHoveredEventId = useCalendarStore((state) => state.hover.setHoveredEventId);
   const isHovered = useCalendarStore((state) => state.hover.hoveredEventId === model.id);
+  const setEditingEventId = useCalendarStore((state) => state.eventEdit.setEditingEventId);
+  const isEventEditing = useCalendarStore((state) => state.eventEdit.editingEventId === model.id);
+
+  // 卡片根节点引用：编辑态下用于「点击卡片外的空白处退出编辑」的命中判定。
+  const eventContainerRef = useRef<HTMLDivElement>(null);
 
   // 获取布局容器引用，用于添加拖拽样式
   const layoutContainer = useLayoutContainer();
@@ -239,6 +110,7 @@ export function TimeEvent({
     isDraggingTarget,
     hasNextStartTime,
     isResizingEvent,
+    isMobileEditing: isEventEditing,
   });
 
   // 监听拖拽状态变化，更新当前事件是否为拖拽目标
@@ -250,10 +122,8 @@ export function TimeEvent({
         draggingState === DraggingState.DRAGGING &&
         !hasNextStartTime
       ) {
-        // 如果当前事件是拖拽目标且正在拖拽中，设置拖拽目标状态
         setIsDraggingTarget(true);
       } else {
-        // 否则清除拖拽目标状态
         setIsDraggingTarget(false);
       }
     }
@@ -261,7 +131,6 @@ export function TimeEvent({
 
   // 创建拖拽类型标识符
   const moveType = DRAGGING_TYPE_CREATE.moveEvent('timeGrid', `${uiModel.cid()}`);
-  // 顶边改开始时间、底边改结束时间，方向编码进 drag type
   const resizeTopType = DRAGGING_TYPE_CREATE.resizeEvent('timeGrid', `${uiModel.cid()}`, 'start');
   const resizeBottomType = DRAGGING_TYPE_CREATE.resizeEvent('timeGrid', `${uiModel.cid()}`, 'end');
 
@@ -280,19 +149,47 @@ export function TimeEvent({
     interaction: 'resize',
   });
 
-  /**
-   * 开始拖拽事件，设置拖拽状态并添加样式类
-   * @param className - 要添加的CSS类名
-   */
+  // 移动端编辑手势（长按→编辑态，短按→详情）
+  const { pendingEditPressRef, suppressDragUntilReleaseRef, beginMobileEditPress } =
+    useMobileEditPress({
+      canEnterMobileEdit: canMove || canResize,
+      setEditingEventId,
+      eventId: model.id,
+      onClick: () => {
+        callbacks?.onEventClick?.({ event: model.toEventObject() });
+      },
+    });
+
+  // 编辑态下点击卡片外的空白处（或其它卡片）退出编辑态。
+  // 把手 / 圆点虽视觉溢出卡片，但仍是卡片 DOM 子节点，contains 判定为「内部」，不会误退出。
+  useEffect(() => {
+    if (!isEventEditing) {
+      return;
+    }
+
+    const handlePointerDownOutside = (e: globalThis.PointerEvent) => {
+      const container = eventContainerRef.current;
+      if (isNil(container) || !(e.target instanceof Node) || !container.contains(e.target)) {
+        setEditingEventId(null);
+      }
+    };
+
+    document.addEventListener('pointerdown', handlePointerDownOutside);
+
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDownOutside);
+    };
+  }, [isEventEditing, setEditingEventId]);
+
+  // 是否处于移动布局：根容器位于 day/multi-day 的 `--mobile` 作用域内
+  const isMobileLayout = () =>
+    !isNil(eventContainerRef.current?.closest('[class*="view--mobile"]'));
+
+  // 开始/结束拖拽事件
   const startDragEvent = (className: string) => {
     setDraggingEventUIModel(uiModel);
     layoutContainer?.classList.add(className);
   };
-
-  /**
-   * 结束拖拽事件，清除拖拽状态并移除样式类
-   * @param className - 要移除的CSS类名
-   */
   const endDragEvent = (className: string) => {
     setIsDraggingTarget(false);
     layoutContainer?.classList.remove(className);
@@ -302,26 +199,11 @@ export function TimeEvent({
   const onMoveStart = useDrag(moveType, {
     onDragStart: () => {
       if (canMove) {
-        // 如果事件可拖拽，开始拖拽并添加移动样式
         startDragEvent(classNames.moveEvent);
       }
     },
     onMouseUp: (e, { draggingState }) => {
-      // 鼠标释放时结束拖拽
       endDragEvent(classNames.moveEvent);
-
-      // const isClick = draggingState <= DraggingState.INIT;
-
-      // TODO: 显示详情弹窗
-      // if (isClick) {
-      // showDetailPopup(
-      //   {
-      //     event: uiModel.model,
-      //     eventRect: eventContainerRef.current.getBoundingClientRect(),
-      //   },
-      //   false
-      // );
-      // }
       if (draggingState <= DraggingState.INIT) {
         callbacks?.onEventClick?.({ event: model.toEventObject() });
       }
@@ -338,22 +220,63 @@ export function TimeEvent({
     onMouseUp: () => endDragEvent(classNames.resizeEvent),
   });
 
-  /**
-   * 处理鼠标按下事件，开始拖拽
-   * @param e - 鼠标事件对象
-   */
+  const handleTouchStart = (e: ReactTouchEvent<HTMLDivElement>) => {
+    if (isEventEditing || !(canMove || canResize)) return;
+    const touch = e.touches[0];
+    if (isNil(touch)) return;
+    e.stopPropagation();
+    beginMobileEditPress({
+      pointerId: null,
+      startX: touch.clientX,
+      startY: touch.clientY,
+      source: 'touch',
+    });
+  };
+
   const handleMoveStart = (e: MouseEvent) => {
-    e.stopPropagation(); // 阻止事件冒泡
+    e.stopPropagation();
+    const { pointerId, isTouchLike } = getPointerInfo(e);
+    const usesMobileEditGesture = isTouchLike || isMobileLayout();
+
+    if (usesMobileEditGesture && !isEventEditing) {
+      if (pendingEditPressRef.current?.source !== 'touch') {
+        beginMobileEditPress({
+          pointerId,
+          startX: e.clientX,
+          startY: e.clientY,
+          source: 'pointer',
+        });
+      }
+      return;
+    }
+
+    if (usesMobileEditGesture && suppressDragUntilReleaseRef.current) {
+      e.preventDefault();
+      return;
+    }
+
     onMoveStart(e);
   };
 
   const handleResizeTopStart = (e: MouseEvent) => {
-    e.stopPropagation(); // 阻止事件冒泡
+    e.stopPropagation();
+    const { isTouchLike } = getPointerInfo(e);
+    if (isTouchLike && !isEventEditing) return;
+    if (isTouchLike && suppressDragUntilReleaseRef.current) {
+      e.preventDefault();
+      return;
+    }
     onResizeTopStart(e);
   };
 
   const handleResizeBottomStart = (e: MouseEvent) => {
-    e.stopPropagation(); // 阻止事件冒泡
+    e.stopPropagation();
+    const { isTouchLike } = getPointerInfo(e);
+    if (isTouchLike && !isEventEditing) return;
+    if (isTouchLike && suppressDragUntilReleaseRef.current) {
+      e.preventDefault();
+      return;
+    }
     onResizeBottomStart(e);
   };
 
@@ -374,7 +297,6 @@ export function TimeEvent({
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
-    // 删除操作：仅 Scheduler 视图支持
     if (currentView === 'scheduler' && (e.key === KEY.DELETE || e.key === KEY.BACKSPACE)) {
       const eventObject = model.toEventObject();
 
@@ -394,7 +316,6 @@ export function TimeEvent({
       return;
     }
 
-    // Enter / Space：触发事件点击回调（所有视图通用）
     if (e.key === KEY.ENTER || e.key === KEY.SPACE) {
       e.preventDefault();
       callbacks?.onEventClick?.({ event: model.toEventObject() });
@@ -404,7 +325,6 @@ export function TimeEvent({
   const templateName = currentView === 'scheduler' && !hasNextStartTime ? 'schedulerTime' : 'time';
 
   // 跨天事件按列分段时间标签：起始列→开始时间、结束列→结束时间、中间列→不显示时间。
-  // 仅在非拖拽渲染、且该事件跨天（开始/结束不在同一日历日）时计算；单日事件不附角色。
   const segmentRole =
     !hasNextStartTime &&
     columnDate &&
@@ -420,15 +340,18 @@ export function TimeEvent({
 
   return (
     <div
+      ref={eventContainerRef}
       className={cls('event-time', {
         'event-time--hovered': isHovered,
         'event-time--guide': isGuideEvent,
+        'event-time--mobile-editing': isEventEditing,
       })}
       style={containerStyle}
       data-testid={`event-card-${model.id}`}
       tabIndex={0}
       role="button"
       onPointerDown={handleMoveStart}
+      onTouchStart={handleTouchStart}
       onKeyDown={handleKeyDown}
       onPointerEnter={handleMouseEnter}
       onPointerLeave={handleMouseLeave}
@@ -445,7 +368,7 @@ export function TimeEvent({
         />
       </div>
 
-      {/* 显示调整大小顶部手柄（改开始时间） */}
+      {/* 显示调整大小顶部手柄 */}
       {canResize && (
         <div
           className={classNames.resizeHandleTop}
@@ -454,7 +377,7 @@ export function TimeEvent({
         />
       )}
 
-      {/* 显示调整大小底部手柄（改结束时间） */}
+      {/* 显示调整大小底部手柄 */}
       {canResize && (
         <div
           className={classNames.resizeHandleBottom}

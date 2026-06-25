@@ -329,13 +329,13 @@
   - **M3 验收完成（2026-06-23）**：Multi-day 视图引擎能力（公开 `multiDay` ViewType + `options.multiDay.range`）已落地并写入 `SPEC.md` / `MIGRATION.md`，Day / Multi-day 顶部日期栏、全天行、周条连接带、时间轴密度、背景与反色等视觉项均已逐项对齐 remix 设计稿真源并经 375px 预览验证；能力矩阵「Multi-day 移动视图」行为 ✅。后续仅在出现新设计稿差距时增量收口，不再作为进行中阶段。下一阶段进入 M4 触控输入核心（docs-first，先改 SPEC/能力矩阵/MIGRATION 再迁移 `useDrag`）。
 - M4：**触控输入核心已落地（2026-06-24）**。
   - docs-first：`SPEC.md` 新增「触控输入（M4）」小节 + Backlog 勾选；`MIGRATION.md` 新增「触控输入（Pointer Events）」小节（明确无公开 API 变更、桌面零回归、长按创建行为）；本文件能力矩阵三行转 ✅。
-  - **关键产品决策（经宿主确认）**：时间网格上「触控拖拽创建」与「上下滚动看时段」是同一手势，二者冲突。采用 **长按进入创建**（对标 iOS 日历 / Mobiscroll mobile day view），把原 M5 的长按提前到 M4——这是同时保留滚动与创建的唯一干净解。已有事件 move/resize 无此冲突，卡片 `touch-action:none` 即时拖拽。
+  - **关键产品决策（经宿主确认）**：时间网格上「触控拖拽创建」与「上下滚动看时段」是同一手势，二者冲突。采用 **长按进入创建**（对标 iOS 日历 / Mobiscroll mobile day view），把原 M5 的长按提前到 M4——这是同时保留滚动与创建的唯一干净解。
   - 实现：
     - `utils/mouse.ts`：`isLeftMouseButton` 改为 `isPressablePointer`，鼠标要求左键、触控/笔放宽为任意主指针（`pointerType !== 'mouse'`）。
     - `hooks/common/useDrag.ts`：`mousedown/move/up` → `pointerdown/move/up/cancel`；按下 `setPointerCapture`（try/catch 兜底）+ 动态把目标 `touch-action` 锁 `none`、结束还原；只跟踪首个主指针（`activePointerIdRef` 过滤多指）；`pointercancel` 走「拖拽结束」兜底清理；保留「主键松开丢失自恢复」（仍读 `e.buttons & 1`，触控按住时为 1）。
     - 新增可选 `delayTouchStart`（长按毫秒）：仅对触控/笔生效——按下起计时，长按前移动超容差视为滚动并放弃（不 capture/不锁滚动），计时到达且仍按住才「激活」进入拖拽创建；鼠标/笔即时，零回归。`useGridSelection` / `useMonthCreate` / `useTimelineCreate` 三条创建路径传入 `LONG_PRESS_DELAY`。
     - 事件组件 `onMouseDown` → `onPointerDown`：`TimeEvent` / `MonthEvent` / `TimelineEvent` / `TimeGridView`（`.time-columns`）/ `MonthGrid`（周行）/ `TimelineRow`。
-    - CSS：事件卡片 / resize 手柄 `touch-action: none`（桌面无副作用）。
+    - CSS：事件卡片 / resize 手柄初版为 `touch-action: none`（桌面无副作用）；M5-4 已收敛为移动端非编辑态允许 `pan-y`，避免卡片区域误挡纵向滚动。
   - 验证结果：
     - `tsc --noEmit`（calendar）通过；`check-arch`（205 文件无分层违规）/ `check-docs` 通过。
     - 包单测 **392/392 绿**：
@@ -352,7 +352,18 @@
   - **② tap 命中区放大（M5-2）**：
     - 包内 `responsive.scss`：day/multi-day 的 resize 把手是不可见可抓取条，移动端高度 7px→14px（零视觉变化，1 小时卡 52px 仍留中部移动区）。
     - 宿主 `overlays.css`：事件详情 sheet 关闭按钮 34px→40px（操作按钮本就 44px）。
-    - 验证：s2 预览 resize 把手计算高度 14px、`touch-action:none`。
+    - 验证：s2 预览 resize 把手非编辑态隐藏且不接管触摸；编辑态圆点热区约 28px，移动端页面缩放已在 HTML / CSS / 拖拽兜底三层禁用。
+  - **移动页面放大禁用（2026-06-25）**：
+    - 宿主 `index.html` viewport 增加 `maximum-scale=1.0, user-scalable=no, viewport-fit=cover`，从 HTML 层禁用页面缩放。
+    - 移动外壳 `.app--mobile` 通过 `touch-action: pan-x pan-y` 排除 `pinch-zoom`；表单控件恢复 `touch-action:auto`，保证输入交互正常。
+    - 事件卡 / resize handle 在编辑态恢复 `touch-action:none`，拖拽链路继续由 `useDrag` 动态锁定；拖拽已激活后通过非 passive `touchmove` / iOS `gesturestart|gesturechange` 兜底阻止页面缩放。
+    - 长按创建等待态若检测到第二根触控指针，立即取消 pending，避免误弹创建框。
+  - **移动选中效果禁用（2026-06-25）**：宿主 `.app--mobile` 范围内通过 CSS 禁用 `user-select` 与 `-webkit-touch-callout`，避免长按/拖拽日程时出现文本选区或 iOS callout；`input` / `textarea` / `select` / `contenteditable` 恢复文本选择，保证创建/编辑表单仍可正常输入。
+  - **④ 事件卡编辑态防误触（M5-4，2026-06-25）**：
+    - 新增包内 `eventEdit` slice，保存全局唯一 `editingEventId`；移动端触控长按事件卡只进入编辑态，不立即触发 move/resize。
+    - 非编辑态时间卡触控短按仍触发既有 `onEventClick`，长按前移动超容差视为纵向滚动并取消 pending；卡片 `touch-action` 改为 `pan-y`，降低误挡滚动。
+    - 编辑态卡片恢复 `touch-action:none`，显示右上 / 左下两个圆点把手；只有圆点热区负责 resize，拖拽卡片主体上下移动事件。桌面鼠标路径仍即时拖拽，零回归。
+    - s2 移动宿主把事件点击改为直接打开 `CreateDialog` 编辑表单；桌面仍保留详情 Popover。
   - **③ 其余浮层底部 sheet 化（M5-3）**：事件详情 sheet 此前已有；本轮把**新建/编辑表单 `CreateDialog`** 与 **`+N` 更多列表 `MoreEventsPopover`** 增加 `variant='sheet'`，移动端改为底部全宽 sheet（grabber、18px 顶圆角、`sheetUp` 滑入、`env(safe-area-inset-bottom)`、body 可滚 footer 固定、按钮 46px）；桌面仍走居中对话框 / 锚定弹层（`variant` 默认非 sheet，零回归）。
     - 验证：s2 375px 经真实「长按→拖拽创建」触发，`.dialog--sheet` 正确渲染（grabber、圆角 18px、按钮 46px、`sheetUp` 动画）。
   - **修复 pre-existing 标题误判（2026-06-24）**：`CreateDialog` 此前用 `!!initial` 推断模式，但「编辑既有事件」与「网格拖拽创建的预填」都会传 `initial`，导致拖拽创建误显示「编辑日程」（桌面同样存在）。改为显式 `isEdit` prop，App 传 `isEdit={!!editing}`。验证：375px 长按→拖拽创建 → 标题「新建日程」/ 按钮「创建日程」；编辑路径仍「编辑日程」。

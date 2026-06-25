@@ -3,6 +3,7 @@ import { subscribeWithSelector } from 'zustand/middleware';
 
 import { createCalendarSlice } from '@/slices/calendat.slice';
 import { createDndSlice } from '@/slices/dnd.slice';
+import { createEventEditSlice } from '@/slices/eventEdit.slice';
 import { createExternalDropSlice } from '@/slices/externalDrop.slice';
 import { createGridSelectionSlice } from '@/slices/gridSelection.slice';
 import { createHoverSlice } from '@/slices/hover.slice';
@@ -44,6 +45,8 @@ const storeCreator = (options: Options) => (set: SetState) => ({
   ...createResourceSlice()(set),
   // 创建悬浮切片 - 跨天事件多段联动高亮
   ...createHoverSlice()(set),
+  // 创建移动端事件编辑切片 - 长按事件卡后显示移动/resize 控制点
+  ...createEventEditSlice()(set),
   // 创建外部 drop 切片 - 持有 TimeGridView 注册的编程式 drop resolver
   ...createExternalDropSlice()(set),
 });
