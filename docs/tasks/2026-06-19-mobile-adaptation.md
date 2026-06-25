@@ -107,7 +107,7 @@
 | 触控 create / move / resize | mobiscroll | ✅ M4 已落地（Pointer Events） | M4 | 高 |
 | 拖拽期阻止滚动（touch-action / capture） | — | ✅ M4 已落地（capture + 动态 touch-action） | M4 | 中 |
 | 长按创建（时间网格/月格/timeline 空白） | mobiscroll | ✅ M4 已落地（与滚动共存所需） | M4（自 M5 提前） | 中 |
-| 滑动切日（主体横滑）/ tap 命中区放大 / 浮层底部 sheet 化 | 四稿 | ✅ M5 首批已落地 | M5 | 中 |
+| 滑动切日（主体横滑）/ tap 命中区放大 / 浮层底部 sheet 化 | 四稿 | 🟡 命中区 + sheet 已落地；主体横滑已回滚 | M5 | 中 |
 
 > 标记规则同 `plan.md` §3.1：能力在对应 Phase 落地前，不得在 README / SPEC 写成"已支持"。
 
@@ -343,14 +343,12 @@
       - `useTimelineInteraction.spec`（move/resize/create）迁移为 `pointerType:'mouse'` 即时路径，鼠标几何提交行为零回归。
       - 其余 day/week/month/scheduler/timeline/agenda/multiDay 既有单测保持绿。
     - 浏览器触控验证：CDP 触控模拟不稳定（参见 M1 旋屏说明），真机/真浏览器待宿主侧联调；鼠标路径零回归由上述单测锁定。
-- M5：**移动交互打磨首批已落地（2026-06-24）**。归属均在宿主 s2，唯一包内改动是触控命中区放大的 CSS。
-  - 范围说明：长按创建已在 M4 提前落地；周条滑动切周此前已有（`DayWeekStrip` 的 `swipeRef`）。本轮补齐其余三项：
-  - **① 视图主体横滑切日（M5-1）**：新增 `apps/swell-calendar-s2/src/MobileViewSwipe.tsx`，包裹日/多日引擎画布。
-    - 手势仲裁交浏览器：根 `touch-action: pan-y` → 纵向走原生小时滚动（内部 `.swell-calendar-time`），横向由组件接管为切日；命中事件卡/手柄（`startsOnEngineEvent`）直接放行交引擎做 move/resize；长按创建静止按压不产生横向位移，互不干扰。
-    - 跟手 + 吸附：`--swipe-x` 位移 + `.is-dragging/.is-snapping/.is-jumping` 三态，复用周条同款 cubic-bezier；提交用嵌套 `setTimeout`（滑出→换日瞬移→滑入），**不用 rAF**（无头/后台标签下不可靠）。`will-change` 仅在手势态开启，避免常驻 GPU 合成层。
-    - 单日步进 1 天、多日步进 2 天（窗口宽度），经 `goToDate` 同步周条/月/列表共享焦点日期。
-    - 高度修正：`MobileViewSwipe` 是真实 flex 元素，替代了原 `.s2-mobile-calendar-live` 的 `display:contents` 直接填充；而父级 `.canvas--mobile` 是 `display:block`，`flex:1` 不生效导致包裹层塌缩到内容高度（日历未撑满画布）。修复为 `.m-view-swipe { height: 100% }`（父级有确定高度）。
-    - 验证（s2 375px 预览，合成 PointerEvent）：左滑 24→25、右滑回退、连续滑动 27→28→29 正确；未过阈值弹回不切日；纵向滚动仍可用（`touch-action: pan-y` + 时间网格 `scrollHeight>clientHeight`）；日历撑满画布（swipe/calMobile/dayView=678px、时间网格滚动窗 640px / 内容 1248px）；无页面级横向溢出。
+- M5：**移动交互打磨首批已落地（2026-06-24，M5-1 主体横滑已回滚）**。归属均在宿主 s2，唯一包内改动是触控命中区放大的 CSS。
+  - 范围说明：长按创建已在 M4 提前落地；周条滑动切周此前已有（`DayWeekStrip` 的 `swipeRef`）。主体时间网格横滑切日（M5-1）在 2026-06-25 多轮真机反馈中持续与上下滚动冲突，结论为**回滚，不作为当前已支持能力**。
+  - **① 视图主体横滑切日（M5-1）已回滚（2026-06-25）**：
+    - 回滚内容：移除 `MobileViewSwipe` 包裹、三栏预渲染与横向 pointer capture；移动 day/multi 画布恢复为直接渲染 `Calendar`。
+    - 原因：同一区域同时承载上下滚动、长按创建、事件 move/resize 与横滑切日，真机上方向锁定仍会造成上下滚动被截获。当前优先保证时间网格纵向滚动与触控编辑稳定。
+    - 后续若重新设计主体横滑，需单独立项，并优先验证不侵入 `.swell-calendar-time` 原生滚动链路；可考虑只在顶部周条或非滚动热区承载横向切日。
   - **② tap 命中区放大（M5-2）**：
     - 包内 `responsive.scss`：day/multi-day 的 resize 把手是不可见可抓取条，移动端高度 7px→14px（零视觉变化，1 小时卡 52px 仍留中部移动区）。
     - 宿主 `overlays.css`：事件详情 sheet 关闭按钮 34px→40px（操作按钮本就 44px）。
@@ -358,5 +356,5 @@
   - **③ 其余浮层底部 sheet 化（M5-3）**：事件详情 sheet 此前已有；本轮把**新建/编辑表单 `CreateDialog`** 与 **`+N` 更多列表 `MoreEventsPopover`** 增加 `variant='sheet'`，移动端改为底部全宽 sheet（grabber、18px 顶圆角、`sheetUp` 滑入、`env(safe-area-inset-bottom)`、body 可滚 footer 固定、按钮 46px）；桌面仍走居中对话框 / 锚定弹层（`variant` 默认非 sheet，零回归）。
     - 验证：s2 375px 经真实「长按→拖拽创建」触发，`.dialog--sheet` 正确渲染（grabber、圆角 18px、按钮 46px、`sheetUp` 动画）。
   - **修复 pre-existing 标题误判（2026-06-24）**：`CreateDialog` 此前用 `!!initial` 推断模式，但「编辑既有事件」与「网格拖拽创建的预填」都会传 `initial`，导致拖拽创建误显示「编辑日程」（桌面同样存在）。改为显式 `isEdit` prop，App 传 `isEdit={!!editing}`。验证：375px 长按→拖拽创建 → 标题「新建日程」/ 按钮「创建日程」；编辑路径仍「编辑日程」。
-  - 后续按需增量：触控 haptic 反馈、月 `+N` 命中区、滑动切**周/月**（目前仅切日）。
+  - 后续按需增量：触控 haptic 反馈、月 `+N` 命中区、滑动切**周/月**。主体时间网格横滑切日已回滚，重新设计前不再接入。
   - 验证小结：`tsc --noEmit`（calendar + s2）通过；包 `responsive.spec` 绿；s2 预览功能验证如上（截图工具对该 S2 应用挂起，改用 eval 断言 + 控制台无运行时错误）。

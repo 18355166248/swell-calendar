@@ -35,7 +35,6 @@ import { type Cat, type CalEvent, type PickEvent } from './data';
 import { dataSource } from './dataSource';
 import { MobileAgendaScroller } from './MobileAgendaScroller';
 import { MobileMonthScroller } from './MobileMonthScroller';
-import { MobileViewSwipe } from './MobileViewSwipe';
 import { MobileSearchOverlay, type MobileSearchHit } from './MobileSearchOverlay';
 import {
   CreateDialog,
@@ -427,13 +426,6 @@ export default function App({ view }: AppProps) {
     setVisibleMonth(new Date(d.getFullYear(), d.getMonth(), 1));
     setAgendaVisibleDate(d);
     calRef.current?.setDate(d);
-  };
-
-  /** 移动端主体横滑切日：按天平移共享焦点日期（多日步进为窗口天数）。 */
-  const shiftMobileDay = (deltaDays: number) => {
-    const next = new Date(currentDate);
-    next.setDate(currentDate.getDate() + deltaDays);
-    goToDate(next);
   };
 
   /** 顶栏「今天」：引擎回到今天，日期由 onPageChange 回填 currentDate。 */
@@ -937,6 +929,7 @@ export default function App({ view }: AppProps) {
           : currentDate;
     const monthLabel = formatMobileMonthLabel(mobileLabelDate);
     const calendarLabel = formatMobileCalendarLabel(mobileLabelDate);
+
     return (
       <Provider colorScheme={prefs.theme}>
         <ToastContainer />
@@ -986,12 +979,7 @@ export default function App({ view }: AppProps) {
             {renderedMobileView === 'month' ? mobileMonthNode : null}
             {renderedMobileView === 'list' ? mobileAgendaNode : null}
             {renderedMobileView !== 'month' && renderedMobileView !== 'list' ? (
-              <MobileViewSwipe
-                onPrev={() => shiftMobileDay(renderedMobileView === 'multi' ? -2 : -1)}
-                onNext={() => shiftMobileDay(renderedMobileView === 'multi' ? 2 : 1)}
-              >
-                <div className="s2-mobile-calendar-live">{calendarNode}</div>
-              </MobileViewSwipe>
+              <div className="s2-mobile-calendar-live">{calendarNode}</div>
             ) : null}
           </div>
           {overlays}
