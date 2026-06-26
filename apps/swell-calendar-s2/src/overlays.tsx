@@ -308,6 +308,7 @@ export function MoreEventsPopover({
   onClose,
   onEventClick,
   onEventEdit,
+  onEventDelete,
   variant = 'popover',
 }: {
   date: Date;
@@ -316,6 +317,7 @@ export function MoreEventsPopover({
   onClose: () => void;
   onEventClick?: (eventId: string, anchor: HTMLElement | null) => void;
   onEventEdit?: (eventId: string) => void;
+  onEventDelete?: (event: EventObject) => void;
   /** 'sheet' 在移动端改为底部全宽 sheet；'popover' 桌面锚定弹层。 */
   variant?: 'popover' | 'sheet';
 }) {
@@ -382,15 +384,8 @@ export function MoreEventsPopover({
                         backgroundColor: (ev.backgroundColor as string) || 'var(--accent-bg)',
                       }}
                     />
-                    <div style={{ minWidth: 0, flex: 1 }}>
-                      <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          gap: 8,
-                        }}
-                      >
+                    <div className="more-event-main">
+                      <div className="more-event-summary">
                         <span className="more-event-title">{ev.title}</span>
                         <span className="more-event-time muted">{getTimeLabel(ev)}</span>
                       </div>
@@ -410,19 +405,32 @@ export function MoreEventsPopover({
                         </div>
                       )}
                     </div>
-                    {ev.id && onEventEdit && (
-                      <button
-                        type="button"
-                        className="pbtn"
-                        style={{ flex: 'none', padding: '6px 10px' }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onEventEdit(ev.id as string);
-                        }}
-                      >
-                        编辑
-                      </button>
-                    )}
+                    <div className="more-event-actions">
+                      {onEventDelete && (
+                        <button
+                          type="button"
+                          className="pbtn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onEventDelete(ev);
+                          }}
+                        >
+                          删除
+                        </button>
+                      )}
+                      {ev.id && onEventEdit && (
+                        <button
+                          type="button"
+                          className="pbtn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onEventEdit(ev.id as string);
+                          }}
+                        >
+                          编辑
+                        </button>
+                      )}
+                    </div>
                   </div>
                 );
               })()
@@ -451,12 +459,14 @@ export interface NewEventInput {
 export function CreateDialog({
   onClose,
   onCreate,
+  onDelete,
   initial,
   isEdit = false,
   variant = 'dialog',
 }: {
   onClose: () => void;
   onCreate: (input: NewEventInput) => void;
+  onDelete?: () => void;
   /** 预填字段：编辑既有事件、或新建时由网格选区/单元格点击预填的时间。 */
   initial?: NewEventInput;
   /**
@@ -655,6 +665,13 @@ export function CreateDialog({
         </div>
         {err && <div className="page-err">{err}</div>}
         {formBody}
+        {isEdit && onDelete && (
+          <div className="page-delete-section">
+            <button type="button" className="dlg-btn page-delete-btn" onClick={onDelete}>
+              删除日程
+            </button>
+          </div>
+        )}
       </div>
     );
   }
@@ -680,6 +697,11 @@ export function CreateDialog({
           <button className="dlg-btn" onClick={onClose}>
             取消
           </button>
+          {isEdit && onDelete && (
+            <button className="dlg-btn" onClick={onDelete}>
+              删除
+            </button>
+          )}
           <button className="dlg-btn primary" onClick={submit}>
             {isEdit ? '保存' : '创建日程'}
           </button>

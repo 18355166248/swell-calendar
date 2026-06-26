@@ -2032,13 +2032,14 @@ button {
 
 .m-month-day-events {
   display: flex;
-  min-height: 42px;
+  min-height: 58px;
   margin-top: 4px;
   flex-direction: column;
   gap: 2px;
 }
 
-.m-month-event-chip {
+.m-month-event-chip,
+.m-month-more-chip {
   display: block;
   min-width: 0;
   height: 13px;
@@ -2053,6 +2054,11 @@ button {
   font-weight: 700;
   line-height: 13px;
   text-align: left;
+}
+
+.m-month-more-chip {
+  background: color-mix(in oklch, var(--text-3) 12%, transparent);
+  color: var(--text-3);
 }
 
 /* segmented 视图切换 */

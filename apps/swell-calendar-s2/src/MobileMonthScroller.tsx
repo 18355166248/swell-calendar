@@ -122,6 +122,7 @@ interface MobileMonthScrollerProps {
   onDateChange: (date: Date) => void;
   onVisibleMonthChange: (date: Date) => void;
   onEventClick: (event: CalendarDisplayEvent, anchor: HTMLElement) => void;
+  onMoreEventsClick: (date: Date, events: CalendarDisplayEvent[], anchor: HTMLElement) => void;
 }
 
 export function MobileMonthScroller({
@@ -131,6 +132,7 @@ export function MobileMonthScroller({
   onDateChange,
   onVisibleMonthChange,
   onEventClick,
+  onMoreEventsClick,
 }: MobileMonthScrollerProps) {
   const baseMonthRef = useRef(startOfMonth(currentDate));
   // 用户是否已经主动滚动/操作过列表。一旦接管，就停止把列表回弹到基准月，
@@ -286,6 +288,25 @@ export function MobileMonthScroller({
                           </span>
                         );
                       })}
+                      {dayEvents.length > 3 && (
+                        <span
+                          className="m-month-more-chip"
+                          role="button"
+                          tabIndex={0}
+                          onClick={(clickEvent) => {
+                            clickEvent.stopPropagation();
+                            onMoreEventsClick(date, dayEvents, clickEvent.currentTarget);
+                          }}
+                          onKeyDown={(keyEvent) => {
+                            if (keyEvent.key !== 'Enter' && keyEvent.key !== ' ') return;
+                            keyEvent.preventDefault();
+                            keyEvent.stopPropagation();
+                            onMoreEventsClick(date, dayEvents, keyEvent.currentTarget);
+                          }}
+                        >
+                          +{dayEvents.length - 3} 更多
+                        </span>
+                      )}
                     </span>
                   </button>
                 );

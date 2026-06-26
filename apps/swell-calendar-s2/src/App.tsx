@@ -500,43 +500,52 @@ export default function App({ view }: AppProps) {
     setPick(null);
   };
 
-  const handleDelete = () => {
-    const instanceId = pick?.ev.id;
-    if (!instanceId) return;
-    const calEvent = resolveCalEvent(instanceId);
-    const parentId = calEvent?.id ?? instanceId;
+  const closeEventSurfaces = () => {
+    setPick(null);
+    setMorePick(null);
+    setEditing(null);
+    setEditingRecurrence(null);
+  };
 
-    if (calEvent?.recurrence) {
-      // 重复事件：弹 scope 选择弹框
-      // 从实例 ID 后缀（parentId-YYYY-MM-DD）提取发生日期
-      const occurrenceDateStr = instanceId.match(/-(\d{4}-\d{2}-\d{2})$/)?.[1];
-      const occurrenceTs = occurrenceDateStr ? new Date(occurrenceDateStr).getTime() : null;
+  const handleDelete = (targetEvent?: EventObject) => {
+    const instanceInfo =
+      (targetEvent ? buildRecurrenceInstanceInfo(targetEvent) : undefined) ?? editingRecurrence;
+    const targetId =
+      targetEvent?.recurrenceParentId || targetEvent?.id || pick?.ev.id || editing?.id;
+    const parentId = instanceInfo?.recurrenceParentId || targetId;
+    const calEvent = resolveCalEvent(parentId);
+
+    if (!parentId || !calEvent) return;
+
+    if (calEvent.recurrence && instanceInfo?.recurrenceOccurrenceDate) {
+      const occurrenceTs = instanceInfo.recurrenceOccurrenceDate.getTime();
 
       setPendingScope({
         mode: 'delete',
-        apply: (scope) => {
+        apply: async (scope) => {
           if (scope === 'all') {
-            deleteEvent(parentId);
-          } else if (scope === 'single' && occurrenceTs) {
+            await deleteEvent(parentId);
+          } else if (scope === 'single') {
             const exceptions = [
               ...(calEvent.recurringExceptions ?? []),
               { date: occurrenceTs, skipped: true as const },
             ];
-            updateEvent(parentId, { ...calEvent, recurringExceptions: exceptions });
-          } else if (scope === 'following' && occurrenceTs) {
+            await updateEvent(parentId, { ...calEvent, recurringExceptions: exceptions });
+          } else if (scope === 'following') {
             const until = new Date(occurrenceTs);
             until.setDate(until.getDate() - 1);
             const recurrence = { ...calEvent.recurrence!, until: until.getTime() };
-            updateEvent(parentId, { ...calEvent, recurrence });
+            await updateEvent(parentId, { ...calEvent, recurrence });
           }
           setPendingScope(null);
-          setPick(null);
+          closeEventSurfaces();
         },
       });
       return;
     }
+
     deleteEvent(parentId);
-    setPick(null);
+    closeEventSurfaces();
   };
 
   const closeDialog = () => {
@@ -1054,6 +1063,13 @@ export default function App({ view }: AppProps) {
           }
           openEventDetails(toCalendarEvents([event])[0], anchor);
         }}
+        onMoreEventsClick={(date, events, anchor) => {
+          setMorePick({
+            date,
+            events: events.map((event) => event.engineEvent ?? toCalendarEvents([event])[0]),
+            anchor,
+          });
+        }}
       />
     );
 
@@ -1096,7 +1112,7 @@ export default function App({ view }: AppProps) {
           ev={pick.ev}
           onClose={closePop}
           onEdit={openEdit}
-          onDelete={handleDelete}
+          onDelete={() => handleDelete()}
         />
       )}
       {pick && !isMobile && (
@@ -1106,7 +1122,7 @@ export default function App({ view }: AppProps) {
           onClose={closePop}
           variant={UI_DEFAULTS.popover}
           onEdit={openEdit}
-          onDelete={handleDelete}
+          onDelete={() => handleDelete()}
         />
       )}
       {morePick && (
@@ -1132,12 +1148,14 @@ export default function App({ view }: AppProps) {
             setMorePick(null);
           }}
           onEventEdit={openEventEditById}
+          onEventDelete={(event) => handleDelete(event)}
         />
       )}
       {(creating || editing) && (
         <CreateDialog
           onClose={closeDialog}
           onCreate={handleSubmit}
+          onDelete={editing ? () => handleDelete() : undefined}
           initial={editing ? calEventToInput(editing) : createInitial ?? undefined}
           isEdit={!!editing}
           variant={isMobile ? 'page' : 'dialog'}

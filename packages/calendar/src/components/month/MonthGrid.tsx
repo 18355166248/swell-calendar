@@ -350,6 +350,11 @@ export function MonthGrid({
                         e.stopPropagation();
                         handleMoreClick(date, overflowModels);
                       }}
+                      onPointerDown={(e) => {
+                        // `+N 更多` 位于 week row 内，父层 pointerdown 用于月视图拖拽/新建；
+                        // 这里必须先截断，否则点击更多会被识别为网格交互，浮层无法稳定打开。
+                        e.stopPropagation();
+                      }}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' || e.key === ' ') {
                           e.preventDefault();
