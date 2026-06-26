@@ -876,7 +876,7 @@ export function RecurrenceScopeDialog({
   onCancel,
 }: {
   mode: 'edit' | 'delete';
-  onConfirm: (scope: RecurrenceScopeAction) => void;
+  onConfirm: (scope: RecurrenceScopeAction) => void | Promise<void>;
   onCancel: () => void;
 }) {
   return (

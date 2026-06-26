@@ -4,7 +4,7 @@ import {
   CalendarRecurrenceEditScope,
   CalendarRecurrenceInstanceInfo,
 } from '@/types/callbacks.type';
-import { EventObject, RecurringException } from '@/types/events.type';
+import { EventObject, RecurrenceRule, RecurringException } from '@/types/events.type';
 
 /**
  * 判断一个事件是否为 recurrence 展开的实例
@@ -84,6 +84,7 @@ function applySingleScope(
   occurrenceDate: DayjsTZDate,
   changes: Partial<EventObject>
 ): EventObject[] {
+  const safeChanges = omitRecurrenceRuleChanges(changes);
   const exceptions = [...(parentEvent.recurringExceptions ?? [])];
   const existingIndex = findExceptionIndex(exceptions, occurrenceDate);
 
@@ -93,12 +94,12 @@ function applySingleScope(
     exceptions[existingIndex] = {
       ...existing,
       skipped: false,
-      overrides: { ...existing.overrides, ...changes },
+      overrides: { ...existing.overrides, ...safeChanges },
     };
   } else {
     exceptions.push({
       date: occurrenceDate,
-      overrides: changes,
+      overrides: safeChanges,
     });
   }
 
@@ -147,21 +148,31 @@ function applyFollowingScope(
       : undefined,
   };
 
-  // 新事件：继承父事件 + 应用 changes + 携带原 recurrence 继续展开
-  const originalRecurrence = parentEvent.recurrence
-    ? {
-        ...parentEvent.recurrence,
-        // 新系列从 occurrenceDate 开始，移除 until/count 限制
-        until: undefined,
-        count: undefined,
-      }
+  const newStart = changes.start ?? occurrenceDate;
+  const newEnd = changes.end ?? getEndByOriginalDuration(parentEvent, newStart);
+
+  const recurrenceSource = 'recurrence' in changes ? changes.recurrence : parentEvent.recurrence;
+  // 新事件：继承父事件 + 应用 changes + 携带目标 recurrence 继续展开。
+  // 表单切换重复规则时，新的系列应使用用户选择的规则；未切换时沿用父事件规则。
+  const nextRecurrence = recurrenceSource
+    ? alignFollowingRecurrenceToStart(
+        {
+          ...recurrenceSource,
+          // 新系列从 occurrenceDate 开始，移除 until/count 限制
+          until: undefined,
+          count: undefined,
+        },
+        newStart
+      )
     : undefined;
 
   const newEvent: EventObject = {
     ...parentEvent,
     ...changes,
     id: undefined, // 新系列不继承原 ID
-    recurrence: originalRecurrence,
+    start: newStart,
+    end: newEnd,
+    recurrence: nextRecurrence,
     recurringExceptions: undefined,
     recurringExceptionRule: undefined,
     recurrenceParentId: undefined,
@@ -169,6 +180,43 @@ function applyFollowingScope(
   };
 
   return [truncatedParent, newEvent];
+}
+
+/**
+ * following 的新系列必须从"本次"开始，而不是继续沿用父事件首日。
+ * 当用户把 weekly 实例改到另一个星期几时，旧 byWeekDays 可能不包含新起点，
+ * 这会导致当前这次被新系列展开逻辑跳过；此处把规则锚定到新起点星期几。
+ */
+function alignFollowingRecurrenceToStart(
+  recurrence: RecurrenceRule,
+  start: EventObject['start']
+): RecurrenceRule {
+  if (recurrence.frequency !== 'weekly' || !recurrence.byWeekDays?.length || start == null) {
+    return recurrence;
+  }
+
+  const startWeekDay = new DayjsTZDate(start).getDay();
+  if (recurrence.byWeekDays.includes(startWeekDay)) {
+    return recurrence;
+  }
+
+  return {
+    ...recurrence,
+    byWeekDays: [startWeekDay],
+  };
+}
+
+function getEndByOriginalDuration(
+  parentEvent: EventObject,
+  start: EventObject['start']
+): EventObject['end'] {
+  if (start == null || parentEvent.start == null || parentEvent.end == null) {
+    return parentEvent.end;
+  }
+
+  const durationMs =
+    new DayjsTZDate(parentEvent.end).getTime() - new DayjsTZDate(parentEvent.start).getTime();
+  return new DayjsTZDate(new DayjsTZDate(start).getTime() + durationMs);
 }
 
 /**
@@ -182,13 +230,13 @@ function applyFollowingScope(
  * 4. 返回 [updatedParent]
  */
 function applyAllScope(parentEvent: EventObject, changes: Partial<EventObject>): EventObject[] {
-  // 不允许通过 changes 覆盖 recurrence 相关字段
   const safeChanges = { ...changes };
-  delete safeChanges.recurrence;
   delete safeChanges.recurringExceptions;
   delete safeChanges.recurringExceptionRule;
   delete safeChanges.recurrenceParentId;
   delete safeChanges.recurrenceOccurrenceDate;
+  const recurrenceChanged =
+    'recurrence' in changes && !isSameRecurrenceRule(parentEvent.recurrence, changes.recurrence);
 
   // start / end 仅取日内时间偏移量，应用到父事件的原始日期上
   // 这样 "all" 语义 = 所有实例的时间同步移动，而非改变 recurrence 锚点日期
@@ -203,8 +251,26 @@ function applyAllScope(parentEvent: EventObject, changes: Partial<EventObject>):
     {
       ...parentEvent,
       ...safeChanges,
+      recurringExceptions: recurrenceChanged ? undefined : parentEvent.recurringExceptions,
     },
   ];
+}
+
+function omitRecurrenceRuleChanges(changes: Partial<EventObject>): Partial<EventObject> {
+  const safeChanges = { ...changes };
+  delete safeChanges.recurrence;
+  delete safeChanges.recurringExceptions;
+  delete safeChanges.recurringExceptionRule;
+  delete safeChanges.recurrenceParentId;
+  delete safeChanges.recurrenceOccurrenceDate;
+  return safeChanges;
+}
+
+function isSameRecurrenceRule(
+  left: EventObject['recurrence'],
+  right: EventObject['recurrence']
+): boolean {
+  return JSON.stringify(left ?? null) === JSON.stringify(right ?? null);
 }
 
 /**

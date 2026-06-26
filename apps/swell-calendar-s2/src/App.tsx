@@ -10,6 +10,7 @@ import { startTransition, useCallback, useEffect, useMemo, useRef, useState } fr
 import { useNavigate } from 'react-router-dom';
 
 import type { CalendarInstance, EventObject } from 'swell-calendar';
+import type { CalendarRecurrenceInstanceInfo } from 'swell-calendar';
 import Calendar, {
   applyRecurrenceEditScope,
   buildRecurrenceInstanceInfo,
@@ -33,6 +34,7 @@ import {
   engineEventToCreateInput,
   engineEventToDraft,
   inputToDraft,
+  recurrenceInstanceToEditableCalEvent,
   toCalendarEvents,
   toPickEvent,
 } from './calendarData';
@@ -240,6 +242,25 @@ function formatMobileCalendarLabel(date: Date): string {
   return `${date.getFullYear()}年`;
 }
 
+function toRecurrenceEditChanges(event: EventObject): Partial<EventObject> {
+  return {
+    title: event.title,
+    calendarId: event.calendarId,
+    start: event.start,
+    end: event.end,
+    resourceId: event.resourceId,
+    allDay: event.allDay,
+    isAllday: event.isAllday,
+    category: event.category,
+    backgroundColor: event.backgroundColor,
+    color: event.color,
+    borderColor: event.borderColor,
+    raw: event.raw,
+    meta: event.meta,
+    recurrence: event.recurrence,
+  };
+}
+
 export default function App({ view }: AppProps) {
   // view 的真源是 URL（router.tsx）；currentDate 由 App 内部管理 + 引擎 onPageChange 回填。
   // 刷新回到今天。
@@ -265,7 +286,11 @@ export default function App({ view }: AppProps) {
         : 'day'
     : view;
   const calendarEngineView: ViewId = engineView;
-  const [pick, setPick] = useState<{ ev: PickEvent; anchor: HTMLElement } | null>(null);
+  const [pick, setPick] = useState<{
+    ev: PickEvent;
+    anchor: HTMLElement;
+    event: EventObject;
+  } | null>(null);
   const [morePick, setMorePick] = useState<{
     date: Date;
     events: EventObject[];
@@ -289,13 +314,16 @@ export default function App({ view }: AppProps) {
   const [query, setQuery] = useState('');
   const [activeCats, setActiveCats] = useState<Set<Cat>>(() => new Set(FILTER_CATS));
   const [editing, setEditing] = useState<CalEvent | null>(null);
+  const [editingRecurrence, setEditingRecurrence] = useState<CalendarRecurrenceInstanceInfo | null>(
+    null
+  );
   const [settingsAnchor, setSettingsAnchor] = useState<HTMLElement | null>(null);
   // 引擎滑动新建 / 单元格点击预填的新建对话框初始值（P7b）
   const [createInitial, setCreateInitial] = useState<NewEventInput | null>(null);
   // 重复事件 scope 弹框：记录待执行的操作，等用户选择范围后再应用
   const [pendingScope, setPendingScope] = useState<{
     mode: 'edit' | 'delete';
-    apply: (scope: RecurrenceScopeAction) => void;
+    apply: (scope: RecurrenceScopeAction) => void | Promise<void>;
   } | null>(null);
   const calRef = useRef<CalendarInstance>(null);
   const monthMoreAnchorRef = useRef<HTMLElement | null>(null);
@@ -376,6 +404,45 @@ export default function App({ view }: AppProps) {
   // 新建 / 编辑共用同一对话框：editing 为空走新建，否则把编辑结果写入数据源（内部落 override 层）
   const handleSubmit = (input: NewEventInput) => {
     if (editing) {
+      if (editingRecurrence) {
+        const parentCalEvent = allEvents.find(
+          (event) => event.id === editingRecurrence.recurrenceParentId
+        );
+        if (!parentCalEvent) {
+          setEditing(null);
+          setEditingRecurrence(null);
+          return;
+        }
+
+        const editedDraft = inputToDraft(input, parentCalEvent);
+        const editedEngineEvent = toCalendarEvents([{ ...parentCalEvent, ...editedDraft }])[0];
+        const parentEngineEvent = toCalendarEvents([parentCalEvent])[0];
+        const changes = toRecurrenceEditChanges(editedEngineEvent);
+
+        setEditing(null);
+        setEditingRecurrence(null);
+        setPendingScope({
+          mode: 'edit',
+          apply: async (scope) => {
+            const results = applyRecurrenceEditScope({
+              parentEvent: parentEngineEvent,
+              occurrenceDate: editingRecurrence.recurrenceOccurrenceDate,
+              scope,
+              changes,
+            });
+            if (scope === 'following') {
+              const [truncated, newEvent] = results;
+              // following 需要先截断旧系列，再创建新系列；顺序等待可避免本次日期短暂显示旧卡片。
+              if (truncated) await updateEvent(parentCalEvent.id, engineEventToDraft(truncated));
+              if (newEvent) await createEvent(engineEventToDraft(newEvent));
+            } else if (results[0]) {
+              await updateEvent(parentCalEvent.id, engineEventToDraft(results[0]));
+            }
+            setPendingScope(null);
+          },
+        });
+        return;
+      }
       updateEvent(editing.id, inputToDraft(input, editing));
     } else {
       createEvent(inputToDraft(input));
@@ -391,9 +458,19 @@ export default function App({ view }: AppProps) {
   };
 
   const openEdit = () => {
-    const original = resolveCalEvent(pick?.ev.id);
+    const currentPick = pick;
+    const original = resolveCalEvent(currentPick?.ev.id);
     if (original) {
-      setEditing(original);
+      const pickedEvent = currentPick?.event;
+      const instanceInfo = pickedEvent ? buildRecurrenceInstanceInfo(pickedEvent) : undefined;
+      if (pickedEvent && instanceInfo) {
+        // 表单展示实例日期，但重复规则必须保留父事件规则，否则 weekly 会回填成"不重复"。
+        setEditing(recurrenceInstanceToEditableCalEvent(original, pickedEvent));
+        setEditingRecurrence(instanceInfo);
+      } else {
+        setEditing(original);
+        setEditingRecurrence(null);
+      }
       setPick(null);
     }
   };
@@ -440,6 +517,7 @@ export default function App({ view }: AppProps) {
   const closeDialog = () => {
     setCreating(false);
     setEditing(null);
+    setEditingRecurrence(null);
     setCreateInitial(null);
   };
 
@@ -468,7 +546,7 @@ export default function App({ view }: AppProps) {
 
       setPendingScope({
         mode: 'edit',
-        apply: (scope) => {
+        apply: async (scope) => {
           const parentEngineEvent = toCalendarEvents([parentCalEvent])[0];
           const changes: Partial<EventObject> = {
             start: info.event.start,
@@ -484,11 +562,11 @@ export default function App({ view }: AppProps) {
           if (scope === 'following') {
             // 两个结果：[truncatedParent, newEvent]
             const [truncated, newEv] = results;
-            if (truncated) updateEvent(parentId, engineEventToDraft(truncated));
-            if (newEv) createEvent(engineEventToDraft(newEv));
+            if (truncated) await updateEvent(parentId, engineEventToDraft(truncated));
+            if (newEv) await createEvent(engineEventToDraft(newEv));
           } else {
             // single / all：一个结果，更新父事件
-            if (results[0]) updateEvent(parentId, engineEventToDraft(results[0]));
+            if (results[0]) await updateEvent(parentId, engineEventToDraft(results[0]));
           }
           setPendingScope(null);
         },
@@ -739,6 +817,7 @@ export default function App({ view }: AppProps) {
     setPick({
       ev: toPickEvent(event),
       anchor: anchor ?? fallbackAnchor ?? (document.activeElement as HTMLElement),
+      event,
     });
   };
 

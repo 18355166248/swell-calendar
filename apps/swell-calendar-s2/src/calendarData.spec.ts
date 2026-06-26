@@ -8,6 +8,7 @@ import {
   engineEventToCreateInput,
   engineEventToDraft,
   inputToDraft,
+  recurrenceInstanceToEditableCalEvent,
   rebaseEventsToCurrentWeek,
   toCalendarEvents,
 } from './calendarData';
@@ -117,6 +118,71 @@ describe('engineEventToDraft · 引擎事件 → 草稿', () => {
     expect(draft.endDay).toBe(1);
     expect(draft.start).toBe(23);
     expect(draft.end).toBe(1);
+  });
+
+  it('更新路径：优先保留引擎侧 recurrence 结果，支持截断旧系列', () => {
+    const raw: CalEvent = {
+      id: 'repeat',
+      res: 'r1',
+      day: 0,
+      start: 9,
+      end: 10,
+      title: '重复',
+      cat: 'seafoam',
+      recurrence: { frequency: 'weekly' },
+    };
+    const until = new Date(2025, 2, 23, 23, 59, 59, 999);
+
+    const draft = engineEventToDraft(
+      engineEvent({
+        id: 'repeat',
+        start: new Date(2025, 2, 17, 9, 0),
+        end: new Date(2025, 2, 17, 10, 0),
+        recurrence: { frequency: 'weekly', until },
+        raw,
+      })
+    );
+
+    expect(draft.recurrence?.until).toBe(until.getTime());
+  });
+
+  it('更新路径：recurringExceptions 日期与 overrides 时间归一化为时间戳，避免落库后失效', () => {
+    const raw: CalEvent = {
+      id: 'repeat',
+      res: 'r1',
+      day: 0,
+      start: 9,
+      end: 10,
+      title: '重复',
+      cat: 'seafoam',
+      recurrence: { frequency: 'daily' },
+    };
+    const occurrence = new Date(2025, 2, 18, 9, 0);
+    const overrideStart = new Date(2025, 2, 18, 11, 0);
+    const overrideEnd = new Date(2025, 2, 18, 12, 0);
+
+    const draft = engineEventToDraft(
+      engineEvent({
+        id: 'repeat',
+        start: new Date(2025, 2, 17, 9, 0),
+        end: new Date(2025, 2, 17, 10, 0),
+        raw,
+        recurringExceptions: [
+          {
+            date: occurrence,
+            overrides: {
+              title: '仅此次',
+              start: overrideStart,
+              end: overrideEnd,
+            },
+          },
+        ],
+      })
+    );
+
+    expect(draft.recurringExceptions?.[0]?.date).toBe(occurrence.getTime());
+    expect(draft.recurringExceptions?.[0]?.overrides?.start).toBe(overrideStart.getTime());
+    expect(draft.recurringExceptions?.[0]?.overrides?.end).toBe(overrideEnd.getTime());
   });
 });
 
@@ -282,5 +348,74 @@ describe('回归：跨天滑动新建全链路守恒（修复前会塌回起始�
     const [rendered] = toCalendarEvents([created]);
     expect(rendered.end).toEqual(new Date(2025, 2, 18, 10, 0));
     expect((rendered.end as Date).getTime()).toBeGreaterThan((rendered.start as Date).getTime());
+  });
+});
+
+describe('回归：重复实例编辑回填', () => {
+  it('实例编辑态保留父事件 weekly 规则，避免表单显示为不重复', () => {
+    const parent: CalEvent = {
+      id: 'weekly-parent',
+      res: 'r1',
+      day: 0,
+      start: 9,
+      end: 10,
+      title: '每周例会',
+      cat: 'seafoam',
+      recurrence: { frequency: 'weekly' },
+    };
+    const instance = engineEvent({
+      id: 'weekly-parent-2025-03-24',
+      title: '每周例会',
+      resourceId: 'r1',
+      start: new Date(2025, 2, 24, 9, 0),
+      end: new Date(2025, 2, 24, 10, 0),
+      recurrenceParentId: 'weekly-parent',
+      recurrenceOccurrenceDate: new Date(2025, 2, 24, 9, 0),
+    });
+
+    const editable = recurrenceInstanceToEditableCalEvent(parent, instance);
+    const input = calEventToInput(editable);
+
+    expect(input.date).toBe('2025-03-24');
+    expect(input.recurrence).toBe('weekly');
+  });
+
+  it('inputToDraft 支持 daily / weekly / biweekly / none 相互切换', () => {
+    const base: CalEvent = {
+      id: 'weekly-parent',
+      res: 'r1',
+      day: 0,
+      start: 9,
+      end: 10,
+      title: '每周例会',
+      cat: 'seafoam',
+      recurrence: { frequency: 'weekly' },
+      recurringExceptions: [{ date: new Date(2025, 2, 24), overrides: { title: '单次' } }],
+    };
+    const baseInput: NewEventInput = {
+      title: '切换重复',
+      res: 'r1',
+      date: '2025-03-17',
+      endDate: '2025-03-17',
+      start: '09:00',
+      end: '10:00',
+      cat: 'seafoam',
+    };
+
+    expect(inputToDraft({ ...baseInput, recurrence: 'daily' }, base).recurrence).toEqual({
+      frequency: 'daily',
+    });
+    expect(inputToDraft({ ...baseInput, recurrence: 'biweekly' }, base).recurrence).toEqual({
+      frequency: 'weekly',
+      interval: 2,
+    });
+    expect(inputToDraft({ ...baseInput, recurrence: 'none' }, base).recurrence).toBeUndefined();
+    expect(
+      inputToDraft({ ...baseInput, recurrence: 'daily' }, base).recurringExceptions
+    ).toBeUndefined();
+
+    const unchanged = inputToDraft({ ...baseInput, recurrence: 'weekly' }, base);
+    expect(unchanged.recurrence).toEqual({ frequency: 'weekly' });
+    expect(unchanged.recurringExceptions).toEqual(base.recurringExceptions);
   });
 });

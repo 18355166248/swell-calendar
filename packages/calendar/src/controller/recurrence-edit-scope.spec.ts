@@ -143,10 +143,11 @@ describe('recurrence-edit-scope', () => {
         parentEvent,
         occurrenceDate: d('2026-06-08'),
         scope: 'single',
-        changes: { title: '单次改名' },
+        changes: { title: '单次改名', recurrence: { frequency: 'daily' } },
       });
 
       expect(result[0].recurrence).toEqual(parentEvent.recurrence);
+      expect(result[0].recurringExceptions?.[0].overrides?.recurrence).toBeUndefined();
     });
   });
 
@@ -183,6 +184,60 @@ describe('recurrence-edit-scope', () => {
       expect(newEvent.recurrenceParentId).toBeUndefined();
       expect(newEvent.recurrenceOccurrenceDate).toBeUndefined();
     });
+
+    it('未修改时间时，新系列仍从被编辑的本次日期开始', () => {
+      const result = applyRecurrenceEditScope({
+        parentEvent,
+        occurrenceDate: d('2026-06-15T09:00:00'),
+        scope: 'following',
+        changes: {
+          title: '从本次开始改名',
+        },
+      });
+
+      const newEvent = result[1];
+      expect(newEvent.title).toBe('从本次开始改名');
+      expect(newEvent.start).toEqual(d('2026-06-15T09:00:00'));
+      expect(newEvent.end).toEqual(d('2026-06-15T09:30:00'));
+    });
+
+    it('weekly 实例改到新星期几时同步新系列 byWeekDays，避免本次被跳过', () => {
+      const result = applyRecurrenceEditScope({
+        parentEvent,
+        occurrenceDate: d('2026-06-15T09:00:00'),
+        scope: 'following',
+        changes: {
+          start: d('2026-06-17T14:00:00'),
+          end: d('2026-06-17T14:30:00'),
+        },
+      });
+
+      const newEvent = result[1];
+      expect(newEvent.start).toEqual(d('2026-06-17T14:00:00'));
+      expect(newEvent.recurrence?.byWeekDays).toEqual([3]);
+    });
+
+    it('支持从本次及之后切换重复规则，例如 weekly → daily', () => {
+      const result = applyRecurrenceEditScope({
+        parentEvent,
+        occurrenceDate: d('2026-06-15T09:00:00'),
+        scope: 'following',
+        changes: {
+          title: '改成每天',
+          recurrence: { frequency: 'daily' },
+        },
+      });
+
+      const newEvent = result[1];
+      expect(newEvent.title).toBe('改成每天');
+      expect(newEvent.start).toEqual(d('2026-06-15T09:00:00'));
+      expect(newEvent.recurrence).toEqual({
+        frequency: 'daily',
+        until: undefined,
+        count: undefined,
+      });
+      expect(newEvent.recurringExceptions).toBeUndefined();
+    });
   });
 
   describe('applyRecurrenceEditScope — all', () => {
@@ -207,19 +262,48 @@ describe('recurrence-edit-scope', () => {
       expect(updated.recurringExceptions).toEqual(parentEvent.recurringExceptions);
     });
 
-    it('不允许通过 changes 覆盖 recurrence 字段', () => {
+    it('允许通过 all scope 切换 recurrence 规则，并清空旧 exceptions', () => {
       const result = applyRecurrenceEditScope({
-        parentEvent,
+        parentEvent: {
+          ...parentEvent,
+          recurringExceptions: [{ date: '2026-06-08', overrides: { title: '单次' } }],
+        },
         occurrenceDate: d('2026-06-08'),
         scope: 'all',
         changes: {
           recurrence: { frequency: 'daily' },
-          recurringExceptions: [{ date: '2026-06-10', skipped: true }],
         } as Partial<EventObject>,
       });
 
-      expect(result[0].recurrence).toEqual(parentEvent.recurrence);
-      expect(result[0].recurringExceptions).toEqual(parentEvent.recurringExceptions);
+      expect(result[0].recurrence).toEqual({ frequency: 'daily' });
+      expect(result[0].recurringExceptions).toBeUndefined();
+    });
+
+    it('支持 all scope 在 daily / weekly / biweekly / none 之间切换', () => {
+      const cases: Array<{
+        label: string;
+        recurrence: EventObject['recurrence'];
+      }> = [
+        { label: 'daily', recurrence: { frequency: 'daily' } },
+        { label: 'weekly', recurrence: { frequency: 'weekly' } },
+        { label: 'biweekly', recurrence: { frequency: 'weekly', interval: 2 } },
+        { label: 'none', recurrence: undefined },
+      ];
+
+      for (const item of cases) {
+        const result = applyRecurrenceEditScope({
+          parentEvent,
+          occurrenceDate: d('2026-06-08'),
+          scope: 'all',
+          changes: {
+            title: item.label,
+            recurrence: item.recurrence,
+          },
+        });
+
+        expect(result[0].title).toBe(item.label);
+        expect(result[0].recurrence).toEqual(item.recurrence);
+      }
     });
 
     it('start/end 仅应用日内时间，保留父事件原始日期', () => {

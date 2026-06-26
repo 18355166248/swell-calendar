@@ -1,5 +1,5 @@
 // 数据适配层：将 S2 app 的 mock 数据转换为 swell-calendar 的 EventObject / ResourceInfo 格式。
-import type { EventObject, RecurrenceRule, ResourceInfo } from 'swell-calendar';
+import type { EventObject, RecurrenceRule, RecurringException, ResourceInfo } from 'swell-calendar';
 
 import {
   CAT_COLOR_STYLES,
@@ -164,6 +164,48 @@ function toNativeDate(dateLike: DateLike) {
   return new Date(dateLike);
 }
 
+function normalizeDateForStorage(dateLike: unknown) {
+  if (dateLike == null) return undefined;
+  return toNativeDate(dateLike as DateLike).getTime();
+}
+
+function normalizeRecurrenceForStorage(
+  rule: RecurrenceRule | undefined
+): RecurrenceRule | undefined {
+  if (!rule) return undefined;
+
+  return {
+    ...rule,
+    until: normalizeDateForStorage(rule.until),
+    exceptions: rule.exceptions?.map((date) => normalizeDateForStorage(date)!),
+  };
+}
+
+function normalizeRecurringExceptionsForStorage(
+  exceptions: RecurringException[] | undefined
+): RecurringException[] | undefined {
+  if (!exceptions) return undefined;
+
+  return exceptions.map((exception) => ({
+    ...exception,
+    date: normalizeDateForStorage(exception.date)!,
+    overrides: exception.overrides
+      ? {
+          ...exception.overrides,
+          start:
+            exception.overrides.start == null
+              ? exception.overrides.start
+              : normalizeDateForStorage(exception.overrides.start),
+          end:
+            exception.overrides.end == null
+              ? exception.overrides.end
+              : normalizeDateForStorage(exception.overrides.end),
+          recurrence: normalizeRecurrenceForStorage(exception.overrides.recurrence),
+        }
+      : undefined,
+  }));
+}
+
 function toDecimalHour(dateLike: DateLike) {
   const date = toNativeDate(dateLike);
   return date.getHours() + date.getMinutes() / 60;
@@ -226,9 +268,15 @@ export function engineEventToDraft(event: EventObject): EventDraft {
     // 更新路径：以原事件为底，只覆盖时间/资源（排除 id，保持 EventDraft = Omit<CalEvent, 'id'>）
     // endDay 必须显式覆盖，否则旧值会盖掉本次拖拽产生的跨天跨度
     const { id: _, ...rest } = raw;
-    // recurringExceptions 可能来自 applyRecurrenceEditScope 结果，优先取引擎侧最新值
-    const recurringExceptions = event.recurringExceptions ?? rest.recurringExceptions;
-    return { ...rest, day, endDay, start, end, res, allDay, recurringExceptions };
+    // recurrence / recurringExceptions 可能来自 applyRecurrenceEditScope 结果，优先取引擎侧最新值；
+    // 否则 "此次及之后" 截断后的 until 会被 raw 里的旧规则覆盖，旧系列仍继续展开。
+    const recurrence = normalizeRecurrenceForStorage(
+      'recurrence' in event ? event.recurrence : rest.recurrence
+    );
+    const recurringExceptions = normalizeRecurringExceptionsForStorage(
+      event.recurringExceptions ?? rest.recurringExceptions
+    );
+    return { ...rest, day, endDay, start, end, res, allDay, recurrence, recurringExceptions };
   }
 
   // 新建路径：从引擎字段构建
@@ -241,8 +289,8 @@ export function engineEventToDraft(event: EventObject): EventDraft {
     end,
     res,
     allDay,
-    recurrence: event.recurrence as RecurrenceRule | undefined,
-    recurringExceptions: event.recurringExceptions,
+    recurrence: normalizeRecurrenceForStorage(event.recurrence as RecurrenceRule | undefined),
+    recurringExceptions: normalizeRecurringExceptionsForStorage(event.recurringExceptions),
   };
 }
 
@@ -273,6 +321,7 @@ function recurrenceRuleToRep(rule: RecurrenceRule | undefined): string {
 export function inputToDraft(input: NewEventInput, base?: CalEvent): EventDraft {
   const allDay = input.allDay === true && input.start === '00:00' && input.end === '23:59';
   const recurrence = repToRecurrenceRule(input.recurrence);
+  const keepRecurringExceptions = sameRecurrenceRule(recurrence, base?.recurrence);
   return {
     ...base,
     res: input.res,
@@ -284,9 +333,17 @@ export function inputToDraft(input: NewEventInput, base?: CalEvent): EventDraft 
     cat: input.cat,
     allDay,
     recurrence,
-    // 编辑时如果修改了重复规则（改成"不重复"），清空 exceptions；否则保留
-    recurringExceptions: recurrence ? base?.recurringExceptions : undefined,
+    // 重复规则互相切换时，旧规则下的 exception 日期不再可靠，需清空后让新规则重新展开。
+    recurringExceptions:
+      recurrence && keepRecurringExceptions ? base?.recurringExceptions : undefined,
   };
+}
+
+function sameRecurrenceRule(
+  left: RecurrenceRule | undefined,
+  right: RecurrenceRule | undefined
+): boolean {
+  return JSON.stringify(left ?? null) === JSON.stringify(right ?? null);
 }
 
 /** CalEvent → 对话框预填输入（编辑回填用）。 */
@@ -301,6 +358,23 @@ export function calEventToInput(e: CalEvent): NewEventInput {
     cat: e.cat,
     allDay: e.allDay,
     recurrence: recurrenceRuleToRep(e.recurrence),
+  };
+}
+
+/**
+ * 重复实例编辑表单需要展示实例发生日期，但重复规则只能来自父事件。
+ * 展开实例本身不会携带 recurrence；若直接用实例 draft 覆盖父事件，会把"每周"回填成"不重复"。
+ */
+export function recurrenceInstanceToEditableCalEvent(
+  parent: CalEvent,
+  instance: EventObject
+): CalEvent {
+  return {
+    ...parent,
+    ...engineEventToDraft(instance),
+    id: parent.id,
+    recurrence: parent.recurrence,
+    recurringExceptions: parent.recurringExceptions,
   };
 }
 
