@@ -1,5 +1,6 @@
 import { isNil } from 'lodash-es';
 
+import { expandSchedulerRecurrenceEvent } from '@/controller/scheduler-recurrence';
 import { EventModel } from '@/model/eventModel';
 import { EventUIModel } from '@/model/eventUIModel';
 import DayjsTZDate from '@/time/dayjs-tzdate';
@@ -162,7 +163,31 @@ export function findByDateRange(
 
   const filterFn = Collection.and(getEventInDateRangeFilter(start, end));
 
-  const uiModelColl = convertToUIModel(events.filter(filterFn));
+  // 非重复事件：按日期范围过滤
+  const nonRecurringEvents = events.filter(
+    (model) => !model.recurrence && filterFn(model.toEventObject())
+  );
+
+  // 重复事件：不受日期范围限制（父事件起始可能在视口之前），展开后取视口内的实例
+  const recurringEvents = events.filter((model) => !!model.recurrence);
+  const expandedRecurringModels: EventModel[] = [];
+  recurringEvents.each((model) => {
+    const eventObj = model.toEventObject();
+    const instances = expandSchedulerRecurrenceEvent(eventObj, start, end);
+    for (const inst of instances) {
+      expandedRecurringModels.push(new EventModel(inst));
+    }
+  });
+
+  const combinedCollection = new Collection<EventModel>((m) => m.cid());
+  nonRecurringEvents.each((m) => {
+    combinedCollection.add(m);
+  });
+  for (const model of expandedRecurringModels) {
+    combinedCollection.add(model);
+  }
+
+  const uiModelColl = convertToUIModel(combinedCollection);
 
   const group: Record<string, Collection<EventUIModel>> = uiModelColl.groupBy(filterByCategory);
 
