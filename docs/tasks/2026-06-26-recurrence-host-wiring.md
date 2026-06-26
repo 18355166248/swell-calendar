@@ -33,6 +33,11 @@
 `week.controller.ts` `findByDateRange` 增加重复事件展开：重复父事件不受视口日期过滤，
 调用 `expandSchedulerRecurrenceEvent` 在当前周/日视口内展开实例，再与普通事件合并。
 
+## 补充：日视图重复卡片点击编辑
+
+`onEventClick` 回调中，engine 返回的重复实例 EventObject 携带 `recurrenceParentId`（展开时赋值），
+mobile 路径优先取该字段作为 `openEventEditById` 入参，避免依赖正则剥离实例 ID 后缀。
+
 ## 补充：删除/编辑实例 ID 回溯
 
 引擎展开的重复实例 ID 格式为 `${parentId}-YYYY-MM-DD`，

@@ -859,8 +859,10 @@ export default function App({ view }: AppProps) {
         options={calendarOptions}
         callbacks={{
           onEventClick: ({ event }) => {
-            if (isMobile && event.id) {
-              openEventEditById(event.id);
+            // 重复实例的 id 是 `${parentId}-YYYY-MM-DD`；recurrenceParentId 直接指向父事件
+            const resolvedId = event.recurrenceParentId || event.id;
+            if (isMobile && resolvedId) {
+              openEventEditById(resolvedId);
               return;
             }
             openEventDetails(event);
