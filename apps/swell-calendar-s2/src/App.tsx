@@ -1167,7 +1167,12 @@ export default function App({ view }: AppProps) {
     return (
       <Provider colorScheme={prefs.theme}>
         <ToastContainer />
-        <div className="app app--mobile" data-card={UI_DEFAULTS.card} data-density={prefs.density}>
+        <div
+          className="app app--mobile"
+          data-card={UI_DEFAULTS.card}
+          data-density={prefs.density}
+          data-swell-interaction-mode="mobile"
+        >
           <MobileTopBar
             view={mobileView}
             setView={changeMobileView}
@@ -1231,6 +1236,7 @@ export default function App({ view }: AppProps) {
         data-sidebar={sidebar}
         data-card={UI_DEFAULTS.card}
         data-density={prefs.density}
+        data-swell-interaction-mode="desktop"
       >
         <Sidebar
           view={view}

@@ -174,22 +174,22 @@ function expandWeekly(
 ): DayjsTZDate[] {
   const weekDays = byWeekDays && byWeekDays.length > 0 ? byWeekDays : [start.getDay()];
 
-  // 将 rangeStart 回退到当周的起始日（周日），确保覆盖所有候选
-  const weekStart = new DayjsTZDate(rangeStart).setHours(0, 0, 0, 0);
-  const dayOffset = weekStart.getDay();
-  const cursor = weekStart.addDate(-dayOffset); // 退到周日
+  // weekly interval 必须以事件首发生周为锚点，而不是以当前视口周为锚点。
+  // 否则日/多日视图每次查询不同视口时，interval=2 会被重新对齐，错误地每周都展开。
+  const anchorWeekStart = new DayjsTZDate(start).setHours(0, 0, 0, 0).addDate(-start.getDay());
 
   const results: DayjsTZDate[] = [];
   let generated = 0;
   // 安全上限：周数 × interval，足够覆盖正常场景
   const maxWeeks =
-    Math.ceil((effectiveEnd.getTime() - cursor.getTime()) / (86400000 * 7 * interval)) + 10;
+    Math.ceil((effectiveEnd.getTime() - anchorWeekStart.getTime()) / (86400000 * 7 * interval)) +
+    10;
   let weekIndex = 0;
 
   while (weekIndex < maxWeeks) {
     if (count && generated >= count) break;
 
-    const weekBase = cursor.addDate(weekIndex * 7 * interval);
+    const weekBase = anchorWeekStart.addDate(weekIndex * 7 * interval);
 
     for (const wd of weekDays) {
       if (count && generated >= count) break;

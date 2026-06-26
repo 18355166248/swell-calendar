@@ -26,7 +26,12 @@ import DayjsTZDate from '@/time/dayjs-tzdate';
 import { DraggingState } from '@/types/dnd.type';
 
 import { Template } from '../Template';
-import { canInteractWithTimeEvent, getPointerInfo, getStyles } from './TimeEvent.utils';
+import {
+  canInteractWithTimeEvent,
+  getPointerInfo,
+  getStyles,
+  shouldUseMobileEditGesture,
+} from './TimeEvent.utils';
 
 /**
  * 时间事件组件的属性接口
@@ -181,10 +186,6 @@ export function TimeEvent({
     };
   }, [isEventEditing, setEditingEventId]);
 
-  // 是否处于移动布局：根容器位于 day/multi-day 的 `--mobile` 作用域内
-  const isMobileLayout = () =>
-    !isNil(eventContainerRef.current?.closest('[class*="view--mobile"]'));
-
   // 开始/结束拖拽事件
   const startDragEvent = (className: string) => {
     setDraggingEventUIModel(uiModel);
@@ -221,6 +222,7 @@ export function TimeEvent({
   });
 
   const handleTouchStart = (e: ReactTouchEvent<HTMLDivElement>) => {
+    if (!isMobileInteractionMode()) return;
     if (isEventEditing || !(canMove || canResize)) return;
     const touch = e.touches[0];
     if (isNil(touch)) return;
@@ -233,10 +235,15 @@ export function TimeEvent({
     });
   };
 
+  const isMobileInteractionMode = () =>
+    !isNil(eventContainerRef.current?.closest('[data-swell-interaction-mode="mobile"]'));
+
   const handleMoveStart = (e: MouseEvent) => {
     e.stopPropagation();
-    const { pointerId, isTouchLike } = getPointerInfo(e);
-    const usesMobileEditGesture = isTouchLike || isMobileLayout();
+    const { pointerId } = getPointerInfo(e);
+    const usesMobileEditGesture = shouldUseMobileEditGesture({
+      isMobileInteractionMode: isMobileInteractionMode(),
+    });
 
     if (usesMobileEditGesture && !isEventEditing) {
       if (pendingEditPressRef.current?.source !== 'touch') {
@@ -260,9 +267,11 @@ export function TimeEvent({
 
   const handleResizeTopStart = (e: MouseEvent) => {
     e.stopPropagation();
-    const { isTouchLike } = getPointerInfo(e);
-    if (isTouchLike && !isEventEditing) return;
-    if (isTouchLike && suppressDragUntilReleaseRef.current) {
+    const usesMobileEditGesture = shouldUseMobileEditGesture({
+      isMobileInteractionMode: isMobileInteractionMode(),
+    });
+    if (usesMobileEditGesture && !isEventEditing) return;
+    if (usesMobileEditGesture && suppressDragUntilReleaseRef.current) {
       e.preventDefault();
       return;
     }
@@ -271,9 +280,11 @@ export function TimeEvent({
 
   const handleResizeBottomStart = (e: MouseEvent) => {
     e.stopPropagation();
-    const { isTouchLike } = getPointerInfo(e);
-    if (isTouchLike && !isEventEditing) return;
-    if (isTouchLike && suppressDragUntilReleaseRef.current) {
+    const usesMobileEditGesture = shouldUseMobileEditGesture({
+      isMobileInteractionMode: isMobileInteractionMode(),
+    });
+    if (usesMobileEditGesture && !isEventEditing) return;
+    if (usesMobileEditGesture && suppressDragUntilReleaseRef.current) {
       e.preventDefault();
       return;
     }

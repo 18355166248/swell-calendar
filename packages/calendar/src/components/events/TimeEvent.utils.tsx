@@ -128,6 +128,15 @@ export function getPointerInfo(e: MouseEvent) {
   };
 }
 
+export function shouldUseMobileEditGesture({
+  isMobileInteractionMode,
+}: {
+  isMobileInteractionMode: boolean;
+}): boolean {
+  // 交互模式跟随宿主外壳样式：移动端样式才启用长按编辑，桌面端样式始终使用桌面点击/拖拽。
+  return isMobileInteractionMode;
+}
+
 export type TimeEventInteraction = 'move' | 'resize';
 
 export function canInteractWithTimeEvent({

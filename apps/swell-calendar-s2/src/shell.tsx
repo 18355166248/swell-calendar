@@ -9,6 +9,7 @@ import {
   type Key,
   type MouseEvent,
   type PointerEvent,
+  type TouchEvent,
 } from 'react';
 
 import {
@@ -277,8 +278,7 @@ export function DayWeekStrip({ currentDate, onDateChange, spanDays = 1 }: DayWee
     []
   );
 
-  const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
-    if (event.pointerType === 'mouse' && event.button !== 0) return;
+  const beginSwipe = (id: number, clientX: number, clientY: number) => {
     if (snapTimerRef.current) {
       clearTimeout(snapTimerRef.current);
       snapTimerRef.current = null;
@@ -293,47 +293,61 @@ export function DayWeekStrip({ currentDate, onDateChange, spanDays = 1 }: DayWee
     }
     suppressClickRef.current = false;
     swipeRef.current = {
-      id: event.pointerId,
-      startX: event.clientX,
-      startY: event.clientY,
+      id,
+      startX: clientX,
+      startY: clientY,
     };
     setIsDraggingWeek(true);
     setIsSnappingWeek(false);
     setIsJumpingWeek(false);
     setDragOffset(0);
-    event.currentTarget.setPointerCapture?.(event.pointerId);
   };
 
-  const handlePointerMove = (event: PointerEvent<HTMLDivElement>) => {
-    const swipe = swipeRef.current;
-    if (!swipe || swipe.id !== event.pointerId) return;
+  const resetSwipe = () => {
+    swipeRef.current = null;
+    setIsDraggingWeek(false);
+    setIsSnappingWeek(false);
+    setIsJumpingWeek(false);
+    setDragOffset(0);
+  };
 
-    const deltaX = event.clientX - swipe.startX;
-    const deltaY = event.clientY - swipe.startY;
+  const updateSwipe = (
+    id: number,
+    clientX: number,
+    clientY: number,
+    nativeEvent?: { cancelable?: boolean; preventDefault?: () => void }
+  ) => {
+    const swipe = swipeRef.current;
+    if (!swipe || swipe.id !== id) return;
+
+    const deltaX = clientX - swipe.startX;
+    const deltaY = clientY - swipe.startY;
     if (
       Math.abs(deltaY) > WEEK_STRIP_VERTICAL_CANCEL_THRESHOLD &&
       Math.abs(deltaY) > Math.abs(deltaX)
     ) {
-      swipeRef.current = null;
-      setIsDraggingWeek(false);
-      setIsSnappingWeek(false);
-      setIsJumpingWeek(false);
-      setDragOffset(0);
+      resetSwipe();
       return;
+    }
+
+    // iOS Safari 上横滑可能被页面/浏览器接管；确认是横向手势后阻止默认行为，
+    // 纵向手势仍按上面的分支释放给页面滚动。
+    if (Math.abs(deltaX) > 8 && Math.abs(deltaX) > Math.abs(deltaY) && nativeEvent?.cancelable) {
+      nativeEvent.preventDefault?.();
     }
 
     const maxOffset = daysRef.current?.clientWidth ?? 0;
     setDragOffset(Math.max(-maxOffset, Math.min(maxOffset, deltaX)));
   };
 
-  const handlePointerUp = (event: PointerEvent<HTMLDivElement>) => {
+  const finishSwipe = (id: number, clientX: number, clientY: number) => {
     const swipe = swipeRef.current;
-    if (!swipe || swipe.id !== event.pointerId) return;
+    if (!swipe || swipe.id !== id) return;
     swipeRef.current = null;
     setIsDraggingWeek(false);
 
-    const deltaX = event.clientX - swipe.startX;
-    const deltaY = event.clientY - swipe.startY;
+    const deltaX = clientX - swipe.startX;
+    const deltaY = clientY - swipe.startY;
     if (
       Math.abs(deltaX) < WEEK_STRIP_SWIPE_THRESHOLD ||
       Math.abs(deltaY) > WEEK_STRIP_VERTICAL_CANCEL_THRESHOLD
@@ -347,7 +361,7 @@ export function DayWeekStrip({ currentDate, onDateChange, spanDays = 1 }: DayWee
           suppressClickRef.current = false;
           suppressClickTimerRef.current = null;
         }, 120);
-        pickDateAtClientX(event.clientX);
+        pickDateAtClientX(clientX);
       }
       return;
     }
@@ -377,12 +391,49 @@ export function DayWeekStrip({ currentDate, onDateChange, spanDays = 1 }: DayWee
     }, WEEK_STRIP_SNAP_DURATION_MS);
   };
 
+  const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
+    if (event.pointerType !== 'mouse' || event.button !== 0) return;
+    beginSwipe(event.pointerId, event.clientX, event.clientY);
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+  };
+
+  const handlePointerMove = (event: PointerEvent<HTMLDivElement>) => {
+    if (event.pointerType !== 'mouse') return;
+    updateSwipe(event.pointerId, event.clientX, event.clientY);
+  };
+
+  const handlePointerUp = (event: PointerEvent<HTMLDivElement>) => {
+    if (event.pointerType !== 'mouse') return;
+    finishSwipe(event.pointerId, event.clientX, event.clientY);
+  };
+
+  const getChangedTouch = (event: TouchEvent<HTMLDivElement>) => {
+    const swipe = swipeRef.current;
+    const touches = Array.from(event.changedTouches);
+    if (!swipe) return touches[0] ?? null;
+    return touches.find((touch) => touch.identifier === swipe.id) ?? null;
+  };
+
+  const handleTouchStart = (event: TouchEvent<HTMLDivElement>) => {
+    if (event.touches.length !== 1) return;
+    const touch = event.touches[0];
+    beginSwipe(touch.identifier, touch.clientX, touch.clientY);
+  };
+
+  const handleTouchMove = (event: TouchEvent<HTMLDivElement>) => {
+    const touch = getChangedTouch(event);
+    if (!touch) return;
+    updateSwipe(touch.identifier, touch.clientX, touch.clientY, event.nativeEvent);
+  };
+
+  const handleTouchEnd = (event: TouchEvent<HTMLDivElement>) => {
+    const touch = getChangedTouch(event);
+    if (!touch) return;
+    finishSwipe(touch.identifier, touch.clientX, touch.clientY);
+  };
+
   const handlePointerCancel = () => {
-    swipeRef.current = null;
-    setIsDraggingWeek(false);
-    setIsSnappingWeek(false);
-    setIsJumpingWeek(false);
-    setDragOffset(0);
+    resetSwipe();
   };
 
   const handleClickCapture = (event: MouseEvent<HTMLDivElement>) => {
@@ -403,6 +454,10 @@ export function DayWeekStrip({ currentDate, onDateChange, spanDays = 1 }: DayWee
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerCancel}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      onTouchCancel={handlePointerCancel}
       onClickCapture={handleClickCapture}
     >
       <div className="day-week-strip__month">{getWeekStripMonthLabel(currentDate)}</div>

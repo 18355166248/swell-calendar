@@ -122,6 +122,26 @@ describe('expandRecurrence', () => {
       expect(result.dates.length).toBeGreaterThanOrEqual(2);
     });
 
+    it('interval=2 以事件首周为锚点，视口落在间隔周时不展开', () => {
+      const firstFriday = new DayjsTZDate(2026, 5, 26);
+
+      const offWeek = expandRecurrence(
+        { frequency: 'weekly', interval: 2 },
+        firstFriday,
+        new DayjsTZDate(2026, 6, 3),
+        new DayjsTZDate(2026, 6, 3, 23, 59, 59)
+      );
+      expect(offWeek.dates).toEqual([]);
+
+      const onWeek = expandRecurrence(
+        { frequency: 'weekly', interval: 2 },
+        firstFriday,
+        new DayjsTZDate(2026, 6, 10),
+        new DayjsTZDate(2026, 6, 10, 23, 59, 59)
+      );
+      expect(onWeek.dates.map((date) => date.format('YYYY-MM-DD'))).toEqual(['2026-07-10']);
+    });
+
     it('不到 start 的日期不生成', () => {
       // event start is Jun 1 (Mon), but range starts Jun 3 (Wed)
       const result = expandRecurrence(
