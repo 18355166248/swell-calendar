@@ -33,6 +33,15 @@
 `week.controller.ts` `findByDateRange` 增加重复事件展开：重复父事件不受视口日期过滤，
 调用 `expandSchedulerRecurrenceEvent` 在当前周/日视口内展开实例，再与普通事件合并。
 
+## 补充：删除/编辑实例 ID 回溯
+
+引擎展开的重复实例 ID 格式为 `${parentId}-YYYY-MM-DD`，
+宿主 `allEvents` 只存父事件。`resolveCalEvent()` 在直接命中失败后
+strip 后缀回溯到父 ID，`handleDelete` 亦从后缀提取发生日期用于 single/following scope。
+
+`week.controller.ts` 中补充 `supplementalIdsOfDay`，将实例 cid 注入日期索引副本，
+使 `splitEventByDateRange` 正确将重复实例路由到日/周视图列。
+
 ## 状态
 
 实现完成（2026-06-26）

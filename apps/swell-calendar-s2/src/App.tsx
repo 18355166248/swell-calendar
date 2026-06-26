@@ -382,8 +382,16 @@ export default function App({ view }: AppProps) {
     }
   };
 
+  const resolveCalEvent = (eventId: string | undefined) => {
+    if (!eventId) return undefined;
+    return (
+      allEvents.find((e) => e.id === eventId) ??
+      allEvents.find((e) => e.id === eventId.replace(/-\d{4}-\d{2}-\d{2}$/, ''))
+    );
+  };
+
   const openEdit = () => {
-    const original = allEvents.find((e) => e.id === pick?.ev.id);
+    const original = resolveCalEvent(pick?.ev.id);
     if (original) {
       setEditing(original);
       setPick(null);
@@ -391,35 +399,33 @@ export default function App({ view }: AppProps) {
   };
 
   const handleDelete = () => {
-    const id = pick?.ev.id;
-    if (!id) return;
-    const calEvent = allEvents.find((e) => e.id === id);
+    const instanceId = pick?.ev.id;
+    if (!instanceId) return;
+    const calEvent = resolveCalEvent(instanceId);
+    const parentId = calEvent?.id ?? instanceId;
+
     if (calEvent?.recurrence) {
       // 重复事件：弹 scope 选择弹框
+      // 从实例 ID 后缀（parentId-YYYY-MM-DD）提取发生日期
+      const occurrenceDateStr = instanceId.match(/-(\d{4}-\d{2}-\d{2})$/)?.[1];
+      const occurrenceTs = occurrenceDateStr ? new Date(occurrenceDateStr).getTime() : null;
+
       setPendingScope({
         mode: 'delete',
         apply: (scope) => {
           if (scope === 'all') {
-            deleteEvent(id);
-          } else if (scope === 'single') {
-            // 在父事件 recurringExceptions 中添加 skipped 标记
-            const parentEngineEvent = toCalendarEvents([calEvent])[0];
-            const now = new Date();
-            // 取事件的开始日期作为 occurrence date（简化：用事件开始时间）
-            const occurrenceDate = parentEngineEvent.start as Date;
+            deleteEvent(parentId);
+          } else if (scope === 'single' && occurrenceTs) {
             const exceptions = [
               ...(calEvent.recurringExceptions ?? []),
-              { date: occurrenceDate.getTime(), skipped: true as const },
+              { date: occurrenceTs, skipped: true as const },
             ];
-            updateEvent(id, { ...calEvent, recurringExceptions: exceptions });
-            void now; // suppress unused warning
-          } else if (scope === 'following') {
-            // 截断重复规则：将 until 设为该次发生前一天
-            const startDate = toCalendarEvents([calEvent])[0].start as Date;
-            const until = new Date(startDate);
+            updateEvent(parentId, { ...calEvent, recurringExceptions: exceptions });
+          } else if (scope === 'following' && occurrenceTs) {
+            const until = new Date(occurrenceTs);
             until.setDate(until.getDate() - 1);
             const recurrence = { ...calEvent.recurrence!, until: until.getTime() };
-            updateEvent(id, { ...calEvent, recurrence });
+            updateEvent(parentId, { ...calEvent, recurrence });
           }
           setPendingScope(null);
           setPick(null);
@@ -427,7 +433,7 @@ export default function App({ view }: AppProps) {
       });
       return;
     }
-    deleteEvent(id);
+    deleteEvent(parentId);
     setPick(null);
   };
 
@@ -736,12 +742,15 @@ export default function App({ view }: AppProps) {
     });
   };
 
-  /** 从任意入口（含 +N 更多 浮层）直接进入编辑。 */
+  /** 从任意入口（含 +N 更多 浮层）直接进入编辑。重复实例 ID 形如 `parentId-YYYY-MM-DD`，需回溯父事件。 */
   const openEventEditById = (eventId: string) => {
-    const original = allEvents.find((event) => event.id === eventId);
+    let original = allEvents.find((event) => event.id === eventId);
     if (!original) {
-      return;
+      // 实例 ID = `${parentId}-YYYY-MM-DD`，取第一段找父事件
+      const parentId = eventId.replace(/-\d{4}-\d{2}-\d{2}$/, '');
+      original = allEvents.find((event) => event.id === parentId);
     }
+    if (!original) return;
 
     setMorePick(null);
     setPick(null);

@@ -174,6 +174,15 @@ export function findByDateRange(
     combinedCollection.add(m);
   }
 
+  // splitEventByDateRange 靠 idsOfDay 按天路由事件；重复实例是新建的 EventModel，
+  // 其 cid 不在 idsOfDay 中，需要补充一份包含实例 cid 的索引副本。
+  const supplementalIdsOfDay: Record<string, number[]> = { ...idsOfDay };
+  for (const m of instances) {
+    const dateStr = m.getStarts().dayjs.format('YYYYMMDD');
+    const existing = supplementalIdsOfDay[dateStr];
+    supplementalIdsOfDay[dateStr] = existing ? [...existing, m.cid()] : [m.cid()];
+  }
+
   const uiModelColl = convertToUIModel(combinedCollection);
 
   const group: Record<string, Collection<EventUIModel>> = uiModelColl.groupBy(filterByCategory);
@@ -191,7 +200,7 @@ export function findByDateRange(
         [name]:
           type === 'daygrid'
             ? getUIModelForAlldayView(start, end, group[name])
-            : getUIModelForTimeView(idsOfDay, {
+            : getUIModelForTimeView(supplementalIdsOfDay, {
                 start,
                 end,
                 uiModelTimeColl: group[name],
