@@ -331,6 +331,8 @@ export default function App({ view }: AppProps) {
   const mobileCanvasRef = useRef<HTMLDivElement>(null);
   const pendingMobileViewFrameRef = useRef<number | null>(null);
   const pendingMobileViewTimerRef = useRef<number | null>(null);
+  const initialMobileViewRef = useRef<MobileViewId>(routeViewToMobileView(view));
+  const mobileInitialNowScrollDoneRef = useRef(false);
 
   useEffect(() => {
     if (isMobile) {
@@ -752,10 +754,18 @@ export default function App({ view }: AppProps) {
     );
   }, [renderedMobileView, isMobile]);
 
-  // 进入日 / 多日视图且焦点为今天时，自动把时间面板滚到当前时刻；切到别的日期不触发。
+  // 仅初始化时自动定位到当前时间；后续切日期/切周/切视图都保留用户当前滚动位置。
   useEffect(() => {
-    if (!isMobile || (renderedMobileView !== 'day' && renderedMobileView !== 'multi')) return;
+    if (!isMobile) {
+      mobileInitialNowScrollDoneRef.current = false;
+      return;
+    }
+    if (mobileInitialNowScrollDoneRef.current) return;
+    if (status === 'loading') return;
+    if (initialMobileViewRef.current !== 'day' && initialMobileViewRef.current !== 'multi') return;
+    if (renderedMobileView !== 'day' && renderedMobileView !== 'multi') return;
     if (!isSameDay(currentDate, new Date())) return;
+    mobileInitialNowScrollDoneRef.current = true;
     scrollMobileTimeToNow();
   }, [isMobile, renderedMobileView, currentDate, status, scrollMobileTimeToNow]);
 
