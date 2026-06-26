@@ -28,7 +28,7 @@
 - [x] 拖拽单次实例 → scope 弹框 → 选「此次」后只有本次移动
 - [x] 删除重复事件 → scope 弹框 → 选「全部」整条删除
 
-## 补充：引擎侧日/周视图展开
+## 补充：引擎侧全视图展开
 
 `week.controller.ts` `findByDateRange` 增加重复事件展开：重复父事件不受视口日期过滤，
 调用 `expandSchedulerRecurrenceEvent` 在当前周/日视口内展开实例，再与普通事件合并。

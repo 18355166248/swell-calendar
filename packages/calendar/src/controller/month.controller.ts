@@ -1,8 +1,11 @@
+import { expandAllRecurringInRange } from '@/controller/scheduler-recurrence';
+import { EventModel } from '@/model/eventModel';
 import { EventUIModel } from '@/model/eventUIModel';
 import { isWeekend, toEndOfDay, toStartOfDay } from '@/time/datetime';
 import DayjsTZDate from '@/time/dayjs-tzdate';
 import { CalendarData } from '@/types/calendar.type';
 import { MonthOptions, Options } from '@/types/options.type';
+import Collection from '@/utils/collection';
 
 import { convertToUIModel, getEventInDateRangeFilter } from './core.controller';
 
@@ -88,7 +91,19 @@ export function getMonthEventRows(
   weeks: DayjsTZDate[][],
   visibleEventCount = 4
 ): MonthWeekEventData[] {
-  const uiModelColl = convertToUIModel(calendarData.events);
+  // 月视图整体范围：第一周起始 → 最后一周末尾
+  const monthStart = toStartOfDay(weeks[0][0]);
+  const monthEnd = toEndOfDay(weeks[weeks.length - 1][6]);
+  const { nonRecurring, instances } = expandAllRecurringInRange(
+    calendarData.events,
+    monthStart,
+    monthEnd
+  );
+  const combinedColl = new Collection<EventModel>((m) => m.cid());
+  for (const m of nonRecurring) combinedColl.add(m);
+  for (const m of instances) combinedColl.add(m);
+
+  const uiModelColl = convertToUIModel(combinedColl);
   const allModels: EventUIModel[] = [];
   uiModelColl.each((m) => {
     allModels.push(m);

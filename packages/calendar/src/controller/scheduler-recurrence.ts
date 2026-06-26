@@ -1,6 +1,8 @@
+import { EventModel } from '@/model/eventModel';
 import DayjsTZDate from '@/time/dayjs-tzdate';
 import { expandRecurrence } from '@/time/recurrence';
 import { EventObject, RecurringException } from '@/types/events.type';
+import Collection from '@/utils/collection';
 
 /**
  * 从 recurringExceptions 查找某个日期是否被跳过或有替换属性
@@ -137,4 +139,30 @@ export function expandSchedulerRecurrenceEvent(
   }
 
   return expandedEvents;
+}
+
+/**
+ * 将 events 集合中所有有 recurrence 的父事件在 [rangeStart, rangeEnd] 内展开为实例 EventModel[]。
+ * 非重复事件原样返回。所有视图（week/month/agenda）共用此函数。
+ */
+export function expandAllRecurringInRange(
+  events: Collection<EventModel>,
+  rangeStart: DayjsTZDate,
+  rangeEnd: DayjsTZDate
+): { nonRecurring: EventModel[]; instances: EventModel[] } {
+  const nonRecurring: EventModel[] = [];
+  const instances: EventModel[] = [];
+
+  events.each((model) => {
+    if (!model.recurrence) {
+      nonRecurring.push(model);
+      return;
+    }
+    const expanded = expandSchedulerRecurrenceEvent(model.toEventObject(), rangeStart, rangeEnd);
+    for (const inst of expanded) {
+      instances.push(new EventModel(inst));
+    }
+  });
+
+  return { nonRecurring, instances };
 }
