@@ -335,6 +335,21 @@ export function TimeGrid({
     onClickSelection: (selection) => {
       if (currentView === 'scheduler') {
         callbacks?.onCellClick?.(createRangeSelectionInfo(timeGridData, selection, currentView));
+        return;
+      }
+
+      const event = createEventFromTimeGridSelection(timeGridData, selection);
+      callbacks?.onRangeSelect?.(createRangeSelectionInfo(timeGridData, selection, currentView));
+
+      if (
+        shouldAcceptEventChange(options, callbacks, {
+          action: 'create',
+          view: currentView,
+          event,
+          existingEvents: events.map((uiModel) => uiModel.model.toEventObject()),
+        })
+      ) {
+        callbacks?.onEventCreate?.({ event });
       }
     },
     onSelectionEnd: (selection) => {

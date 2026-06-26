@@ -33,48 +33,48 @@ swell-calendar 是一个**可嵌入的 React 日历组件库**，面向需要在
 
 ### 视图
 
-| 视图                | 状态        | 描述                                                                        |
-| ------------------- | ----------- | --------------------------------------------------------------------------- |
-| 日视图（Day）       | ✅ 完成     | 单日时间网格，24 小时展示                                                   |
-| 周视图（Week）      | ✅ 完成     | 7 天时间网格，支持 workweek 模式                                            |
-| 多日视图（Multi-day） | ✅ M3 首版 | 连续 N 天时间网格，默认 2 天；复用 Day/Week 时间网格、全天行与事件点击链路，移动端用于对齐多日设计稿 |
-| 月视图（Month）     | ✅ 事件 + 拖动 | 月历格子 + 事件卡片，支持 `startDayOfWeek`、`workweek` 与 `maxEventStack`（兼容 `visibleEventCount`）；事件支持拖动换天（move，日粒度，保留时长）、左右 resize（改跨天天数）与空白格子横向框选创建全天事件（create） |
-| 列表视图（Agenda）  | ✅ M2 首版 | 按天分组的只读事件列表，覆盖从 `renderDate` 开始的连续日期窗口；组头展示日期，组内按全天优先、开始时间升序排序；点击事件行触发既有 `onEventClick` |
-| 时间线（Timeline）  | ✅ 日粒度排程 | 对标 Mobiscroll Calendar timeline：按天列（当月）+ 资源行，事件渲染为跨天横条、同行重叠按车道堆叠、行高自适应，今天列高亮、周末浅染；资源池与 scheduler 共享；支持拖拽移动（含跨资源行）/ 左右 resize / 空白拖拽创建 / 日期 tooltip |
-| 调度器（Scheduler） | 🟡 核心闭环可用 | 垂直时间轴 + 资源列的 time-grid 视图，桌面端核心业务闭环已形成，当前进入 Phase 3 高级体验收口阶段 |
+| 视图                  | 状态            | 描述                                                                                                                                                                                                                                |
+| --------------------- | --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 日视图（Day）         | ✅ 完成         | 单日时间网格，24 小时展示                                                                                                                                                                                                           |
+| 周视图（Week）        | ✅ 完成         | 7 天时间网格，支持 workweek 模式                                                                                                                                                                                                    |
+| 多日视图（Multi-day） | ✅ M3 首版      | 连续 N 天时间网格，默认 2 天；复用 Day/Week 时间网格、全天行与事件点击链路，移动端用于对齐多日设计稿                                                                                                                                |
+| 月视图（Month）       | ✅ 事件 + 拖动  | 月历格子 + 事件卡片，支持 `startDayOfWeek`、`workweek` 与 `maxEventStack`（兼容 `visibleEventCount`）；事件支持拖动换天（move，日粒度，保留时长）、左右 resize（改跨天天数）与空白格子横向框选创建全天事件（create）                |
+| 列表视图（Agenda）    | ✅ M2 首版      | 按天分组的只读事件列表，覆盖从 `renderDate` 开始的连续日期窗口；组头展示日期，组内按全天优先、开始时间升序排序；点击事件行触发既有 `onEventClick`                                                                                   |
+| 时间线（Timeline）    | ✅ 日粒度排程   | 对标 Mobiscroll Calendar timeline：按天列（当月）+ 资源行，事件渲染为跨天横条、同行重叠按车道堆叠、行高自适应，今天列高亮、周末浅染；资源池与 scheduler 共享；支持拖拽移动（含跨资源行）/ 左右 resize / 空白拖拽创建 / 日期 tooltip |
+| 调度器（Scheduler）   | 🟡 核心闭环可用 | 垂直时间轴 + 资源列的 time-grid 视图，桌面端核心业务闭环已形成，当前进入 Phase 3 高级体验收口阶段                                                                                                                                   |
 
 ### 事件功能
 
-| 功能                           | 状态 | 描述                                                          |
-| ------------------------------ | ---- | ------------------------------------------------------------- |
-| 事件渲染                       | ✅   | 时间范围显示为卡片                                            |
-| 碰撞布局                       | ✅   | 重叠事件自动并排，分配宽度                                    |
-| 拖拽移动                       | ✅   | 鼠标拖动修改事件时间，30min 吸附                              |
-| 拖拽调整                       | ✅   | 拖动事件底部边缘调整结束时间                                  |
-| 新建事件                       | ✅   | 点击或框选时间段触发创建                                      |
-| 只读模式                       | ✅   | `isReadOnly: true` 禁用所有交互                               |
-| 自定义颜色                     | ✅   | 按日历 ID 配置事件颜色                                        |
-| `invalid` / `blockedTimes`     | 🟡   | `invalid` 为主名，运行时兼容 `blockedTimes`                   |
-| `colors` 背景区段（scheduler） | ✅   | scheduler/timeline time-grid 背景时段，`invalid` 视觉层级在上 |
-| all-day lane（scheduler）      | ✅   | scheduler 顶部全天事件栏                                      |
-| 多日事件分段（scheduler）      | ✅   | scheduler time 事件按日期切分到资源列                         |
+| 功能                           | 状态 | 描述                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| ------------------------------ | ---- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 事件渲染                       | ✅   | 时间范围显示为卡片                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| 碰撞布局                       | ✅   | 重叠事件自动并排，分配宽度                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| 拖拽移动                       | ✅   | 鼠标拖动修改事件时间，30min 吸附                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| 拖拽调整                       | ✅   | 拖动事件底部边缘调整结束时间                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| 新建事件                       | ✅   | 点击或框选时间段触发创建                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| 只读模式                       | ✅   | `isReadOnly: true` 禁用所有交互                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| 自定义颜色                     | ✅   | 按日历 ID 配置事件颜色                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| `invalid` / `blockedTimes`     | 🟡   | `invalid` 为主名，运行时兼容 `blockedTimes`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `colors` 背景区段（scheduler） | ✅   | scheduler/timeline time-grid 背景时段，`invalid` 视觉层级在上                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| all-day lane（scheduler）      | ✅   | scheduler 顶部全天事件栏                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| 多日事件分段（scheduler）      | ✅   | scheduler time 事件按日期切分到资源列                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | 多日 time 事件分段（day/week） | ✅   | 跨天（>24h）的 `time` 事件在日/周时间网格内按天分段渲染（起始日起点→当日底、中间日整列、结束日顶→终点），**不再**因时长超 24h 塌进顶部全天条；仅显式 `allDay` / `isAllday` 进全天栏。分段标签两行布局（第一行标题、第二行时间）：起始列第二行显示「开始 -」（右侧 `-` 表示向后延续）、结束列显示「- 结束」（左侧 `-` 表示从前一日延续）、中间整天列显示「全天」。单日事件同样为两行布局（第一行标题、第二行开始时间，无延续标记）。新建框选预览：起始列显示 `开始 - 结束` 完整区间、结束列显示结束时间、中间列留空。详见下方说明 |
-| overlap policy                 | ✅   | scheduler 全局 `eventOverlap` 与 per-event `overlap` 均已接入 |
-| 删除事件（scheduler）          | ✅   | 聚焦事件卡片后支持 `Delete/Backspace` 删除                    |
-| failed callbacks               | ✅   | `onEventCreateFailed` / `onEventUpdateFailed` 已接入          |
-| 拖拽时间提示（time-grid）      | ✅   | 移动/缩放事件时跟随光标显示 `HH:mm - HH:mm` 浮层（`DragTimeTooltip`），day/week/scheduler 全部生效（此前仅 scheduler）；新建框选则在选区内直接显示起止时间 |
-| 事件卡片透明度                 | ✅   | day/week time-grid 与 month 事件卡片静置时 `opacity: 0.9`（更轻、与网格/重叠融合），hover 恢复 `1`；time-grid 拖拽目标仍 `0.5`，move/resize 引导阴影为半透明。time-grid 由 `events/time.scss` 控制，month 由 `MonthEvent` + `monthGrid.scss` 控制 |
-| 事件悬浮高亮 / 跨天联动        | ✅   | 鼠标经过事件卡片加深（恢复不透明 + 投影 + 提亮）。跨天事件按列拆成多段时，悬浮任一段会让同一事件（按 `hover` slice 的 `hoveredEventId` 匹配）的所有段一起加深，离开同步还原 |
-| 资源显隐                       | ✅   | `visibleResourceIds` 可控制 scheduler/timeline 可见资源；scheduler 资源列头内置隐藏按钮 + 头部「已隐藏 N」恢复入口，受控派发 `onResourceVisibilityChange`，宿主回写 `visibleResourceIds` 生效 |
-| 资源分组 / 折叠                | ✅   | `children` / `collapsed` 支持树形资源与折叠显示               |
-| shared events                  | ✅   | `resourceIds` 可让事件出现在多个资源列，资源级策略按命中的所有资源共同判定 |
-| 资源级交互限制                 | ✅   | `eventDragInTime` / `eventResize` / `eventOverlap` 已接入     |
-| 跨资源拖动 gate                | ✅   | scheduler 全局 / 资源级 / per-event `dragBetweenResources` 已接入 |
-| recurrence 展开 + exceptions     | ✅   | scheduler 已接入视口内展开，`recurringExceptions` 跳过/替换与实例编辑链已闭环 |
-| recurrence 编辑作用域             | ✅   | 支持 `single` / `following` / `all` 三种作用域，`applyRecurrenceEditScope` 工具函数已落地，`onEventUpdate` / `onEventDelete` 回调已携带 `recurrenceInstance` 信息 |
-| timezone 转换                     | ✅   | `displayTimezone` + per-event `timezone` 已接入 scheduler 渲染链（数据时区→显示时区）；`timezones` 支持主轴左侧叠加副时区刻度轴；全天事件按业内方案（floating）时区无关、不随时区平移边界 |
-| external DnD                      | ✅   | `allowExternalDrop` + `onExternalDrop` / `onExternalDropFailed` 与目标格预览阴影已接入 scheduler（HTML5 路径）；并提供编程式 `CalendarInstance.externalDrop()`，宿主可从任意第三方 DnD 库（dnd-kit、react-beautiful-dnd 等）回调中传入坐标与自定义数据，复用同一套校验与 intent 产出 |
-| 跨实例拖动                         | ✅   | `onCrossInstanceDragEnd` / `onCrossInstanceDrop` 与目标实例实时预览阴影已接入 scheduler；策略钉死为「仅移动」：resize / create 为实例内行为，不参与跨实例桥 |
+| overlap policy                 | ✅   | scheduler 全局 `eventOverlap` 与 per-event `overlap` 均已接入                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| 删除事件（scheduler）          | ✅   | 聚焦事件卡片后支持 `Delete/Backspace` 删除                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| failed callbacks               | ✅   | `onEventCreateFailed` / `onEventUpdateFailed` 已接入                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| 拖拽时间提示（time-grid）      | ✅   | 移动/缩放事件时跟随光标显示 `HH:mm - HH:mm` 浮层（`DragTimeTooltip`），day/week/scheduler 全部生效（此前仅 scheduler）；新建框选则在选区内直接显示起止时间                                                                                                                                                                                                                                                                                                                                                                       |
+| 事件卡片透明度                 | ✅   | day/week time-grid 与 month 事件卡片静置时 `opacity: 0.9`（更轻、与网格/重叠融合），hover 恢复 `1`；time-grid 拖拽目标仍 `0.5`，move/resize 引导阴影为半透明。time-grid 由 `events/time.scss` 控制，month 由 `MonthEvent` + `monthGrid.scss` 控制                                                                                                                                                                                                                                                                                |
+| 事件悬浮高亮 / 跨天联动        | ✅   | 鼠标经过事件卡片加深（恢复不透明 + 投影 + 提亮）。跨天事件按列拆成多段时，悬浮任一段会让同一事件（按 `hover` slice 的 `hoveredEventId` 匹配）的所有段一起加深，离开同步还原                                                                                                                                                                                                                                                                                                                                                      |
+| 资源显隐                       | ✅   | `visibleResourceIds` 可控制 scheduler/timeline 可见资源；scheduler 资源列头内置隐藏按钮 + 头部「已隐藏 N」恢复入口，受控派发 `onResourceVisibilityChange`，宿主回写 `visibleResourceIds` 生效                                                                                                                                                                                                                                                                                                                                    |
+| 资源分组 / 折叠                | ✅   | `children` / `collapsed` 支持树形资源与折叠显示                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| shared events                  | ✅   | `resourceIds` 可让事件出现在多个资源列，资源级策略按命中的所有资源共同判定                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| 资源级交互限制                 | ✅   | `eventDragInTime` / `eventResize` / `eventOverlap` 已接入                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| 跨资源拖动 gate                | ✅   | scheduler 全局 / 资源级 / per-event `dragBetweenResources` 已接入                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| recurrence 展开 + exceptions   | ✅   | scheduler 已接入视口内展开，`recurringExceptions` 跳过/替换与实例编辑链已闭环                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| recurrence 编辑作用域          | ✅   | 支持 `single` / `following` / `all` 三种作用域，`applyRecurrenceEditScope` 工具函数已落地，`onEventUpdate` / `onEventDelete` 回调已携带 `recurrenceInstance` 信息                                                                                                                                                                                                                                                                                                                                                                |
+| timezone 转换                  | ✅   | `displayTimezone` + per-event `timezone` 已接入 scheduler 渲染链（数据时区→显示时区）；`timezones` 支持主轴左侧叠加副时区刻度轴；全天事件按业内方案（floating）时区无关、不随时区平移边界                                                                                                                                                                                                                                                                                                                                        |
+| external DnD                   | ✅   | `allowExternalDrop` + `onExternalDrop` / `onExternalDropFailed` 与目标格预览阴影已接入 scheduler（HTML5 路径）；并提供编程式 `CalendarInstance.externalDrop()`，宿主可从任意第三方 DnD 库（dnd-kit、react-beautiful-dnd 等）回调中传入坐标与自定义数据，复用同一套校验与 intent 产出                                                                                                                                                                                                                                             |
+| 跨实例拖动                     | ✅   | `onCrossInstanceDragEnd` / `onCrossInstanceDrop` 与目标实例实时预览阴影已接入 scheduler；策略钉死为「仅移动」：resize / create 为实例内行为，不参与跨实例桥                                                                                                                                                                                                                                                                                                                                                                      |
 
 ### 当前范围基线（2026-06）
 
@@ -266,19 +266,19 @@ interface EventObject {
 // 控制事件重复周期的规则
 interface RecurrenceRule {
   frequency: 'daily' | 'weekly' | 'monthly' | 'yearly';
-  interval?: number;       // 间隔，默认 1
-  count?: number;          // 重复次数上限（与 until 互斥）
-  until?: DateType;        // 截止日期（与 count 互斥）
-  byWeekDays?: number[];   // 按周几，0=周日，仅 weekly
-  byMonthDays?: number[];  // 按月内日期，仅 monthly
+  interval?: number; // 间隔，默认 1
+  count?: number; // 重复次数上限（与 until 互斥）
+  until?: DateType; // 截止日期（与 count 互斥）
+  byWeekDays?: number[]; // 按周几，0=周日，仅 weekly
+  byMonthDays?: number[]; // 按月内日期，仅 monthly
   exceptions?: DateType[]; // 排除/跳过日期
 }
 
 // 单次发生的覆盖/跳过
 interface RecurringException {
-  date: DateType;                    // 要覆盖/跳过的发生日期
-  skipped?: boolean;                 // true 跳过该次
-  overrides?: Partial<EventObject>;  // 替换该次属性
+  date: DateType; // 要覆盖/跳过的发生日期
+  skipped?: boolean; // true 跳过该次
+  overrides?: Partial<EventObject>; // 替换该次属性
 }
 ```
 
@@ -377,22 +377,22 @@ interface ColoredRange {
 
 14 个可定制渲染点：
 
-| 函数名                       | 渲染位置                   |
-| ---------------------------- | -------------------------- |
-| `timeGridDisplayPrimaryTime` | 时间轴上的主时间标签       |
-| `timeGridDisplayTime`        | 时间轴其他时间格           |
-| `weekDayName`                | 周视图顶部星期名称         |
-| `monthDayName`               | 月视图顶部星期名称         |
-| `time`                       | 时间事件卡片内容           |
-| `schedulerTime`              | scheduler 时间事件卡片内容 |
-| `timeMove`                   | 拖拽中的事件卡片内容       |
-| `timeMoveGuide`              | 拖拽时间提示               |
-| `timeGridNowIndicatorLabel`  | 当前时间指示器标签         |
-| `monthGridHeader`            | 当前 Month 视图日期格头部（含 `date/day/month/ymd/isToday/isOtherMonth/hiddenEventCount`） |
-| `agendaDayHeader`            | Agenda 日期分组头右侧内容（默认事件数量；宿主可注入农历/节气等文本） |
+| 函数名                       | 渲染位置                                                                                       |
+| ---------------------------- | ---------------------------------------------------------------------------------------------- |
+| `timeGridDisplayPrimaryTime` | 时间轴上的主时间标签                                                                           |
+| `timeGridDisplayTime`        | 时间轴其他时间格                                                                               |
+| `weekDayName`                | 周视图顶部星期名称                                                                             |
+| `monthDayName`               | 月视图顶部星期名称                                                                             |
+| `time`                       | 时间事件卡片内容                                                                               |
+| `schedulerTime`              | scheduler 时间事件卡片内容                                                                     |
+| `timeMove`                   | 拖拽中的事件卡片内容                                                                           |
+| `timeMoveGuide`              | 拖拽时间提示                                                                                   |
+| `timeGridNowIndicatorLabel`  | 当前时间指示器标签                                                                             |
+| `monthGridHeader`            | 当前 Month 视图日期格头部（含 `date/day/month/ymd/isToday/isOtherMonth/hiddenEventCount`）     |
+| `agendaDayHeader`            | Agenda 日期分组头右侧内容（默认事件数量；宿主可注入农历/节气等文本）                           |
 | `agendaEventMeta`            | Agenda 事件行标题下第二行副信息（默认空串隐藏；宿主可注入「地点 · 参与人」等，入参为事件对象） |
-| `schedulerDayHeader`         | scheduler 顶部日期头       |
-| `schedulerResourceHeader`    | scheduler 资源列头         |
+| `schedulerDayHeader`         | scheduler 顶部日期头                                                                           |
+| `schedulerResourceHeader`    | scheduler 资源列头                                                                             |
 
 ## API 接口
 
@@ -464,9 +464,7 @@ interface CalendarProps {
       end: DayjsTZDate;
       resourceId?: string;
     }) => void;
-    onCrossInstanceDragEnd?: (info: {
-      event: EventObjectWithDefaultValues;
-    }) => void;
+    onCrossInstanceDragEnd?: (info: { event: EventObjectWithDefaultValues }) => void;
     onCrossInstanceDrop?: (info: {
       event: EventObject;
       date: DayjsTZDate;
@@ -511,7 +509,11 @@ interface CalendarInstance {
 ```ts
 type ExternalDropResult =
   | { result: 'allowed'; info: CalendarExternalDropInfo; preview: TimeGridDropPreview }
-  | { result: 'rejected'; rejection?: CalendarExternalDropFailedInfo; preview?: TimeGridDropPreview };
+  | {
+      result: 'rejected';
+      rejection?: CalendarExternalDropFailedInfo;
+      preview?: TimeGridDropPreview;
+    };
 ```
 
 `CalendarExternalDropInfo` / `CalendarExternalDropFailedInfo` 的 `dataTransfer` 仅 HTML5 路径携带，`data` 仅编程式路径携带，两者互斥。宿主在 dnd-kit / react-beautiful-dnd 的 drop 回调中调用 `externalDrop`，根据返回值自行创建事件：
@@ -550,7 +552,7 @@ function useVirtualList(options: {
   measureElement: (index: number, element: HTMLElement | null) => void;
   scrollToIndex: (index: number) => void;
   resetMeasurements: () => void;
-}
+};
 ```
 
 `useVirtualList` 是轻量纵向虚拟列表基础能力：调用方提供 item 数量和估算高度，hook 维护滚动容器、可见范围、上下占位高度，并支持渲染后用真实 DOM 高度修正偏移。当前用于移动端 Agenda 和 S2 连续月视图，避免长日期窗口一次性渲染全部 section。
@@ -601,12 +603,12 @@ function useCalendarDataSource<TEvent, TDraft>(
 
 ### 拖拽测试覆盖
 
-| 视图      | 拖拽移动            | 拖拽调整          | 跨天/跨资源         | 键盘交互              |
-| --------- | ------------------- | ----------------- | ------------------- | --------------------- |
-| Scheduler | ✅ DragVertical     | ✅ DragResize     | ✅ OverlapPolicy    | ✅ KeyboardNavigation |
-| Day       | ✅ DayDragVertical  | ✅ DayDragResize  | —                   | ✅ Enter/Space        |
-| Week      | ✅ WeekDragVertical | ✅ WeekDragResize | ✅ WeekDragCrossDay | ✅ Enter/Space        |
-| Timeline  | —                   | —                 | —                   | ✅ Enter/Space        |
+| 视图      | 拖拽移动            | 拖拽调整           | 跨天/跨资源                   | 键盘交互              |
+| --------- | ------------------- | ------------------ | ----------------------------- | --------------------- |
+| Scheduler | ✅ DragVertical     | ✅ DragResize      | ✅ OverlapPolicy              | ✅ KeyboardNavigation |
+| Day       | ✅ DayDragVertical  | ✅ DayDragResize   | —                             | ✅ Enter/Space        |
+| Week      | ✅ WeekDragVertical | ✅ WeekDragResize  | ✅ WeekDragCrossDay           | ✅ Enter/Space        |
+| Timeline  | —                   | —                  | —                             | ✅ Enter/Space        |
 | Month     | ✅ MonthDragMove    | ✅ MonthDragResize | ✅ 跨周平移 / MonthDragCreate | ✅ Enter/Space        |
 
 测试文件位于 `src/slices/dnd.slice.spec.ts`（DnD 状态机）和 `src/stories/Calendar/`（各个视图的故事文件，含 Timeline）。
@@ -664,5 +666,5 @@ function useCalendarDataSource<TEvent, TDraft>(
 - **主指针判定**：鼠标仍要求左键（`button === 0`）；触控/手写笔放宽为任意主指针（`pointerType !== 'mouse'`）。一次拖拽只跟踪首个落下的指针，多指并发被忽略。
 - **拖拽期不滚动**：拖拽进行中对所在指针 `setPointerCapture`（环境不支持时静默降级），并把目标元素 `touch-action` 锁为 `none`；结束/取消后还原。`pointercancel`（系统中断、手势被接管）按「拖拽结束」走兜底清理，等价于既有「主键松开丢失自恢复」。
 - **已有事件移动 / resize（触控编辑态）**：移动端触控短按事件卡仍触发既有 `onEventClick`；长按事件卡进入全局唯一编辑态，卡片显示右上 / 左下两个圆点把手。编辑态下拖拽卡片主体移动事件，拖拽圆点分别 resize 开始/结束时间；非编辑态卡片允许 `pan-y`，避免误挡纵向滚动。鼠标路径仍按下即拖拽，桌面零回归。
-- **空白网格创建（触控长按）**：时间网格 / 月格 / timeline 资源行的「拖拽创建」在触控下需**长按约 400ms** 才进入创建（随后拖拽选区、锁定滚动）；长按前的滑动仍是原生滚动，轻点（tap）不创建。此设计让「滚动看时段」与「拖拽创建」在同一表面共存，对标 iOS 日历 / Mobiscroll mobile day view。鼠标 / 手写笔不经长按，行为与桌面一致（零回归）。
+- **空白网格创建（触控长按）**：时间网格 / 月格 / timeline 资源行的「拖拽创建」在触控下需**长按约 400ms** 才进入创建（随后拖拽选区、锁定滚动）；长按前的滑动仍是原生滚动。长按激活后**直接松手（不拖拽）**亦触发 `onEventCreate`，以长按位置的单格作为事件时间（适用于日视图移动端轻量快创场景）；**桌面单击空白格**同样触发单格创建（对标 Google Calendar 行为）。此设计让「滚动看时段」与「长按/拖拽创建」在同一表面共存，对标 iOS 日历 / Mobiscroll mobile day view。鼠标 / 手写笔不经长按，行为与桌面一致（零回归）。
 - 受 `isReadOnly` 与 per-event / 视图级 `dragToCreate/dragToMove/dragToResize` 及 `onValidateEventChange` 约束，与桌面一致。
