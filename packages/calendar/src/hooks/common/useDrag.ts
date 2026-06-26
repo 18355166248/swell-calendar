@@ -6,6 +6,7 @@ import { useCalendarStore } from '@/contexts/calendarStore';
 import { DndState, DraggingState } from '@/types/dnd.type';
 import { DraggingTypes } from '@/types/drag.type';
 import { MouseEventListener } from '@/types/events.type';
+import { triggerHapticFeedback } from '@/utils/haptics';
 import { isPressablePointer } from '@/utils/mouse';
 
 import useLatest from './useLatest';
@@ -279,6 +280,9 @@ export function useDrag(
           const pending = pendingRef.current;
           if (isNil(pending)) return;
           pendingRef.current = null;
+
+          // 长按激活时给一次轻触觉反馈（临时卡片出现的信号）
+          triggerHapticFeedback();
 
           // 以最近坐标作为初始落点（长按期间手指可能有容差内微动）
           const { x, y } = lastPointRef.current;

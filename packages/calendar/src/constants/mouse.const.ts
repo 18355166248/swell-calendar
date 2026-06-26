@@ -16,3 +16,9 @@ export const LONG_PRESS_DELAY = 400;
  * 比 MINIMUM_DRAG_MOUSE_DISTANCE 略大，容忍手指自然抖动。
  */
 export const LONG_PRESS_MOVE_TOLERANCE = 10;
+
+/**
+ * 触控长按激活（临时卡片出现）到弹窗打开的延迟（毫秒）。
+ * 松手后等待该时长再打开创建弹窗，给用户"动画感"缓冲。
+ */
+export const LONG_PRESS_CREATE_OPEN_DELAY = 200;
