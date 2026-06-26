@@ -3,7 +3,7 @@ import { useLayoutEffect, useMemo, useRef, type CSSProperties } from 'react';
 import { useVirtualList } from 'swell-calendar';
 
 import { dayIndexToDate } from './calendarData';
-import { CAT_COLOR_STYLES, type CalEvent } from './data';
+import { CAT_COLOR_STYLES, type CalendarDisplayEvent } from './data';
 import { lunarLabelOf } from './lunar';
 
 const MONTH_RANGE_BEFORE = 24;
@@ -94,8 +94,8 @@ function estimateMonthSectionHeight(monthDate: Date): number {
   return MONTH_SECTION_BASE_HEIGHT + weekCount * MONTH_WEEK_ROW_HEIGHT;
 }
 
-function groupEventsByDate(events: CalEvent[]): Map<string, CalEvent[]> {
-  const grouped = new Map<string, CalEvent[]>();
+function groupEventsByDate(events: CalendarDisplayEvent[]): Map<string, CalendarDisplayEvent[]> {
+  const grouped = new Map<string, CalendarDisplayEvent[]>();
 
   for (const event of events) {
     const startDay = event.day;
@@ -118,10 +118,10 @@ function groupEventsByDate(events: CalEvent[]): Map<string, CalEvent[]> {
 interface MobileMonthScrollerProps {
   currentDate: Date;
   visibleMonth: Date;
-  events: CalEvent[];
+  events: CalendarDisplayEvent[];
   onDateChange: (date: Date) => void;
   onVisibleMonthChange: (date: Date) => void;
-  onEventClick: (event: CalEvent, anchor: HTMLElement) => void;
+  onEventClick: (event: CalendarDisplayEvent, anchor: HTMLElement) => void;
 }
 
 export function MobileMonthScroller({

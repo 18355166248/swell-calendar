@@ -33,6 +33,7 @@ import {
   decimalHourToTime,
   engineEventToCreateInput,
   engineEventToDraft,
+  expandEventsForMobileDisplay,
   inputToDraft,
   recurrenceInstanceToEditableCalEvent,
   toCalendarEvents,
@@ -382,6 +383,11 @@ export default function App({ view }: AppProps) {
   }, [allEvents, query, activeCats]);
   // 引擎 events prop 需新数组引用才会重渲，useMemo 在 visibleEvents 变化时给出新引用
   const calendarEvents = useMemo(() => toCalendarEvents(visibleEvents), [visibleEvents]);
+  const mobileDisplayEvents = useMemo(() => {
+    const rangeStart = new Date(currentDate.getFullYear() - 2, 0, 1);
+    const rangeEnd = new Date(currentDate.getFullYear() + 1, 11, 31, 23, 59, 59, 999);
+    return expandEventsForMobileDisplay(visibleEvents, rangeStart, rangeEnd);
+  }, [currentDate, visibleEvents]);
   const timelineRowHeight = DENSITY_TIMELINE_ROW_HEIGHT[prefs.density];
 
   // UI 偏好放在 localStorage，保证 demo 刷新后还能复现当前外观上下文。
@@ -473,6 +479,23 @@ export default function App({ view }: AppProps) {
       }
       setPick(null);
     }
+  };
+
+  const openEventEdit = (event: EventObject) => {
+    const original = resolveCalEvent(event.recurrenceParentId || event.id);
+    if (!original) return;
+
+    const instanceInfo = buildRecurrenceInstanceInfo(event);
+    if (instanceInfo) {
+      // 移动端直接进入编辑页，也必须保留 recurrence 实例上下文，后续保存才会弹 scope 选择。
+      setEditing(recurrenceInstanceToEditableCalEvent(original, event));
+      setEditingRecurrence(instanceInfo);
+    } else {
+      setEditing(original);
+      setEditingRecurrence(null);
+    }
+    setMorePick(null);
+    setPick(null);
   };
 
   const handleDelete = () => {
@@ -781,7 +804,7 @@ export default function App({ view }: AppProps) {
     if (!mobileSearchOpen || !q) {
       return [];
     }
-    return allEvents
+    return mobileDisplayEvents
       .filter((e) => `${e.title} ${e.who ?? ''} ${e.loc ?? ''}`.toLowerCase().includes(q))
       .sort((a, b) => a.day - b.day || a.start - b.start)
       .slice(0, 50)
@@ -796,15 +819,19 @@ export default function App({ view }: AppProps) {
           meta: [e.loc, e.who].filter(Boolean).join(' · '),
         };
       });
-  }, [allEvents, mobileSearchOpen, mobileSearchQuery]);
+  }, [mobileDisplayEvents, mobileSearchOpen, mobileSearchQuery]);
 
   /** 点搜索结果 → 关闭浮层并打开该事件详情。 */
   const handleMobileSearchPick = (id: string) => {
-    const event = allEvents.find((e) => e.id === id);
+    const event = mobileDisplayEvents.find((e) => e.id === id);
     if (!event) {
       return;
     }
     closeMobileSearch();
+    if (event.engineEvent) {
+      openEventEdit(event.engineEvent);
+      return;
+    }
     openEventDetails(toCalendarEvents([event])[0]);
   };
 
@@ -821,7 +848,7 @@ export default function App({ view }: AppProps) {
     });
   };
 
-  /** 从任意入口（含 +N 更多 浮层）直接进入编辑。重复实例 ID 形如 `parentId-YYYY-MM-DD`，需回溯父事件。 */
+  /** 从只有 id 的入口直接进入编辑；没有实例对象时只能退回父事件编辑。 */
   const openEventEditById = (eventId: string) => {
     let original = allEvents.find((event) => event.id === eventId);
     if (!original) {
@@ -834,6 +861,7 @@ export default function App({ view }: AppProps) {
     setMorePick(null);
     setPick(null);
     setEditing(original);
+    setEditingRecurrence(null);
   };
 
   /** 月视图 `+N 更多` 不会把触发元素透传给宿主，需在捕获阶段记住真实按钮节点作为浮层锚点。 */
@@ -938,10 +966,8 @@ export default function App({ view }: AppProps) {
         options={calendarOptions}
         callbacks={{
           onEventClick: ({ event }) => {
-            // 重复实例的 id 是 `${parentId}-YYYY-MM-DD`；recurrenceParentId 直接指向父事件
-            const resolvedId = event.recurrenceParentId || event.id;
-            if (isMobile && resolvedId) {
-              openEventEditById(resolvedId);
+            if (isMobile) {
+              openEventEdit(event);
               return;
             }
             openEventDetails(event);
@@ -990,7 +1016,7 @@ export default function App({ view }: AppProps) {
       <MobileMonthScroller
         currentDate={currentDate}
         visibleMonth={visibleMonth}
-        events={visibleEvents}
+        events={mobileDisplayEvents}
         onDateChange={(date) => {
           // 贴设计稿动线：月视图点日期 = 选中该日并放大进入「日」视图。
           if (pendingMobileViewFrameRef.current !== null) {
@@ -1008,6 +1034,10 @@ export default function App({ view }: AppProps) {
         }}
         onVisibleMonthChange={setVisibleMonth}
         onEventClick={(event, anchor) => {
+          if (event.engineEvent) {
+            openEventEdit(event.engineEvent);
+            return;
+          }
           if (event.id) {
             openEventEditById(event.id);
             return;
@@ -1033,9 +1063,13 @@ export default function App({ view }: AppProps) {
     ) : (
       <MobileAgendaScroller
         currentDate={currentDate}
-        events={visibleEvents}
+        events={mobileDisplayEvents}
         onVisibleDateChange={setAgendaVisibleDate}
         onEventClick={(event, anchor) => {
+          if (event.engineEvent) {
+            openEventEdit(event.engineEvent);
+            return;
+          }
           if (event.id) {
             openEventEditById(event.id);
             return;
@@ -1073,11 +1107,15 @@ export default function App({ view }: AppProps) {
           variant={isMobile ? 'sheet' : 'popover'}
           onClose={() => setMorePick(null)}
           onEventClick={(eventId, anchor) => {
+            const ev = morePick.events.find((e) => e.id === eventId);
             if (isMobile) {
-              openEventEditById(eventId);
+              if (ev) {
+                openEventEdit(ev as EventObject);
+              } else {
+                openEventEditById(eventId);
+              }
               return;
             }
-            const ev = morePick.events.find((e) => e.id === eventId);
             if (ev) {
               openEventDetails(ev as EventObject, anchor);
             }

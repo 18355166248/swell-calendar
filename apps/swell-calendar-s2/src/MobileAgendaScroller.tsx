@@ -3,7 +3,7 @@ import { useLayoutEffect, useMemo, useRef, type CSSProperties } from 'react';
 import { useVirtualList } from 'swell-calendar';
 
 import { dayIndexToDate, decimalHourToTime } from './calendarData';
-import { CAT_COLOR_STYLES, type CalEvent } from './data';
+import { CAT_COLOR_STYLES, type CalendarDisplayEvent } from './data';
 
 const AGENDA_MONTHS_BEFORE = 24;
 const AGENDA_MONTHS_AFTER = 12;
@@ -50,8 +50,8 @@ function isSameDay(a: Date, b: Date): boolean {
   );
 }
 
-function groupEventsByDate(events: CalEvent[]): Map<string, CalEvent[]> {
-  const grouped = new Map<string, CalEvent[]>();
+function groupEventsByDate(events: CalendarDisplayEvent[]): Map<string, CalendarDisplayEvent[]> {
+  const grouped = new Map<string, CalendarDisplayEvent[]>();
 
   for (const event of events) {
     const startDay = event.day;
@@ -73,9 +73,9 @@ function groupEventsByDate(events: CalEvent[]): Map<string, CalEvent[]> {
 
 interface MobileAgendaScrollerProps {
   currentDate: Date;
-  events: CalEvent[];
+  events: CalendarDisplayEvent[];
   onVisibleDateChange: (date: Date) => void;
-  onEventClick: (event: CalEvent, anchor: HTMLElement) => void;
+  onEventClick: (event: CalendarDisplayEvent, anchor: HTMLElement) => void;
 }
 
 export function MobileAgendaScroller({

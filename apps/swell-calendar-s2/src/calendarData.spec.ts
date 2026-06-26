@@ -7,6 +7,7 @@ import {
   currentWeekStartDayIndex,
   engineEventToCreateInput,
   engineEventToDraft,
+  expandEventsForMobileDisplay,
   inputToDraft,
   recurrenceInstanceToEditableCalEvent,
   rebaseEventsToCurrentWeek,
@@ -417,5 +418,69 @@ describe('回归：重复实例编辑回填', () => {
     const unchanged = inputToDraft({ ...baseInput, recurrence: 'weekly' }, base);
     expect(unchanged.recurrence).toEqual({ frequency: 'weekly' });
     expect(unchanged.recurringExceptions).toEqual(base.recurringExceptions);
+  });
+});
+
+describe('移动端 recurrence 展开', () => {
+  it('为移动端月视图/列表展开 weekly 实例，并保留 engineEvent 实例上下文', () => {
+    const parent: CalEvent = {
+      id: 'weekly-mobile',
+      res: 'r1',
+      day: 0,
+      start: 9,
+      end: 10,
+      title: '移动端每周',
+      cat: 'seafoam',
+      recurrence: { frequency: 'weekly' },
+    };
+
+    const expanded = expandEventsForMobileDisplay(
+      [parent],
+      new Date(2025, 2, 17),
+      new Date(2025, 2, 31, 23, 59, 59, 999)
+    );
+
+    expect(expanded.map((event) => event.id)).toEqual([
+      'weekly-mobile-2025-03-17',
+      'weekly-mobile-2025-03-24',
+      'weekly-mobile-2025-03-31',
+    ]);
+    expect(expanded[1].day).toBe(7);
+    expect(expanded[1].engineEvent?.recurrenceParentId).toBe('weekly-mobile');
+    expect(expanded[1].engineEvent?.recurrenceOccurrenceDate).toEqual(new Date(2025, 2, 24, 9, 0));
+  });
+
+  it('移动端展开时应用 skipped exception 和 override', () => {
+    const parent: CalEvent = {
+      id: 'daily-mobile',
+      res: 'r1',
+      day: 0,
+      start: 9,
+      end: 10,
+      title: '移动端每天',
+      cat: 'seafoam',
+      recurrence: { frequency: 'daily' },
+      recurringExceptions: [
+        { date: new Date(2025, 2, 18), skipped: true },
+        {
+          date: new Date(2025, 2, 19),
+          overrides: { title: '改名', start: new Date(2025, 2, 19, 11, 0) },
+        },
+      ],
+    };
+
+    const expanded = expandEventsForMobileDisplay(
+      [parent],
+      new Date(2025, 2, 17),
+      new Date(2025, 2, 19, 23, 59, 59, 999)
+    );
+
+    expect(expanded.map((event) => event.id)).toEqual([
+      'daily-mobile-2025-03-17',
+      'daily-mobile-2025-03-19',
+    ]);
+    expect(expanded[1].title).toBe('改名');
+    expect(expanded[1].start).toBe(11);
+    expect(expanded[1].engineEvent?.title).toBe('改名');
   });
 });

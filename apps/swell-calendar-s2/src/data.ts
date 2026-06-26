@@ -1,5 +1,5 @@
 // swell-calendar sample data — 团队成员排期（移植自设计稿 data.js）
-import type { RecurrenceRule, RecurringException } from 'swell-calendar';
+import type { EventObject, RecurrenceRule, RecurringException } from 'swell-calendar';
 
 export type Cat = 'seafoam' | 'indigo' | 'magenta' | 'orange' | 'green' | 'purple';
 
@@ -52,6 +52,11 @@ export interface CalEvent {
   recurrence?: RecurrenceRule;
   recurringExceptions?: RecurringException[];
 }
+
+export type CalendarDisplayEvent = CalEvent & {
+  /** recurrence 展开实例对应的引擎事件；移动端自绘视图点击时用它保留实例上下文。 */
+  engineEvent?: EventObject;
+};
 
 export interface CatColorStyle {
   line: string;

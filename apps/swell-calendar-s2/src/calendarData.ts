@@ -3,6 +3,7 @@ import type { EventObject, RecurrenceRule, RecurringException, ResourceInfo } fr
 
 import {
   CAT_COLOR_STYLES,
+  type CalendarDisplayEvent,
   type Cat,
   type CalEvent,
   type PickEvent,
@@ -22,6 +23,40 @@ function makeDate(dayIndex: number, decimalHours: number): Date {
   const minutes = Math.round((decimalHours - hours) * 60);
   d.setHours(hours, minutes, 0, 0);
   return d;
+}
+
+function toNativeDateValue(value: unknown): Date | null {
+  if (value == null) return null;
+  if (value instanceof Date) return value;
+  if (typeof value === 'number' || typeof value === 'string') {
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+  if (typeof value === 'object' && 'getTime' in value && typeof value.getTime === 'function') {
+    const time = value.getTime();
+    return typeof time === 'number' && !Number.isNaN(time) ? new Date(time) : null;
+  }
+  return null;
+}
+
+function addDays(date: Date, delta: number): Date {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate() + delta);
+}
+
+function addMonths(date: Date, delta: number): Date {
+  return new Date(date.getFullYear(), date.getMonth() + delta, date.getDate());
+}
+
+function addYears(date: Date, delta: number): Date {
+  return new Date(date.getFullYear() + delta, date.getMonth(), date.getDate());
+}
+
+function isSameCalendarDate(a: Date, b: Date): boolean {
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  );
 }
 
 /** 把 `YYYY-MM-DD` 转成相对 BASE_DATE(2025-03-17) 的天偏移（CalEvent.day 语义）。 */
@@ -127,6 +162,189 @@ export function toCalendarEvents(evts: CalEvent[]): EventObject[] {
       recurringExceptions: e.recurringExceptions,
     };
   });
+}
+
+/**
+ * 移动端月视图/列表是宿主自绘，不经过 calendar 包内部 month/agenda controller。
+ * 这里在数据适配层展开 recurrence，并给每个实例挂回 engineEvent，确保展示与点击编辑都保留实例上下文。
+ */
+export function expandEventsForMobileDisplay(
+  events: CalEvent[],
+  rangeStart: Date,
+  rangeEnd: Date
+): CalendarDisplayEvent[] {
+  const expanded: CalendarDisplayEvent[] = [];
+
+  for (const event of events) {
+    if (!event.recurrence) {
+      expanded.push(event);
+      continue;
+    }
+
+    expanded.push(...expandCalEventRecurrence(event, rangeStart, rangeEnd));
+  }
+
+  return expanded.sort((a, b) => a.day - b.day || a.start - b.start);
+}
+
+function expandCalEventRecurrence(
+  event: CalEvent,
+  rangeStart: Date,
+  rangeEnd: Date
+): CalendarDisplayEvent[] {
+  const rule = event.recurrence;
+  if (!rule) return [event];
+
+  const baseStart = makeDate(event.day, event.start);
+  const baseEnd = makeDate(event.endDay ?? event.day, event.end);
+  const durationMs = baseEnd.getTime() - baseStart.getTime();
+  const until = rule.until ? toNativeDateValue(rule.until) : null;
+  const effectiveEnd = until && until.getTime() < rangeEnd.getTime() ? until : rangeEnd;
+  const occurrences: CalendarDisplayEvent[] = [];
+  let generated = 0;
+
+  for (const occurrenceDate of enumerateRecurrenceDates(
+    rule,
+    baseStart,
+    rangeStart,
+    effectiveEnd
+  )) {
+    if (rule.count && generated >= rule.count) break;
+    generated += 1;
+    if (isRuleExceptionDate(occurrenceDate, rule.exceptions)) continue;
+
+    const recurringException = event.recurringExceptions?.find((item) => {
+      const date = toNativeDateValue(item.date);
+      return date ? isSameCalendarDate(date, occurrenceDate) : false;
+    });
+    if (recurringException?.skipped) continue;
+
+    const overrides = recurringException?.overrides ?? {};
+    const instanceStart = toNativeDateValue(overrides.start) ?? occurrenceDate;
+    const instanceEnd =
+      toNativeDateValue(overrides.end) ?? new Date(instanceStart.getTime() + durationMs);
+    const day = dateToDayIndex(formatISODate(instanceStart));
+    const endDay = dateToDayIndex(formatISODate(instanceEnd));
+    const instanceId = `${event.id}-${formatISODate(occurrenceDate)}`;
+    const cat = (overrides.calendarId as Cat | undefined) ?? event.cat;
+    const displayEvent: CalendarDisplayEvent = {
+      ...event,
+      id: instanceId,
+      title: overrides.title ?? event.title,
+      cat,
+      res: (overrides.resourceId as string | undefined) ?? event.res,
+      day,
+      endDay,
+      start: toDecimalHour(instanceStart),
+      end: toDecimalHour(instanceEnd),
+      allDay: overrides.allDay ?? event.allDay,
+      recurrence: undefined,
+      recurringExceptions: undefined,
+    };
+    const colors = CAT_COLOR_STYLES[displayEvent.cat];
+    displayEvent.engineEvent = {
+      id: instanceId,
+      calendarId: displayEvent.cat,
+      title: displayEvent.title,
+      start: instanceStart,
+      end: instanceEnd,
+      resourceId: displayEvent.res,
+      allDay: displayEvent.allDay,
+      category: displayEvent.allDay ? 'allday' : 'time',
+      backgroundColor: colors.fill,
+      color: colors.text,
+      borderColor: colors.line,
+      raw: event,
+      meta: {
+        pickMeta: {
+          cat: displayEvent.cat,
+          who: displayEvent.who,
+          loc: displayEvent.loc,
+          desc: displayEvent.desc,
+        },
+      },
+      recurrenceParentId: event.id,
+      recurrenceOccurrenceDate: occurrenceDate,
+    };
+    occurrences.push(displayEvent);
+  }
+
+  return occurrences;
+}
+
+function enumerateRecurrenceDates(
+  rule: RecurrenceRule,
+  baseStart: Date,
+  rangeStart: Date,
+  rangeEnd: Date
+): Date[] {
+  const interval = Math.max(1, rule.interval ?? 1);
+  if (rule.count === 0 || rangeEnd.getTime() < baseStart.getTime()) return [];
+
+  switch (rule.frequency) {
+    case 'daily':
+      return enumerateSteppedDates(baseStart, rangeEnd, (date) => addDays(date, interval)).filter(
+        (date) => date.getTime() >= rangeStart.getTime()
+      );
+    case 'weekly':
+      return enumerateWeeklyDates(rule, baseStart, rangeStart, rangeEnd, interval);
+    case 'monthly':
+      return enumerateSteppedDates(baseStart, rangeEnd, (date) => addMonths(date, interval)).filter(
+        (date) => date.getTime() >= rangeStart.getTime()
+      );
+    case 'yearly':
+      return enumerateSteppedDates(baseStart, rangeEnd, (date) => addYears(date, interval)).filter(
+        (date) => date.getTime() >= rangeStart.getTime()
+      );
+  }
+}
+
+function enumerateSteppedDates(start: Date, end: Date, next: (date: Date) => Date): Date[] {
+  const dates: Date[] = [];
+  let cursor = new Date(start);
+  while (cursor.getTime() <= end.getTime()) {
+    dates.push(new Date(cursor));
+    cursor = next(cursor);
+  }
+  return dates;
+}
+
+function enumerateWeeklyDates(
+  rule: RecurrenceRule,
+  baseStart: Date,
+  rangeStart: Date,
+  rangeEnd: Date,
+  interval: number
+): Date[] {
+  const weekDays = rule.byWeekDays?.length ? rule.byWeekDays : [baseStart.getDay()];
+  const dates: Date[] = [];
+  const cursor = new Date(baseStart);
+  cursor.setHours(baseStart.getHours(), baseStart.getMinutes(), 0, 0);
+
+  while (cursor.getTime() <= rangeEnd.getTime()) {
+    for (const weekDay of weekDays) {
+      const candidate = addDays(cursor, (weekDay - cursor.getDay() + 7) % 7);
+      candidate.setHours(baseStart.getHours(), baseStart.getMinutes(), 0, 0);
+      if (candidate.getTime() < baseStart.getTime()) continue;
+      if (candidate.getTime() < rangeStart.getTime()) continue;
+      if (candidate.getTime() > rangeEnd.getTime()) continue;
+      if (!dates.some((date) => isSameCalendarDate(date, candidate))) {
+        dates.push(candidate);
+      }
+    }
+    cursor.setDate(cursor.getDate() + 7 * interval);
+  }
+
+  return dates.sort((a, b) => a.getTime() - b.getTime());
+}
+
+function isRuleExceptionDate(date: Date, exceptions?: RecurrenceRule['exceptions']): boolean {
+  return (
+    exceptions?.some((item) => {
+      const exceptionDate = toNativeDateValue(item);
+      return exceptionDate ? isSameCalendarDate(exceptionDate, date) : false;
+    }) ?? false
+  );
 }
 
 /** 将 S2 mock Resource 转换为 swell-calendar ResourceInfo */
