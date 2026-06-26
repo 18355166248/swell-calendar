@@ -10,7 +10,12 @@ import { startTransition, useCallback, useEffect, useMemo, useRef, useState } fr
 import { useNavigate } from 'react-router-dom';
 
 import type { CalendarInstance, EventObject } from 'swell-calendar';
-import Calendar, { useCalendarDataSource } from 'swell-calendar';
+import Calendar, {
+  applyRecurrenceEditScope,
+  buildRecurrenceInstanceInfo,
+  isRecurrenceInstance,
+  useCalendarDataSource,
+} from 'swell-calendar';
 
 import {
   buildCalendarOptions,
@@ -42,9 +47,11 @@ import {
   MobileEventSheet,
   MoreEventsPopover,
   Popover,
+  RecurrenceScopeDialog,
   SettingsPanel,
   SubBar,
   type NewEventInput,
+  type RecurrenceScopeAction,
   type UiPrefs,
 } from './overlays';
 import {
@@ -285,6 +292,11 @@ export default function App({ view }: AppProps) {
   const [settingsAnchor, setSettingsAnchor] = useState<HTMLElement | null>(null);
   // 引擎滑动新建 / 单元格点击预填的新建对话框初始值（P7b）
   const [createInitial, setCreateInitial] = useState<NewEventInput | null>(null);
+  // 重复事件 scope 弹框：记录待执行的操作，等用户选择范围后再应用
+  const [pendingScope, setPendingScope] = useState<{
+    mode: 'edit' | 'delete';
+    apply: (scope: RecurrenceScopeAction) => void;
+  } | null>(null);
   const calRef = useRef<CalendarInstance>(null);
   const monthMoreAnchorRef = useRef<HTMLElement | null>(null);
   const mobileCanvasRef = useRef<HTMLDivElement>(null);
@@ -380,10 +392,43 @@ export default function App({ view }: AppProps) {
 
   const handleDelete = () => {
     const id = pick?.ev.id;
-    if (id) {
-      deleteEvent(id);
-      setPick(null);
+    if (!id) return;
+    const calEvent = allEvents.find((e) => e.id === id);
+    if (calEvent?.recurrence) {
+      // 重复事件：弹 scope 选择弹框
+      setPendingScope({
+        mode: 'delete',
+        apply: (scope) => {
+          if (scope === 'all') {
+            deleteEvent(id);
+          } else if (scope === 'single') {
+            // 在父事件 recurringExceptions 中添加 skipped 标记
+            const parentEngineEvent = toCalendarEvents([calEvent])[0];
+            const now = new Date();
+            // 取事件的开始日期作为 occurrence date（简化：用事件开始时间）
+            const occurrenceDate = parentEngineEvent.start as Date;
+            const exceptions = [
+              ...(calEvent.recurringExceptions ?? []),
+              { date: occurrenceDate.getTime(), skipped: true as const },
+            ];
+            updateEvent(id, { ...calEvent, recurringExceptions: exceptions });
+            void now; // suppress unused warning
+          } else if (scope === 'following') {
+            // 截断重复规则：将 until 设为该次发生前一天
+            const startDate = toCalendarEvents([calEvent])[0].start as Date;
+            const until = new Date(startDate);
+            until.setDate(until.getDate() - 1);
+            const recurrence = { ...calEvent.recurrence!, until: until.getTime() };
+            updateEvent(id, { ...calEvent, recurrence });
+          }
+          setPendingScope(null);
+          setPick(null);
+        },
+      });
+      return;
     }
+    deleteEvent(id);
+    setPick(null);
   };
 
   const closeDialog = () => {
@@ -407,6 +452,44 @@ export default function App({ view }: AppProps) {
   /** 拖拽移动 / resize → 基于原事件合并后写回数据源（防止丢失 title/cat/who/desc）。 */
   const handleEngineUpdate = (info: { event: EventObject }) => {
     if (!info.event.id) return;
+
+    if (isRecurrenceInstance(info.event)) {
+      const instanceInfo = buildRecurrenceInstanceInfo(info.event);
+      if (!instanceInfo) return;
+      const parentId = instanceInfo.recurrenceParentId;
+      const parentCalEvent = allEvents.find((e) => e.id === parentId);
+      if (!parentCalEvent) return;
+
+      setPendingScope({
+        mode: 'edit',
+        apply: (scope) => {
+          const parentEngineEvent = toCalendarEvents([parentCalEvent])[0];
+          const changes: Partial<EventObject> = {
+            start: info.event.start,
+            end: info.event.end,
+            resourceId: info.event.resourceId,
+          };
+          const results = applyRecurrenceEditScope({
+            parentEvent: parentEngineEvent,
+            occurrenceDate: instanceInfo.recurrenceOccurrenceDate,
+            scope,
+            changes,
+          });
+          if (scope === 'following') {
+            // 两个结果：[truncatedParent, newEvent]
+            const [truncated, newEv] = results;
+            if (truncated) updateEvent(parentId, engineEventToDraft(truncated));
+            if (newEv) createEvent(engineEventToDraft(newEv));
+          } else {
+            // single / all：一个结果，更新父事件
+            if (results[0]) updateEvent(parentId, engineEventToDraft(results[0]));
+          }
+          setPendingScope(null);
+        },
+      });
+      return;
+    }
+
     const draft = engineEventToDraft(info.event);
     updateEvent(info.event.id, draft);
   };
@@ -920,6 +1003,13 @@ export default function App({ view }: AppProps) {
           initial={editing ? calEventToInput(editing) : createInitial ?? undefined}
           isEdit={!!editing}
           variant={isMobile ? 'page' : 'dialog'}
+        />
+      )}
+      {pendingScope && (
+        <RecurrenceScopeDialog
+          mode={pendingScope.mode}
+          onConfirm={pendingScope.apply}
+          onCancel={() => setPendingScope(null)}
         />
       )}
       {settingsAnchor && (

@@ -1,5 +1,5 @@
 // 数据适配层：将 S2 app 的 mock 数据转换为 swell-calendar 的 EventObject / ResourceInfo 格式。
-import type { EventObject, ResourceInfo } from 'swell-calendar';
+import type { EventObject, RecurrenceRule, ResourceInfo } from 'swell-calendar';
 
 import {
   CAT_COLOR_STYLES,
@@ -123,6 +123,8 @@ export function toCalendarEvents(evts: CalEvent[]): EventObject[] {
       meta: {
         pickMeta,
       },
+      recurrence: e.recurrence,
+      recurringExceptions: e.recurringExceptions,
     };
   });
 }
@@ -224,7 +226,9 @@ export function engineEventToDraft(event: EventObject): EventDraft {
     // 更新路径：以原事件为底，只覆盖时间/资源（排除 id，保持 EventDraft = Omit<CalEvent, 'id'>）
     // endDay 必须显式覆盖，否则旧值会盖掉本次拖拽产生的跨天跨度
     const { id: _, ...rest } = raw;
-    return { ...rest, day, endDay, start, end, res, allDay };
+    // recurringExceptions 可能来自 applyRecurrenceEditScope 结果，优先取引擎侧最新值
+    const recurringExceptions = event.recurringExceptions ?? rest.recurringExceptions;
+    return { ...rest, day, endDay, start, end, res, allDay, recurringExceptions };
   }
 
   // 新建路径：从引擎字段构建
@@ -237,6 +241,8 @@ export function engineEventToDraft(event: EventObject): EventDraft {
     end,
     res,
     allDay,
+    recurrence: event.recurrence as RecurrenceRule | undefined,
+    recurringExceptions: event.recurringExceptions,
   };
 }
 
@@ -246,9 +252,27 @@ export function engineEventToDraft(event: EventObject): EventDraft {
  * 新建/编辑链路上不被丢弃，并可独立单测。
  */
 
+/** UI rep 字符串 → RecurrenceRule（none → undefined）。 */
+function repToRecurrenceRule(rep: string | undefined): RecurrenceRule | undefined {
+  if (!rep || rep === 'none') return undefined;
+  if (rep === 'daily') return { frequency: 'daily' };
+  if (rep === 'weekly') return { frequency: 'weekly' };
+  if (rep === 'biweekly') return { frequency: 'weekly', interval: 2 };
+  return undefined;
+}
+
+/** RecurrenceRule → UI rep 字符串。 */
+function recurrenceRuleToRep(rule: RecurrenceRule | undefined): string {
+  if (!rule) return 'none';
+  if (rule.frequency === 'daily') return 'daily';
+  if (rule.frequency === 'weekly') return rule.interval === 2 ? 'biweekly' : 'weekly';
+  return 'none';
+}
+
 /** 对话框输入 → 事件草稿；编辑时传入原事件以保留 who/desc 等对话框不编辑的字段。 */
 export function inputToDraft(input: NewEventInput, base?: CalEvent): EventDraft {
   const allDay = input.allDay === true && input.start === '00:00' && input.end === '23:59';
+  const recurrence = repToRecurrenceRule(input.recurrence);
   return {
     ...base,
     res: input.res,
@@ -259,6 +283,9 @@ export function inputToDraft(input: NewEventInput, base?: CalEvent): EventDraft 
     title: input.title,
     cat: input.cat,
     allDay,
+    recurrence,
+    // 编辑时如果修改了重复规则（改成"不重复"），清空 exceptions；否则保留
+    recurringExceptions: recurrence ? base?.recurringExceptions : undefined,
   };
 }
 
@@ -273,6 +300,7 @@ export function calEventToInput(e: CalEvent): NewEventInput {
     end: decimalHourToTime(e.end),
     cat: e.cat,
     allDay: e.allDay,
+    recurrence: recurrenceRuleToRep(e.recurrence),
   };
 }
 

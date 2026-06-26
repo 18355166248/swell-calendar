@@ -444,6 +444,8 @@ export interface NewEventInput {
   end: string; // HH:mm
   cat: Cat;
   allDay?: boolean;
+  /** 'none' | 'daily' | 'weekly' | 'biweekly' */
+  recurrence?: string;
 }
 
 export function CreateDialog({
@@ -479,7 +481,7 @@ export function CreateDialog({
     { c: 'purple', label: '面试' },
   ];
   const [cat, setCat] = useState<Cat>(initial?.cat ?? 'seafoam');
-  const [rep, setRep] = useState('none');
+  const [rep, setRep] = useState(initial?.recurrence ?? 'none');
   const [title, setTitle] = useState(initial?.title ?? '');
   const [res, setRes] = useState(initial?.res ?? resources[0]?.id ?? 'r1');
   const [date, setDate] = useState(initial?.date ?? '2025-03-21');
@@ -522,7 +524,17 @@ export function CreateDialog({
       setErr('结束时间需晚于开始时间');
       return;
     }
-    onCreate({ title: title.trim(), res, date, endDate, start, end, cat, allDay: initial?.allDay });
+    onCreate({
+      title: title.trim(),
+      res,
+      date,
+      endDate,
+      start,
+      end,
+      cat,
+      allDay: initial?.allDay,
+      recurrence: rep,
+    });
     onClose();
   };
 
@@ -849,6 +861,56 @@ export function SettingsPanel({
               </div>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export type RecurrenceScopeAction = 'single' | 'following' | 'all';
+
+/** 重复事件操作范围弹框：此次 / 此后 / 全部。 */
+export function RecurrenceScopeDialog({
+  mode,
+  onConfirm,
+  onCancel,
+}: {
+  mode: 'edit' | 'delete';
+  onConfirm: (scope: RecurrenceScopeAction) => void;
+  onCancel: () => void;
+}) {
+  return (
+    <div className="scrim" onMouseDown={onCancel}>
+      <div className="dialog" style={{ maxWidth: 340 }} onMouseDown={(e) => e.stopPropagation()}>
+        <div className="dlg-hd">
+          <div className="dlg-title">{mode === 'delete' ? '删除重复日程' : '编辑重复日程'}</div>
+          <div className="dlg-sub">
+            {mode === 'delete' ? '要删除哪些日程？' : '要修改哪些日程？'}
+          </div>
+        </div>
+        <div className="dlg-body" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {(
+            [
+              ['single', '仅此次', '只影响本次发生'],
+              ['following', '此次及之后', '本次及之后的所有发生'],
+              ['all', '全部', '所有发生（包括过去的）'],
+            ] as [RecurrenceScopeAction, string, string][]
+          ).map(([scope, label, sub]) => (
+            <button
+              key={scope}
+              className="dlg-btn"
+              style={{ textAlign: 'left', display: 'block', padding: '10px 14px' }}
+              onClick={() => onConfirm(scope)}
+            >
+              <div style={{ fontWeight: 600 }}>{label}</div>
+              <div style={{ fontSize: 12, opacity: 0.6, marginTop: 2 }}>{sub}</div>
+            </button>
+          ))}
+        </div>
+        <div className="dlg-foot">
+          <button className="dlg-btn" onClick={onCancel}>
+            取消
+          </button>
         </div>
       </div>
     </div>

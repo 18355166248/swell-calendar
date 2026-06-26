@@ -22,32 +22,32 @@
 
 ## 一级真源
 
-| 文档 | 作用 |
-|------|------|
-| [WORKFLOW.md](./WORKFLOW.md) | 唯一开发流程真源 |
-| [ARCHITECTURE.md](./ARCHITECTURE.md) | 唯一结构与分层真源 |
-| [../packages/calendar/SPEC.md](../packages/calendar/SPEC.md) | 唯一产品能力与公开 API 真源 |
-| [MIGRATION.md](./MIGRATION.md) | 唯一兼容迁移真源 |
-| [agent-plan/plan.md](./agent-plan/plan.md) | 唯一 scheduler 路线图与 scope matrix 真源 |
-| [DEFINITION-OF-DONE.md](./DEFINITION-OF-DONE.md) | 完成标准 |
+| 文档                                                         | 作用                                      |
+| ------------------------------------------------------------ | ----------------------------------------- |
+| [WORKFLOW.md](./WORKFLOW.md)                                 | 唯一开发流程真源                          |
+| [ARCHITECTURE.md](./ARCHITECTURE.md)                         | 唯一结构与分层真源                        |
+| [../packages/calendar/SPEC.md](../packages/calendar/SPEC.md) | 唯一产品能力与公开 API 真源               |
+| [MIGRATION.md](./MIGRATION.md)                               | 唯一兼容迁移真源                          |
+| [agent-plan/plan.md](./agent-plan/plan.md)                   | 唯一 scheduler 路线图与 scope matrix 真源 |
+| [DEFINITION-OF-DONE.md](./DEFINITION-OF-DONE.md)             | 完成标准                                  |
 
 ## 当前活跃工件
 
-> **2026-06-26：当前无活跃任务单。** 移动端 epic（M0–M5）与所有 backlog 条目均已收口或废弃。
+> **2026-06-26：** 重复事件宿主侧接线进行中（[任务单](tasks/2026-06-26-recurrence-host-wiring.md)）。
 
-| 文档 | 作用 |
-|------|------|
+| 文档                                                                                       | 作用                                               |
+| ------------------------------------------------------------------------------------------ | -------------------------------------------------- |
 | [adrs/ADR-2026-05-scheduler-parity-scope.md](./adrs/ADR-2026-05-scheduler-parity-scope.md) | scheduler 范围与设计原则 ADR（一级原则记录，保留） |
 
 > 已完成的所有任务单（scheduler / month / S2 / 移动端 M0–M5 等）均已迁入 [archive/tasks/](./archive/tasks/)，结论沉淀在 `SPEC` / `agent-plan/plan.md` 等一级真源。移动端最终交付：响应式布局、四视图（Day/Multi-day/Agenda/Month）、触控输入（长按创建含临时卡片 + haptic、事件编辑态 move/resize）、浮层 sheet 化。
 
 ## 模板与归档
 
-| 文档 | 作用 |
-|------|------|
-| [tasks/TEMPLATE.md](./tasks/TEMPLATE.md) | 单次开发任务模板 |
+| 文档                                           | 作用             |
+| ---------------------------------------------- | ---------------- |
+| [tasks/TEMPLATE.md](./tasks/TEMPLATE.md)       | 单次开发任务模板 |
 | [adrs/ADR-TEMPLATE.md](./adrs/ADR-TEMPLATE.md) | 架构决策记录模板 |
-| [archive/README.md](./archive/README.md) | 归档说明 |
+| [archive/README.md](./archive/README.md)       | 归档说明         |
 
 ## Scheduler 路线图
 

@@ -1,5 +1,9 @@
 // swell-calendar sample data — 团队成员排期（移植自设计稿 data.js）
+import type { RecurrenceRule, RecurringException } from 'swell-calendar';
+
 export type Cat = 'seafoam' | 'indigo' | 'magenta' | 'orange' | 'green' | 'purple';
+
+export type { RecurrenceRule, RecurringException };
 
 /** 事件详情弹层（Popover）消费的事件结构，由 calendarData.toPickEvent 从引擎事件回填。 */
 export interface PickEvent {
@@ -45,6 +49,8 @@ export interface CalEvent {
   who?: string;
   loc?: string;
   desc?: string;
+  recurrence?: RecurrenceRule;
+  recurringExceptions?: RecurringException[];
 }
 
 export interface CatColorStyle {
