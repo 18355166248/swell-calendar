@@ -367,5 +367,5 @@
   - **③ 其余浮层底部 sheet 化（M5-3）**：事件详情 sheet 此前已有；本轮把**新建/编辑表单 `CreateDialog`** 与 **`+N` 更多列表 `MoreEventsPopover`** 增加 `variant='sheet'`，移动端改为底部全宽 sheet（grabber、18px 顶圆角、`sheetUp` 滑入、`env(safe-area-inset-bottom)`、body 可滚 footer 固定、按钮 46px）；桌面仍走居中对话框 / 锚定弹层（`variant` 默认非 sheet，零回归）。
     - 验证：s2 375px 经真实「长按→拖拽创建」触发，`.dialog--sheet` 正确渲染（grabber、圆角 18px、按钮 46px、`sheetUp` 动画）。
   - **修复 pre-existing 标题误判（2026-06-24）**：`CreateDialog` 此前用 `!!initial` 推断模式，但「编辑既有事件」与「网格拖拽创建的预填」都会传 `initial`，导致拖拽创建误显示「编辑日程」（桌面同样存在）。改为显式 `isEdit` prop，App 传 `isEdit={!!editing}`。验证：375px 长按→拖拽创建 → 标题「新建日程」/ 按钮「创建日程」；编辑路径仍「编辑日程」。
-  - 后续按需增量：触控 haptic 反馈、月 `+N` 命中区、滑动切**周/月**。主体时间网格横滑切日已回滚，重新设计前不再接入。
+  - **M5 收口（2026-06-26）**：触控 haptic 反馈已随长按创建临时卡片一并落地；月 `+N` 命中区、主体横滑切日重设计、connections、eventList 均**决定废弃，不再纳入此 epic**。M5 至此完结。
   - 验证小结：`tsc --noEmit`（calendar + s2）通过；包 `responsive.spec` 绿；s2 预览功能验证如上（截图工具对该 S2 应用挂起，改用 eval 断言 + 控制台无运行时错误）。

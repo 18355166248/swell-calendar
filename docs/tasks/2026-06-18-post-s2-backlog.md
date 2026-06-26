@@ -100,14 +100,11 @@
 
 这些事项要么范围大、要么容易改变当前稳定 API，不适合在“刚收完 Phase 3 + S2”之后立即开启。除非有明确业务需求，否则继续维持在真源后置状态。
 
-### 当前活跃方向（2026-06-19 更新）
+### 当前活跃方向（2026-06-26 更新：所有方向已收口）
 
-宿主决定：**`connections` / `eventList` 暂缓，优先做移动端适配，并把 `agenda` 视图纳入移动端方案。**
-
-- 移动端适配已从原 C 档「远期暂不建议」提升为**活跃 capability epic**；`agenda` 从 B 档并入该 epic（M2）。
-- 视觉对标 iOS 苹果日历设计稿（`docs/assets/*.png`），覆盖 Day / Multi-day / Agenda / Month；触控对标 Mobiscroll 移动 day view。
-- scope 变更已同步 `docs/agent-plan/plan.md` §2.3 与 §3 矩阵、`packages/calendar/SPEC.md`。
-- 分阶段计划（M0 文档 / M1 响应式+Day/Month / M2 Agenda / M3 Multi-day / M4 触控 / M5 打磨）与能力矩阵见 `docs/tasks/2026-06-19-mobile-adaptation.md`，后续进度以该 task 为准。
+- 移动端 epic（M0–M5）已全部完结，详见 `docs/tasks/2026-06-19-mobile-adaptation.md`。
+- `connections` / `eventList` / 月 `+N` 命中区 / 主体横滑切日重设计等剩余条目**决定废弃，不再启动**。
+- 当前无活跃 backlog，所有后置项维持真源后置状态。
 
 ## 文档变更
 
