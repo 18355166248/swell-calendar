@@ -1,15 +1,44 @@
 import { describe, expect, it } from 'vitest';
 
+import { EventModel } from '@/model/eventModel';
 import DayjsTZDate from '@/time/dayjs-tzdate';
 import { EventObject } from '@/types/events.type';
+import Collection from '@/utils/collection';
 
-import { expandSchedulerRecurrenceEvent } from './scheduler-recurrence';
+import { expandAllRecurringInRange, expandSchedulerRecurrenceEvent } from './scheduler-recurrence';
 
 function createDayjsDate(dateStr: string): DayjsTZDate {
   return new DayjsTZDate(dateStr);
 }
 
 describe('scheduler-recurrence', () => {
+  describe('expandAllRecurringInRange', () => {
+    it('重复实例跨 render 展开时保持稳定 cid', () => {
+      const event = new EventModel({
+        id: 'daily-stable',
+        title: '稳定点击',
+        start: '2026-06-03T09:00:00',
+        end: '2026-06-03T10:00:00',
+        recurrence: {
+          frequency: 'daily',
+          count: 2,
+        },
+      });
+      const events = new Collection<EventModel>((model) => model.cid()).add(event);
+      const rangeStart = createDayjsDate('2026-06-01');
+      const rangeEnd = createDayjsDate('2026-06-30');
+
+      const first = expandAllRecurringInRange(events, rangeStart, rangeEnd).instances.map((model) =>
+        model.cid()
+      );
+      const second = expandAllRecurringInRange(events, rangeStart, rangeEnd).instances.map(
+        (model) => model.cid()
+      );
+
+      expect(first).toEqual(second);
+    });
+  });
+
   describe('expandSchedulerRecurrenceEvent', () => {
     it('非 recurrence 事件直接返回原事件', () => {
       const event: EventObject = {

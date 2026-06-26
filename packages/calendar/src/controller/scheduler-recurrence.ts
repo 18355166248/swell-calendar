@@ -53,6 +53,18 @@ function generateInstanceId(
   return `${titlePrefix}-${loopIndex}-${dateStr}`;
 }
 
+function generateStableInstanceCid(instanceId: string): number {
+  let hash = 0x811c9dc5;
+
+  for (let i = 0; i < instanceId.length; i++) {
+    hash ^= instanceId.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193);
+  }
+
+  // cid 参与拖拽类型正则与 React key，必须是稳定正整数；高位区间规避普通 stamp 自增 id。
+  return 1_000_000_000 + ((hash >>> 0) % 1_000_000_000);
+}
+
 /**
  * 展开一个 recurring 事件到视口内的多个实例
  *
@@ -116,9 +128,10 @@ export function expandSchedulerRecurrenceEvent(
     const occurrenceDate = new DayjsTZDate(rawOccurrenceDate.getTime() + timeOfDayMs);
     const instanceEnd = new DayjsTZDate(occurrenceDate.getTime() + durationMs);
 
+    const instanceId = generateInstanceId(event.id, event.title, rawOccurrenceDate, loopIndex);
     const instanceEvent: EventObject = {
       ...event,
-      id: generateInstanceId(event.id, event.title, rawOccurrenceDate, loopIndex),
+      id: instanceId,
       start: occurrenceDate,
       end: instanceEnd,
       recurrence: undefined, // 实例不再携带 recurrence 规则，避免无限递归
@@ -128,6 +141,8 @@ export function expandSchedulerRecurrenceEvent(
       recurrenceParentId: event.id ?? '',
       recurrenceOccurrenceDate: occurrenceDate,
     };
+    (instanceEvent as EventObject & { __cid: number }).__cid =
+      generateStableInstanceCid(instanceId);
 
     // 合并 exception overrides（如果有）
     if (exception?.overrides) {

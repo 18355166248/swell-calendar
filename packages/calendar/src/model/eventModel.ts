@@ -72,6 +72,11 @@ export class EventModel implements EventObject {
   meta?: Record<string, unknown>;
 
   constructor(public event: EventObject) {
+    const internalCid = (event as { __cid?: unknown }).__cid;
+    if (typeof internalCid === 'number' && Number.isFinite(internalCid)) {
+      // recurrence 展开实例会跨 render 重建 EventModel；复用稳定 cid，避免点击按下后 key 变化导致 pointerup 丢失。
+      (this as unknown as { __swell_id?: number }).__swell_id = internalCid;
+    }
     stamp(this);
 
     this.init(event);
