@@ -308,6 +308,7 @@ export function MoreEventsPopover({
   onClose,
   onEventClick,
   onEventEdit,
+  variant = 'popover',
 }: {
   date: Date;
   events: EventObject[];
@@ -315,11 +316,14 @@ export function MoreEventsPopover({
   onClose: () => void;
   onEventClick?: (eventId: string, anchor: HTMLElement | null) => void;
   onEventEdit?: (eventId: string) => void;
+  /** 'sheet' 在移动端改为底部全宽 sheet；'popover' 桌面锚定弹层。 */
+  variant?: 'popover' | 'sheet';
 }) {
+  const isSheet = variant === 'sheet';
   const ref = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState({ top: -999, left: -999 });
   useLayoutEffect(() => {
-    if (!anchor || !ref.current) return;
+    if (isSheet || !anchor || !ref.current) return;
     const a = anchor.getBoundingClientRect();
     const p = ref.current.getBoundingClientRect();
     let left = a.left;
@@ -329,7 +333,7 @@ export function MoreEventsPopover({
     if (top + p.height > window.innerHeight - 12) top = a.top - p.height - 6;
     if (top < 12) top = 12;
     setPos({ top, left });
-  }, [anchor, date]);
+  }, [anchor, date, isSheet]);
 
   const dateLabel = `${date.getMonth() + 1}月${date.getDate()}日`;
 
@@ -337,13 +341,16 @@ export function MoreEventsPopover({
   const getTimeLabel = formatEventTimeLabel;
 
   return (
-    <div className="pop-layer" onMouseDown={onClose}>
+    <div className={'pop-layer' + (isSheet ? ' pop-layer--sheet' : '')} onMouseDown={onClose}>
       <div
         ref={ref}
-        className="pop more-events-pop"
-        style={{ top: pos.top, left: pos.left, opacity: pos.top > -900 ? 1 : 0 }}
+        className={'pop more-events-pop' + (isSheet ? ' more-events-pop--sheet' : '')}
+        style={
+          isSheet ? undefined : { top: pos.top, left: pos.left, opacity: pos.top > -900 ? 1 : 0 }
+        }
         onMouseDown={(e) => e.stopPropagation()}
       >
+        {isSheet && <div className="dialog__grabber" aria-hidden />}
         <div className="pop-body">
           <div className="pop-top">
             <div className="pop-title">{dateLabel}</div>
@@ -443,13 +450,22 @@ export function CreateDialog({
   onClose,
   onCreate,
   initial,
+  isEdit = false,
+  variant = 'dialog',
 }: {
   onClose: () => void;
   onCreate: (input: NewEventInput) => void;
-  /** 传入则进入编辑模式，预填字段；不传为新建。 */
+  /** 预填字段：编辑既有事件、或新建时由网格选区/单元格点击预填的时间。 */
   initial?: NewEventInput;
+  /**
+   * 是否为编辑既有事件。区分「编辑」与「带预填的新建」——
+   * 二者都会传 `initial`，不能再用 `!!initial` 推断模式，否则拖拽创建会误显示「编辑日程」。
+   */
+  isEdit?: boolean;
+  /** 'sheet' 在移动端改为底部全宽 sheet（grabber + 安全区），桌面默认居中对话框。 */
+  variant?: 'dialog' | 'sheet';
 }) {
-  const isEdit = !!initial;
+  const isSheet = variant === 'sheet';
   const cats: { c: Cat; label: string }[] = [
     { c: 'seafoam', label: '会议' },
     { c: 'indigo', label: '规划' },
@@ -484,8 +500,12 @@ export function CreateDialog({
   };
 
   return (
-    <div className="scrim" onMouseDown={onClose}>
-      <div className="dialog" onMouseDown={(e) => e.stopPropagation()}>
+    <div className={'scrim' + (isSheet ? ' scrim--sheet' : '')} onMouseDown={onClose}>
+      <div
+        className={'dialog' + (isSheet ? ' dialog--sheet' : '')}
+        onMouseDown={(e) => e.stopPropagation()}
+      >
+        {isSheet && <div className="dialog__grabber" aria-hidden />}
         <div className="dlg-hd">
           <div className="dlg-title">{isEdit ? '编辑日程' : '新建日程'}</div>
           <div className="dlg-sub">

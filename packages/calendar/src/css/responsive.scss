@@ -193,6 +193,17 @@
   }
 }
 
+// 触控命中区放大（M5）：resize 把手本身是不可见的可抓取条，移动端把高度从 7px
+// 提升到 14px，仅扩大触控可抓取范围、无视觉变化；典型 1 小时卡（52px）仍留有
+// 充足的中部移动区。day / multi-day 时间网格共用。
+.day-view--mobile,
+.multi-day-view--mobile {
+  .resize-handle-top,
+  .resize-handle-bottom {
+    height: 14px;
+  }
+}
+
 // 月视图移动布局：高密度紧凑格（对标 docs/assets/month.png）
 .month-view--mobile {
   // 事件 chip 变量：移动端略圆 + 更小字号，单元格内塞下更多 chip

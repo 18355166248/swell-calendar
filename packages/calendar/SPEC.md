@@ -18,8 +18,7 @@ swell-calendar 是一个**可嵌入的 React 日历组件库**，面向需要在
 
 - 参考的是桌面端 scheduler 的产品行为、布局和交互闭环
 - 不要求与 Mobiscroll 保持同名 API
-- `connections`、`eventList` 不在当前近期范围
-- 移动端适配（响应式 + 触控 + 四视图）为活跃 capability epic；**M1 响应式基线已落地**：视口档位原语（`getViewportTier` / `useViewportTier`，按根容器宽度分 mobile/tablet/desktop）+ Day/Month 据档位切根类名 + Day/Month 移动样式收口，桌面零回归。**M2 Agenda 列表视图首版已落地**：新增 `agenda` 视图，按天分组展示事件，点击行触发既有 `onEventClick`；**M3 Multi-day 首版已落地**：新增 `multiDay` 连续多日时间网格视图，默认 2 天。触控输入与移动打磨（M4–M5）仍规划中、未落地。视觉对标 iOS 苹果日历设计稿（`docs/assets/*.png`），覆盖 Day/Multi-day/Agenda/Month。详见 `docs/tasks/2026-06-19-mobile-adaptation.md`
+- 移动端适配（响应式 + 触控 + 四视图）为活跃 capability epic；**M1 响应式基线已落地**：视口档位原语（`getViewportTier` / `useViewportTier`，按根容器宽度分 mobile/tablet/desktop）+ Day/Month 据档位切根类名 + Day/Month 移动样式收口，桌面零回归。**M2 Agenda 列表视图首版已落地**：新增 `agenda` 视图，按天分组展示事件，点击行触发既有 `onEventClick`；**M3 Multi-day 首版已落地**：新增 `multiDay` 连续多日时间网格视图，默认 2 天。**M4 触控输入已落地**：拖拽输入链路迁移到 Pointer Events，触控空白创建采用长按进入。**M5 移动交互收口已落地**：周条滑动、命中区放大、移动 sheet、连续月 / 列表滚动和首帧性能优化已接入。视觉真源以 `claude-design/mobile/swellcalendar-remix/project/swell-calendar-mobile.html` 为准，覆盖 Day/Multi-day/Agenda/Month。详见 `docs/tasks/2026-06-19-mobile-adaptation.md` 与 `docs/tasks/2026-06-23-mobile-remix-visual-sync.md`
 
 ## 核心约束
 
@@ -100,21 +99,14 @@ swell-calendar 是一个**可嵌入的 React 日历组件库**，面向需要在
 - 跨实例拖动（`onCrossInstanceDragEnd` / `onCrossInstanceDrop`）
 - `timeline.range` 与默认月导航归一
 
-当前**仍明确后置**的能力：
+当前**活跃 epic（M1 响应式基线已落地，M2 Agenda 首版已落地，M3 Multi-day 首版已落地，M4 触控输入已落地，M5 交互收口已落地）**：
 
-- `connections`
-- `eventList`
-- 打印、a11y 强化
-- 虚拟化：通用 `useVirtualList` 已落地并用于移动端 Agenda / S2 连续月视图（见“通用 Hooks”）；尚未覆盖桌面超长事件列表等其余场景
-
-当前**活跃 epic（M1 响应式基线已落地，M2 Agenda 首版已落地，M3 Multi-day 首版已落地，M4 触控输入已落地，M5 交互打磨规划中）**：
-
-- 移动端适配（响应式布局 + 触控输入 + 四视图），视觉对标 iOS 苹果日历设计稿（`docs/assets/*.png`）；含新 `agenda` 视图（M2）。详见 `docs/tasks/2026-06-19-mobile-adaptation.md`
+- 移动端适配（响应式布局 + 触控输入 + 四视图），视觉真源以 `claude-design/mobile/swellcalendar-remix/project/swell-calendar-mobile.html` 为准；含新 `agenda` 视图（M2）。详见 `docs/tasks/2026-06-19-mobile-adaptation.md` 与 `docs/tasks/2026-06-23-mobile-remix-visual-sync.md`
   - 已落地（M1）：视口档位原语 + Day/Month 据档位切根类名 + Day/Month 移动样式收口，桌面零回归
   - 已落地（M2）：`agenda` 只读列表视图，复用既有事件数据与 `onEventClick`
   - 已落地（M3）：`multiDay` 连续多日时间网格视图，默认 2 天
   - 已落地（M4）：触控 create/move/resize —— 拖拽输入链路从鼠标事件迁移到 Pointer Events，鼠标/触控/手写笔统一走 `onEventCreate` / `onEventUpdate`；详见下方「触控输入」
-  - 未落地：移动交互打磨（滑动切日/周、命中区放大、浮层底部适配等，M5）
+  - 已落地（M5）：周条滑动切周、tap / resize 命中区放大、事件详情 / 新建编辑 / `+N` 更多浮层底部 sheet 化，以及连续月 / 列表滚动和首帧性能优化
 
 shared events 的资源策略固定为：
 
@@ -621,18 +613,13 @@ function useCalendarDataSource<TEvent, TDraft>(
 4. **HTML 净化**：所有用户提供的 HTML 内容必须经过 `sanitizer.ts` 的 DOMPurify 净化
 5. **事件不可变**：原始 `EventObject` 不直接修改，统一通过 `EventModel` 封装操作
 
-## 待开发功能（Backlog）
+## 已落地能力记录
 
 - [x] Timeline 拖拽交互（移动 / resize / 拖拽创建 / 日期 tooltip）— 见下方「Timeline 交互」
-- [ ] Timeline 交互后续增量：overlap/invalid 校验、external/cross-instance DnD、shared events 跨资源行语义
 - [x] agenda 只读列表视图（M2）
 - [x] multiDay 连续多日时间网格视图（M3）
 - [x] 触控 create/move/resize（Pointer Events 输入链路，M4）
-- [ ] 月视图 workweek 支持
-- [ ] 顶边 resize（Scheduler 事件顶边调整开始时间）
-- [ ] 资源层级渲染（利用 `parentId` 字段）
 - [x] 虚拟化基础能力 `useVirtualList`（移动端 Agenda / S2 连续月视图已接入）
-- [ ] 虚拟化覆盖桌面超长事件列表等其余场景
 
 ## 当前阶段说明
 
@@ -642,7 +629,7 @@ function useCalendarDataSource<TEvent, TDraft>(
   - 左右边 resize 改起止天 → `onEventUpdate`
   - 资源行空白处横拖创建跨天**全天**事件 → `onEventCreate`
   - 拖拽过程显示幽灵横条 + 日期范围 tooltip
-  - 校验：per-event `editable/draggable/resizable` + timeline 级 `dragToCreate/dragToMove/dragToResize` + `onValidateEventChange` + `onEventCreateFailed/onEventUpdateFailed`；**不含** overlap/invalid 区间（后续增量）
+  - 校验：per-event `editable/draggable/resizable` + timeline 级 `dragToCreate/dragToMove/dragToResize` + `onValidateEventChange` + `onEventCreateFailed/onEventUpdateFailed`
 - `scheduler` 使用垂直 time-grid + 资源列布局
 - `scheduler` 当前为近期核心
 - `scheduler.range`：若配置为正整数，则 scheduler 显示从 `renderDate` 开始的连续可见日期；`workweek=true` 时跳过周末列；`navigate()` 与 toolbar 文案按实际可见窗口同步步进
@@ -656,7 +643,6 @@ function useCalendarDataSource<TEvent, TDraft>(
 - `create/move/resize` 当前支持通过 `onValidateEventChange` 做同步准入校验
 - `create/move/resize` 当前也会先检查 `invalid` / `blockedTimes`，命中后直接拒绝提交
 - `invalid` / `blockedTimes` 当前会在 time-grid 中渲染为只读遮罩，提示不可操作区域
-- 内部尚未内建事件编辑弹窗、宿主侧冲突解决 UI、external/cross-instance 预览层与 timezone 完整多时区体验
 
 ### 触控输入（M4）
 

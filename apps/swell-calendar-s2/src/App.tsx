@@ -885,6 +885,7 @@ export default function App({ view }: AppProps) {
           date={morePick.date}
           events={morePick.events}
           anchor={morePick.anchor}
+          variant={isMobile ? 'sheet' : 'popover'}
           onClose={() => setMorePick(null)}
           onEventClick={(eventId, anchor) => {
             const ev = morePick.events.find((e) => e.id === eventId);
@@ -901,6 +902,8 @@ export default function App({ view }: AppProps) {
           onClose={closeDialog}
           onCreate={handleSubmit}
           initial={editing ? calEventToInput(editing) : createInitial ?? undefined}
+          isEdit={!!editing}
+          variant={isMobile ? 'sheet' : 'dialog'}
         />
       )}
       {settingsAnchor && (
@@ -926,6 +929,7 @@ export default function App({ view }: AppProps) {
           : currentDate;
     const monthLabel = formatMobileMonthLabel(mobileLabelDate);
     const calendarLabel = formatMobileCalendarLabel(mobileLabelDate);
+
     return (
       <Provider colorScheme={prefs.theme}>
         <ToastContainer />

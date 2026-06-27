@@ -225,8 +225,8 @@
   color: var(--text-3);
 }
 .m-sheet__close {
-  width: 34px;
-  height: 34px;
+  width: 40px;
+  height: 40px;
   border: none;
   border-radius: 999px;
   background: var(--bg-sunken);
@@ -487,6 +487,77 @@
 }
 .dlg-btn.primary:hover {
   background: var(--accent-bg-hover);
+}
+
+/* ---------- 移动端底部 sheet 变体（M5：表单 / 更多列表）---------- */
+/* 抓取条，新建/编辑表单与更多列表共用 */
+.dialog__grabber {
+  width: 36px;
+  height: 4px;
+  margin: 10px auto 4px;
+  border-radius: 999px;
+  background: var(--border-strong);
+}
+
+/* scrim 底对齐，sheet 从底部滑入 */
+.scrim--sheet,
+.pop-layer--sheet {
+  display: flex;
+  align-items: flex-end;
+  justify-content: stretch;
+}
+
+.dialog--sheet,
+.more-events-pop--sheet {
+  width: 100%;
+  max-width: 100%;
+  border-radius: 18px 18px 0 0;
+  border-bottom: none;
+  /* 顶部留出安全余量，底部贴合并预留 home indicator 安全区 */
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  animation: sheetUp 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* 表单 sheet：body 可滚动，footer 固定在底部 */
+.dialog--sheet .dlg-body {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.dialog--sheet .dlg-foot {
+  flex: none;
+}
+/* sheet 底部按钮放大到拇指友好高度 */
+.dialog--sheet .dlg-btn {
+  height: 46px;
+  flex: 1;
+}
+
+/* 更多列表 sheet：定位还原为静态（忽略锚定坐标），列表可滚动 */
+.more-events-pop--sheet {
+  position: static;
+  width: 100%;
+  opacity: 1;
+}
+.more-events-pop--sheet .more-events-list {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.more-events-pop--sheet .more-event-row {
+  min-height: 48px;
+}
+
+@keyframes sheetUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
 }
 
 .seg-pills {
