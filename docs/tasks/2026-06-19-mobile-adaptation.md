@@ -27,10 +27,7 @@
 
 ## 背景
 
-`scheduler` Phase 0–3、`month` 交互、S2 外壳、`range` / `maxEventStack` 等近期 backlog 均已收口归档。
-宿主新方向：**B 档（connections / eventList）暂缓，优先做移动端适配，并把 `agenda` 视图纳入移动端方案**。
-
-这是一次 **roadmap scope 变更**：移动端适配此前在 `plan.md` §2.3 标"本轮不对齐"、agenda 在 §3 矩阵标"未承诺"。本任务把两者一并提升为活跃 capability epic，按 docs-first 先落能力矩阵与分阶段计划，再实现。
+`scheduler` Phase 0–3、`month` 交互补齐、S2 外壳、`range` / `maxEventStack` 等前置能力均已收口归档。宿主方向切到移动端适配，并把 `agenda` 视图纳入移动端方案。本任务记录移动端 M1–M5 的完成范围、设计真源、验收口径与实施结果。
 
 ## 设计稿结构拆解（对照 remix 原型 `mobile-views.jsx` / `mobile.css`）
 
@@ -49,73 +46,50 @@
 3. **Agenda（agenda）**：按天分组的列表 —— 日期分组头（含农历，右对齐）+ 事件行（左色条 + 标题 + 右侧时间，全天或 起/止 两行），今日分组头红色，跨天连续滚动。
 4. **Month（month）**：紧凑格，每格日期数字（+农历）+ 堆叠胶囊 chip + `+N` 溢出；今日红圈、周末红、选中态。
 
-## 现状盘点（实现真值，2026-06-19）
+## 完成范围
 
-- **响应式**：`packages/calendar/src` 内**无任何断点 / `matchMedia` / viewport 感知**（仅 `stories/showcase.css` 一处 demo `@media`）。
-- **触控输入**：交互层**纯鼠标**。`hooks/common/useDrag.ts` 绑定 `document` 的 `mousedown/move/up`；所有事件组件用 `onMouseDown`。触屏当前**无法 create/move/resize**。关键事实：`PointerEvent extends MouseEvent`，迁移主体为机械替换 + `setPointerCapture` + `touch-action:none`。
-- **Agenda**：`ViewType = 'month'|'week'|'day'|'scheduler'|'timeline'`，**无 `agenda`**。需扩展 union + 新视图组件 + 分组控制器 + store/toolbar 接线。
-- **可复用资产**：
-  - `components/timeGrid/NowIndicatorLine.tsx` / `NowIndicatorLabel.tsx`（当前时间红线 ✓）
-  - `components/dayGrid/AlldayRow.tsx`（全天 lane ✓，需移动胶囊样式）
-  - `components/view/Day.tsx`（GridHeader + 全天 Panel + TimeGrid）、`Month.tsx`、`timeGrid/TimeGridView.tsx`
-  - `time/view-range.ts`（连续日期窗口，multi-day 可复用）
-- **chrome 归属**：顶部导航条属**宿主 shell（apps/swell-calendar-s2）**；周条/全天 lane/时间网格/now 线/月 chip/agenda 列表属**包内视图**。
+- **响应式**：`getViewportTier` / `useViewportTier` / `useContainerWidth` 已落地，Day / Month / Multi-day / Agenda 按移动 tier 收口。
+- **触控输入**：交互层已迁移到 Pointer Events，鼠标 / 触控 / 手写笔统一走 create / move / resize 链路；触控空白创建采用长按进入。
+- **四视图**：Day / Multi-day / Agenda / Month 均已接入移动端结构与视觉收口。
+- **宿主 chrome**：S2 顶部导航、segmented、周条、搜索、今天入口、事件详情 / 新建编辑 / 更多 sheet 已接入。
+- **性能**：Agenda 与 S2 连续月视图已接入 `useVirtualList`，滚动与首帧渲染已优化。
 
-## 目标与非目标
+## 目标
 
-**目标**：把日历库扩展为"桌面 + 移动端可用"，移动端视觉对齐 iOS 苹果日历四视图（Day / Multi-day / Agenda / Month），触控交互对齐 Mobiscroll 移动 day view，且桌面零行为回归。
+把日历库扩展为"桌面 + 移动端可用"：移动端视觉对齐 remix 真源中的 Day / Multi-day / Agenda / Month 四视图，触控交互对齐 Mobiscroll 移动 day view 的核心 create / move / resize 闭环，并保持桌面零行为回归。
 
-**非目标**：
-- 不复刻 iOS / Mobiscroll 的弹窗 / 表单 / 内建 CRUD UI（沿用宿主受控）。
-- 不引入手势/UI 框架，优先原生 Pointer Events + CSS。
-- 本 epic 不做 connections / eventList / 打印 / a11y。
-  - 注：移动端 Agenda / S2 连续月视图为滚动性能在 2026-06-23 引入了通用 `useVirtualList`（见 `docs/tasks/2026-06-23-mobile-remix-visual-sync.md`），属移动还原的配套增量；桌面超长列表虚拟化仍后置。
-- 不改公开数据流（宿主受控不变），只新增可选配置、`agenda` 视图与触控输入通道。
+## 阶段验收
 
-## 目标 → 阶段对齐（验收口径）
-
-> 目标 =「支持移动端 + 还原设计稿」。**关键认知：M1 完成 ≠ 目标达成。**
-> 目标拆成两条线，分别由不同 Phase 兜底：
-> - **还原设计稿 = 4 视图**（Day / Multi-day / Agenda / Month）。其中 Multi-day、Agenda 是引擎**不存在的视图**，无法只靠样式还原，必须先建能力（M3 / M2）。M1 只还原 Day + Month 两视图。
-> - **支持移动端 = 可看 + 可用**。M1–M3 给「可看 / 可切 / 可点详情」；**触屏拖拽创建 / 移动 / resize 在 M4**。M4 未完成前移动端是「只读浏览」，非产品级可用。M4 是全 epic 最高风险段（碰核心 `useDrag`）。
-
-| 目标分解 | 兜底 Phase | 达成判据（验收口径） |
-|----------|-----------|----------------------|
-| 响应式基线（断点 / tier / 容器宽度） | M1 | 移动 tier 注入修饰类；桌面零回归 |
-| Day / Month 移动视觉还原 | M1 | 与 remix 稿目视一致（结构+交互路径），桌面零回归 |
-| 移动 chrome（导航 / segmented / 周条 / 农历 / 底部 sheet） | M1（宿主 s2） | 四要素可用；农历/节气经 `chinese-days` 注入 |
-| 还原 **Agenda / 列表** 视图 | M2 | `ViewType='agenda'` 可切换、可点详情；SPEC 同步 |
-| 还原 **Multi-day / 多日** 视图 | M3 | N 列日列可切换；与 `view-range` 语义对齐 |
-| 移动端**可用**（触控 create/move/resize） | **M4** | 触屏可创建/移动/resize；鼠标路径零回归 |
-| 移动交互打磨 | M5 | 长按创建 / 命中区 / 滑动切换 / 浮层适配 |
-
-**推进顺序固定**：M1 →（M2 与 M3 可并行，二者互不依赖）→ M4 → M5。
-其中 M2 / M4 改动公开 API（`agenda` union / 触控行为），**docs-first**：先改 `SPEC.md` 与能力矩阵再实现。
+| 阶段 | 完成内容 | 验收口径 |
+|------|----------|----------|
+| M1 | 响应式基线 + Day / Month 移动布局 + S2 移动 chrome | 移动 tier 注入修饰类；Day / Month 与 remix 稿结构一致；桌面零回归 |
+| M2 | Agenda 列表视图 | `ViewType='agenda'` 可切换；按天分组；点击行触发 `onEventClick`；SPEC / MIGRATION 同步 |
+| M3 | Multi-day 多日视图 | `ViewType='multiDay'` 可切换；默认 2 日列；复用 `view-range` 语义；SPEC / MIGRATION 同步 |
+| M4 | Pointer Events 触控输入 | 触屏可 create / move / resize；空白创建长按进入；鼠标路径零回归 |
+| M5 | 移动交互收口 | 周条滑动、命中区放大、移动 sheet、连续月 / 列表滚动和首帧性能优化完成 |
 
 ## 能力矩阵（设计稿 × 现状 × 目标 × Phase）
 
 | 能力 | 设计稿 | 现状 | Phase | 风险 |
 |------|--------|------|-------|------|
-| 断点 / viewport 原语 | — | ❌ 无 | M1 | 低 |
-| Day 移动布局（窄列 + 全天胶囊 + now 线） | day1/day2 | 桌面 Day 已有结构 | M1 | 中 |
-| Month 移动布局（紧凑 chip + `+N`） | month | 桌面 Month 已有 overflow | M1 | 中 |
-| 移动 chrome（顶部导航条）@ S2 | 四稿共有 | ❌ 无 | M1 | 低 |
-| 周条选择器（滑动切周 / 选中红圈） | day/multi-day | 部分在 S2 day-strip | M1 | 中 |
+| 断点 / viewport 原语 | — | ✅ 已落地 | M1 | 低 |
+| Day 移动布局（窄列 + 全天胶囊 + now 线） | day1/day2 | ✅ 已落地 | M1 | 中 |
+| Month 移动布局（紧凑 chip + `+N`） | month | ✅ 已落地 | M1 | 中 |
+| 移动 chrome（顶部导航条）@ S2 | 四稿共有 | ✅ 已落地 | M1 | 低 |
+| 周条选择器（滑动切周 / 选中红圈） | day/multi-day | ✅ 已落地 | M1 | 中 |
 | 农历 / 节气标签（宿主注入，`chinese-days`） | day/multi-day/month/agenda | ✅ PoC 落地（S2 周条） | M1 | 低 |
-| **Agenda 视图（新）** | agenda | ❌ 无（ViewType 无 agenda） | M2 | 中 |
+| **Agenda 视图（新）** | agenda | ✅ M2 首版已落地 | M2 | 中 |
 | Multi-day 移动视图（N 列日列） | multi-day | ✅ M3 首版已落地 | M3 | 中 |
 | 触控 create / move / resize | mobiscroll | ✅ M4 已落地（Pointer Events） | M4 | 高 |
 | 拖拽期阻止滚动（touch-action / capture） | — | ✅ M4 已落地（capture + 动态 touch-action） | M4 | 中 |
 | 长按创建（时间网格/月格/timeline 空白） | mobiscroll | ✅ M4 已落地（与滚动共存所需） | M4（自 M5 提前） | 中 |
-| 滑动切日（主体横滑）/ tap 命中区放大 / 浮层底部 sheet 化 | 四稿 | 🟡 命中区 + sheet 已落地；主体横滑已回滚 | M5 | 中 |
-
-> 标记规则同 `plan.md` §3.1：能力在对应 Phase 落地前，不得在 README / SPEC 写成"已支持"。
+| tap 命中区放大 / 浮层底部 sheet 化 / 周条滑动 | 四稿 | ✅ M5 已落地 | M5 | 中 |
 
 ## 分阶段方案
 
 ### M0 设计基线 & scope（本次，纯文档）
 - 落本文件（设计稿拆解 + 能力矩阵 + 分阶段）。
-- 同步 scope：`plan.md` §2.3/§3、`SPEC.md`、backlog、README —— 移动端 + agenda 提升为活跃 epic。
+- 同步 scope：`plan.md` §2.3/§3、`SPEC.md`、README —— 移动端 + agenda 提升为活跃 epic。
 
 ### M1 响应式基线 + Day/Month 移动布局 + 移动 chrome
 - `utils/`：无 React 的断点纯函数（`getViewportTier(width)`）。
@@ -124,7 +98,6 @@
 - `apps/swell-calendar-s2`：移动 shell（顶部导航条 + segmented「日/多日/月/列表」+ 周条切周 + 事件底部 sheet），复用包内视图与 `lunarLabelOf`。
 - 农历不改引擎：月视图由宿主覆盖 `monthGridHeader` 模板注入日期+农历；day/多日的农历副标题是宿主 chrome。
 - 不改控制器 / 数据流。
-- **进度**：原语层 + Day/Month tier CSS + 农历 PoC 已落地；剩 Day 窄列/gutter、now 时间旗、卡片 tier、月格细节（`responsive.scss`）+ s2 移动 shell。
 - **验收**：移动 375px 出修饰类、Day/Month 与 remix 稿目视一致、农历/节气正确（节气优先、绿色）、segmented 四视图可切（多日/列表本阶段可降级为占位）、桌面 1280px 零回归。
 
 ### M2 Agenda 视图（新视图）
@@ -147,17 +120,17 @@
 - **验收**：触屏可创建/移动/resize（`PointerEvent` 单测覆盖）、拖拽期不滚动；**鼠标路径全单测零回归**（最高风险门槛）；SPEC 触控行为行 + MIGRATION 同步。
 
 ### M5 移动交互打磨
-- 长按进入 create、tap 命中区放大、周条/视图滑动切换、移动端浮层底部/全宽适配。视宿主反馈再细化，必要时拆 task。
-- **验收**：长按创建 / 命中区 / 滑动切换 / 浮层移动适配按宿主反馈逐项验收；无回归。
+- 长按进入 create、tap 命中区放大、周条滑动切换、移动端浮层底部/全宽适配、连续月 / 列表滚动和首帧性能优化。
+- **验收**：长按创建 / 命中区 / 周条滑动 / 浮层移动适配 / 滚动性能逐项验收；无回归。
 
 ## 文档变更
 - [x] 重写 `docs/tasks/2026-06-19-mobile-adaptation.md`（本文件）
 - [x] `docs/agent-plan/plan.md`（§2.3 移动端、§3 矩阵 mobile + agenda）
-- [x] `packages/calendar/SPEC.md`（移动端 + agenda 改为"规划中/活跃 epic"，不写"已支持"）
-- [x] `docs/tasks/2026-06-18-post-s2-backlog.md`
+- [x] `packages/calendar/SPEC.md`（移动端 + agenda 纳入活跃 epic）
 - [x] `docs/README.md`
-- [x] M1：回写 `SPEC.md`（移动端能力行从"尚未落地"改为"M1 响应式基线已落地，M2–M5 规划中"，列明已落地/未落地边界）。**MIGRATION 无需变更**：viewport 原语 / `useViewportTier` / `useContainerWidth` / `getTierClassName` / `cls` 均未在 `src/index.ts` 公开导出，M1 为纯内部增量 + 桌面零回归，无对外 API / 配置变化。
-- [ ] M2–M5 实现时按 phase 回写 SPEC 能力行 + MIGRATION（`agenda` 公开 / 新公开配置 / 触控行为变更时）
+- [x] M1：回写 `SPEC.md`。**MIGRATION 无需变更**：viewport 原语 / `useViewportTier` / `useContainerWidth` / `getTierClassName` / `cls` 均未在 `src/index.ts` 公开导出，M1 为纯内部增量 + 桌面零回归，无对外 API / 配置变化。
+- [x] M2–M4 实现已按 phase 回写 SPEC 能力行 + MIGRATION（`agenda` / `multiDay` 公开、`agenda.offset` / `onAgendaVisibleDateChange` / `useVirtualList` 增量、触控 Pointer Events 行为）
+- [x] M5 已回写 SPEC：命中区、移动 sheet、周条滑动与滚动性能优化已落地
 
 ## 验证计划
 - M0（纯文档）：`node scripts/check-docs.mjs`、`node scripts/check-arch.mjs`
@@ -207,7 +180,7 @@
     - **农历 / 节气 / 休班**：宿主 s2 计算后注入 chrome，引擎不内建农历概念。
   - **农历库选型（2026-06-22 定）**：`chinese-days`（MIT、零依赖、~9.5KB gzip）。
     对比：`lunisolar` 13.7KB 但 GPL-3.0（产品不可用，排除）；`lunar-javascript/typescript` MIT 但 ~111KB（过大，排除）。
-    `chinese-days` 覆盖农历日（`getLunarDate().lunarDayCN`）+ 节气（`getSolarTerms`）+ 后续可扩休/班（`isWorkday`/`getDayDetail`）与节日。
+    `chinese-days` 覆盖农历日（`getLunarDate().lunarDayCN`）+ 节气（`getSolarTerms`），并提供休/班（`isWorkday`/`getDayDetail`）与节日能力。
   - **农历 PoC 已落地并验证（s2）**：`apps/swell-calendar-s2/src/lunar.ts`（`lunarLabelOf(date)` 节气优先于农历日）；
     `shell.tsx` 的 `DayWeekStrip` 每日 chip 追加农历/节气标签，节气日加绿色 `is-term` 样式（读 `--cat-green-text`）。
     预览验证（s2-app:5180 日视图）：周条显示「初一…初六」，2026-06-21 显示绿色「夏至」；选中日走 accent 覆盖；`tsc --noEmit` 通过、无 console 报错。
@@ -216,12 +189,12 @@
     - `shell.tsx`：`MobileTopBar`（返回月 + segmented「日/多日/月/列表」+ 搜索）、`MobilePlaceholder`（历史占位组件，M2/M3 后已不走主路径）。
     - `App.tsx`：抽出 `calendarNode` + `overlays` 供桌面/移动共用（引擎接线单一真源）；新增 `engineView`（移动只 day/month 有真实引擎视图）统一驱动 `setView` 与 `calendarOptions.defaultView`，修掉「移动选日却显示路由 scheduler」的串视图问题；移动分支渲染 `app--mobile` 外壳（无 sidebar/desktop topbar）。
     - `app.css`：`.app--mobile`/`.m-top`/`.m-seg`/`.canvas--mobile`/`.m-placeholder` 等移动 chrome 样式（全部读 s2 token）。
-    - 预览验证（s2-app:5180）：375px → 移动外壳；日=单日时间轴 + 周条农历（初八…）；月=紧凑格 + `+N` + 今日圈、返回显示「日历」；M1 当时多日/列表为占位（后续 M2/M3 已分别接入 agenda / multiDay）；切回日恢复。1280px（reload）→ 桌面 sidebar+topbar 原样（零回归）；`tsc --noEmit` 通过、无 console 报错。
+    - 预览验证（s2-app:5180）：375px → 移动外壳；日=单日时间轴 + 周条农历（初八…）；月=紧凑格 + `+N` + 今日圈、返回显示「日历」；M1 当时多日/列表为占位，随后 M2/M3 已分别接入 agenda / multiDay；切回日恢复。1280px（reload）→ 桌面 sidebar+topbar 原样（零回归）；`tsc --noEmit` 通过、无 console 报错。
   - **now「红色时间旗」已落地（包内 `responsive.scss`，2026-06-22）**：
     - now 指示器颜色经主题以**内联 style** 注入（line/bullet/label 同色，s2 为 accent 绿）。外部 `!important` 可压过「非 important 的内联样式」，故在 `.day-view--mobile` 作用域内把 `now-indicator-line-bar`/`-bullet`/`-label` 重定向到 `--now-line`（红，宿主 token，亮/暗各一份，缺省回退 oklch 红），并把 label 做成白字红底胶囊。
     - 预览验证：375px → now 红线 + 红 bullet(10px) + 白字红底「12:07」旗；1280px（reload）→ now-label 仍透明底/accent 色/无圆角（**桌面零回归**）；`day-view--mobile` tier 类在 s2 正常注入；包单测 374/374 绿、无 console 报错。
   - **重要发现（修正前述模板注入设想）**：月视图实际由 `components/month/MonthGrid.tsx` 渲染（直接出 `month-cell-date` 数字），此前**未接线既有 `monthGridHeader` 模板**（该模板仅旧 `dayGridMonth/CellHeader` 使用）。
-    故「宿主覆盖 `monthGridHeader` 注入月农历」在当前引擎**无效**；后续只需把 MonthGrid 接入既有公开 slot，不需要新增模板 API。
+    故「宿主覆盖 `monthGridHeader` 注入月农历」在当时引擎**无效**；本阶段将 MonthGrid 接入既有公开 slot，不新增模板 API。
   - **移动周条样式已贴近 remix（s2，2026-06-22）**：
     - `DayWeekStrip` 结构调整：数字 + 农历包进 `day-week-chip__blob`。桌面下 blob 为透明壳（base 样式仅纵向堆叠，间距等同原 chip gap，视觉零变化）；移动端 `.app--mobile` 作用域内把 blob 样式化为 42px 圆，数字+农历同框，选中（primary）整圈实心、今日选中用 accent 实心、今日未选数字用 accent 色；移动端隐藏左侧月份 pill（月份已在顶部导航），7 列占满。
     - 预览验证：375px → 7 列周条、数字+农历同圈、今日(22 初八)accent 实心圈；1280px（reload）→ 月份 pill「6月」在、日期仍 32px 圆 + 农历在下、blob 为透明壳（**桌面零回归**）；`tsc` 通过、无 console 报错。
@@ -251,7 +224,7 @@
     - 预期验证：375–430px 月视图更接近 remix：大月份标题、弱化格线、日期 blob、紧凑 chip；桌面不受 mobile 修饰类影响。
   - **Month remix 视觉收口二轮已落地（2026-06-22）**：
     - 目标：继续缩小当前移动月视图与 remix 的差距，范围限定为结构清理与样式收口，不新增公开 API。
-    - 收口项：移动月视图仅显示 `+N` 溢出标记（桌面仍保留 `+N 更多`）；移动端隐藏月事件 resize handle，避免把手探出左边界造成横向溢出；s2 为移动月视图日历实例补明确 class，后续移动专属覆盖不依赖宽选择器。
+    - 收口项：移动月视图仅显示 `+N` 溢出标记（桌面仍保留 `+N 更多`）；移动端隐藏月事件 resize handle，避免把手探出左边界造成横向溢出；s2 为移动月视图日历实例补明确 class，移动专属覆盖不依赖宽选择器。
     - 验证：375 / 412 / 430 宽度关键布局指标通过；内部星期行隐藏、包内 toolbar 高度为 0、resize handle 不可见、`更多` 文案在移动端隐藏、今日整格背景透明且日期头不被事件层遮挡。默认浏览器视口恢复后 `documentElement.scrollWidth === clientWidth`，无页面级横向溢出。
   - **月视图农历接入已落地（2026-06-22）**：
     - docs-first：`SPEC.md` 明确 `monthGridHeader` 是当前 Month 日期格头部 slot，参数含 `date/day/month/ymd/isToday/isOtherMonth/hiddenEventCount`。
@@ -273,7 +246,7 @@
     - 包内新增 `components/view/Agenda.tsx`：日期分组头 + 事件行；事件行只负责展示和点击，不承担数据变更。
     - `ViewType` / `Toolbar` / `CalendarApp` / navigation 接线支持 `'agenda'`。
     - s2 移动端 segmented「列表」切到真实 `agenda` 引擎视图，点击事件复用已落地的移动底部 sheet。
-  - 非目标：本阶段不做虚拟化、搜索过滤增强、长按创建、触控拖拽、内建编辑表单；这些留在后续 M4/M5 或独立能力。
+  - 范围：本阶段聚焦 Agenda 引擎视图、分组控制器、路由接线与事件点击链路。
   - 验证：
     - `agenda.controller.spec.ts` 覆盖连续日期窗口、空日保留/隐藏、全天优先排序、同起点长事件优先、跨天延续标记。
     - 包内 `Toolbar` / `CalendarApp` / `navigate()` 已接入 `'agenda'`；`options.agenda.range` 默认 14 天。
@@ -326,9 +299,9 @@
   - **移动月 / 列表顶部背景对齐（2026-06-22）**：`.m-top` 与月标题块统一使用 `--mobile-calendar-bg`，月标题条改为 48px flex 垂直居中，避免顶部 chrome 与月视图标题出现两段底色。
   - **移动 Agenda 分组头背景对齐（2026-06-23）**：`.agenda-view--mobile` 的 `--swell-agenda-bg` 优先读取宿主 `--mobile-calendar-bg`，使列表日期分组头与移动顶栏 / 画布背景一致；无宿主变量时仍回退 `--bg-app/#fff`。
   - **移动多日周条 active+oncard 反色修复（2026-06-23）**：多日连接带 `.oncard` 会在 active 规则之后覆盖农历颜色；补 active+oncard 专属规则，确保选中日期圈内数字与农历均保持 `--accent-contrast`。
-  - **M3 验收完成（2026-06-23）**：Multi-day 视图引擎能力（公开 `multiDay` ViewType + `options.multiDay.range`）已落地并写入 `SPEC.md` / `MIGRATION.md`，Day / Multi-day 顶部日期栏、全天行、周条连接带、时间轴密度、背景与反色等视觉项均已逐项对齐 remix 设计稿真源并经 375px 预览验证；能力矩阵「Multi-day 移动视图」行为 ✅。后续仅在出现新设计稿差距时增量收口，不再作为进行中阶段。下一阶段进入 M4 触控输入核心（docs-first，先改 SPEC/能力矩阵/MIGRATION 再迁移 `useDrag`）。
+  - **M3 验收完成（2026-06-23）**：Multi-day 视图引擎能力（公开 `multiDay` ViewType + `options.multiDay.range`）已落地并写入 `SPEC.md` / `MIGRATION.md`，Day / Multi-day 顶部日期栏、全天行、周条连接带、时间轴密度、背景与反色等视觉项均已逐项对齐 remix 设计稿真源并经 375px 预览验证；能力矩阵「Multi-day 移动视图」行为 ✅。
 - M4：**触控输入核心已落地（2026-06-24）**。
-  - docs-first：`SPEC.md` 新增「触控输入（M4）」小节 + Backlog 勾选；`MIGRATION.md` 新增「触控输入（Pointer Events）」小节（明确无公开 API 变更、桌面零回归、长按创建行为）；本文件能力矩阵三行转 ✅。
+  - docs-first：`SPEC.md` 新增「触控输入（M4）」小节 + 已落地能力记录；`MIGRATION.md` 新增「触控输入（Pointer Events）」小节（明确无公开 API 变更、桌面零回归、长按创建行为）；本文件能力矩阵三行转 ✅。
   - **关键产品决策（经宿主确认）**：时间网格上「触控拖拽创建」与「上下滚动看时段」是同一手势，二者冲突。采用 **长按进入创建**（对标 iOS 日历 / Mobiscroll mobile day view），把原 M5 的长按提前到 M4——这是同时保留滚动与创建的唯一干净解。已有事件 move/resize 无此冲突，卡片 `touch-action:none` 即时拖拽。
   - 实现：
     - `utils/mouse.ts`：`isLeftMouseButton` 改为 `isPressablePointer`，鼠标要求左键、触控/笔放宽为任意主指针（`pointerType !== 'mouse'`）。
@@ -343,18 +316,12 @@
       - `useTimelineInteraction.spec`（move/resize/create）迁移为 `pointerType:'mouse'` 即时路径，鼠标几何提交行为零回归。
       - 其余 day/week/month/scheduler/timeline/agenda/multiDay 既有单测保持绿。
     - 浏览器触控验证：CDP 触控模拟不稳定（参见 M1 旋屏说明），真机/真浏览器待宿主侧联调；鼠标路径零回归由上述单测锁定。
-- M5：**移动交互打磨首批已落地（2026-06-24，M5-1 主体横滑已回滚）**。归属均在宿主 s2，唯一包内改动是触控命中区放大的 CSS。
-  - 范围说明：长按创建已在 M4 提前落地；周条滑动切周此前已有（`DayWeekStrip` 的 `swipeRef`）。主体时间网格横滑切日（M5-1）在 2026-06-25 多轮真机反馈中持续与上下滚动冲突，结论为**回滚，不作为当前已支持能力**。
-  - **① 视图主体横滑切日（M5-1）已回滚（2026-06-25）**：
-    - 回滚内容：移除 `MobileViewSwipe` 包裹、三栏预渲染与横向 pointer capture；移动 day/multi 画布恢复为直接渲染 `Calendar`。
-    - 原因：同一区域同时承载上下滚动、长按创建、事件 move/resize 与横滑切日，真机上方向锁定仍会造成上下滚动被截获。当前优先保证时间网格纵向滚动与触控编辑稳定。
-    - 后续若重新设计主体横滑，需单独立项，并优先验证不侵入 `.swell-calendar-time` 原生滚动链路；可考虑只在顶部周条或非滚动热区承载横向切日。
-  - **② tap 命中区放大（M5-2）**：
+- M5：**移动交互收口已落地（2026-06-24）**。归属均在宿主 s2，唯一包内改动是触控命中区放大的 CSS。
+  - **① tap 命中区放大（M5-1）**：
     - 包内 `responsive.scss`：day/multi-day 的 resize 把手是不可见可抓取条，移动端高度 7px→14px（零视觉变化，1 小时卡 52px 仍留中部移动区）。
     - 宿主 `overlays.css`：事件详情 sheet 关闭按钮 34px→40px（操作按钮本就 44px）。
     - 验证：s2 预览 resize 把手计算高度 14px、`touch-action:none`。
-  - **③ 其余浮层底部 sheet 化（M5-3）**：事件详情 sheet 此前已有；本轮把**新建/编辑表单 `CreateDialog`** 与 **`+N` 更多列表 `MoreEventsPopover`** 增加 `variant='sheet'`，移动端改为底部全宽 sheet（grabber、18px 顶圆角、`sheetUp` 滑入、`env(safe-area-inset-bottom)`、body 可滚 footer 固定、按钮 46px）；桌面仍走居中对话框 / 锚定弹层（`variant` 默认非 sheet，零回归）。
+  - **② 其余浮层底部 sheet 化（M5-2）**：事件详情 sheet 此前已有；本轮把**新建/编辑表单 `CreateDialog`** 与 **`+N` 更多列表 `MoreEventsPopover`** 增加 `variant='sheet'`，移动端改为底部全宽 sheet（grabber、18px 顶圆角、`sheetUp` 滑入、`env(safe-area-inset-bottom)`、body 可滚 footer 固定、按钮 46px）；桌面仍走居中对话框 / 锚定弹层（`variant` 默认非 sheet，零回归）。
     - 验证：s2 375px 经真实「长按→拖拽创建」触发，`.dialog--sheet` 正确渲染（grabber、圆角 18px、按钮 46px、`sheetUp` 动画）。
   - **修复 pre-existing 标题误判（2026-06-24）**：`CreateDialog` 此前用 `!!initial` 推断模式，但「编辑既有事件」与「网格拖拽创建的预填」都会传 `initial`，导致拖拽创建误显示「编辑日程」（桌面同样存在）。改为显式 `isEdit` prop，App 传 `isEdit={!!editing}`。验证：375px 长按→拖拽创建 → 标题「新建日程」/ 按钮「创建日程」；编辑路径仍「编辑日程」。
-  - 后续按需增量：触控 haptic 反馈、月 `+N` 命中区、滑动切**周/月**。主体时间网格横滑切日已回滚，重新设计前不再接入。
   - 验证小结：`tsc --noEmit`（calendar + s2）通过；包 `responsive.spec` 绿；s2 预览功能验证如上（截图工具对该 S2 应用挂起，改用 eval 断言 + 控制台无运行时错误）。

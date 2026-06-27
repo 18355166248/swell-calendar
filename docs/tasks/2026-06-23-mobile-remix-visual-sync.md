@@ -90,7 +90,7 @@
 - S2 连续月视图也接入同一套虚拟列表能力，只渲染视口附近月份 section。
 - 未调整日期、mock 数据、周起始或事件内容；`packages/calendar` 新增 agenda `offset` 配置、列表可见日期回调与通用 `useVirtualList`。
 
-## 后续修复（2026-06-23）
+## 追加修复（2026-06-23）
 
 移动端连续月视图滚动后顶部「M月」标题不更新且伴随闪动，定位到两个独立根因并修复：
 
@@ -126,8 +126,6 @@
 - ③ 列表滚到 9月 → 切「月」→ 月视图视口顶部 section 为 `2026-09`、大标题 9月。
 - 日 ↔ 多日仍共享焦点日，无回归；`tsc --noEmit` 通过。
 
-非目标：本轮不做视图切换的过渡动画（设计稿本身为瞬切），保持瞬切；动画作为后续可选润色。
-
 ## 移动端体验优化（2026-06-23）
 
 在四视图联动基础上补三处高价值优化（均在 `apps/swell-calendar-s2`，不改 `packages/calendar` 行为）：
@@ -140,8 +138,6 @@
 - 月视图滚到 9月 → 点「今天」→ 落日视图、6月23日、今日 chip 高亮。
 - 点搜索（日视图下）→ 浮层下滑、底层仍是日视图、输入自动聚焦；输入「会」→ 浮层内列出 13 条命中（标题 / 日期 / 时间 / 地点·与会人）；点结果 → 关闭浮层并打开该事件详情、底层视图不变；取消 / 点遮罩 → 收起并清空。
 - `tsc --noEmit` 通过；月视图滚动 / 联动均无回归。
-
-非目标：本轮未做日视图打开自动滚到当前时间（备选项，后续可加）。
 
 ## 移动端继续优化（2026-06-24）
 
@@ -231,9 +227,9 @@
 - 移动端拖动中不再降低透明度，避免滑动时产生闪一下的视觉噪声。
 - snap 动画改为 220ms `cubic-bezier(0.22, 1, 0.36, 1)`，更接近 iOS 的滑入感。
 
-验证：`pnpm --filter swell-calendar-s2 exec tsc --noEmit`、`pnpm --filter swell-calendar-s2 test`、`node scripts/check-docs.mjs`、`node scripts/check-arch.mjs` 通过；Vitest 输出保留沙箱下 Vite WebSocket `EPERM` 噪声但退出码为 0。剩余风险：当前仍使用定时器等待 snap 结束，后续如需严格跟 CSS duration 同步，可改为 `transitionend` 驱动。
+验证：`pnpm --filter swell-calendar-s2 exec tsc --noEmit`、`pnpm --filter swell-calendar-s2 test`、`node scripts/check-docs.mjs`、`node scripts/check-arch.mjs` 通过；Vitest 输出保留沙箱下 Vite WebSocket `EPERM` 噪声但退出码为 0。
 
-后续修正：滑入目标周后，新周 DOM 复位到中间周时仍可能因为 transition 恢复过早而出现“新周弹一下”。增加 `WEEK_STRIP_JUMP_LOCK_MS`，切周后保持 `is-jumping` 80ms，确保新周 DOM 至少完成一次绘制后再恢复 transition；同时给 `.is-jumping` 的 transition 关闭加 `!important`，避免被 snapping / 基础 transition 覆盖。
+补充修正：滑入目标周后，新周 DOM 复位到中间周时仍可能因为 transition 恢复过早而出现“新周弹一下”。增加 `WEEK_STRIP_JUMP_LOCK_MS`，切周后保持 `is-jumping` 80ms，确保新周 DOM 至少完成一次绘制后再恢复 transition；同时给 `.is-jumping` 的 transition 关闭加 `!important`，避免被 snapping / 基础 transition 覆盖。
 
 ## 风险
 

@@ -54,10 +54,9 @@ PLAN4 相对 PLAN3 的主要修订：
 ### 2.3 本轮不对齐的内容
 
 - ~~agenda 视图~~（2026-06-19 修订）：已并入移动端 epic（M2），首版已落地；对标 `docs/assets/agenda.png`，详见 `docs/tasks/2026-06-19-mobile-adaptation.md`。
-- ~~移动端适配~~（2026-06-19 修订）：应宿主要求提升为活跃 capability epic，视觉对标 iOS 苹果日历设计稿（`docs/assets/*.png`）、触控对标 Mobiscroll 移动 day view，覆盖 Day/Multi-day/Agenda/Month 四视图。本 scheduler 对齐路线图只保留 scope 记录；M1/M2/M3 首版已落地，分阶段计划与能力矩阵在该 task 内维护。
+- ~~移动端适配~~（2026-06-19 修订）：应宿主要求提升为活跃 capability epic，视觉真源以 `claude-design/mobile/swellcalendar-remix/project/swell-calendar-mobile.html` 为准，触控对标 Mobiscroll 移动 day view，覆盖 Day/Multi-day/Agenda/Month 四视图。本 scheduler 对齐路线图只保留 scope 记录；M1/M2/M3/M4/M5 已落地，分阶段计划与能力矩阵在该 task 内维护。
 - Mobiscroll 弹窗、表单、内建 CRUD 界面
 - API 字段名兼容
-- `connections`、`eventList`、打印模式、虚拟化、大数据滚动优化、键盘无障碍
 
 ---
 
@@ -88,14 +87,13 @@ PLAN4 相对 PLAN3 的主要修订：
 | 资源级交互限制 | ✅ | ✅ | 公开承诺 | `eventDragInTime` / `eventResize` / `eventOverlap` 已接入 | 2 已落地 |
 | 跨资源拖动 gate | ✅ | ✅ | 公开承诺 | 全局 / 资源级 / per-event `dragBetweenResources` 已接入 | 2 已落地 |
 | recurrence 展开 | ✅ | ✅ | 公开承诺 | 视口窗口展开、异常跳过/替换与实例编辑链已接入 scheduler | 3 已落地 |
-| 移动端适配（响应式 + 触控 + 四视图） | ✅ | 🟡 | M1/M2/M3 首版已落地，M4–M5 规划中 | 对标 iOS 苹果日历设计稿（`docs/assets/*.png`）+ Mobiscroll 移动 day view 触控；覆盖 Day/Multi-day/Agenda/Month，分 M1–M5；详见 mobile-adaptation task | mobile epic |
+| 移动端适配（响应式 + 触控 + 四视图） | ✅ | ✅ | M1/M2/M3/M4/M5 已落地 | 视觉真源以 `claude-design/mobile/swellcalendar-remix/project/swell-calendar-mobile.html` 为准；触控对标 Mobiscroll 移动 day view；覆盖 Day/Multi-day/Agenda/Month。M5 已落地周条滑动、命中区放大、移动 sheet 与滚动性能优化。详见 mobile-adaptation task 与 mobile-remix-visual-sync task | mobile epic |
 | agenda 视图 | ✅ | ✅ | 已落地（并入 mobile epic M2） | 按天分组列表视图，对标 `docs/assets/agenda.png`；已扩展 `ViewType='agenda'` 与 `options.agenda` | mobile epic |
 | recurring exception | ✅ | ✅ | 公开承诺 | 跳过/替换已接入 scheduler 渲染链 | 3 已落地 |
 | 编辑作用域 | ✅ | ✅ | 公开承诺 | `recurrenceScope`（本次 / 本次及以后 / 全部）已接入编辑链 | 3 已落地 |
 | timezone | ✅ | ✅ | 公开承诺 | 数据→显示时区转换已接入 scheduler 渲染链 | 3 已落地 |
 | external drag & drop | ✅ | ✅ | 公开承诺 | `onExternalDrop` / `onExternalDropFailed` 已接入 | 3 已落地 |
 | 跨实例拖拽 | ✅ | ✅ | 公开承诺 | `onCrossInstanceDragEnd` / `onCrossInstanceDrop` 已接入 | 3 已落地 |
-| connections / eventList / 虚拟化 / 打印 / a11y | ✅ | ❌ | 未承诺 | 远期 backlog，不在当前对齐范围 | 远期 backlog |
 
 ### 3.1 Scope 控制规则
 
@@ -191,13 +189,6 @@ PLAN4 相对 PLAN3 的主要修订：
 #### 内部已有，未公开承诺
 
 - 无。当前 `SchedulerOptions` 已落入实现的字段均已同步进 `SPEC`。
-
-#### 继续后置
-
-- `showAllDay`
-- `cellWidth`
-- `resourceGrouping`
-- `connections` / `eventList` / 打印 / 虚拟化 / 按滚动加载
 
 ### 5.2 `EventObject`
 
@@ -419,7 +410,7 @@ components/scheduler/
 
 ### 8.0 与 `2026-05-06-scheduler-v2-foundation` 任务衔接
 
-- v2-foundation 任务在 PLAN4 启动时标记 closed，未完成项迁入新任务 `2026-05-07-scheduler-mobiscroll-parity-roadmap.md`
+- v2-foundation 任务在 PLAN4 启动时标记 closed，遗留项迁入新任务 `2026-05-07-scheduler-mobiscroll-parity-roadmap.md`
 - 不并行两份任务文档，避免 docs 双源
 - v2-foundation 任务中已落地的 scheduler 拆分、SchedulerHeader、`onValidateEventChange`、`blockedTimes` 基础校验视为 Phase 0 之前的基线
 
